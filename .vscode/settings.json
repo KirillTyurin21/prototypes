@@ -10,6 +10,10 @@
         "/^node node_modules/@angular/cli/bin/ng\\.js build 2>&1 \\| Out-String$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "git commit": true,
+        "gh": true,
+        "git remote": true,
+        "git add": true
     }
 }
