@@ -1,0 +1,15 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "npm install": true,
+        "Set-ExecutionPolicy": true,
+        "npx ng": true,
+        "/^node \\./node_modules/@angular/cli/bin/ng\\.js build 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node node_modules/@angular/cli/bin/ng\\.js build 2>&1 \\| Out-String$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
