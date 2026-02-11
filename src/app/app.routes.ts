@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { accessGuard } from './shared/access.guard';
 
 /**
  * Главные маршруты приложения.
@@ -6,8 +7,9 @@ import { Routes } from '@angular/router';
  * Для добавления нового прототипа:
  * 1. Создай папку в src/app/prototypes/<имя>/
  * 2. Создай файл маршрутов (demo.routes.ts)
- * 3. Добавь loadChildren ниже
+ * 3. Добавь loadChildren ниже (обёрнутый в protected-prototype)
  * 4. Добавь запись в prototypes.registry.ts
+ * 5. Добавь код в access-codes.ts
  */
 export const routes: Routes = [
   {
@@ -20,39 +22,89 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/home.component').then(m => m.HomeComponent),
       },
-      // === ПРОТОТИПЫ ===
+      // === ПРОТОТИПЫ (защищены кодом доступа) ===
       {
         path: 'prototype/demo',
-        loadChildren: () =>
-          import('./prototypes/demo/demo.routes').then(m => m.DEMO_ROUTES),
+        canActivate: [accessGuard],
+        loadComponent: () =>
+          import('./components/layout/protected-prototype.component').then(
+            m => m.ProtectedPrototypeComponent
+          ),
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./prototypes/demo/demo.routes').then(m => m.DEMO_ROUTES),
+          },
+        ],
       },
       {
         path: 'prototype/iikoweb-screens',
-        loadChildren: () =>
-          import('./prototypes/iikoweb-screens/iikoweb-screens.routes').then(
-            m => m.IIKOWEB_SCREENS_ROUTES
+        canActivate: [accessGuard],
+        loadComponent: () =>
+          import('./components/layout/protected-prototype.component').then(
+            m => m.ProtectedPrototypeComponent
           ),
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./prototypes/iikoweb-screens/iikoweb-screens.routes').then(
+                m => m.IIKOWEB_SCREENS_ROUTES
+              ),
+          },
+        ],
       },
       {
         path: 'prototype/iiko-front-plugins',
-        loadChildren: () =>
-          import('./prototypes/iiko-front-plugins/iiko-front-plugins.routes').then(
-            m => m.IIKO_FRONT_PLUGINS_ROUTES
+        canActivate: [accessGuard],
+        loadComponent: () =>
+          import('./components/layout/protected-prototype.component').then(
+            m => m.ProtectedPrototypeComponent
           ),
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./prototypes/iiko-front-plugins/iiko-front-plugins.routes').then(
+                m => m.IIKO_FRONT_PLUGINS_ROUTES
+              ),
+          },
+        ],
       },
       {
         path: 'prototype/pudu-yandex-pay',
-        loadChildren: () =>
-          import('./prototypes/pudu-yandex-pay/pudu-yandex-pay.routes').then(
-            m => m.PUDU_YANDEX_PAY_ROUTES
+        canActivate: [accessGuard],
+        loadComponent: () =>
+          import('./components/layout/protected-prototype.component').then(
+            m => m.ProtectedPrototypeComponent
           ),
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./prototypes/pudu-yandex-pay/pudu-yandex-pay.routes').then(
+                m => m.PUDU_YANDEX_PAY_ROUTES
+              ),
+          },
+        ],
       },
       {
         path: 'prototype/iiko-front-pudu-plugin',
-        loadChildren: () =>
-          import('./prototypes/iiko-front-pudu-plugin/pudu-plugin.routes').then(
-            m => m.PUDU_PLUGIN_ROUTES
+        canActivate: [accessGuard],
+        loadComponent: () =>
+          import('./components/layout/protected-prototype.component').then(
+            m => m.ProtectedPrototypeComponent
           ),
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./prototypes/iiko-front-pudu-plugin/pudu-plugin.routes').then(
+                m => m.PUDU_PLUGIN_ROUTES
+              ),
+          },
+        ],
       },
       // Добавляй новые прототипы здесь
     ],

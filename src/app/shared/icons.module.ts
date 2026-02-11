@@ -63,6 +63,11 @@ import {
   Radio,
   Printer,
   QrCode,
+  // Access control
+  Lock,
+  LogOut,
+  Eye,
+  EyeOff,
 } from 'lucide-angular';
 
 /**
@@ -134,6 +139,11 @@ const icons = {
   Radio,
   Printer,
   QrCode,
+  // Access control
+  Lock,
+  LogOut,
+  Eye,
+  EyeOff,
 };
 
 @NgModule({

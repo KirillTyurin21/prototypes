@@ -17,3 +17,4 @@ export {
   UiSkeletonComponent,
 } from './feedback.component';
 export type { BreadcrumbItem } from './feedback.component';
+export { CodeInputModalComponent } from './code-input-modal.component';
