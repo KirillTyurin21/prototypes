@@ -34,6 +34,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'prototype/iiko-front-plugins',
+        loadChildren: () =>
+          import('./prototypes/iiko-front-plugins/iiko-front-plugins.routes').then(
+            m => m.IIKO_FRONT_PLUGINS_ROUTES
+          ),
+      },
+      {
         path: 'prototype/pudu-yandex-pay',
         loadChildren: () =>
           import('./prototypes/pudu-yandex-pay/pudu-yandex-pay.routes').then(

@@ -53,6 +53,10 @@ import {
   Bot,
   MapPin,
   XCircle,
+  // POS dialogs
+  WifiOff,
+  ShieldAlert,
+  CreditCard,
 } from 'lucide-angular';
 
 /**
@@ -114,6 +118,10 @@ const icons = {
   Bot,
   MapPin,
   XCircle,
+  // POS dialogs
+  WifiOff,
+  ShieldAlert,
+  CreditCard,
 };
 
 @NgModule({

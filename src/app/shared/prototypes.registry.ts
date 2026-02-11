@@ -11,6 +11,12 @@ export interface PrototypeEntry {
 
 export const PROTOTYPES: PrototypeEntry[] = [
   {
+    path: '/prototype/iiko-front-plugins',
+    label: 'Плагины iikoFront — Макеты окон',
+    icon: 'credit-card',
+    description: 'Макеты модальных окон (попапов) плагинов кассового терминала iikoFront',
+  },
+  {
     path: '/prototype/demo',
     label: 'Демо-прототип',
     icon: 'puzzle',
