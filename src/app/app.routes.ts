@@ -47,6 +47,13 @@ export const routes: Routes = [
             m => m.PUDU_YANDEX_PAY_ROUTES
           ),
       },
+      {
+        path: 'prototype/iiko-front-pudu-plugin',
+        loadChildren: () =>
+          import('./prototypes/iiko-front-pudu-plugin/pudu-plugin.routes').then(
+            m => m.PUDU_PLUGIN_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
     ],
   },

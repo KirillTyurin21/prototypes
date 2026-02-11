@@ -47,7 +47,7 @@ import { MOCK_PLUGINS } from '../data/mock-data';
       <div class="space-y-4">
         <div
           *ngFor="let plugin of plugins"
-          (click)="goToPlugin(plugin.id)"
+          (click)="goToPlugin(plugin)"
           class="group bg-surface rounded-xl border border-border hover:border-iiko-primary/40
                  hover:shadow-card-hover transition-all duration-200 cursor-pointer overflow-hidden"
         >
@@ -103,7 +103,11 @@ export class PluginsMainScreenComponent {
     'Ошибки', 'Загрузка', 'Успех',
   ];
 
-  goToPlugin(pluginId: string): void {
-    this.router.navigate(['/prototype/iiko-front-plugins', pluginId]);
+  goToPlugin(plugin: typeof MOCK_PLUGINS[0]): void {
+    if (plugin.link) {
+      this.router.navigateByUrl(plugin.link);
+    } else {
+      this.router.navigate(['/prototype/iiko-front-plugins', plugin.id]);
+    }
   }
 }

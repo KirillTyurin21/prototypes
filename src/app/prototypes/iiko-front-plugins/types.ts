@@ -6,6 +6,7 @@ export interface PluginEntry {
   description: string;
   icon: string;
   dialogCount: number;
+  link?: string; // Внешняя ссылка на отдельный прототип
 }
 
 export interface DialogEntry {

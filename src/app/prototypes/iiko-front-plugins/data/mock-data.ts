@@ -9,6 +9,15 @@ export const MOCK_PLUGINS: PluginEntry[] = [
     icon: 'credit-card',
     dialogCount: 11,
   },
+  {
+    id: 'pudu-robots',
+    name: 'PUDU — Управление роботами',
+    description:
+      'Плагин POS-терминала для управления роботами PUDU: отправка меню, уборка посуды, QR-оплата, маркетинг-круиз.',
+    icon: 'bot',
+    dialogCount: 11,
+    link: '/prototype/iiko-front-pudu-plugin',
+  },
 ];
 
 export const MOCK_DIALOGS: Record<string, DialogEntry[]> = {

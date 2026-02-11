@@ -40,6 +40,10 @@
         "/^node node_modules/@angular/cli/bin/ng\\.js build 2>&1$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd \"d:\\\\1Документы\\\\Задачи iiko\\\\Прототипы\"; node node_modules/@angular/cli/bin/ng\\.js build 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

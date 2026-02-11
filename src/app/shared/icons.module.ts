@@ -57,6 +57,12 @@ import {
   WifiOff,
   ShieldAlert,
   CreditCard,
+  // PUDU POS plugin
+  Utensils,
+  Package,
+  Radio,
+  Printer,
+  QrCode,
 } from 'lucide-angular';
 
 /**
@@ -122,6 +128,12 @@ const icons = {
   WifiOff,
   ShieldAlert,
   CreditCard,
+  // PUDU POS plugin
+  Utensils,
+  Package,
+  Radio,
+  Printer,
+  QrCode,
 };
 
 @NgModule({

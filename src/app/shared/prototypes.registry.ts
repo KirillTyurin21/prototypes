@@ -34,5 +34,11 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'bot',
     description: 'Панель администрирования роботов PUDU: регистрация, маппинг столов, настройки сценариев',
   },
+  {
+    path: '/prototype/iiko-front-pudu-plugin',
+    label: 'PUDU — Плагин iikoFront',
+    icon: 'bot',
+    description: 'Плагин POS-терминала: управление роботами PUDU, отправка меню, уборка, QR-оплата',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];
