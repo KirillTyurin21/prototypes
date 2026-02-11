@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-export const PUDU_YANDEX_PAY_ROUTES: Routes = [
+export const PUDU_ADMIN_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>

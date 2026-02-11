@@ -29,7 +29,7 @@ export const PROTOTYPES: PrototypeEntry[] = [
     description: 'Прототип модуля управления гостевыми экранами и табло прибытия',
   },
   {
-    path: '/prototype/pudu-yandex-pay',
+    path: '/prototype/pudu-admin',
     label: 'Роботы PUDU',
     icon: 'bot',
     description: 'Панель администрирования роботов PUDU: регистрация, маппинг столов, настройки сценариев',

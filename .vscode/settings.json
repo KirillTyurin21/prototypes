@@ -48,6 +48,13 @@
         "/^cmd /c \"npx ng build 2>&1\"$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "git mv": true,
+        "Rename-Item": true,
+        "Set-Content": true,
+        "/^cmd /c \"cd /d d:\\\\1Документы\\\\Задачи iiko\\\\Прототипы && npx ng build 2>&1\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

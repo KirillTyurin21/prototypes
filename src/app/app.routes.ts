@@ -73,7 +73,7 @@ export const routes: Routes = [
         ],
       },
       {
-        path: 'prototype/pudu-yandex-pay',
+        path: 'prototype/pudu-admin',
         canActivate: [accessGuard],
         loadComponent: () =>
           import('./components/layout/protected-prototype.component').then(
@@ -83,8 +83,8 @@ export const routes: Routes = [
           {
             path: '',
             loadChildren: () =>
-              import('./prototypes/pudu-yandex-pay/pudu-yandex-pay.routes').then(
-                m => m.PUDU_YANDEX_PAY_ROUTES
+              import('./prototypes/pudu-admin/pudu-admin.routes').then(
+                m => m.PUDU_ADMIN_ROUTES
               ),
           },
         ],

@@ -569,7 +569,7 @@ export class MappingScreenComponent implements OnInit {
   // ── Navigation ─────────────────────────────────────────
 
   goToRobots(): void {
-    this.router.navigate(['/prototype/pudu-yandex-pay']);
+    this.router.navigate(['/prototype/pudu-admin']);
   }
 
   // ── Toast ──────────────────────────────────────────────

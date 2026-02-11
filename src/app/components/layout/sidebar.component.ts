@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
 import { PROTOTYPES, PrototypeEntry } from '@/shared/prototypes.registry';
 import { AccessCodeService } from '@/shared/access-code.service';
+import { ACCESS_CONFIG, GroupAccessEntry } from '@/shared/access-codes';
 import { CodeInputModalComponent } from '@/components/ui/code-input-modal.component';
 
 @Component({
@@ -42,7 +43,40 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
           <span *ngIf="!collapsed">Главная</span>
         </a>
 
-        <!-- Кнопка "Список прототипов" -->
+        <!-- Групповые секции (для клиентов с групповым доступом) -->
+        <div *ngFor="let group of accessibleGroups" class="pt-2">
+          <button
+            (click)="toggleGroup(group.code)"
+            class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer text-sidebar-text hover:bg-sidebar-hover transition-colors"
+            [ngClass]="{ 'bg-sidebar-active text-white': isGroupExpanded(group.code) }"
+          >
+            <lucide-icon name="bot" [size]="18"></lucide-icon>
+            <span *ngIf="!collapsed" class="flex-1 text-left truncate">{{ group.label }}</span>
+            <lucide-icon
+              *ngIf="!collapsed"
+              [name]="isGroupExpanded(group.code) ? 'chevron-up' : 'chevron-down'"
+              [size]="14"
+              class="opacity-50"
+            ></lucide-icon>
+          </button>
+
+          <div *ngIf="isGroupExpanded(group.code)" class="space-y-0.5 pl-2">
+            <a
+              *ngFor="let proto of getGroupPrototypes(group)"
+              [routerLink]="proto.path"
+              class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm cursor-pointer"
+              [ngClass]="isActive(proto.path) ? 'bg-sidebar-active text-white' : 'text-sidebar-text hover:bg-sidebar-hover'"
+            >
+              <lucide-icon [name]="proto.icon" [size]="16"></lucide-icon>
+              <span *ngIf="!collapsed" class="truncate">{{ proto.label }}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Разделитель если есть группы -->
+        <div *ngIf="accessibleGroups.length > 0" class="my-1 border-t border-white/5"></div>
+
+        <!-- Кнопка "Список прототипов" (мастер-доступ) -->
         <button
           (click)="toggleList()"
           class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer text-sidebar-text hover:bg-sidebar-hover transition-colors"
@@ -64,24 +98,17 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
           ></lucide-icon>
         </button>
 
-        <!-- Раскрытый список прототипов -->
+        <!-- Раскрытый полный список прототипов (мастер-доступ) -->
         <div *ngIf="showList && hasListAccess" class="space-y-0.5 pl-2">
           <a
-            *ngFor="let proto of visiblePrototypes"
+            *ngFor="let proto of allPrototypes"
             [routerLink]="proto.path"
-            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer"
+            class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm cursor-pointer"
             [ngClass]="isActive(proto.path) ? 'bg-sidebar-active text-white' : 'text-sidebar-text hover:bg-sidebar-hover'"
           >
             <lucide-icon [name]="proto.icon" [size]="16"></lucide-icon>
-            <span *ngIf="!collapsed">{{ proto.label }}</span>
+            <span *ngIf="!collapsed" class="truncate">{{ proto.label }}</span>
           </a>
-
-          <div
-            *ngIf="visiblePrototypes.length === 0 && !collapsed"
-            class="px-3 py-2 text-xs text-sidebar-text-muted italic"
-          >
-            Нет доступных прототипов
-          </div>
         </div>
       </nav>
 
@@ -129,6 +156,7 @@ export class SidebarComponent {
   showList = false;
   showCodeModal = false;
   codeError = '';
+  expandedGroups = new Set<string>();
 
   get hasListAccess(): boolean {
     return this.accessService.hasAccessToList();
@@ -138,13 +166,31 @@ export class SidebarComponent {
     return this.accessService.hasMasterAccess();
   }
 
-  get visiblePrototypes(): PrototypeEntry[] {
-    if (this.accessService.hasMasterAccess()) return PROTOTYPES;
-    const slugs = this.accessService.getAccessiblePrototypeSlugs();
+  get allPrototypes(): PrototypeEntry[] {
+    return PROTOTYPES;
+  }
+
+  get accessibleGroups(): GroupAccessEntry[] {
+    return this.accessService.getAccessibleGroups();
+  }
+
+  getGroupPrototypes(group: GroupAccessEntry): PrototypeEntry[] {
     return PROTOTYPES.filter(p => {
       const slug = p.path.replace('/prototype/', '');
-      return slugs.includes(slug);
+      return group.prototypeSlugs.includes(slug);
     });
+  }
+
+  isGroupExpanded(groupCode: string): boolean {
+    return this.expandedGroups.has(groupCode);
+  }
+
+  toggleGroup(groupCode: string): void {
+    if (this.expandedGroups.has(groupCode)) {
+      this.expandedGroups.delete(groupCode);
+    } else {
+      this.expandedGroups.add(groupCode);
+    }
   }
 
   isActive(path: string): boolean {
@@ -178,6 +224,7 @@ export class SidebarComponent {
   logout(): void {
     this.accessService.revokeAll();
     this.showList = false;
+    this.expandedGroups.clear();
     this.router.navigateByUrl('/');
   }
 }

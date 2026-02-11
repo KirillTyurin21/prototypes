@@ -49,7 +49,7 @@ export const ACCESS_CONFIG: AccessConfig = {
       label: 'Pudu — Все прототипы',
       prototypeSlugs: [
         'iiko-front-pudu-plugin',
-        'pudu-yandex-pay',
+        'pudu-admin',
       ],
     },
   ],
@@ -59,7 +59,7 @@ export const ACCESS_CONFIG: AccessConfig = {
       code: 'PUDU_FRONT_01',
       ttlDays: 7,
     },
-    'pudu-yandex-pay': {
+    'pudu-admin': {
       code: 'PUDU_ADMIN_01',
       ttlDays: 7,
     },

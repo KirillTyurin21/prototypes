@@ -44,7 +44,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  // Pudu Yandex Pay prototype
+  // Pudu Admin prototype
   RefreshCw,
   Loader2,
   Circle,
@@ -120,7 +120,7 @@ const icons = {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  // Pudu Yandex Pay prototype
+  // Pudu Admin prototype
   RefreshCw,
   Loader2,
   Circle,

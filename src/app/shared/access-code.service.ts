@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ACCESS_CONFIG } from './access-codes';
+import { ACCESS_CONFIG, GroupAccessEntry } from './access-codes';
 
 const LS_MASTER = 'iiko_master_access';
 const LS_LIST = 'iiko_list_access';
@@ -132,6 +132,19 @@ export class AccessCodeService {
     }
 
     return Array.from(slugs);
+  }
+
+  /**
+   * Возвращает группы, к которым у пользователя есть доступ.
+   * При мастер-доступе возвращает пустой массив (не нужны — всё доступно через полный список).
+   */
+  getAccessibleGroups(): GroupAccessEntry[] {
+    if (this.hasMasterAccess()) return [];
+
+    return ACCESS_CONFIG.groups.filter(group => {
+      const groupKey = LS_GROUP_PREFIX + group.code;
+      return this.isStoredAccessValid(groupKey);
+    });
   }
 
   /**

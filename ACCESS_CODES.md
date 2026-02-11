@@ -60,7 +60,7 @@ https://kirilltyurin21.github.io/iiko-prototypes/#/prototype/iiko-front-pudu-plu
 
 **Ссылка:**
 ```
-https://kirilltyurin21.github.io/iiko-prototypes/#/prototype/pudu-yandex-pay?code=PUDU_ADMIN_01
+https://kirilltyurin21.github.io/iiko-prototypes/#/prototype/pudu-admin?code=PUDU_ADMIN_01
 ```
 
 ---

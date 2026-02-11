@@ -90,7 +90,7 @@ export class PuduPrototypeComponent {
 
   isActive(route: string): boolean {
     const currentUrl = this.router.url;
-    const basePath = '/prototype/pudu-yandex-pay';
+    const basePath = '/prototype/pudu-admin';
     if (route === './') {
       return currentUrl === basePath || currentUrl === basePath + '/';
     }
