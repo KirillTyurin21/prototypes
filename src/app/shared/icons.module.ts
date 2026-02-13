@@ -63,6 +63,7 @@ import {
   Radio,
   Printer,
   QrCode,
+  Octagon,
   // Access control
   Lock,
   LogOut,
@@ -141,6 +142,7 @@ const icons = {
   Radio,
   Printer,
   QrCode,
+  Octagon,
   // Access control
   Lock,
   LogOut,

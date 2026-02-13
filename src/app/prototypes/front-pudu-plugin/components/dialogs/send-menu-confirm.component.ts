@@ -27,8 +27,14 @@ import { IconsModule } from '@/shared/icons.module';
             <span class="text-sm font-medium">{{ robotName }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-sm text-gray-600">Фраза</span>
+            <span class="text-sm text-gray-600">Фраза у стола</span>
             <span class="text-sm font-medium italic">«{{ phrase }}»</span>
+          </div>
+          <!-- Фраза при заборе меню (D7.1, З-15) -->
+          <div class="h-px bg-gray-200"></div>
+          <div class="flex justify-between">
+            <span class="text-sm text-gray-600">Фраза при заборе</span>
+            <span class="text-sm font-medium italic">«{{ phrasePickup }}»</span>
           </div>
         </div>
 
@@ -52,6 +58,7 @@ export class SendMenuConfirmComponent {
   @Input() tableName = '';
   @Input() robotName = '';
   @Input() phrase = '';
+  @Input() phrasePickup = '';
   @Output() onCancel = new EventEmitter<void>();
   @Output() onConfirm = new EventEmitter<void>();
 }

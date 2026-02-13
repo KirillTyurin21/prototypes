@@ -45,8 +45,8 @@ export const MOCK_TABLES: OrderTable[] = [
 ];
 
 export const MOCK_ROBOTS: PuduRobot[] = [
-  { robot_id: 'PD2024060001', robot_name: 'BellaBot-01', status: 'idle' },
-  { robot_id: 'PD2024080042', robot_name: 'Ketty-02', status: 'busy' },
+  { robot_id: 'PD2024060001', robot_name: 'BellaBot-01', status: 'idle', after_action: 'idle' },
+  { robot_id: 'PD2024080042', robot_name: 'Ketty-02', status: 'busy', after_action: 'marketing' },
 ];
 
 export const MOCK_ACTIVE_TASKS: RobotTask[] = [
@@ -63,30 +63,40 @@ export const MOCK_ACTIVE_TASKS: RobotTask[] = [
 export const MOCK_SCENARIO_SETTINGS: ScenarioSettings = {
   send_menu: {
     phrase: 'Заберите, пожалуйста, меню',
+    phrase_url: '',
+    phrase_pickup: 'Положите меню для стола №{N}',
+    phrase_pickup_url: '',
     wait_time: 30,
-    after_action: 'idle',
+    wait_time_pickup: 30,
   },
   cleanup: {
+    mode: 'manual',
     phrase_arrival: 'Пожалуйста, поставьте грязную посуду на поднос',
+    phrase_arrival_url: '',
     wait_time: 90,
     phrase_later: 'Я приеду позже за посудой',
+    phrase_later_url: '',
   },
   qr_payment: {
     cashier_phrase: 'Положите чек для стола {N}',
+    cashier_phrase_url: '',
     cashier_timeout: 30,
     guest_wait_time: 120,
     phrase_success: 'Спасибо за оплату!',
+    phrase_success_url: '',
     phrase_failure: 'К сожалению, оплата не прошла. Обратитесь к официанту',
-    after_action: 'idle',
+    phrase_failure_url: '',
   },
   marketing: {
     robot_id: 'PD2024080042',
     auto_cruise_on_idle: true,
   },
-  general: {
-    default_robot_id: 'PD2024060001',
-  },
 };
+
+/** Автоназначение робота (вместо general.default_robot_id) */
+export function getAssignedRobot(): PuduRobot {
+  return MOCK_ROBOTS.find(r => r.status === 'idle') || MOCK_ROBOTS[0];
+}
 
 export const MOCK_NOTIFICATIONS: PuduNotification[] = [
   {
@@ -96,6 +106,7 @@ export const MOCK_NOTIFICATIONS: PuduNotification[] = [
     message: 'Код ошибки: ROBOT_STUCK. Проверьте препятствия на маршруте',
     timestamp: new Date('2026-02-11T14:22:30'),
     dismissed: false,
+    is_estop: false,
   },
   {
     id: 'notif-002',
@@ -104,6 +115,38 @@ export const MOCK_NOTIFICATIONS: PuduNotification[] = [
     message: 'NE API не отвечает. Повтор через 5 сек...',
     timestamp: new Date('2026-02-11T14:23:00'),
     dismissed: false,
+    is_estop: false,
+  },
+];
+
+/** Кастомные ошибки NE (D5, З-39) */
+export const MOCK_NE_ERROR_NOTIFICATIONS: PuduNotification[] = [
+  {
+    id: 'notif-003',
+    type: 'error',
+    title: 'Робот BellaBot-01: ручной режим',
+    message: 'Кто-то зашёл в настройки робота через физическое меню. Робот переведён в ручной режим и недоступен для задач',
+    timestamp: new Date('2026-02-11T14:25:00'),
+    dismissed: false,
+    is_estop: false,
+  },
+  {
+    id: 'notif-004',
+    type: 'error',
+    title: 'Робот Ketty-02: препятствие на маршруте',
+    message: 'Робот не может продолжить движение — обнаружено препятствие. Код: OBSTACLE_DETECTED',
+    timestamp: new Date('2026-02-11T14:26:00'),
+    dismissed: false,
+    is_estop: false,
+  },
+  {
+    id: 'notif-005',
+    type: 'error',
+    title: 'Робот BellaBot-01: низкий заряд батареи',
+    message: 'Уровень заряда < 10%. Робот возвращается на станцию зарядки. Код: LOW_BATTERY',
+    timestamp: new Date('2026-02-11T14:27:00'),
+    dismissed: false,
+    is_estop: false,
   },
 ];
 
@@ -122,6 +165,15 @@ export const MOCK_PUDU_DIALOGS: PuduDialogEntry[] = [
     modalType: 'cleanup_confirm',
     name: 'Уборка посуды',
     description: 'Подтверждение уборки посуды со стола',
+    icon: 'trash-2',
+    iconColor: 'text-[#b8c959]',
+    iconBg: 'bg-[#b8c959]/20',
+  },
+  {
+    id: 'cleanup_multi_select',
+    modalType: 'cleanup_multi_select',
+    name: 'Уборка (мультивыбор)',
+    description: 'Выбор нескольких столов для уборки',
     icon: 'trash-2',
     iconColor: 'text-[#b8c959]',
     iconBg: 'bg-[#b8c959]/20',
