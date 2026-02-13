@@ -1,5 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ACCESS_CONFIG, GroupAccessEntry } from './access-codes';
+import { RateLimitService } from './rate-limit.service';
+import { FingerprintService } from './fingerprint.service';
 
 const LS_MASTER = 'master_access';
 const LS_LIST = 'list_access';
@@ -8,6 +10,8 @@ const LS_PROTO_PREFIX = 'proto_access_';
 
 @Injectable({ providedIn: 'root' })
 export class AccessCodeService {
+  private rateLimitService = inject(RateLimitService);
+  private fingerprintService = inject(FingerprintService);
 
   // ───── Public methods ─────
 
@@ -15,7 +19,7 @@ export class AccessCodeService {
    * Читает query-параметр `code` из hash-based URL и, если валиден, сохраняет доступ.
    * Формат: `#/prototype/slug?code=XXX`
    */
-  checkCodeFromUrl(): void {
+  async checkCodeFromUrl(): Promise<void> {
     const hash = window.location.hash; // e.g. "#/prototype/slug?code=XXX"
     if (!hash) return;
 
@@ -27,43 +31,59 @@ export class AccessCodeService {
     const code = params.get('code');
 
     if (code) {
-      this.validateAndStoreCode(code);
+      await this.validateAndStoreCode(code);
     }
   }
 
   /**
-   * Проверяет код и сохраняет соответствующий доступ в localStorage.
+   * Проверяет код (через SHA-256 хеш) и сохраняет соответствующий доступ в localStorage.
+   * Rate-limit: при неудачной попытке регистрируется failed attempt.
    */
-  validateAndStoreCode(code: string): {
+  async validateAndStoreCode(code: string): Promise<{
     valid: boolean;
-    type: 'master' | 'group' | 'prototype' | 'invalid';
+    type: 'master' | 'group' | 'prototype' | 'invalid' | 'locked';
     label?: string;
-  } {
+  }> {
+    // Инициализируем rate-limit (lazy)
+    await this.rateLimitService.init();
+
+    // Проверка блокировки
+    if (this.rateLimitService.isLocked()) {
+      return { valid: false, type: 'locked' };
+    }
+
+    const codeHash = await this.sha256(code.trim().toUpperCase());
+
     // 1. Мастер-код
-    if (code === ACCESS_CONFIG.masterCode) {
-      this.storeAccess(LS_MASTER, code, ACCESS_CONFIG.masterTtlDays);
+    if (codeHash === ACCESS_CONFIG.masterCodeHash) {
+      this.storeAccess(LS_MASTER, codeHash, ACCESS_CONFIG.masterTtlDays);
       this.storeAccess(LS_LIST, '', 30); // доступ к списку — 30 дней
+      this.rateLimitService.recordSuccess();
       return { valid: true, type: 'master', label: 'Мастер-доступ' };
     }
 
     // 2. Групповой код
     for (const group of ACCESS_CONFIG.groups) {
-      if (code === group.code) {
-        const groupKey = LS_GROUP_PREFIX + group.code;
-        this.storeAccess(groupKey, code, group.ttlDays);
+      if (codeHash === group.codeHash) {
+        const groupKey = LS_GROUP_PREFIX + group.codeHash.substring(0, 12);
+        this.storeAccess(groupKey, codeHash, group.ttlDays);
+        this.rateLimitService.recordSuccess();
         return { valid: true, type: 'group', label: group.label };
       }
     }
 
     // 3. Код прототипа
     for (const [slug, entry] of Object.entries(ACCESS_CONFIG.prototypes)) {
-      if (code === entry.code) {
+      if (codeHash === entry.codeHash) {
         const protoKey = LS_PROTO_PREFIX + slug;
-        this.storeAccess(protoKey, code, entry.ttlDays);
+        this.storeAccess(protoKey, codeHash, entry.ttlDays);
+        this.rateLimitService.recordSuccess();
         return { valid: true, type: 'prototype', label: slug };
       }
     }
 
+    // Неверный код — регистрируем failed attempt
+    this.rateLimitService.recordFailedAttempt();
     return { valid: false, type: 'invalid' };
   }
 
@@ -77,7 +97,7 @@ export class AccessCodeService {
     // Групповой доступ — проверяем все группы, содержащие slug
     for (const group of ACCESS_CONFIG.groups) {
       if (group.prototypeSlugs.includes(slug)) {
-        const groupKey = LS_GROUP_PREFIX + group.code;
+        const groupKey = LS_GROUP_PREFIX + group.codeHash.substring(0, 12);
         if (this.isStoredAccessValid(groupKey)) return true;
       }
     }
@@ -116,7 +136,7 @@ export class AccessCodeService {
 
     // Групповые доступы
     for (const group of ACCESS_CONFIG.groups) {
-      const groupKey = LS_GROUP_PREFIX + group.code;
+      const groupKey = LS_GROUP_PREFIX + group.codeHash.substring(0, 12);
       if (this.isStoredAccessValid(groupKey)) {
         for (const s of group.prototypeSlugs) {
           slugs.add(s);
@@ -142,7 +162,7 @@ export class AccessCodeService {
     if (this.hasMasterAccess()) return [];
 
     return ACCESS_CONFIG.groups.filter(group => {
-      const groupKey = LS_GROUP_PREFIX + group.code;
+      const groupKey = LS_GROUP_PREFIX + group.codeHash.substring(0, 12);
       return this.isStoredAccessValid(groupKey);
     });
   }
@@ -155,7 +175,7 @@ export class AccessCodeService {
     localStorage.removeItem(LS_LIST);
 
     for (const group of ACCESS_CONFIG.groups) {
-      localStorage.removeItem(LS_GROUP_PREFIX + group.code);
+      localStorage.removeItem(LS_GROUP_PREFIX + group.codeHash.substring(0, 12));
     }
 
     for (const slug of Object.keys(ACCESS_CONFIG.prototypes)) {
@@ -163,7 +183,21 @@ export class AccessCodeService {
     }
   }
 
+  /**
+   * Expose rate-limit service для UI-компонентов.
+   */
+  getRateLimitService(): RateLimitService {
+    return this.rateLimitService;
+  }
+
   // ───── Private helpers ─────
+
+  /**
+   * SHA-256 через Web Crypto API.
+   */
+  private async sha256(text: string): Promise<string> {
+    return this.fingerprintService.sha256(text);
+  }
 
   /**
    * Проверяет, что запись в localStorage существует и не просрочена.
@@ -183,17 +217,9 @@ export class AccessCodeService {
   /**
    * Записывает доступ в localStorage с вычислением expiresAt.
    */
-  private storeAccess(key: string, code: string, ttlDays: number): void {
+  private storeAccess(key: string, codeHash: string, ttlDays: number): void {
     const expiresAt = Date.now() + ttlDays * 24 * 60 * 60 * 1000;
-    const data = JSON.stringify({ code, expiresAt });
+    const data = JSON.stringify({ codeHash, expiresAt });
     localStorage.setItem(key, data);
-  }
-
-  /**
-   * Извлекает slug из пути '/prototype/some-slug' → 'some-slug'.
-   */
-  private getSlugFromPath(path: string): string {
-    const match = path.match(/\/prototype\/([^/?#]+)/);
-    return match ? match[1] : '';
   }
 }

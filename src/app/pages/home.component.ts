@@ -5,6 +5,7 @@ import { UiCardComponent, UiButtonComponent, UiBadgeComponent } from '@/componen
 import { IconsModule } from '@/shared/icons.module';
 import { PROTOTYPES } from '@/shared/prototypes.registry';
 import { AccessCodeService } from '@/shared/access-code.service';
+import { RateLimitService } from '@/shared/rate-limit.service';
 import { CodeInputModalComponent } from '@/components/ui/code-input-modal.component';
 
 @Component({
@@ -65,6 +66,10 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
     <ui-code-input-modal
       [visible]="showCodeModal"
       [error]="codeError"
+      [locked]="isLocked"
+      [lockoutRemainingMs]="lockoutRemainingMs"
+      [remainingAttempts]="remainingAttempts"
+      [maxAttempts]="maxAttempts"
       (codeSubmitted)="onCodeSubmit($event)"
       (closed)="onCodeModalClose()">
     </ui-code-input-modal>
@@ -73,9 +78,14 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
 export class HomeComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly accessService = inject(AccessCodeService);
+  private readonly rateLimitService = inject(RateLimitService);
 
   showCodeModal = false;
   codeError = '';
+  isLocked = false;
+  lockoutRemainingMs = 0;
+  remainingAttempts = 10;
+  maxAttempts = 10;
 
   get hasListAccess(): boolean {
     return this.accessService.hasAccessToList();
@@ -90,17 +100,27 @@ export class HomeComponent implements OnInit {
     return PROTOTYPES;
   }
 
-  ngOnInit(): void {
-    this.accessService.checkCodeFromUrl();
+  async ngOnInit(): Promise<void> {
+    await this.accessService.checkCodeFromUrl();
+    await this.rateLimitService.init();
+    this.updateRateLimitState();
   }
 
   openCodeModal(): void {
+    this.updateRateLimitState();
     this.showCodeModal = true;
     this.codeError = '';
   }
 
-  onCodeSubmit(code: string): void {
-    const result = this.accessService.validateAndStoreCode(code);
+  async onCodeSubmit(code: string): Promise<void> {
+    const result = await this.accessService.validateAndStoreCode(code);
+    this.updateRateLimitState();
+
+    if (result.type === 'locked') {
+      this.codeError = '';
+      return;
+    }
+
     if (result.valid) {
       this.showCodeModal = false;
       this.codeError = '';
@@ -116,5 +136,12 @@ export class HomeComponent implements OnInit {
 
   navigate(path: string): void {
     this.router.navigateByUrl(path);
+  }
+
+  private updateRateLimitState(): void {
+    this.isLocked = this.rateLimitService.isLocked();
+    this.lockoutRemainingMs = this.rateLimitService.getRemainingLockMs();
+    this.remainingAttempts = this.rateLimitService.getRemainingAttempts();
+    this.maxAttempts = this.rateLimitService.getMaxAttempts();
   }
 }

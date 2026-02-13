@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
 import { PROTOTYPES, PrototypeEntry } from '@/shared/prototypes.registry';
 import { AccessCodeService } from '@/shared/access-code.service';
+import { RateLimitService } from '@/shared/rate-limit.service';
 import { ACCESS_CONFIG, GroupAccessEntry } from '@/shared/access-codes';
 import { CodeInputModalComponent } from '@/components/ui/code-input-modal.component';
 
@@ -46,21 +47,21 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
         <!-- Групповые секции (для клиентов с групповым доступом) -->
         <div *ngFor="let group of accessibleGroups" class="pt-2">
           <button
-            (click)="toggleGroup(group.code)"
+            (click)="toggleGroup(group.label)"
             class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer text-sidebar-text hover:bg-sidebar-hover transition-colors"
-            [ngClass]="{ 'bg-sidebar-active text-white': isGroupExpanded(group.code) }"
+            [ngClass]="{ 'bg-sidebar-active text-white': isGroupExpanded(group.label) }"
           >
             <lucide-icon name="bot" [size]="18"></lucide-icon>
             <span *ngIf="!collapsed" class="flex-1 text-left truncate">{{ group.label }}</span>
             <lucide-icon
               *ngIf="!collapsed"
-              [name]="isGroupExpanded(group.code) ? 'chevron-up' : 'chevron-down'"
+              [name]="isGroupExpanded(group.label) ? 'chevron-up' : 'chevron-down'"
               [size]="14"
               class="opacity-50"
             ></lucide-icon>
           </button>
 
-          <div *ngIf="isGroupExpanded(group.code)" class="space-y-0.5 pl-2">
+          <div *ngIf="isGroupExpanded(group.label)" class="space-y-0.5 pl-2">
             <a
               *ngFor="let proto of getGroupPrototypes(group)"
               [routerLink]="proto.path"
@@ -143,6 +144,10 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
       title="Доступ к списку прототипов"
       subtitle="Введите мастер-код для просмотра списка"
       [error]="codeError"
+      [locked]="isLocked"
+      [lockoutRemainingMs]="lockoutRemainingMs"
+      [remainingAttempts]="remainingAttempts"
+      [maxAttempts]="maxAttempts"
       (codeSubmitted)="onCodeSubmit($event)"
       (closed)="onCodeModalClose()"
     ></ui-code-input-modal>
@@ -150,6 +155,7 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
 })
 export class SidebarComponent {
   private accessService = inject(AccessCodeService);
+  private rateLimitService = inject(RateLimitService);
   private router = inject(Router);
 
   collapsed = false;
@@ -157,6 +163,10 @@ export class SidebarComponent {
   showCodeModal = false;
   codeError = '';
   expandedGroups = new Set<string>();
+  isLocked = false;
+  lockoutRemainingMs = 0;
+  remainingAttempts = 10;
+  maxAttempts = 10;
 
   get hasListAccess(): boolean {
     return this.accessService.hasAccessToList();
@@ -205,8 +215,15 @@ export class SidebarComponent {
     }
   }
 
-  onCodeSubmit(code: string): void {
-    const result = this.accessService.validateAndStoreCode(code);
+  async onCodeSubmit(code: string): Promise<void> {
+    const result = await this.accessService.validateAndStoreCode(code);
+    this.updateRateLimitState();
+
+    if (result.type === 'locked') {
+      this.codeError = '';
+      return;
+    }
+
     if (result.valid && result.type === 'master') {
       this.showCodeModal = false;
       this.showList = true;
@@ -226,5 +243,12 @@ export class SidebarComponent {
     this.showList = false;
     this.expandedGroups.clear();
     this.router.navigateByUrl('/');
+  }
+
+  private updateRateLimitState(): void {
+    this.isLocked = this.rateLimitService.isLocked();
+    this.lockoutRemainingMs = this.rateLimitService.getRemainingLockMs();
+    this.remainingAttempts = this.rateLimitService.getRemainingAttempts();
+    this.maxAttempts = this.rateLimitService.getMaxAttempts();
   }
 }
