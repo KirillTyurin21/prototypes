@@ -14,15 +14,18 @@ import { Robot, RobotPoint, DiningTable, TableMapping } from '../types';
 import { MOCK_ROBOTS, MOCK_TABLES, MOCK_POINTS, getInitialMapping } from '../data/mock-data';
 import { StorageService } from '@/shared/storage.service';
 
-interface PointTestState {
-  loading: boolean;
-  success: boolean;
+interface DropdownPointOption {
+  point_id: string;
+  point_name: string;
+  isFree: boolean;
+  occupiedByTable?: string;
 }
 
 interface Toast {
   id: number;
   title: string;
   description?: string;
+  variant?: 'default' | 'warning';
 }
 
 @Component({
@@ -134,7 +137,7 @@ interface Toast {
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- MODE: TABLES → POINTS                       -->
+        <!-- MODE: TABLES → POINTS (v1.3)                -->
         <!-- ═══════════════════════════════════════════ -->
         <div *ngIf="mappingMode === 'tables-to-points'" class="animate-fade-in">
           <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -145,7 +148,6 @@ interface Toast {
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Стол iiko</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Привязанные точки</th>
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Статус</th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Действия</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -160,14 +162,51 @@ interface Toast {
                     <td class="px-4 py-3 align-top">
                       <div class="space-y-2">
                         <div *ngFor="let point of mapping.points; let j = index" class="flex items-center gap-2">
-                          <div class="flex-1 max-w-xs">
-                            <ui-select
-                              [options]="getAvailablePointOptions(i, j)"
-                              [value]="point.point_id"
-                              placeholder="Выберите точку..."
-                              (valueChange)="onPointChange(i, j, $event)"
-                              [fullWidth]="true"
-                            ></ui-select>
+                          <div class="relative flex-1 max-w-xs">
+                            <!-- Триггер дропдауна -->
+                            <button
+                              type="button"
+                              class="w-full h-9 px-3 text-left rounded-md border bg-white transition-colors text-sm truncate"
+                              [ngClass]="{
+                                'border-blue-500 ring-1 ring-blue-500': isDropdownOpen(i, j),
+                                'border-gray-300 hover:border-gray-400': !isDropdownOpen(i, j),
+                                'font-mono text-gray-900': point.point_id,
+                                'text-gray-400 italic': !point.point_id
+                              }"
+                              (click)="toggleDropdown(i, j, $event)"
+                            >{{ point.point_id ? point.point_name : 'Выберите точку...' }}</button>
+                            <!-- Дропдаун список -->
+                            <div
+                              *ngIf="isDropdownOpen(i, j)"
+                              class="absolute z-50 mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                            >
+                              <!-- Не назначена -->
+                              <button
+                                type="button"
+                                class="w-full px-3 py-2 text-left text-sm italic text-gray-400 hover:bg-gray-50"
+                                (click)="selectPointFromDropdown(i, j, '')"
+                              >Не назначена</button>
+                              <!-- Свободные точки -->
+                              <ng-container *ngIf="getDropdownOptions(i, j).free.length > 0">
+                                <div class="border-t border-gray-200"></div>
+                                <button
+                                  *ngFor="let opt of getDropdownOptions(i, j).free"
+                                  type="button"
+                                  class="w-full px-3 py-2 text-left font-mono text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                                  (click)="selectPointFromDropdown(i, j, opt.point_id)"
+                                >{{ opt.point_name }}</button>
+                              </ng-container>
+                              <!-- Занятые точки -->
+                              <ng-container *ngIf="getDropdownOptions(i, j).occupied.length > 0">
+                                <div class="border-t border-gray-200"></div>
+                                <button
+                                  *ngFor="let opt of getDropdownOptions(i, j).occupied"
+                                  type="button"
+                                  class="w-full px-3 py-2 text-left font-mono text-sm text-gray-400 hover:bg-orange-50 hover:text-orange-600"
+                                  (click)="selectPointFromDropdown(i, j, opt.point_id)"
+                                >{{ opt.point_name }} <span class="italic font-sans text-xs">({{ opt.occupiedByTable }})</span></button>
+                              </ng-container>
+                            </div>
                           </div>
                           <button
                             class="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
@@ -177,12 +216,14 @@ interface Toast {
                             <lucide-icon name="x" [size]="16"></lucide-icon>
                           </button>
                         </div>
-                        <ui-button
-                          variant="ghost"
-                          size="sm"
-                          iconName="plus"
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
                           (click)="addPoint(i)"
-                        >Точку</ui-button>
+                        >
+                          <lucide-icon name="plus" [size]="14"></lucide-icon>
+                          Точку
+                        </button>
                       </div>
                     </td>
 
@@ -203,35 +244,6 @@ interface Toast {
                         ></lucide-icon>
                       </div>
                     </td>
-
-                    <!-- Действия -->
-                    <td class="px-4 py-3 align-top">
-                      <div class="space-y-2">
-                        <div *ngFor="let point of mapping.points; let j = index">
-                          <ng-container *ngIf="point.point_id">
-                            <div class="h-9 flex items-center justify-center">
-                              <ui-button
-                                *ngIf="getPointTestState('t2p', i, j).loading"
-                                variant="outline"
-                                size="sm"
-                                [loading]="true"
-                                [disabled]="true"
-                              ></ui-button>
-                              <div *ngIf="!getPointTestState('t2p', i, j).loading && getPointTestState('t2p', i, j).success">
-                                <lucide-icon name="check-circle-2" [size]="18" class="text-green-600"></lucide-icon>
-                              </div>
-                              <ui-button
-                                *ngIf="!getPointTestState('t2p', i, j).loading && !getPointTestState('t2p', i, j).success"
-                                variant="outline"
-                                size="sm"
-                                [disabled]="!hasOnlineRobot()"
-                                (click)="testPoint('t2p', i, j)"
-                              >Тест</ui-button>
-                            </div>
-                          </ng-container>
-                        </div>
-                      </div>
-                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -240,7 +252,7 @@ interface Toast {
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- MODE: POINTS → TABLES                       -->
+        <!-- MODE: POINTS → TABLES (v1.3)                -->
         <!-- ═══════════════════════════════════════════ -->
         <div *ngIf="mappingMode === 'points-to-tables'" class="animate-fade-in">
           <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -251,14 +263,13 @@ interface Toast {
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Точка робота</th>
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Привязанный стол</th>
                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Статус</th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Действия</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <tr *ngFor="let point of availablePoints; let pi = index" class="hover:bg-gray-50/50">
                     <!-- Точка робота -->
                     <td class="px-4 py-3">
-                      <div class="font-medium text-sm text-gray-900">{{ point.point_name }}</div>
+                      <div class="font-medium font-mono text-sm text-gray-600">{{ point.point_name }}</div>
                     </td>
 
                     <!-- Привязанный стол -->
@@ -289,29 +300,6 @@ interface Toast {
                         class="text-gray-300"
                       ></lucide-icon>
                     </td>
-
-                    <!-- Действия -->
-                    <td class="px-4 py-3 text-center">
-                      <div class="h-9 flex items-center justify-center">
-                        <ui-button
-                          *ngIf="getPointTestState('p2t', pi, 0).loading"
-                          variant="outline"
-                          size="sm"
-                          [loading]="true"
-                          [disabled]="true"
-                        ></ui-button>
-                        <div *ngIf="!getPointTestState('p2t', pi, 0).loading && getPointTestState('p2t', pi, 0).success">
-                          <lucide-icon name="check-circle-2" [size]="18" class="text-green-600"></lucide-icon>
-                        </div>
-                        <ui-button
-                          *ngIf="!getPointTestState('p2t', pi, 0).loading && !getPointTestState('p2t', pi, 0).success"
-                          variant="outline"
-                          size="sm"
-                          [disabled]="!hasOnlineRobot() || !getTableIdForPoint(point.point_id)"
-                          (click)="testPoint('p2t', pi, 0)"
-                        >Тест</ui-button>
-                      </div>
-                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -337,14 +325,21 @@ interface Toast {
       </div>
     </ng-container>
 
+    <!-- DROPDOWN BACKDROP -->
+    <div *ngIf="openDropdownKey" class="fixed inset-0 z-40" (click)="closeDropdown()"></div>
+
     <!-- TOAST CONTAINER -->
     <div class="fixed bottom-4 right-4 z-50 space-y-2">
       <div
         *ngFor="let t of toasts; trackBy: trackToast"
-        class="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-lg min-w-[300px] animate-slide-up"
+        class="rounded-lg border px-4 py-3 shadow-lg min-w-[300px] animate-slide-up"
+        [ngClass]="{
+          'border-gray-200 bg-white': t.variant !== 'warning',
+          'border-orange-300 bg-orange-50': t.variant === 'warning'
+        }"
       >
-        <p class="text-sm font-medium text-gray-900">{{ t.title }}</p>
-        <p *ngIf="t.description" class="text-xs text-gray-500 mt-0.5">{{ t.description }}</p>
+        <p class="text-sm font-medium" [ngClass]="t.variant === 'warning' ? 'text-orange-800' : 'text-gray-900'">{{ t.title }}</p>
+        <p *ngIf="t.description" class="text-xs mt-0.5" [ngClass]="t.variant === 'warning' ? 'text-orange-600' : 'text-gray-500'">{{ t.description }}</p>
       </div>
     </div>
   `,
@@ -377,8 +372,8 @@ export class MappingScreenComponent implements OnInit {
   hasChanges = false;
   mappingMode: 'tables-to-points' | 'points-to-tables' = 'tables-to-points';
 
-  // Point test states: key = "prefix-rowIndex-pointIndex"
-  pointTestStates: Record<string, PointTestState> = {};
+  // Dropdown state (v1.3)
+  openDropdownKey: string | null = null;
 
   // Toast
   toasts: Toast[] = [];
@@ -398,7 +393,7 @@ export class MappingScreenComponent implements OnInit {
 
   loadMappings(): void {
     this.isLoadingPoints = true;
-    this.pointTestStates = {};
+    this.openDropdownKey = null;
     setTimeout(() => {
       const defaultMappings = getInitialMapping().map((m) => ({
         ...m,
@@ -416,7 +411,7 @@ export class MappingScreenComponent implements OnInit {
   setMappingMode(mode: 'tables-to-points' | 'points-to-tables'): void {
     if (this.mappingMode === mode) return;
     this.mappingMode = mode;
-    this.pointTestStates = {};
+    this.openDropdownKey = null;
   }
 
   // ── Refresh points ─────────────────────────────────────
@@ -424,6 +419,7 @@ export class MappingScreenComponent implements OnInit {
   refreshPoints(): void {
     if (this.isRefreshing) return;
     this.isRefreshing = true;
+    this.openDropdownKey = null;
     setTimeout(() => {
       this.isRefreshing = false;
       this.showToast('Список точек обновлён');
@@ -440,49 +436,130 @@ export class MappingScreenComponent implements OnInit {
     return this.tables.find((t) => t.table_id === tableId)?.section_name || '';
   }
 
-  // ── Point options (filtered) — Tables→Points mode ─────
+  // ── Custom dropdown (v1.3) ─────────────────────────────
 
-  getAvailablePointOptions(rowIndex: number, pointIndex: number): SelectOption[] {
-    const usedPointIds = new Set<string>();
-    this.mappings.forEach((m, ri) => {
-      m.points.forEach((p, pi) => {
-        if (p.point_id && !(ri === rowIndex && pi === pointIndex)) {
-          usedPointIds.add(p.point_id);
-        }
-      });
-    });
-
-    return this.availablePoints
-      .filter((p) => !usedPointIds.has(p.point_id))
-      .map((p) => ({
-        value: p.point_id,
-        label: p.point_name,
-      }));
+  toggleDropdown(rowIndex: number, pointIndex: number, event: Event): void {
+    event.stopPropagation();
+    const key = `${rowIndex}-${pointIndex}`;
+    this.openDropdownKey = this.openDropdownKey === key ? null : key;
   }
 
-  // ── Point change — Tables→Points mode ─────────────────
+  isDropdownOpen(rowIndex: number, pointIndex: number): boolean {
+    return this.openDropdownKey === `${rowIndex}-${pointIndex}`;
+  }
 
-  onPointChange(rowIndex: number, pointIndex: number, pointId: string): void {
-    const point = this.availablePoints.find((p) => p.point_id === pointId);
-    if (point) {
-      this.mappings[rowIndex].points[pointIndex] = { ...point };
+  closeDropdown(): void {
+    this.openDropdownKey = null;
+  }
+
+  // ── Dropdown options — full pool (v1.3 E3) ────────────
+
+  getDropdownOptions(rowIndex: number, pointIndex: number): { free: DropdownPointOption[]; occupied: DropdownPointOption[] } {
+    // Points already assigned to THIS table in OTHER select slots
+    const sameTablePointIds = new Set<string>();
+    this.mappings[rowIndex].points.forEach((p, pi) => {
+      if (pi !== pointIndex && p.point_id) {
+        sameTablePointIds.add(p.point_id);
+      }
+    });
+
+    const free: DropdownPointOption[] = [];
+    const occupied: DropdownPointOption[] = [];
+
+    for (const point of this.availablePoints) {
+      // Skip points already in this same table at different slots
+      if (sameTablePointIds.has(point.point_id)) continue;
+
+      // Check if occupied by another table
+      let occupiedByTableId = '';
+      for (const m of this.mappings) {
+        if (m.table_id === this.mappings[rowIndex].table_id) continue;
+        if (m.points.some((p) => p.point_id === point.point_id)) {
+          occupiedByTableId = m.table_id;
+          break;
+        }
+      }
+
+      if (occupiedByTableId) {
+        occupied.push({
+          point_id: point.point_id,
+          point_name: point.point_name,
+          isFree: false,
+          occupiedByTable: this.getTableName(occupiedByTableId),
+        });
+      } else {
+        free.push({
+          point_id: point.point_id,
+          point_name: point.point_name,
+          isFree: true,
+        });
+      }
     }
+
+    return { free, occupied };
+  }
+
+  // ── Exclusive point assignment (v1.3 E2) ──────────────
+
+  selectPointFromDropdown(rowIndex: number, pointIndex: number, pointId: string): void {
+    this.openDropdownKey = null;
+
+    if (!pointId) {
+      // "Не назначена" — clear this slot
+      this.mappings[rowIndex].points[pointIndex] = { point_id: '', point_name: '' };
+      this.recalcChanges();
+      return;
+    }
+
+    const point = this.availablePoints.find((p) => p.point_id === pointId);
+    if (!point) return;
+
+    // Check if point is occupied by another table
+    let oldTableId = '';
+    for (const m of this.mappings) {
+      if (m.table_id === this.mappings[rowIndex].table_id) continue;
+      const idx = m.points.findIndex((p) => p.point_id === pointId);
+      if (idx >= 0) {
+        oldTableId = m.table_id;
+        m.points.splice(idx, 1); // Remove from old table
+        break;
+      }
+    }
+
+    // Assign to current table
+    this.mappings[rowIndex].points[pointIndex] = { ...point };
+
+    // Show warning toast if transferred
+    if (oldTableId) {
+      const oldTableName = this.getTableName(oldTableId);
+      const newTableName = this.getTableName(this.mappings[rowIndex].table_id);
+      this.showToast(
+        'Точка перенесена',
+        `Точка ${point.point_name} перенесена со стола ${oldTableName} на стол ${newTableName}`,
+        4000,
+        'warning'
+      );
+    }
+
     this.recalcChanges();
   }
 
   // ── Add / Remove points ────────────────────────────────
 
   addPoint(rowIndex: number): void {
+    const newIndex = this.mappings[rowIndex].points.length;
     this.mappings[rowIndex].points.push({
       point_id: '',
       point_name: '',
     });
+    // Auto-open dropdown for new slot
+    this.openDropdownKey = `${rowIndex}-${newIndex}`;
     this.recalcChanges();
   }
 
   removePoint(rowIndex: number, pointIndex: number): void {
+    this.openDropdownKey = null;
     this.mappings[rowIndex].points.splice(pointIndex, 1);
-    this.cleanTestStatesForRow('t2p', rowIndex);
     this.recalcChanges();
   }
 
@@ -536,43 +613,6 @@ export class MappingScreenComponent implements OnInit {
     return mapping.points.some((p) => !!p.point_id);
   }
 
-  hasOnlineRobot(): boolean {
-    return this.robots.some((r) => r.connection_status === 'online');
-  }
-
-  // ── Test point ─────────────────────────────────────────
-
-  getPointTestState(prefix: string, rowIndex: number, pointIndex: number): PointTestState {
-    const key = `${prefix}-${rowIndex}-${pointIndex}`;
-    return this.pointTestStates[key] || { loading: false, success: false };
-  }
-
-  testPoint(prefix: string, rowIndex: number, pointIndex: number): void {
-    const key = `${prefix}-${rowIndex}-${pointIndex}`;
-
-    if (!this.hasOnlineRobot()) {
-      this.showToast('Нет роботов в сети', 'Проверьте подключение роботов', 4000);
-      return;
-    }
-
-    this.pointTestStates[key] = { loading: true, success: false };
-
-    setTimeout(() => {
-      this.pointTestStates[key] = { loading: false, success: true };
-      this.showToast('Тест точки выполнен', 'Робот успешно достиг точки');
-      setTimeout(() => {
-        this.pointTestStates[key] = { loading: false, success: false };
-      }, 3000);
-    }, 2000);
-  }
-
-  private cleanTestStatesForRow(prefix: string, rowIndex: number): void {
-    const keysToDelete = Object.keys(this.pointTestStates).filter((k) =>
-      k.startsWith(`${prefix}-${rowIndex}-`)
-    );
-    keysToDelete.forEach((k) => delete this.pointTestStates[k]);
-  }
-
   // ── Warnings ───────────────────────────────────────────
 
   get unmappedTablesCount(): number {
@@ -606,7 +646,7 @@ export class MappingScreenComponent implements OnInit {
   resetMapping(): void {
     this.mappings = this.cloneMappings(this.originalMappings);
     this.hasChanges = false;
-    this.pointTestStates = {};
+    this.openDropdownKey = null;
   }
 
   // ── Change tracking ────────────────────────────────────
@@ -630,9 +670,9 @@ export class MappingScreenComponent implements OnInit {
 
   // ── Toast ──────────────────────────────────────────────
 
-  showToast(title: string, description?: string, duration = 3000): void {
+  showToast(title: string, description?: string, duration = 3000, variant: 'default' | 'warning' = 'default'): void {
     const id = ++this.toastCounter;
-    this.toasts.push({ id, title, description });
+    this.toasts.push({ id, title, description, variant });
     setTimeout(() => {
       this.toasts = this.toasts.filter((t) => t.id !== id);
     }, duration);

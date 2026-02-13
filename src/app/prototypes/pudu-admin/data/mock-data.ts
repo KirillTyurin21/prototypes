@@ -24,14 +24,18 @@ export const MOCK_ROBOTS: Robot[] = [
   },
 ];
 
-// Единый набор точек для всего заведения (v1.2 — только столы)
+// v1.3: 10 точек с техническими названиями NE (серийные номера PUDU)
 export const MOCK_POINTS: RobotPoint[] = [
-  { point_id: 'pt-001', point_name: 'Стол у окна' },
-  { point_id: 'pt-002', point_name: 'Стол 2' },
-  { point_id: 'pt-003', point_name: 'Стол 3 (VIP)' },
-  { point_id: 'pt-004', point_name: 'Стол 4 (бар)' },
-  { point_id: 'pt-005', point_name: 'Стол 5' },
-  { point_id: 'pt-006', point_name: 'Стол 6 (терраса)' },
+  { point_id: 'pt-001', point_name: 'SF234201A' },
+  { point_id: 'pt-002', point_name: 'SF234202B' },
+  { point_id: 'pt-003', point_name: 'SF234203C' },
+  { point_id: 'pt-004', point_name: 'SF234204D' },
+  { point_id: 'pt-005', point_name: 'SF234205E' },
+  { point_id: 'pt-006', point_name: 'SF234206F' },
+  { point_id: 'pt-007', point_name: 'SF234207G' },
+  { point_id: 'pt-008', point_name: 'SF234208H' },
+  { point_id: 'pt-009', point_name: 'SF234209I' },
+  { point_id: 'pt-010', point_name: 'SF234210J' },
 ];
 
 export const MOCK_TABLES: DiningTable[] = [
@@ -45,16 +49,17 @@ export const MOCK_TABLES: DiningTable[] = [
   { table_id: 'tbl-008', table_name: 'Стол №8', section_name: 'Зал 1 этаж' },
 ];
 
+// v1.3: 5 из 8 столов замаплены, 3 свободных; 4 точки не назначены
 export function getInitialMapping(): TableMapping[] {
   return [
-    { table_id: 'tbl-001', points: [{ ...MOCK_POINTS[0] }] },
-    { table_id: 'tbl-002', points: [{ ...MOCK_POINTS[1] }] },
-    { table_id: 'tbl-003', points: [{ ...MOCK_POINTS[2] }] },
-    { table_id: 'tbl-004', points: [{ ...MOCK_POINTS[3] }] },
-    { table_id: 'tbl-005', points: [] },
-    { table_id: 'tbl-006', points: [{ ...MOCK_POINTS[4] }, { ...MOCK_POINTS[5] }] },
-    { table_id: 'tbl-007', points: [] },
-    { table_id: 'tbl-008', points: [] },
+    { table_id: 'tbl-001', points: [{ ...MOCK_POINTS[0] }] },                  // Стол №1 → SF234201A
+    { table_id: 'tbl-002', points: [{ ...MOCK_POINTS[1] }] },                  // Стол №2 → SF234202B
+    { table_id: 'tbl-003', points: [{ ...MOCK_POINTS[2] }, { ...MOCK_POINTS[3] }] }, // Стол №3 → SF234203C + SF234204D
+    { table_id: 'tbl-004', points: [{ ...MOCK_POINTS[4] }] },                  // Стол №4 → SF234205E
+    { table_id: 'tbl-005', points: [] },                                         // Стол №5 → НЕ ЗАМАПЛЕН
+    { table_id: 'tbl-006', points: [{ ...MOCK_POINTS[5] }] },                  // Стол №6 → SF234206F
+    { table_id: 'tbl-007', points: [] },                                         // Стол №7 → НЕ ЗАМАПЛЕН
+    { table_id: 'tbl-008', points: [] },                                         // Стол №8 → НЕ ЗАМАПЛЕН
   ];
 }
 
