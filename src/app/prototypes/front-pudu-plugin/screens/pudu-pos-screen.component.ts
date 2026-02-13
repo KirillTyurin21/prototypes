@@ -9,7 +9,10 @@ import {
   MOCK_SCENARIO_SETTINGS,
   MOCK_NOTIFICATIONS,
   MOCK_NE_ERROR_NOTIFICATIONS,
+  MOCK_ORDER_DISHES,
+  MockDish,
   getAssignedRobot,
+  splitDishesIntoTrips,
 } from '../data/mock-data';
 import { CurrentOrder, PuduNotification, OrderTable } from '../types';
 
@@ -26,6 +29,9 @@ import { SendDishBlockedComponent } from '../components/dialogs/send-dish-blocke
 import { PuduLoadingDialogComponent } from '../components/dialogs/loading-dialog.component';
 import { PuduSuccessDialogComponent } from '../components/dialogs/success-dialog.component';
 import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.component';
+import { SendDishConfirmComponent } from '../components/dialogs/send-dish-confirm.component';
+import { SendDishPickupNotifyComponent } from '../components/dialogs/send-dish-pickup-notify.component';
+import { SendDishRepeatComponent } from '../components/dialogs/send-dish-repeat.component';
 
 @Component({
   selector: 'app-pudu-pos-screen',
@@ -45,6 +51,9 @@ import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.com
     PuduLoadingDialogComponent,
     PuduSuccessDialogComponent,
     PuduErrorDialogComponent,
+    SendDishConfirmComponent,
+    SendDishPickupNotifyComponent,
+    SendDishRepeatComponent,
   ],
   template: `
     <div class="min-h-screen bg-[#2d2d2d] flex flex-col relative" style="font-family: Roboto, sans-serif;">
@@ -117,8 +126,8 @@ import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.com
           </div>
         </div>
 
-        <!-- Панель кнопок PUDU — контекст «Из заказа»: 3 кнопки -->
-        <div class="grid grid-cols-3 gap-3 p-4 border-t border-gray-600 mt-3">
+        <!-- Панель кнопок PUDU — контекст «Из заказа»: 4 кнопки -->
+        <div class="grid grid-cols-4 gap-3 p-4 border-t border-gray-600 mt-3">
           <button (click)="onSendMenu()" aria-label="Отправить меню"
             class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
             <lucide-icon name="utensils" [size]="20"></lucide-icon>
@@ -130,9 +139,16 @@ import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.com
             <span class="text-xs">Уборка посуды</span>
           </button>
           <button (click)="onSendDish()" aria-label="Доставка блюд"
-            class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors opacity-60">
-            <lucide-icon name="package" [size]="20"></lucide-icon>
+            class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
+            <lucide-icon name="utensils" [size]="20"></lucide-icon>
             <span class="text-xs">Доставка блюд</span>
+          </button>
+          <button (click)="onSendDishRepeat()" aria-label="Повторить"
+            class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors"
+            [ngClass]="sendDishCompleted ? 'bg-[#1a1a1a] text-white hover:bg-[#252525]' : 'bg-[#1a1a1a] text-gray-500 cursor-not-allowed'"
+            [disabled]="!sendDishCompleted">
+            <lucide-icon name="repeat" [size]="20"></lucide-icon>
+            <span class="text-xs">Повторить</span>
           </button>
         </div>
       </ng-container>
@@ -246,7 +262,7 @@ import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.com
         [open]="activeModal === 'cleanup_confirm'"
         [tableName]="currentOrder.table.table_name"
         [robotName]="assignedRobotName"
-        [phrase]="settings.cleanup.phrase_arrival"
+        [phrase]="settings.cleanup.phrase"
         [waitTime]="settings.cleanup.wait_time"
         (onCancel)="closeDialog()"
         (onConfirm)="onConfirmAction('cleanup')"
@@ -277,7 +293,7 @@ import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.com
         [open]="activeModal === 'qr_guest_phase'"
         [tableName]="currentOrder.table.table_name"
         [total]="currentOrder.total"
-        [guestWaitTime]="settings.qr_payment.guest_wait_time"
+        [guestWaitTime]="settings.qr_payment.payment_timeout"
         (onCancel)="closeDialog()"
         (onPaymentConfirmed)="activeModal = 'qr_success'"
         (onTimeout)="activeModal = 'qr_timeout'"
@@ -305,11 +321,43 @@ import { PuduErrorDialogComponent } from '../components/dialogs/error-dialog.com
         (onClose)="closeDialog()"
       ></pudu-unmapped-table>
 
-      <!-- М8: Доставка блюд [BLOCKED] -->
+      <!-- М8: Доставка блюд [BLOCKED] (legacy) -->
       <pudu-send-dish-blocked
         [open]="activeModal === 'send_dish_blocked'"
         (onClose)="closeDialog()"
       ></pudu-send-dish-blocked>
+
+      <!-- М14: Подтверждение доставки блюд (фудкорт) -->
+      <pudu-send-dish-confirm
+        [open]="activeModal === 'send_dish_confirm'"
+        [tableName]="currentOrder.table.table_name"
+        [dishes]="orderDishes"
+        [maxDishesPerTrip]="settings.send_dish.max_dishes_per_trip"
+        (onCancel)="closeDialog()"
+        (onConfirm)="executeSendDish()"
+      ></pudu-send-dish-confirm>
+
+      <!-- М15: Уведомление раздачи -->
+      <pudu-send-dish-pickup-notify
+        [open]="activeModal === 'send_dish_pickup_notification'"
+        [robotName]="assignedRobotName"
+        [tableName]="currentOrder.table.table_name"
+        [dishes]="currentTripDishes"
+        [tripNumber]="currentTripNumber"
+        [totalTrips]="totalTrips"
+        [pickupWaitTime]="settings.send_dish.pickup_wait_time"
+        (onDismiss)="closeDialog()"
+        (onTimeout)="onPickupTimeout()"
+      ></pudu-send-dish-pickup-notify>
+
+      <!-- М16: Повторить доставку -->
+      <pudu-send-dish-repeat
+        [open]="activeModal === 'send_dish_repeat'"
+        [tableName]="currentOrder.table.table_name"
+        [phraseRepeat]="settings.send_dish.phrase_repeat"
+        (onCancel)="closeDialog()"
+        (onConfirm)="executeRepeatSendDish()"
+      ></pudu-send-dish-repeat>
 
       <!-- М9: Loading -->
       <pudu-loading-dialog
@@ -362,6 +410,16 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   // Сценарии (v1.2)
   private scenarioTimeouts: ReturnType<typeof setTimeout>[] = [];
 
+  // send_dish state (v1.3)
+  orderDishes: MockDish[] = [...MOCK_ORDER_DISHES];
+  sendDishCompleted = false;
+  currentTripNumber = 1;
+  currentTripDishes: MockDish[] = [];
+
+  get totalTrips(): number {
+    return Math.ceil(this.orderDishes.length / this.settings.send_dish.max_dishes_per_trip) || 1;
+  }
+
   private scenarioChains: Record<string, ScenarioStep[]> = {
     // QR-оплата: полный успешный цикл
     'qr-full': [
@@ -405,6 +463,43 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     'unmapped': [
       { modal: 'unmapped_table', delay: 0 },
     ],
+
+    // === Доставка блюд — v1.3 (G4) ===
+
+    // Полный цикл: подтверждение → загрузка на раздаче → доставка
+    'send-dish-full': [
+      { modal: 'send_dish_confirm', delay: 0 },
+      { modal: 'loading', delay: 3000 },
+      { modal: 'send_dish_pickup_notification', delay: 3000 },
+      { modal: 'success', delay: 5000 },
+    ],
+    // Быстрый путь: из заказа (стол из контекста, без модалки)
+    'send-dish-quick': [
+      { modal: 'loading', delay: 0 },
+      { modal: 'send_dish_pickup_notification', delay: 3000 },
+      { modal: 'success', delay: 5000 },
+    ],
+    // Повторная отправка
+    'send-dish-repeat': [
+      { modal: 'send_dish_repeat', delay: 0 },
+      { modal: 'loading', delay: 3000 },
+      { modal: 'send_dish_pickup_notification', delay: 3000 },
+      { modal: 'success', delay: 5000 },
+    ],
+    // Ошибка: стол не замаплен
+    'send-dish-error-mapping': [
+      { modal: 'error', delay: 0 },
+    ],
+    // Ошибка: нет свободных роботов
+    'send-dish-error-busy': [
+      { modal: 'loading', delay: 0 },
+      { modal: 'error', delay: 2000 },
+    ],
+    // Ошибка: NE недоступен
+    'send-dish-error-ne': [
+      { modal: 'loading', delay: 0 },
+      { modal: 'error', delay: 3000 },
+    ],
   };
 
   /** Автоназначение робота */
@@ -415,7 +510,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   /** Подстановка номера стола в фразу при заборе */
   get pickupPhrase(): string {
     const tableNum = this.currentOrder.table.table_name.replace(/[^0-9]/g, '') || '?';
-    return this.settings.send_menu.phrase_pickup.replace('{N}', tableNum);
+    return this.settings.send_menu.pickup_phrase.replace('{N}', tableNum);
   }
 
   get activeNotifications(): PuduNotification[] {
@@ -531,7 +626,40 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   }
 
   onSendDish(): void {
-    this.activeModal = 'send_dish_blocked';
+    if (!this.currentOrder.table.is_mapped) {
+      this.activeModal = 'unmapped_table';
+      return;
+    }
+    // v1.3 (G5): РАЗБЛОКИРОВАНО
+    this.currentTripDishes = this.orderDishes.slice(0, this.settings.send_dish.max_dishes_per_trip);
+    this.currentTripNumber = 1;
+    this.activeModal = 'send_dish_confirm';
+  }
+
+  onSendDishRepeat(): void {
+    if (!this.sendDishCompleted) return;
+    this.activeModal = 'send_dish_repeat';
+  }
+
+  executeSendDish(): void {
+    this.loadingMessage = 'Отправка робота на раздачу...';
+    this.activeModal = 'loading';
+    this.loadingTimeoutId = setTimeout(() => {
+      this.activeModal = 'send_dish_pickup_notification';
+    }, 3000);
+  }
+
+  executeRepeatSendDish(): void {
+    this.loadingMessage = 'Повторная отправка робота...';
+    this.activeModal = 'loading';
+    this.loadingTimeoutId = setTimeout(() => {
+      this.activeModal = 'send_dish_pickup_notification';
+    }, 3000);
+  }
+
+  onPickupTimeout(): void {
+    this.sendDishCompleted = true;
+    this.activeModal = 'success';
   }
 
   // ===== Button handlers (контекст «Главный экран») =====

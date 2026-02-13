@@ -61,37 +61,89 @@ export const MOCK_ACTIVE_TASKS: RobotTask[] = [
 ];
 
 export const MOCK_SCENARIO_SETTINGS: ScenarioSettings = {
+  // --- Доставка меню (S1) ---
   send_menu: {
     phrase: 'Заберите, пожалуйста, меню',
     phrase_url: '',
-    phrase_pickup: 'Положите меню для стола №{N}',
-    phrase_pickup_url: '',
-    wait_time: 30,
-    wait_time_pickup: 30,
+    pickup_phrase: 'Положите меню для стола №{N}',   // v1.3: renamed from phrase_pickup
+    pickup_phrase_url: '',                                   // v1.3: renamed from phrase_pickup_url
+    wait_time: 60,                                           // v1.3: 30 → 60 сек (SPEC-003 v1.3)
+    pickup_wait_time: 60,                                    // v1.3: 30 → 60 сек, renamed from wait_time_pickup
   },
+
+  // --- Уборка посуды — ручная (S2) ---
   cleanup: {
     mode: 'manual',
-    phrase_arrival: 'Пожалуйста, поставьте грязную посуду на поднос',
-    phrase_arrival_url: '',
+    phrase: 'Пожалуйста, поставьте грязную посуду на поднос',  // v1.3: renamed from phrase_arrival
+    phrase_url: '',                                          // v1.3: renamed from phrase_arrival_url
     wait_time: 90,
-    phrase_later: 'Я приеду позже за посудой',
-    phrase_later_url: '',
+    phrase_fail: 'Я приеду позже за посудой',           // v1.3: renamed from phrase_later
+    phrase_fail_url: '',                                     // v1.3: renamed from phrase_later_url
   },
+
+  // --- Уборка посуды — авто (S4) --- // v1.3 (F5)
+  cleanup_auto: {
+    timer_after_delivery: 720,                               // 12 мин = 720 сек (рекомендация NE: 12–14 мин)
+    timer_after_checkout: 0,                                 // 0 = немедленно после закрытия чека
+    enabled: false,                                          // Авто-уборка: фоновый процесс, без модального окна
+  },
+
+  // --- Доставка блюд (S5) --- // v1.3 (G1) — сценарий разблокирован
+  send_dish: {
+    phrase: 'Ваш заказ для стола №{N} доставлен. Приятного аппетита!',
+    phrase_url: '',
+    pickup_phrase: 'Загрузите блюда для стола №{N}: {dishes}',
+    pickup_phrase_url: '',
+    wait_time: 60,                                           // Ожидание у стола, сек (SPEC-003: 60)
+    pickup_wait_time: 60,                                    // Ожидание на раздаче, сек (SPEC-003: 60)
+    max_dishes_per_trip: 4,                                  // Макс. блюд за один рейс (З-48)
+    phrase_repeat: 'Заберите, пожалуйста, ваш заказ!',
+    phrase_repeat_url: '',
+  },
+
+  // --- Оплата QR (S3) ---
   qr_payment: {
-    cashier_phrase: 'Положите чек для стола {N}',
-    cashier_phrase_url: '',
-    cashier_timeout: 30,
-    guest_wait_time: 120,
+    phrase_cashier: 'Положите чек для стола {N}',       // v1.3: renamed from cashier_phrase
+    phrase_cashier_url: '',                                  // v1.3: renamed from cashier_phrase_url
+    cashier_timeout: 120,                                    // v1.3: 30 → 120 сек (SPEC-003 v1.3, раздел 6.6)
+    payment_timeout: 120,                                    // v1.3: renamed from guest_wait_time (SPEC-003)
     phrase_success: 'Спасибо за оплату!',
     phrase_success_url: '',
-    phrase_failure: 'К сожалению, оплата не прошла. Обратитесь к официанту',
-    phrase_failure_url: '',
+    phrase_fail: 'К сожалению, оплата не прошла. Обратитесь к официанту',  // v1.3: renamed from phrase_failure
+    phrase_fail_url: '',                                     // v1.3: renamed from phrase_failure_url
   },
+
+  // --- Маркетинг (S6) ---
   marketing: {
     robot_id: 'PD2024080042',
     auto_cruise_on_idle: true,
   },
 };
+
+// v1.3 (G6): Mock-данные заказа для демо send_dish
+export interface MockDish {
+  id: string;
+  name: string;
+  quantity: number;
+}
+
+export const MOCK_ORDER_DISHES: MockDish[] = [
+  { id: 'dish-001', name: 'Паста Болоньезе', quantity: 1 },
+  { id: 'dish-002', name: 'Салат Цезарь', quantity: 2 },
+  { id: 'dish-003', name: 'Стейк рибай', quantity: 1 },
+  { id: 'dish-004', name: 'Крем-суп грибной', quantity: 1 },
+  { id: 'dish-005', name: 'Тирамису', quantity: 2 },
+  { id: 'dish-006', name: 'Латте', quantity: 3 },
+];
+
+/** Разбиение блюд на рейсы по max_dishes_per_trip */
+export function splitDishesIntoTrips(dishes: MockDish[], maxPerTrip: number): MockDish[][] {
+  const trips: MockDish[][] = [];
+  for (let i = 0; i < dishes.length; i += maxPerTrip) {
+    trips.push(dishes.slice(i, i + maxPerTrip));
+  }
+  return trips;
+}
 
 /** Автоназначение робота (вместо general.default_robot_id) */
 export function getAssignedRobot(): PuduRobot {

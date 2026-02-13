@@ -34,15 +34,29 @@ export interface CurrentOrder {
 export interface RobotTask {
   task_id: string;
   task_type: 'send_menu' | 'cleanup' | 'qr_payment' | 'send_dish' | 'marketing';
-  // Маппинг к NE API (GET /v1/scenarios/scenario-status):
-  // NE IN_PROCESS → 'queued' | 'assigned' | 'in_progress' | 'at_cashier' | 'at_target'
+
+  // === Polling endpoint (подтверждён NE): ===
+  // GET /v1/scenarios/scenario-status/{task_id}
+  //
+  // === Маппинг NE-статусов → внутренние: ===
+  // NE IN_PROCESS → 'in_progress'
   // NE FAILED     → 'error'
   // NE SUCCESS    → 'completed'
-  // NE FINISHED   → 'finished' (маркетинг, остановлен пользователем)
+  // NE FINISHED   → 'completed'  (для маркетинга: остановка круиза, не успех;
+  //                                Trigger Manager может перезапустить при наличии условий)
   // NE CANCELED   → 'cancelled'
+  //
+  // === [Critical] Неподтверждённые статусы (6 из 10): ===
+  // 'queued', 'assigned', 'at_cashier', 'at_target',
+  // 'cashier_timeout', 'payment_timeout'
+  // НЕ подтверждены NE API. Используются как гипотетические для полноты UI.
+  // Если NE не реализует — потребуется fallback-механизм (см. НВ-16 в SPEC-003).
+
   status: 'queued' | 'assigned' | 'in_progress' | 'at_cashier' | 'at_target'
-        | 'completed' | 'error' | 'cancelled' | 'finished'
+        | 'completed' | 'error' | 'cancelled'
         | 'cashier_timeout' | 'payment_timeout';
+  //       ↑ УДАЛЁН 'finished' — SPEC-003 v1.3: FINISHED маппится на 'completed'
+
   table_id: string;
   robot_name: string;
   created_at: Date;
@@ -63,28 +77,44 @@ export interface ScenarioSettings {
   send_menu: {
     phrase: string;
     phrase_url: string;
-    phrase_pickup: string;        // фраза при заборе меню (З-15)
-    phrase_pickup_url: string;
+    pickup_phrase: string;         // v1.3: renamed from phrase_pickup (SPEC-003)
+    pickup_phrase_url: string;     // v1.3: renamed from phrase_pickup_url
     wait_time: number;
-    wait_time_pickup: number;
+    pickup_wait_time: number;      // v1.3: renamed from wait_time_pickup
   };
   cleanup: {
     mode: 'manual' | 'auto' | 'mixed';
-    phrase_arrival: string;
-    phrase_arrival_url: string;
+    phrase: string;                // v1.3: renamed from phrase_arrival (SPEC-003)
+    phrase_url: string;            // v1.3: renamed from phrase_arrival_url
     wait_time: number;
-    phrase_later: string;
-    phrase_later_url: string;
+    phrase_fail: string;           // v1.3: renamed from phrase_later
+    phrase_fail_url: string;       // v1.3: renamed from phrase_later_url
+  };
+  cleanup_auto: {                  // v1.3 (F5): авто-уборка
+    timer_after_delivery: number;
+    timer_after_checkout: number;
+    enabled: boolean;
+  };
+  send_dish: {                     // v1.3 (G1): доставка блюд — разблокировано
+    phrase: string;
+    phrase_url: string;
+    pickup_phrase: string;
+    pickup_phrase_url: string;
+    wait_time: number;
+    pickup_wait_time: number;
+    max_dishes_per_trip: number;
+    phrase_repeat: string;
+    phrase_repeat_url: string;
   };
   qr_payment: {
-    cashier_phrase: string;
-    cashier_phrase_url: string;
+    phrase_cashier: string;        // v1.3: renamed from cashier_phrase (SPEC-003)
+    phrase_cashier_url: string;    // v1.3: renamed from cashier_phrase_url
     cashier_timeout: number;
-    guest_wait_time: number;
+    payment_timeout: number;       // v1.3: renamed from guest_wait_time (SPEC-003)
     phrase_success: string;
     phrase_success_url: string;
-    phrase_failure: string;
-    phrase_failure_url: string;
+    phrase_fail: string;           // v1.3: renamed from phrase_failure
+    phrase_fail_url: string;       // v1.3: renamed from phrase_failure_url
   };
   marketing: {
     robot_id: string;
@@ -103,8 +133,11 @@ export type PuduModalType =
   | 'qr_guest_phase'
   | 'qr_success'
   | 'qr_timeout'
-  // Сценарий: Доставка блюд [BLOCKED]
-  | 'send_dish_blocked'
+  // Сценарий: Доставка блюд — v1.3: РАЗБЛОКИРОВАНО
+  | 'send_dish_confirm'            // М14: подтверждение (фудкорт)
+  | 'send_dish_pickup_notification' // М15: уведомление раздачи
+  | 'send_dish_repeat'             // М16: повторить доставку
+  | 'send_dish_blocked'            // М8: заглушка (legacy, для каталога)
   // Общие
   | 'loading'
   | 'error'

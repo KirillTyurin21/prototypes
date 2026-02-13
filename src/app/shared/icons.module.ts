@@ -71,6 +71,10 @@ import {
   SprayCan,
   Clock,
   MapPinOff,
+  // PUDU send_dish v1.3
+  ChefHat,
+  Repeat,
+  Zap,
   // Access control
   Lock,
   LogOut,
@@ -157,6 +161,10 @@ const icons = {
   SprayCan,
   Clock,
   MapPinOff,
+  // PUDU send_dish v1.3
+  ChefHat,
+  Repeat,
+  Zap,
   // Access control
   Lock,
   LogOut,
