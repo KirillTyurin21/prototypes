@@ -61,6 +61,10 @@
             "approve": true,
             "matchCommandLine": true
         },
-        "Resolve-DnsName": true
+        "Resolve-DnsName": true,
+        "/^node \"D:\\\\1Документы\\\\Задачи iiko\\\\Прототипы\\\\node_modules\\\\@angular\\\\cli\\\\bin\\\\ng\\.js\" build$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

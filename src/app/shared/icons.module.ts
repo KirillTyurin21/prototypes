@@ -64,6 +64,13 @@ import {
   Printer,
   QrCode,
   Octagon,
+  // PUDU catalog (v1.2)
+  Receipt,
+  Workflow,
+  LayoutGrid,
+  SprayCan,
+  Clock,
+  MapPinOff,
   // Access control
   Lock,
   LogOut,
@@ -143,6 +150,13 @@ const icons = {
   Printer,
   QrCode,
   Octagon,
+  // PUDU catalog (v1.2)
+  Receipt,
+  Workflow,
+  LayoutGrid,
+  SprayCan,
+  Clock,
+  MapPinOff,
   // Access control
   Lock,
   LogOut,

@@ -122,3 +122,40 @@ export interface PuduDialogEntry {
   iconColor: string;
   iconBg: string;
 }
+
+// === КАТАЛОГ ЯЧЕЕК (v1.2) ===
+
+export type CellCategory =
+  | 'context-order'     // Контекст: из заказа
+  | 'context-main'      // Контекст: главный экран
+  | 'scenario'          // Сценарий (цепочка переходов)
+  | 'modal'             // Одиночное модальное окно
+  | 'notification';     // Уведомление / спецсостояние
+
+export interface CatalogCell {
+  id: string;                         // Уникальный ID ячейки (slug)
+  label: string;                      // Название на русском (H3 карточки)
+  description: string;                // Описание 1-2 строки
+  icon: string;                       // Имя иконки Lucide
+  iconColor: string;                  // HEX цвет иконки и её фонового круга
+  category: CellCategory;            // Категория для группировки
+  modalType?: PuduModalType;         // Какую модалку открыть (одиночные)
+  scenario?: string;                  // Какой сценарий запустить (цепочки)
+  context?: 'order' | 'main';        // Контекст POS-экрана
+  badge?: string;                     // Текст бейджа (напр. "BLOCKED")
+  badgeColor?: string;                // HEX цвет бейджа
+}
+
+export interface CatalogSection {
+  title: string;                      // Заголовок секции (H2)
+  icon: string;                       // Иконка Lucide рядом с заголовком
+  description: string;                // Подзаголовок — пояснение
+  category: CellCategory;            // Категория для фильтрации
+  cells: CatalogCell[];              // Ячейки секции
+}
+
+/** Шаг сценария (для автоматических цепочек) */
+export interface ScenarioStep {
+  modal: PuduModalType;              // Модалка для открытия
+  delay: number;                      // Задержка перед открытием (мс)
+}
