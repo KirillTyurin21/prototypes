@@ -19,12 +19,17 @@ interface SidebarItem {
       <!-- HEADER -->
       <header class="border-b border-gray-200 bg-white h-14 flex items-center gap-4 px-4 shrink-0 z-10">
         <div class="flex items-center gap-2">
-          <svg width="60" height="24" viewBox="0 0 60 24" fill="none" class="text-[#E94B35]">
-            <path d="M0 0H8V24H0V0Z" fill="currentColor"/>
-            <path d="M12 0H20V24H12V0Z" fill="currentColor"/>
-            <path d="M28 7L32 0H40L36 7H44V17H36L40 24H32L28 17V7Z" fill="currentColor"/>
-            <path d="M52 0C56.4183 0 60 3.58172 60 8V16C60 20.4183 56.4183 24 52 24C47.5817 24 44 20.4183 44 16V8C44 3.58172 47.5817 0 52 0Z" fill="currentColor"/>
+          <!-- Robot icon logo -->
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="text-[#546E7A]">
+            <rect x="3" y="8" width="18" height="12" rx="3" stroke="currentColor" stroke-width="1.8" fill="none"/>
+            <circle cx="8.5" cy="14" r="1.8" fill="currentColor"/>
+            <circle cx="15.5" cy="14" r="1.8" fill="currentColor"/>
+            <path d="M12 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="2" r="1.2" fill="currentColor"/>
+            <path d="M1 13v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M23 13v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
+          <span class="text-sm font-semibold text-gray-700 tracking-wide">ADMIN PANEL</span>
         </div>
         <div class="ml-auto flex items-center gap-2">
           <ui-button variant="ghost" size="sm" iconName="user">Администратор</ui-button>
