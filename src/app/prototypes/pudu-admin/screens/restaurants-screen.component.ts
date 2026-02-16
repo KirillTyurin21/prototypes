@@ -72,7 +72,8 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
             <table class="w-full">
               <thead>
                 <tr class="bg-gray-50">
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      title="Название ресторана (торгового предприятия) из платформы iiko">
                     Название ресторана
                   </th>
                   <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -100,8 +101,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                   [attr.aria-label]="'Перейти к настройкам ' + r.restaurant_name"
                   (click)="selectRestaurant(r)"
                 >
-                  <td class="px-4 py-3 text-sm text-gray-900"
-                      title="Название ресторана (торгового предприятия) из платформы iiko">
+                  <td class="px-4 py-3 text-sm text-gray-900">
                     {{ r.restaurant_name }}
                   </td>
                   <td class="px-4 py-3 text-sm text-gray-700 text-center">{{ r.robots_total }}</td>
@@ -132,7 +132,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                       <span [ngClass]="{
                         'text-green-600': r.setup_status === 'configured',
                         'text-orange-500': r.setup_status === 'partial',
-                        'text-gray-400': r.setup_status === 'not_configured'
+                        'text-gray-300': r.setup_status === 'not_configured'
                       }">{{ getStatusLabel(r.setup_status) }}</span>
                     </span>
                   </td>

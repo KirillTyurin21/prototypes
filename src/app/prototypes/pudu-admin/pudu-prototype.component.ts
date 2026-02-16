@@ -60,9 +60,13 @@ interface SidebarItem {
               <a
                 *ngFor="let item of subItems"
                 [routerLink]="item.route"
-                routerLinkActive="bg-blue-50 text-blue-700 font-medium"
+                routerLinkActive
+                #rla="routerLinkActive"
                 [routerLinkActiveOptions]="{ exact: item.route === 'robots' }"
-                class="flex items-center gap-3 rounded pl-6 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer animate-fade-in"
+                class="flex items-center gap-3 rounded pl-6 px-3 py-1.5 text-sm transition-colors cursor-pointer animate-fade-in"
+                [ngClass]="rla.isActive
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-600 hover:bg-gray-100'"
                 [attr.aria-label]="item.label + ' для ' + selectedRestaurant.restaurant_name"
               >
                 <lucide-icon [name]="item.icon" [size]="16" class="shrink-0"></lucide-icon>

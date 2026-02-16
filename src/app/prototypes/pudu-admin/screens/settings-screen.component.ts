@@ -123,6 +123,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                 min="1"
                 max="600"
+                aria-label="Таймер ожидания в секундах"
               />
               <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает у стола</p>
             </div>
@@ -168,6 +169,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                 min="1"
                 max="600"
+                aria-label="Таймер ожидания в секундах"
               />
               <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает на станции выдачи</p>
             </div>
@@ -178,10 +180,15 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
           <!-- ============================================ -->
           <ng-container *ngIf="activeTab === 'send_dish'">
 
-            <!-- F12: Warning — одна поездка = один стол -->
-            <div class="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50/50 p-4 text-sm text-orange-800" role="alert">
-              <lucide-icon name="alert-triangle" [size]="16" class="text-orange-500 shrink-0 mt-0.5"></lucide-icon>
-              <span>Одна поездка робота обрабатывает блюда только для одного стола. Блюда для разных столов НЕ совмещаются в рамках одного рейса.</span>
+            <!-- F12: Warning — синтезатор речи -->
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4" role="alert">
+              <div class="flex items-start gap-3">
+                <lucide-icon name="alert-triangle" [size]="20" class="text-amber-500 shrink-0 mt-0.5"></lucide-icon>
+                <div>
+                  <p class="font-medium text-amber-800">Настройка требует внимания</p>
+                  <p class="text-sm text-amber-700 mt-1">При включении «Привезти блюдо» убедитесь, что названия блюд корректно озвучиваются синтезатором речи робота. Рекомендуется протестировать на реальном устройстве.</p>
+                </div>
+              </div>
             </div>
 
             <!-- Макс. блюд за рейс -->
@@ -194,6 +201,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 [ngClass]="getNumberError(settings.send_dish.max_dishes_per_trip, 1, 20) ? 'border-red-500' : 'border-border'"
                 min="1"
                 max="20"
+                aria-label="Максимальное количество блюд за один рейс"
               />
               <p class="text-xs mt-1" [ngClass]="getNumberError(settings.send_dish.max_dishes_per_trip, 1, 20) ? 'text-red-500' : 'text-gray-400'">
                 {{ getNumberError(settings.send_dish.max_dishes_per_trip, 1, 20) || 'Максимальное количество блюд за один рейс (не более 20)' }}
@@ -210,6 +218,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 [ngClass]="getNumberError(settings.send_dish.wait_time, 1, 600) ? 'border-red-500' : 'border-border'"
                 min="1"
                 max="600"
+                aria-label="Таймер ожидания в секундах"
               />
               <p class="text-xs mt-1" [ngClass]="getNumberError(settings.send_dish.wait_time, 1, 600) ? 'text-red-500' : 'text-gray-400'">
                 {{ getNumberError(settings.send_dish.wait_time, 1, 600) || 'Общее время ожидания робота у стола. Сумма таймеров фраз не должна его превышать' }}
@@ -277,6 +286,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                   [(ngModel)]="phrase.delay_sec"
                   class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                   min="0"
+                  aria-label="Таймер ожидания в секундах"
                 />
                 <p class="text-xs text-gray-400 mt-1">Пауза перед произнесением этой фразы</p>
               </div>
@@ -344,10 +354,15 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
               </label>
             </div>
 
-            <!-- F13: Info — мультивыбор столов -->
-            <div class="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 text-sm text-blue-800" role="status">
-              <lucide-icon name="info" [size]="16" class="text-blue-500 shrink-0 mt-0.5"></lucide-icon>
-              <span>Плагин iikoFront поддерживает выбор нескольких столов для одной задачи уборки (мультивыбор). Робот объезжает столы последовательно. См. SPEC-003, В3.</span>
+            <!-- F13: Info — как работает клининг -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4" role="alert">
+              <div class="flex items-start gap-3">
+                <lucide-icon name="info" [size]="20" class="text-blue-500 shrink-0 mt-0.5"></lucide-icon>
+                <div>
+                  <p class="font-medium text-blue-800">Как работает клининг</p>
+                  <p class="text-sm text-blue-700 mt-1">Робот подъезжает к указанному столу и озвучивает фразу клининга. Персонал может воспользоваться роботом для сбора посуды. Время ожидания — в секундах.</p>
+                </div>
+              </div>
             </div>
 
             <hr class="border-t border-gray-200" />
@@ -392,6 +407,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                     class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                     min="1"
                     max="600"
+                    aria-label="Таймер ожидания в секундах"
                   />
                   <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает, пока гость положит посуду</p>
                 </div>
@@ -442,6 +458,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                     [(ngModel)]="settings.cleanup.auto_timer_after_delivery"
                     class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                     min="1"
+                    aria-label="Таймер ожидания в секундах"
                   />
                   <p class="text-xs text-gray-400 mt-1">Через сколько минут после доставки робот приедет</p>
                   <p class="text-xs text-gray-400 mt-0.5 italic">Рекомендуемое: 12–14 мин</p>
@@ -455,6 +472,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                     [(ngModel)]="settings.cleanup.auto_timer_after_check"
                     class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                     min="0"
+                    aria-label="Таймер ожидания в секундах"
                   />
                   <p class="text-xs text-gray-400 mt-1">Через сколько минут после закрытия чека. 0 — сразу</p>
                 </div>
@@ -505,6 +523,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                 min="1"
                 max="600"
+                aria-label="Таймер ожидания в секундах"
               />
               <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает укладки чека</p>
             </div>
@@ -523,6 +542,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
                 min="1"
                 max="600"
+                aria-label="Таймер ожидания в секундах"
               />
               <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает оплату. По умолчанию 120 сек</p>
             </div>
@@ -867,7 +887,7 @@ export class SettingsScreenComponent implements OnInit {
     this.phraseConfirmOpen = false;
     this.phraseChangedRecently = true;
     this.performSave();
-    this.showToast('Фраза сохранена. Следующее изменение через 24 часа');
+    this.showToast('Настройки фразы сохранены');
     // Simulated 5-second disable (v1.4 F5)
     setTimeout(() => {
       this.phraseChangedRecently = false;

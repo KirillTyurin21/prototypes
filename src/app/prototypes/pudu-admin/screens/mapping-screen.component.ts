@@ -259,7 +259,7 @@ interface Toast {
                           type="button"
                           class="inline-flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
                           (click)="addPoint(getMappingIndex(mapping))"
-                          [attr.aria-label]="'Добавить точку к столу ' + getTableName(mapping.table_id)"
+                          [attr.aria-label]="'Добавить привязку точки к столу ' + getTableName(mapping.table_id)"
                         >
                           <lucide-icon name="plus" [size]="14"></lucide-icon>
                           Точку
@@ -302,9 +302,9 @@ interface Toast {
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Точка робота</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Привязанный стол</th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Статус</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48" title="Название точки на карте робота">Точка робота</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Стол iiko, привязанный к этой точке робота">Привязанный стол</th>
+                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20" title="Индикатор наличия привязки стола к точке">Статус</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -334,12 +334,14 @@ interface Toast {
                         name="check-circle-2"
                         [size]="18"
                         class="text-green-600"
+                        title="Стол привязан к точке робота"
                       ></lucide-icon>
                       <lucide-icon
                         *ngIf="!getTableIdForPoint(point.point_id)"
                         name="circle"
                         [size]="18"
                         class="text-gray-300"
+                        title="Стол не привязан к точке — робот не сможет доставить заказ"
                       ></lucide-icon>
                     </td>
                   </tr>
@@ -430,7 +432,7 @@ export class MappingScreenComponent implements OnInit {
 
   ngOnInit(): void {
     setTimeout(() => {
-      this.robots = [...MOCK_ROBOTS];
+      this.robots = this.storage.load('pudu-admin', 'robots', MOCK_ROBOTS);
       this.tables = [...MOCK_TABLES];
       this.availablePoints = [...MOCK_POINTS];
       this.loadMappings();
