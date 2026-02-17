@@ -10,6 +10,18 @@ export interface PuduRobot {
   after_action: 'idle' | 'marketing';  // per-robot настройка (из Admin Panel)
 }
 
+/** v1.4 (H7): Робот из GET /v1/robots/available */
+export interface AvailableRobot {
+  robot_id: string;
+  robot_name: string;
+  status: 'free' | 'busy' | 'offline';
+  current_task: {
+    task_id: string;
+    task_type: 'send_menu' | 'cleanup' | 'cleanup_auto' | 'send_dish' | 'qr_payment' | 'marketing';
+    target_point: string;
+  } | null;
+}
+
 export interface OrderTable {
   table_id: string;
   table_name: string;
@@ -71,6 +83,7 @@ export interface PuduNotification {
   dismissed: boolean;
   is_estop: boolean;              // true = повторяющееся уведомление E-STOP
   repeat_interval_sec?: number;   // интервал повторения (5 сек для E-STOP)
+  isRepeating?: boolean;          // v1.4 (H5): persistent_repeating = true
 }
 
 export interface ScenarioSettings {
@@ -139,10 +152,13 @@ export type PuduModalType =
   | 'send_dish_repeat'             // М16: повторить доставку
   | 'send_dish_blocked'            // М8: заглушка (legacy, для каталога)
   // Общие
-  | 'loading'
+  | 'loading'                        // [DEPRECATED v1.4 H10] — заменён inline-спиннером на кнопке
   | 'error'
-  | 'success'
+  | 'success'                        // [DEPRECATED v1.4 H10] — заменён toast dispatched (H11)
   | 'unmapped_table'
+  // v1.4: Выбор робота и статусы
+  | 'robot_select'                   // v1.4 (H1): П1 — Выбор робота (для маркетинга)
+  | 'robot_status'                   // v1.4 (H1): П7 — Быстрый просмотр статусов роботов
   | null;
 
 /** Для регистрации в plugin-main-screen (каталог плагинов) */
@@ -191,4 +207,8 @@ export interface CatalogSection {
 export interface ScenarioStep {
   modal: PuduModalType;              // Модалка для открытия
   delay: number;                      // Задержка перед открытием (мс)
+  action?: string;                    // v1.4: действие для выполнения
+  params?: Record<string, any>;       // v1.4: параметры действия
+  toast?: 'dispatched' | 'completed' | 'error' | 'info';  // v1.4 (H14): тип toast для показа
+  toastText?: string;                 // v1.4 (H14): текст toast
 }
