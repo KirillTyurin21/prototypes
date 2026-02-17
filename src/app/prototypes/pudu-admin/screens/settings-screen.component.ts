@@ -9,6 +9,7 @@ import {
   UiSelectComponent,
   UiCheckboxComponent,
   UiConfirmDialogComponent,
+  UiBadgeComponent,
 } from '@/components/ui';
 import type { TabItem, SelectOption } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
@@ -29,6 +30,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
     UiSelectComponent,
     UiCheckboxComponent,
     UiConfirmDialogComponent,
+    UiBadgeComponent,
     IconsModule,
   ],
   host: {
@@ -605,14 +607,39 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
               </div>
             </div>
 
-            <!-- Робот для маркетинга -->
-            <ui-select
-              label="Робот для маркетинга"
-              [options]="robotOptions"
-              [value]="settings.marketing.robot_id"
-              (valueChange)="settings.marketing.robot_id = $event"
-              placeholder="Выберите робота"
-            ></ui-select>
+            <!-- Роботы для маркетинга (Multi-Select) -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Роботы для маркетинга</label>
+
+              <!-- Чипы выбранных роботов -->
+              <div *ngIf="settings.marketing.robot_ids.length > 0" class="flex flex-wrap gap-2 mb-2">
+                <span
+                  *ngFor="let id of settings.marketing.robot_ids"
+                  class="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal bg-blue-50 text-blue-700 border border-blue-200 rounded"
+                >
+                  {{ getRobotName(id) }}
+                  <button
+                    (click)="removeMarketingRobot(id)"
+                    class="ml-1 hover:text-blue-900 transition-colors"
+                    [attr.aria-label]="'Убрать ' + getRobotName(id) + ' из маркетинга'"
+                  >
+                    <lucide-icon name="x" [size]="12"></lucide-icon>
+                  </button>
+                </span>
+              </div>
+
+              <!-- Select для добавления робота -->
+              <ui-select
+                [options]="availableMarketingRobotOptions"
+                [value]="''"
+                (valueChange)="addMarketingRobot($event)"
+                [placeholder]="settings.marketing.robot_ids.length === 0 ? 'Выберите роботов для маркетинга' : 'Добавить ещё робота...'"
+              ></ui-select>
+
+              <p class="text-xs text-gray-500">
+                Какие роботы используются для маркетингового круиза. Можно выбрать несколько
+              </p>
+            </div>
 
             <!-- Автозапуск круиза при простое -->
             <ui-checkbox
@@ -671,9 +698,10 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
     <!-- Toast -->
     <div
       *ngIf="toastVisible"
-      class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm animate-slide-up"
+      class="fixed bottom-6 right-6 z-50 flex items-center gap-2 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm animate-slide-up"
+      [ngClass]="toastType === 'info' ? 'bg-amber-600' : 'bg-green-600'"
     >
-      <lucide-icon name="check-circle-2" [size]="18"></lucide-icon>
+      <lucide-icon [name]="toastType === 'info' ? 'info' : 'check-circle-2'" [size]="18"></lucide-icon>
       {{ toastMessage }}
     </div>
 
@@ -715,6 +743,7 @@ export class SettingsScreenComponent implements OnInit {
 
   toastVisible = false;
   toastMessage = '';
+  toastType: 'success' | 'info' = 'success';
   confirmDialogOpen = false;
   phraseConfirmOpen = false;
 
@@ -758,6 +787,35 @@ export class SettingsScreenComponent implements OnInit {
       }));
       this.loading = false;
     }, 1000);
+  }
+
+  // ---- Marketing multi-select ----
+
+  /** Options for the marketing robot dropdown (excluding already selected) */
+  get availableMarketingRobotOptions(): SelectOption[] {
+    if (!this.settings) return [];
+    return this.robots
+      .filter(r => !this.settings.marketing.robot_ids.includes(r.id))
+      .map(r => ({ value: r.id, label: `${r.name} (${r.id})` }));
+  }
+
+  getRobotName(id: string): string {
+    const robot = this.robots.find(r => r.id === id);
+    return robot ? `${robot.name} (${robot.id})` : id;
+  }
+
+  addMarketingRobot(id: string): void {
+    if (id && !this.settings.marketing.robot_ids.includes(id)) {
+      this.settings.marketing.robot_ids = [...this.settings.marketing.robot_ids, id];
+    }
+  }
+
+  removeMarketingRobot(id: string): void {
+    this.settings.marketing.robot_ids = this.settings.marketing.robot_ids.filter(rid => rid !== id);
+    // J5: Toast при удалении последнего робота
+    if (this.settings.marketing.robot_ids.length === 0) {
+      this.showToast('Не выбран ни один робот для маркетинга. Круиз не будет запускаться', 'info');
+    }
   }
 
   // ---- URL proxy getters/setters for optional fields ----
@@ -951,8 +1009,9 @@ export class SettingsScreenComponent implements OnInit {
     this.router.navigate(['/prototype/pudu-admin']);
   }
 
-  private showToast(message: string): void {
+  private showToast(message: string, type: 'success' | 'info' = 'success'): void {
     this.toastMessage = message;
+    this.toastType = type;
     this.toastVisible = true;
     setTimeout(() => {
       this.toastVisible = false;

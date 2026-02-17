@@ -81,7 +81,7 @@ export interface ScenarioSettings {
     phrase_failure_url?: string;
   };
   marketing: {
-    robot_id: string;
+    robot_ids: string[];           // массив ID роботов для маркетинга (пустой = не выбраны)
     auto_cruise_on_idle: boolean;
     timer_enabled: boolean;
     timer_start: string;
