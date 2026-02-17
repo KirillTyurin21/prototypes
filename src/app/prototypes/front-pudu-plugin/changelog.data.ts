@@ -8,7 +8,7 @@ export const CHANGELOG: ChangelogRelease[] = [
     changes: [
       {
         page: 'Настройки робота',
-        pageRoute: '/prototype/front-pudu-plugin/catalog',
+        pageRoute: '/prototype/front-pudu-plugin/pos',
         items: [
           'Удалены поля «Фраза неудачи» и «Ссылка на фразу неудачи» из настроек сценария уборки (ограничение API: нет ИК-датчиков — используется тайм-аут)',
           'Синхронизация с Admin Panel v1.8',
@@ -23,7 +23,7 @@ export const CHANGELOG: ChangelogRelease[] = [
     changes: [
       {
         page: 'Выбор робота',
-        pageRoute: '/prototype/front-pudu-plugin/catalog',
+        pageRoute: '/prototype/front-pudu-plugin/pos',
         items: [
           'Двустрочное отображение имени робота: псевдоним + имя в NE (мелким серым)',
           'Утилита форматирования имени робота для единообразия во всех экранах',
@@ -31,7 +31,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Статус робота',
-        pageRoute: '/prototype/front-pudu-plugin/catalog',
+        pageRoute: '/prototype/front-pudu-plugin/pos',
         items: [
           'Двустрочное отображение имени (аналогично экрану выбора)',
         ],
@@ -60,7 +60,7 @@ export const CHANGELOG: ChangelogRelease[] = [
     changes: [
       {
         page: 'Выбор робота',
-        pageRoute: '/prototype/front-pudu-plugin/catalog',
+        pageRoute: '/prototype/front-pudu-plugin/pos',
         items: [
           'Новое модальное окно выбора робота с 4 состояниями',
           'Повторяющиеся уведомления (E-STOP, OBSTACLE) с бейджем «ПОВТОРНО» и авто-повтором через 3 секунды',
@@ -69,7 +69,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Статус робота',
-        pageRoute: '/prototype/front-pudu-plugin/catalog',
+        pageRoute: '/prototype/front-pudu-plugin/pos',
         items: [
           'Новое модальное окно статуса робота',
           'Модальное окно завершения задачи',

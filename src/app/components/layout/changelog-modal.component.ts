@@ -99,9 +99,11 @@ export class ChangelogModalComponent {
     this.expandedIndex = this.expandedIndex === index ? null : index;
   }
 
-  navigateToPage(route: string): void {
-    this.router.navigateByUrl(route);
-    this.onClose();
+  async navigateToPage(route: string): Promise<void> {
+    const success = await this.router.navigateByUrl(route);
+    if (success) {
+      this.onClose();
+    }
   }
 
   formatDate(dateStr: string): string {

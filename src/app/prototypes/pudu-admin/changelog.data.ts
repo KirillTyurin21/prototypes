@@ -16,14 +16,14 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Список роботов',
-        pageRoute: '/prototype/pudu-admin/restaurant/1',
+        pageRoute: '/prototype/pudu-admin/robots',
         items: [
           'Inline-редактирование имени робота — клик по ячейке открывает поле ввода с возможностью сохранения и отмены',
         ],
       },
       {
         page: 'Настройки робота',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/robot/1',
+        pageRoute: '/prototype/pudu-admin/settings',
         items: [
           'Уведомление после сохранения обновлено на «Настройка сохранена»',
           'Удалены поля «Фраза позже» и «Ссылка на фразу позже» из настроек уборки посуды; добавлен информационный блок',
@@ -33,7 +33,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Маркетинг',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/marketing',
+        pageRoute: '/prototype/pudu-admin/settings',
         items: [
           'Замена одиночного выбора робота на множественный выбор с чипами для назначения нескольких роботов',
           'Предупреждающее уведомление при попытке удалить последнего назначенного робота',
@@ -48,14 +48,14 @@ export const CHANGELOG: ChangelogRelease[] = [
     changes: [
       {
         page: 'Настройки робота',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/robot/1',
+        pageRoute: '/prototype/pudu-admin/settings',
         items: [
           'Добавлены всплывающие подсказки на значения статуса настройки',
         ],
       },
       {
         page: 'Маппинг столов',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/mapping',
+        pageRoute: '/prototype/pudu-admin/mapping',
         items: [
           'Исправлена привязка столов в режиме «Точки → Столы»',
           'Предупреждение о незамапленных столах отображается в обоих режимах маппинга',
@@ -84,7 +84,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Маппинг столов',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/mapping',
+        pageRoute: '/prototype/pudu-admin/mapping',
         items: [
           'Фильтр по залу на экране маппинга',
           'Роботы загружаются из StorageService',
@@ -92,7 +92,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Настройки робота',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/robot/1',
+        pageRoute: '/prototype/pudu-admin/settings',
         items: [
           'Warning-блок на вкладке «Доставка блюд»',
           'Info-блок на вкладке «Уборка посуды»',
@@ -121,21 +121,21 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Список роботов',
-        pageRoute: '/prototype/pudu-admin/restaurant/1',
+        pageRoute: '/prototype/pudu-admin/robots',
         items: [
           'Экран списка роботов PUDU',
         ],
       },
       {
         page: 'Маппинг столов',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/mapping',
+        pageRoute: '/prototype/pudu-admin/mapping',
         items: [
           'Экран маппинга столов',
         ],
       },
       {
         page: 'Настройки робота',
-        pageRoute: '/prototype/pudu-admin/restaurant/1/robot/1',
+        pageRoute: '/prototype/pudu-admin/settings',
         items: [
           'Экран настроек роботов',
           'Toast-уведомления при сохранении',
