@@ -65,6 +65,27 @@
         "/^node \"D:\\\\1Документы\\\\Задачи iiko\\\\Прототипы\\\\node_modules\\\\@angular\\\\cli\\\\bin\\\\ng\\.js\" build$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^powershell -ExecutionPolicy Bypass -Command \"cd 'd:\\\\1Документы\\\\Задачи iiko\\\\Прототипы'; git add \\.; git commit -m 'feat\\(front-pudu-plugin\\): v1\\.6 — удалены phrase_fail/phrase_fail_url из cleanup \\(J1-J3\\)'\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^powershell -ExecutionPolicy Bypass -Command \"cd 'd:\\\\1Документы\\\\Задачи iiko\\\\Прототипы'; git push origin dev\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "npm.cmd": true,
+        "/^cmd /c \"npm run build\" 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cmd /c \"cd /d D:\\\\1Документы\\\\Задачи iiko\\\\Прототипы && git status\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cmd /c \"cd /d D:\\\\1Документы\\\\Задачи iiko\\\\Прототипы && git add changelogs/pudu-admin\\.md src/app/prototypes/pudu-admin/ && git add \"\"materials/Pudu роботы/Промты/Админ Панель/Промт_прототипа_PUDU_Admin_панели_v1\\.5_патч\\.md\"\" && git status\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

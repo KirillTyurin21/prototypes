@@ -120,8 +120,7 @@ export function getInitialSettings(): ScenarioSettings {
       phrase_arrival: 'Пожалуйста, поставьте грязную посуду на поднос',
       phrase_arrival_url: '',
       wait_time: 90,
-      phrase_later: 'Я приеду позже за посудой',
-      phrase_later_url: '',
+      // phrase_later — УДАЛЕНО (v1.5 G5)
       auto_timer_after_delivery: 12,
       auto_timer_after_check: 3,
     },
@@ -136,7 +135,7 @@ export function getInitialSettings(): ScenarioSettings {
       phrase_failure_url: '',
     },
     marketing: {
-      robot_id: 'PD2024060001',
+      robot_ids: ['PD2024060001'],    // BellaBot-01 назначен на маркетинг
       auto_cruise_on_idle: false,
       timer_enabled: false,
       timer_start: '11:00',

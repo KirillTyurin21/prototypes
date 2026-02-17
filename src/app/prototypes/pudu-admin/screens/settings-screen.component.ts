@@ -9,6 +9,7 @@ import {
   UiSelectComponent,
   UiCheckboxComponent,
   UiConfirmDialogComponent,
+  UiBadgeComponent,
 } from '@/components/ui';
 import type { TabItem, SelectOption } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
@@ -29,6 +30,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
     UiSelectComponent,
     UiCheckboxComponent,
     UiConfirmDialogComponent,
+    UiBadgeComponent,
     IconsModule,
   ],
   host: {
@@ -306,7 +308,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
           <!-- ============================================ -->
           <ng-container *ngIf="activeTab === 'cleanup'">
 
-            <!-- Radio Group: 3 режима -->
+            <!-- Radio Group: 3 режима (H4 v1.6) -->
             <div class="space-y-0">
               <!-- Ручной режим -->
               <label class="flex items-start gap-3 py-3 cursor-pointer border-b border-gray-100" title="Уборка запускается вручную из iikoFront">
@@ -319,12 +321,12 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 />
                 <div>
                   <span class="text-sm font-medium text-gray-900">Ручной режим</span>
-                  <p class="text-xs text-gray-500 mt-0.5">Официант вручную отправляет робота для уборки стола через iikoFront</p>
+                  <p class="text-xs text-gray-500 mt-0.5">Официант вручную отправляет робота для уборки конкретного стола через iikoFront</p>
                 </div>
               </label>
 
               <!-- Автоматический режим -->
-              <label class="flex items-start gap-3 py-3 cursor-pointer border-b border-gray-100" title="Уборка запускается автоматически по таймеру или закрытию чека">
+              <label class="flex items-start gap-3 py-3 cursor-pointer border-b border-gray-100" title="Уборка по таймеру. Кнопка «Уборка» в iikoFront скрыта">
                 <input
                   type="radio"
                   name="cleanupMode"
@@ -334,12 +336,12 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 />
                 <div>
                   <span class="text-sm font-medium text-gray-900">Автоматический режим</span>
-                  <p class="text-xs text-gray-500 mt-0.5">Робот автоматически отправляется на уборку по таймерам: после доставки блюда или закрытия чека</p>
+                  <p class="text-xs text-gray-500 mt-0.5">Робот автоматически приезжает для уборки по таймерам: после доставки блюда или закрытия чека. Кнопка «Уборка» в iikoFront скрыта</p>
                 </div>
               </label>
 
               <!-- Смешанный режим -->
-              <label class="flex items-start gap-3 py-3 cursor-pointer" title="Ручной запуск всегда доступен + автоматические триггеры работают параллельно">
+              <label class="flex items-start gap-3 py-3 cursor-pointer" title="Ручной запуск + авто-таймеры параллельно. Дедупликация задач автоматическая">
                 <input
                   type="radio"
                   name="cleanupMode"
@@ -349,7 +351,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 />
                 <div>
                   <span class="text-sm font-medium text-gray-900">Смешанный режим</span>
-                  <p class="text-xs text-gray-500 mt-0.5">Автоматическая уборка по таймерам с возможностью ручного запуска через iikoFront</p>
+                  <p class="text-xs text-gray-500 mt-0.5">Ручной запуск уборки через iikoFront всегда доступен, авто-триггеры (таймеры) работают параллельно в фоне. Дублирование задач на один стол исключается автоматически</p>
                 </div>
               </label>
             </div>
@@ -367,88 +369,75 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
 
             <hr class="border-t border-gray-200" />
 
-            <!-- Секция ручной (фразы) — видна для manual и mixed -->
-            <ng-container *ngIf="settings.cleanup.mode === 'manual' || settings.cleanup.mode === 'mixed'">
-              <div class="space-y-6 animate-fade-in">
-                <h3 class="text-base font-semibold text-gray-900">Фразы при уборке</h3>
+            <!-- H1 v1.6: Секция «Настройки поведения у стола» — ВИДНА ВСЕГДА -->
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-base font-semibold text-gray-900">Настройки поведения у стола</h3>
+                <p class="text-xs text-gray-500 mt-1">Фраза, видео и время ожидания — используются во всех режимах уборки</p>
+              </div>
 
-                <!-- 1. Фраза при подъезде к столу -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Фраза при подъезде к столу</label>
-                  <ui-input
-                    [(value)]="settings.cleanup.phrase_arrival"
-                    placeholder="Введите фразу"
-                    [error]="getPhraseError(settings.cleanup.phrase_arrival)"
-                  ></ui-input>
-                  <div class="flex justify-between mt-1">
-                    <span class="text-xs text-gray-400">Фраза робота при прибытии к столу для уборки</span>
-                    <span class="text-xs" [ngClass]="settings.cleanup.phrase_arrival.length > 180 ? 'text-red-500' : 'text-gray-400'">
-                      {{ settings.cleanup.phrase_arrival.length }} / 180
-                    </span>
-                  </div>
-                </div>
+              <!-- H6 v1.6: Info-блок «общие настройки» -->
+              <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600" role="status">
+                <lucide-icon name="info" [size]="16" class="text-gray-400 shrink-0 mt-0.5"></lucide-icon>
+                <span>Эти настройки применяются ко всем режимам уборки. Значения сохраняются при переключении между режимами.</span>
+              </div>
 
-                <!-- 2. URL видео/аудио -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">URL видео/аудио</label>
-                  <ui-input
-                    [(value)]="cleanupArrivalUrl"
-                    placeholder="https://example.com/audio.mp3"
-                  ></ui-input>
-                  <p class="text-xs text-gray-400 mt-1">Ссылка на mp4/mp3 для фразы при уборке</p>
-                </div>
-
-                <!-- 3. Время ожидания у стола -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Время ожидания у стола (сек)</label>
-                  <input
-                    type="number"
-                    [(ngModel)]="settings.cleanup.wait_time"
-                    class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
-                    min="1"
-                    max="600"
-                    aria-label="Таймер ожидания в секундах"
-                  />
-                  <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает, пока гость положит посуду</p>
-                </div>
-
-                <!-- 4. Фраза «приеду позже» -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Фраза «приеду позже»</label>
-                  <ui-input
-                    [(value)]="settings.cleanup.phrase_later"
-                    placeholder="Введите фразу"
-                    [error]="getPhraseError(settings.cleanup.phrase_later)"
-                  ></ui-input>
-                  <div class="flex justify-between mt-1">
-                    <span class="text-xs text-gray-400">Фраза, если гость не положил посуду</span>
-                    <span class="text-xs" [ngClass]="settings.cleanup.phrase_later.length > 180 ? 'text-red-500' : 'text-gray-400'">
-                      {{ settings.cleanup.phrase_later.length }} / 180
-                    </span>
-                  </div>
-                </div>
-
-                <!-- 5. URL видео/аудио для «приеду позже» -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">URL видео/аудио</label>
-                  <ui-input
-                    [(value)]="cleanupLaterUrl"
-                    placeholder="https://example.com/audio.mp3"
-                  ></ui-input>
-                  <p class="text-xs text-gray-400 mt-1">Ссылка на mp4/mp3 для фразы «приеду позже»</p>
+              <!-- 1. Фраза при подъезде к столу -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Фраза при подъезде к столу</label>
+                <ui-input
+                  [(value)]="settings.cleanup.phrase_arrival"
+                  placeholder="Введите фразу"
+                  [error]="getPhraseError(settings.cleanup.phrase_arrival)"
+                ></ui-input>
+                <div class="flex justify-between mt-1">
+                  <span class="text-xs text-gray-400">Фраза робота при прибытии к столу для уборки</span>
+                  <span class="text-xs" [ngClass]="settings.cleanup.phrase_arrival.length > 180 ? 'text-red-500' : 'text-gray-400'">
+                    {{ settings.cleanup.phrase_arrival.length }} / 180
+                  </span>
                 </div>
               </div>
-            </ng-container>
 
-            <!-- Подсказка для авто-режима (без ручной секции) -->
-            <p *ngIf="settings.cleanup.mode === 'auto'" class="text-sm italic text-orange-500 animate-fade-in">
-              Фраза и время ожидания из ручного режима. Для изменения переключитесь в «Смешанный» режим.
-            </p>
+              <!-- 2. URL видео/аудио -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL видео/аудио</label>
+                <ui-input
+                  [(value)]="cleanupArrivalUrl"
+                  placeholder="https://example.com/audio.mp3"
+                ></ui-input>
+                <p class="text-xs text-gray-400 mt-1">Ссылка на mp4/mp3 для фразы при уборке</p>
+              </div>
 
-            <!-- Секция авто (таймеры) — видна для auto и mixed -->
+              <!-- 3. Время ожидания у стола -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Время ожидания у стола (сек)</label>
+                <input
+                  type="number"
+                  [(ngModel)]="settings.cleanup.wait_time"
+                  class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
+                  min="1"
+                  max="600"
+                  aria-label="Таймер ожидания в секундах"
+                />
+                <p class="text-xs text-gray-400 mt-1">Сколько секунд робот ожидает у стола, затем уезжает безусловно</p>
+              </div>
+
+              <!-- v1.5 G7: Info-блок ограничения датчиков -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4" role="note">
+                <div class="flex items-start gap-3">
+                  <lucide-icon name="info" [size]="18" class="text-blue-500 shrink-0 mt-0.5"></lucide-icon>
+                  <p class="text-xs text-gray-600">
+                    Робот стоит у стола заданное время и уезжает безусловно.
+                    Определение факта загрузки посуды недоступно (ограничение API PUDU).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- H2 v1.6: Секция «Таймеры автоматической уборки» — видна при auto / mixed -->
             <ng-container *ngIf="settings.cleanup.mode === 'auto' || settings.cleanup.mode === 'mixed'">
               <div class="space-y-6 animate-fade-in">
-                <h3 class="text-base font-semibold text-gray-900">Автоматический режим</h3>
+                <h3 class="text-base font-semibold text-gray-900">Таймеры автоматической уборки</h3>
 
                 <!-- 6. Таймер после доставки блюда -->
                 <div>
@@ -618,14 +607,39 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
               </div>
             </div>
 
-            <!-- Робот для маркетинга -->
-            <ui-select
-              label="Робот для маркетинга"
-              [options]="robotOptions"
-              [value]="settings.marketing.robot_id"
-              (valueChange)="settings.marketing.robot_id = $event"
-              placeholder="Выберите робота"
-            ></ui-select>
+            <!-- Роботы для маркетинга (Multi-Select) -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Роботы для маркетинга</label>
+
+              <!-- Чипы выбранных роботов -->
+              <div *ngIf="settings.marketing.robot_ids.length > 0" class="flex flex-wrap gap-2 mb-2">
+                <span
+                  *ngFor="let id of settings.marketing.robot_ids"
+                  class="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal bg-blue-50 text-blue-700 border border-blue-200 rounded"
+                >
+                  {{ getRobotName(id) }}
+                  <button
+                    (click)="removeMarketingRobot(id)"
+                    class="ml-1 hover:text-blue-900 transition-colors"
+                    [attr.aria-label]="'Убрать ' + getRobotName(id) + ' из маркетинга'"
+                  >
+                    <lucide-icon name="x" [size]="12"></lucide-icon>
+                  </button>
+                </span>
+              </div>
+
+              <!-- Select для добавления робота -->
+              <ui-select
+                [options]="availableMarketingRobotOptions"
+                [value]="''"
+                (valueChange)="addMarketingRobot($event)"
+                [placeholder]="settings.marketing.robot_ids.length === 0 ? 'Выберите роботов для маркетинга' : 'Добавить ещё робота...'"
+              ></ui-select>
+
+              <p class="text-xs text-gray-500">
+                Какие роботы используются для маркетингового круиза. Можно выбрать несколько
+              </p>
+            </div>
 
             <!-- Автозапуск круиза при простое -->
             <ui-checkbox
@@ -684,9 +698,10 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
     <!-- Toast -->
     <div
       *ngIf="toastVisible"
-      class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm animate-slide-up"
+      class="fixed bottom-6 right-6 z-50 flex items-center gap-2 text-white px-4 py-2.5 rounded-lg shadow-lg text-sm animate-slide-up"
+      [ngClass]="toastType === 'info' ? 'bg-amber-600' : 'bg-green-600'"
     >
-      <lucide-icon name="check-circle-2" [size]="18"></lucide-icon>
+      <lucide-icon [name]="toastType === 'info' ? 'info' : 'check-circle-2'" [size]="18"></lucide-icon>
       {{ toastMessage }}
     </div>
 
@@ -728,6 +743,7 @@ export class SettingsScreenComponent implements OnInit {
 
   toastVisible = false;
   toastMessage = '';
+  toastType: 'success' | 'info' = 'success';
   confirmDialogOpen = false;
   phraseConfirmOpen = false;
 
@@ -739,7 +755,6 @@ export class SettingsScreenComponent implements OnInit {
   private savedPhrasePickup = '';
   private savedSendDishPhrases: string = '';
   private savedCleanupPhraseArrival: string = '';
-  private savedCleanupPhraseLater: string = '';
   private savedQrCashierPhrase: string = '';
   private savedQrPhraseSuccess: string = '';
   private savedQrPhraseFailure: string = '';
@@ -763,7 +778,6 @@ export class SettingsScreenComponent implements OnInit {
       this.savedPhrasePickup = this.settings.send_menu.phrase_pickup;
       this.savedSendDishPhrases = JSON.stringify(this.settings.send_dish.phrases.map(p => p.text));
       this.savedCleanupPhraseArrival = this.settings.cleanup.phrase_arrival;
-      this.savedCleanupPhraseLater = this.settings.cleanup.phrase_later;
       this.savedQrCashierPhrase = this.settings.qr_payment.cashier_phrase;
       this.savedQrPhraseSuccess = this.settings.qr_payment.phrase_success;
       this.savedQrPhraseFailure = this.settings.qr_payment.phrase_failure;
@@ -773,6 +787,35 @@ export class SettingsScreenComponent implements OnInit {
       }));
       this.loading = false;
     }, 1000);
+  }
+
+  // ---- Marketing multi-select ----
+
+  /** Options for the marketing robot dropdown (excluding already selected) */
+  get availableMarketingRobotOptions(): SelectOption[] {
+    if (!this.settings) return [];
+    return this.robots
+      .filter(r => !this.settings.marketing.robot_ids.includes(r.id))
+      .map(r => ({ value: r.id, label: `${r.name} (${r.id})` }));
+  }
+
+  getRobotName(id: string): string {
+    const robot = this.robots.find(r => r.id === id);
+    return robot ? `${robot.name} (${robot.id})` : id;
+  }
+
+  addMarketingRobot(id: string): void {
+    if (id && !this.settings.marketing.robot_ids.includes(id)) {
+      this.settings.marketing.robot_ids = [...this.settings.marketing.robot_ids, id];
+    }
+  }
+
+  removeMarketingRobot(id: string): void {
+    this.settings.marketing.robot_ids = this.settings.marketing.robot_ids.filter(rid => rid !== id);
+    // J5: Toast при удалении последнего робота
+    if (this.settings.marketing.robot_ids.length === 0) {
+      this.showToast('Не выбран ни один робот для маркетинга. Круиз не будет запускаться', 'info');
+    }
   }
 
   // ---- URL proxy getters/setters for optional fields ----
@@ -796,13 +839,6 @@ export class SettingsScreenComponent implements OnInit {
   }
   set cleanupArrivalUrl(v: string) {
     this.settings.cleanup.phrase_arrival_url = v;
-  }
-
-  get cleanupLaterUrl(): string {
-    return this.settings.cleanup.phrase_later_url ?? '';
-  }
-  set cleanupLaterUrl(v: string) {
-    this.settings.cleanup.phrase_later_url = v;
   }
 
   get qrCashierUrl(): string {
@@ -944,7 +980,6 @@ export class SettingsScreenComponent implements OnInit {
     if (currentDishPhrases !== this.savedSendDishPhrases) return true;
     // cleanup
     if (this.settings.cleanup.phrase_arrival !== this.savedCleanupPhraseArrival) return true;
-    if (this.settings.cleanup.phrase_later !== this.savedCleanupPhraseLater) return true;
     // qr_payment
     if (this.settings.qr_payment.cashier_phrase !== this.savedQrCashierPhrase) return true;
     if (this.settings.qr_payment.phrase_success !== this.savedQrPhraseSuccess) return true;
@@ -963,7 +998,6 @@ export class SettingsScreenComponent implements OnInit {
     this.savedPhrasePickup = this.settings.send_menu.phrase_pickup;
     this.savedSendDishPhrases = JSON.stringify(this.settings.send_dish.phrases.map(p => p.text));
     this.savedCleanupPhraseArrival = this.settings.cleanup.phrase_arrival;
-    this.savedCleanupPhraseLater = this.settings.cleanup.phrase_later;
     this.savedQrCashierPhrase = this.settings.qr_payment.cashier_phrase;
     this.savedQrPhraseSuccess = this.settings.qr_payment.phrase_success;
     this.savedQrPhraseFailure = this.settings.qr_payment.phrase_failure;
@@ -975,8 +1009,9 @@ export class SettingsScreenComponent implements OnInit {
     this.router.navigate(['/prototype/pudu-admin']);
   }
 
-  private showToast(message: string): void {
+  private showToast(message: string, type: 'success' | 'info' = 'success'): void {
     this.toastMessage = message;
+    this.toastType = type;
     this.toastVisible = true;
     setTimeout(() => {
       this.toastVisible = false;
