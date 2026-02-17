@@ -4,11 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
 import { PROTOTYPES, PrototypeEntry } from '@/shared/prototypes.registry';
 import { ResetButtonComponent } from './reset-button.component';
+import { ChangelogButtonComponent } from './changelog-button.component';
 
 @Component({
   selector: 'app-top-bar',
   standalone: true,
-  imports: [CommonModule, RouterModule, IconsModule, ResetButtonComponent],
+  imports: [CommonModule, RouterModule, IconsModule, ResetButtonComponent, ChangelogButtonComponent],
   template: `
     <header class="h-14 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
       <div class="flex items-center gap-3">
@@ -22,6 +23,7 @@ import { ResetButtonComponent } from './reset-button.component';
       </div>
       <div class="flex items-center gap-2 text-sm text-text-secondary">
         <app-reset-button></app-reset-button>
+        <app-changelog-button></app-changelog-button>
         <span class="px-2 py-1 rounded bg-surface-secondary text-xs font-medium">Прототип</span>
       </div>
     </header>

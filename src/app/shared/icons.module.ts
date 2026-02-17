@@ -85,6 +85,8 @@ import {
   EyeOff,
   // Reset button
   RotateCcw,
+  // Changelog
+  ScrollText,
 } from 'lucide-angular';
 
 /**
@@ -178,6 +180,8 @@ const icons = {
   EyeOff,
   // Reset button
   RotateCcw,
+  // Changelog
+  ScrollText,
 };
 
 @NgModule({
