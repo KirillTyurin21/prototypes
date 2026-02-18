@@ -15,6 +15,8 @@ export const CHANGELOG: ChangelogRelease[] = [
           'Добавлены tooltips на элементы формы, чекбоксы и warning-блок',
           'Warning-блок: добавлен role="alert", текст обновлён на «iikoSignage»',
           'Добавлен tooltip на вкладку «Маркетинг»',
+          'Исправлена рассинхронизация подсветки активной вкладки в Chrome',
+          'Добавлена миграция старого формата данных (robot_id → robot_ids) из localStorage',
         ],
       },
     ],

@@ -54,7 +54,6 @@ export class UiTabsComponent {
   @Output() tabChange = new EventEmitter<string>();
 
   onTabClick(key: string): void {
-    this.activeTab = key;
     this.tabChange.emit(key);
   }
 }

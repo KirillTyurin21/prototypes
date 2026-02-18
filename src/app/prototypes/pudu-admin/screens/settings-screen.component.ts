@@ -799,6 +799,15 @@ export class SettingsScreenComponent implements OnInit {
     setTimeout(() => {
       this.robots = [...MOCK_ROBOTS];
       this.settings = this.storage.load('pudu-admin', 'settings', getInitialSettings());
+
+      // Migrate old localStorage format: robot_id (string) → robot_ids (string[])
+      const m = this.settings.marketing as any;
+      if (!Array.isArray(m.robot_ids)) {
+        m.robot_ids = m.robot_id ? [m.robot_id] : [];
+        delete m.robot_id;
+        this.storage.save('pudu-admin', 'settings', this.settings);
+      }
+
       this.originalSettings = JSON.stringify(this.settings);
       this.savedPhrase = this.settings.send_menu.phrase;
       this.savedPhrasePickup = this.settings.send_menu.phrase_pickup;
