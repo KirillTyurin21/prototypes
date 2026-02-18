@@ -497,7 +497,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
         [proceedLabel]="robotStatusProceedLabel"
         (onClose)="onRobotStatusClose()"
         (onRefresh)="loadRobots()"
-        (onProceed)="onRobotStatusProceed()"
+        (onProceed)="onRobotStatusProceed($event)"
       ></pudu-robot-status>
 
       <!-- v1.8: Окно «Плагины» -->
@@ -1076,7 +1076,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   }
 
   // Продолжить из окна статусов роботов к следующему модальному окну
-  onRobotStatusProceed(): void {
+  onRobotStatusProceed(robot: AvailableRobot | null): void {
     const next = this.pendingAfterRobotStatus;
     this.resetRobotStatusProps();
     this.activeModal = null;

@@ -11,7 +11,7 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
   standalone: true,
   imports: [CommonModule, PuduPosDialogComponent, IconsModule, DatePipe],
   template: `
-    <pudu-pos-dialog [open]="open" maxWidth="lg" (dialogClose)="onClose.emit()">
+    <pudu-pos-dialog [open]="open" maxWidth="lg" (dialogClose)="onCloseClick()">
       <div class="space-y-4">
         <!-- Header -->
         <div>
@@ -19,7 +19,14 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
           <p class="text-base text-center text-gray-300 mb-6">{{ subtitle }}</p>
         </div>
 
-        <!-- Таблица роботов (read-only) -->
+        <!-- Подсказка в режиме выбора -->
+        <div *ngIf="proceedLabel && !loading && sortedRobots.length > 0"
+             class="flex items-center gap-2 bg-[#b8c959]/10 border border-[#b8c959]/30 rounded px-3 py-2 mb-2">
+          <lucide-icon name="mouse-pointer-2" [size]="14" class="text-[#b8c959] shrink-0"></lucide-icon>
+          <span class="text-xs text-[#b8c959]">Нажмите на строку робота, чтобы выбрать его</span>
+        </div>
+
+        <!-- Таблица роботов -->
         <div *ngIf="!loading && !error && sortedRobots.length > 0"
              class="bg-[#2d2d2d] rounded overflow-hidden mb-4">
           <!-- Заголовок таблицы -->
@@ -30,18 +37,31 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
             <span class="text-xs text-gray-400 font-medium">Текущая задача</span>
           </div>
 
-          <!-- Строки роботов (read-only) -->
+          <!-- Строки роботов -->
           <div *ngFor="let robot of sortedRobots"
-               class="grid grid-cols-4 gap-2 px-4 py-3 border-b border-gray-600/30">
-            <!-- Имя робота -->
-            <div class="flex flex-col">
-              <span class="text-sm font-medium"
-                    [ngClass]="robot.status === 'offline' ? 'text-gray-500' : 'text-white'">
-                {{ dualName(robot).primary }}
+               class="grid grid-cols-4 gap-2 px-4 py-3 border-b border-gray-600/30 transition-colors"
+               [ngClass]="{
+                 'cursor-pointer hover:bg-[#3d3d3d]': proceedLabel && robot.status !== 'offline',
+                 'cursor-not-allowed opacity-50': proceedLabel && robot.status === 'offline',
+                 'bg-[#b8c959]/10 border-l-2 border-l-[#b8c959]': isSelected(robot)
+               }"
+               (click)="proceedLabel && robot.status !== 'offline' ? selectRobot(robot) : null">
+            <!-- Выбор (галочка) — только в режиме выбора -->
+            <div class="flex items-center gap-2">
+              <span *ngIf="proceedLabel"
+                    class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors"
+                    [ngClass]="isSelected(robot) ? 'bg-[#b8c959] border-[#b8c959]' : 'border-gray-500'">
+                <lucide-icon *ngIf="isSelected(robot)" name="check" [size]="10" class="text-black"></lucide-icon>
               </span>
-              <span *ngIf="dualName(robot).secondary" class="text-xs text-gray-400">
-                {{ dualName(robot).secondary }}
-              </span>
+              <div class="flex flex-col min-w-0">
+                <span class="text-sm font-medium"
+                      [ngClass]="robot.status === 'offline' ? 'text-gray-500' : isSelected(robot) ? 'text-[#b8c959]' : 'text-white'">
+                  {{ dualName(robot).primary }}
+                </span>
+                <span *ngIf="dualName(robot).secondary" class="text-xs text-gray-400">
+                  {{ dualName(robot).secondary }}
+                </span>
+              </div>
             </div>
             <!-- ID (обрезанный) -->
             <span class="text-sm text-gray-400 truncate" [title]="robot.robot_id">
@@ -123,12 +143,17 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
         <!-- Footer: кнопки -->
         <div class="space-y-2">
           <!-- Кнопка «Продолжить» (только в режиме выбора робота) -->
-          <button *ngIf="proceedLabel" (click)="onProceed.emit()"
-            class="w-full h-14 bg-[#b8c959] text-black hover:bg-[#c8d96a] border-none rounded font-medium transition-colors"
+          <button *ngIf="proceedLabel" (click)="onProceedClick()"
+            [disabled]="!selectedRobotId"
+            class="w-full h-14 border-none rounded font-medium transition-colors"
+            [ngClass]="selectedRobotId
+              ? 'bg-[#b8c959] text-black hover:bg-[#c8d96a] cursor-pointer'
+              : 'bg-[#b8c959]/30 text-black/40 cursor-not-allowed'"
             [attr.aria-label]="proceedLabel">
-            {{ proceedLabel }}
+            <span *ngIf="selectedRobotId">→ {{ proceedLabel }}</span>
+            <span *ngIf="!selectedRobotId">Выберите робота выше</span>
           </button>
-          <button (click)="onClose.emit()"
+          <button (click)="onCloseClick()"
             class="w-full h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] border-none rounded font-medium transition-colors"
             aria-label="Закрыть окно статусов роботов">
             Закрыть
@@ -149,7 +174,29 @@ export class RobotStatusComponent {
   @Input() proceedLabel: string | null = null;
   @Output() onClose = new EventEmitter<void>();
   @Output() onRefresh = new EventEmitter<void>();
-  @Output() onProceed = new EventEmitter<void>();
+  @Output() onProceed = new EventEmitter<AvailableRobot | null>();
+
+  selectedRobotId: string | null = null;
+
+  selectRobot(robot: AvailableRobot): void {
+    this.selectedRobotId = this.selectedRobotId === robot.robot_id ? null : robot.robot_id;
+  }
+
+  isSelected(robot: AvailableRobot): boolean {
+    return this.selectedRobotId === robot.robot_id;
+  }
+
+  onProceedClick(): void {
+    if (!this.selectedRobotId) return;
+    const robot = this.robots.find(r => r.robot_id === this.selectedRobotId) ?? null;
+    this.onProceed.emit(robot);
+    this.selectedRobotId = null;
+  }
+
+  onCloseClick(): void {
+    this.selectedRobotId = null;
+    this.onClose.emit();
+  }
 
   get sortedRobots(): AvailableRobot[] {
     const order: Record<string, number> = { free: 0, busy: 1, offline: 2 };
