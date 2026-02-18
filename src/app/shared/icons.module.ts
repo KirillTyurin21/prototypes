@@ -87,6 +87,8 @@ import {
   RotateCcw,
   // Changelog
   ScrollText,
+  // Rename / confirm inline edit
+  Check,
 } from 'lucide-angular';
 
 /**
@@ -182,6 +184,8 @@ const icons = {
   RotateCcw,
   // Changelog
   ScrollText,
+  // Rename / confirm inline edit
+  Check,
 };
 
 @NgModule({

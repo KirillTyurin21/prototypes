@@ -188,25 +188,64 @@ interface Toast {
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <tr *ngFor="let mapping of filteredMappings" class="hover:bg-gray-50/50">
-                    <!-- Стол iiko (v1.9: L4 бейдж, L5 удаление) -->
+                    <!-- Стол iiko (v1.9: L4 бейдж, L5 удаление; переименование) -->
                     <td class="px-4 py-3 align-top">
-                      <div class="flex items-start gap-2">
-                        <div class="flex-1">
-                          <div class="font-medium text-sm text-gray-900">
-                            {{ getTableName(mapping.table_id) }}
-                            <span *ngIf="isManualTable(mapping.table_id)" class="ml-1 text-xs text-gray-400 italic font-normal">(ручной)</span>
-                          </div>
-                          <div *ngIf="getTableSection(mapping.table_id)" class="text-xs text-gray-500">{{ getTableSection(mapping.table_id) }}</div>
+                      <!-- Режим переименования -->
+                      <ng-container *ngIf="renamingTableId === mapping.table_id">
+                        <div class="flex items-center gap-1 flex-wrap">
+                          <input
+                            type="text"
+                            class="h-8 w-36 rounded-md border px-2 text-sm outline-none transition-colors"
+                            [ngClass]="{
+                              'border-red-400 ring-1 ring-red-400': renameTableError,
+                              'border-blue-400 ring-1 ring-blue-400': !renameTableError
+                            }"
+                            [(ngModel)]="renameTableName"
+                            (ngModelChange)="renameTableError = ''"
+                            (keydown.enter)="saveRename()"
+                            (keydown.escape)="cancelRename()"
+                            maxlength="50"
+                            aria-label="Новое название стола"
+                          />
+                          <button class="p-1 rounded text-green-600 hover:bg-green-50 transition-colors shrink-0" (click)="saveRename()" title="Сохранить">
+                            <lucide-icon name="check" [size]="15"></lucide-icon>
+                          </button>
+                          <button class="p-1 rounded text-gray-400 hover:bg-gray-100 transition-colors shrink-0" (click)="cancelRename()" title="Отмена">
+                            <lucide-icon name="x" [size]="15"></lucide-icon>
+                          </button>
                         </div>
-                        <button
-                          *ngIf="isManualTable(mapping.table_id)"
-                          class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 shrink-0"
-                          [attr.aria-label]="'Удалить ручной стол «' + getTableName(mapping.table_id) + '»'"
-                          (click)="confirmDeleteManualTable(mapping.table_id); $event.stopPropagation()"
-                        >
-                          <lucide-icon name="trash-2" [size]="16"></lucide-icon>
-                        </button>
-                      </div>
+                        <p *ngIf="renameTableError" class="text-xs text-red-500 mt-1">{{ renameTableError }}</p>
+                      </ng-container>
+                      <!-- Обычный вид -->
+                      <ng-container *ngIf="renamingTableId !== mapping.table_id">
+                        <div class="flex items-start gap-1">
+                          <div class="flex-1">
+                            <div class="font-medium text-sm text-gray-900">
+                              {{ getTableName(mapping.table_id) }}
+                              <span *ngIf="isManualTable(mapping.table_id)" class="ml-1 text-xs text-gray-400 italic font-normal">(ручной)</span>
+                            </div>
+                            <div *ngIf="getTableSection(mapping.table_id)" class="text-xs text-gray-500">{{ getTableSection(mapping.table_id) }}</div>
+                          </div>
+                          <ng-container *ngIf="isManualTable(mapping.table_id)">
+                            <button
+                              class="text-gray-400 hover:text-blue-500 transition-colors p-1 rounded hover:bg-blue-50 shrink-0"
+                              [attr.aria-label]="'Переименовать стол «' + getTableName(mapping.table_id) + '»'"
+                              (click)="startRenameTable(mapping.table_id)"
+                              title="Переименовать"
+                            >
+                              <lucide-icon name="pencil" [size]="14"></lucide-icon>
+                            </button>
+                            <button
+                              class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 shrink-0"
+                              [attr.aria-label]="'Удалить ручной стол «' + getTableName(mapping.table_id) + '»'"
+                              (click)="confirmDeleteManualTable(mapping.table_id); $event.stopPropagation()"
+                              title="Удалить"
+                            >
+                              <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+                            </button>
+                          </ng-container>
+                        </div>
+                      </ng-container>
                     </td>
 
                     <!-- Привязанные точки -->
@@ -350,6 +389,90 @@ interface Toast {
         <!-- MODE: POINTS → TABLES (v1.3)                -->
         <!-- ═══════════════════════════════════════════ -->
         <div *ngIf="mappingMode === 'points-to-tables'" class="animate-fade-in">
+
+          <!-- Панель управления ручными столами -->
+          <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-medium text-gray-700">Ручные столы <span class="text-xs text-gray-400 font-normal">(фудкорт)</span></h3>
+              <button
+                *ngIf="!showManualTableForm"
+                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                (click)="openManualTableForm()"
+              >
+                <lucide-icon name="plus" [size]="13"></lucide-icon>
+                Добавить стол
+              </button>
+            </div>
+
+            <!-- Список ручных столов (чипы) -->
+            <div *ngIf="manualTables.length === 0 && !showManualTableForm" class="text-xs text-gray-400 italic mb-1">Ручные столы не добавлены</div>
+            <div class="flex flex-wrap gap-2 mb-2" *ngIf="manualTables.length > 0">
+              <div *ngFor="let t of manualTables" class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
+                <!-- Режим переименования чипа -->
+                <ng-container *ngIf="renamingTableId === t.table_id">
+                  <input
+                    type="text"
+                    class="h-6 w-28 rounded border px-1.5 text-xs outline-none transition-colors"
+                    [ngClass]="{
+                      'border-red-400 ring-1 ring-red-400': renameTableError,
+                      'border-blue-400 ring-1 ring-blue-400': !renameTableError
+                    }"
+                    [(ngModel)]="renameTableName"
+                    (ngModelChange)="renameTableError = ''"
+                    (keydown.enter)="saveRename()"
+                    (keydown.escape)="cancelRename()"
+                    maxlength="50"
+                    aria-label="Новое название стола"
+                  />
+                  <button class="p-0.5 rounded text-green-600 hover:bg-green-100 transition-colors" (click)="saveRename()" title="Сохранить">
+                    <lucide-icon name="check" [size]="13"></lucide-icon>
+                  </button>
+                  <button class="p-0.5 rounded text-gray-400 hover:bg-gray-200 transition-colors" (click)="cancelRename()" title="Отмена">
+                    <lucide-icon name="x" [size]="13"></lucide-icon>
+                  </button>
+                  <p *ngIf="renameTableError" class="text-xs text-red-500 ml-1">{{ renameTableError }}</p>
+                </ng-container>
+                <!-- Обычный вид чипа -->
+                <ng-container *ngIf="renamingTableId !== t.table_id">
+                  <span class="text-xs text-gray-700 font-medium">{{ t.table_name }}</span>
+                  <button class="p-0.5 rounded text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" (click)="startRenameTable(t.table_id)" title="Переименовать">
+                    <lucide-icon name="pencil" [size]="12"></lucide-icon>
+                  </button>
+                  <button class="p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" (click)="confirmDeleteManualTable(t.table_id)" title="Удалить">
+                    <lucide-icon name="trash-2" [size]="12"></lucide-icon>
+                  </button>
+                </ng-container>
+              </div>
+            </div>
+
+            <!-- Inline-форма добавления -->
+            <div *ngIf="showManualTableForm" class="flex items-start gap-2 pt-3 border-t border-gray-100 animate-fade-in">
+              <div class="space-y-1">
+                <input
+                  type="text"
+                  class="h-8 w-48 rounded-md border px-2.5 text-sm outline-none transition-colors"
+                  [ngClass]="{
+                    'border-red-500 ring-1 ring-red-500': manualTableError,
+                    'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500': !manualTableError
+                  }"
+                  [(ngModel)]="manualTableName"
+                  (ngModelChange)="manualTableError = ''"
+                  (keydown.enter)="handleAddManualTable()"
+                  (keydown.escape)="closeManualTableForm()"
+                  placeholder="Номер / название стола"
+                  maxlength="50"
+                  aria-label="Номер или название ручного стола"
+                />
+                <p *ngIf="manualTableError" class="text-xs text-red-500">{{ manualTableError }}</p>
+                <p class="text-xs text-gray-400">Макс. 50 символов</p>
+              </div>
+              <div class="flex gap-1.5 mt-0.5">
+                <ui-button size="sm" variant="primary" [disabled]="!manualTableName.trim()" (click)="handleAddManualTable()">Добавить</ui-button>
+                <ui-button size="sm" variant="ghost" (click)="closeManualTableForm()">Отмена</ui-button>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
@@ -506,6 +629,11 @@ export class MappingScreenComponent implements OnInit {
 
   // v1.9 L5: Table to delete (manual only)
   tableToDelete: DiningTable | null = null;
+
+  // Rename state (inline edit)
+  renamingTableId: string | null = null;
+  renameTableName = '';
+  renameTableError = '';
 
   ngOnInit(): void {
     setTimeout(() => {
@@ -876,6 +1004,10 @@ export class MappingScreenComponent implements OnInit {
 
   // ── v1.9: Manual tables ────────────────────────────────
 
+  get manualTables(): DiningTable[] {
+    return this.tables.filter(t => t.is_manual);
+  }
+
   isManualTable(tableId: string): boolean {
     return this.tables.find(t => t.table_id === tableId)?.is_manual === true;
   }
@@ -933,6 +1065,48 @@ export class MappingScreenComponent implements OnInit {
     if (table && table.is_manual) {
       this.tableToDelete = table;
     }
+  }
+
+  startRenameTable(tableId: string): void {
+    const table = this.tables.find(t => t.table_id === tableId);
+    if (!table) return;
+    this.renamingTableId = tableId;
+    this.renameTableName = table.table_name;
+    this.renameTableError = '';
+  }
+
+  cancelRename(): void {
+    this.renamingTableId = null;
+    this.renameTableName = '';
+    this.renameTableError = '';
+  }
+
+  saveRename(): void {
+    const name = this.renameTableName.trim();
+    if (!name) {
+      this.renameTableError = 'Введите название';
+      return;
+    }
+    if (name.length > 50) {
+      this.renameTableError = 'Максимум 50 символов';
+      return;
+    }
+    const isDuplicate = this.tables.some(
+      t => t.table_id !== this.renamingTableId && t.table_name.toLowerCase() === name.toLowerCase()
+    );
+    if (isDuplicate) {
+      this.renameTableError = `Стол «${name}» уже существует`;
+      return;
+    }
+    this.tables = this.tables.map(t =>
+      t.table_id === this.renamingTableId ? { ...t, table_name: name } : t
+    );
+    this.hasChanges = true;
+    this.rebuildCachedTableOptions();
+    this.renamingTableId = null;
+    this.renameTableName = '';
+    this.renameTableError = '';
+    this.showToast(`Стол переименован в «${name}»`);
   }
 
   deleteManualTable(): void {
