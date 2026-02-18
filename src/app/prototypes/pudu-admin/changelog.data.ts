@@ -2,6 +2,18 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.10',
+    date: '2026-02-18',
+    status: 'unreleased',
+    changes: [
+      {
+        items: [
+          'Исправлено упоминание «Signage» в истории изменений (убрано название системы)',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.9',
     date: '2026-02-18',
     status: 'released',
@@ -13,7 +25,7 @@ export const CHANGELOG: ChangelogRelease[] = [
           'Исправлен multi-select роботов: select сбрасывается на placeholder после выбора',
           'Добавлено состояние «Все роботы добавлены» при пустом списке доступных',
           'Добавлены tooltips на элементы формы, чекбоксы и warning-блок',
-          'Warning-блок: добавлен role="alert", текст обновлён на «iikoSignage»',
+          'Warning-блок: добавлен role="alert", текст обновлён на «Signage»',
           'Добавлен tooltip на вкладку «Маркетинг»',
           'Исправлена рассинхронизация подсветки активной вкладки в Chrome',
           'Добавлена миграция старого формата данных (robot_id → robot_ids) из localStorage',

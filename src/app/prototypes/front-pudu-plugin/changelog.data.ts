@@ -2,6 +2,18 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.7',
+    date: '2026-02-18',
+    status: 'unreleased',
+    changes: [
+      {
+        items: [
+          'Исправлено название системы в истории изменений («Front» вместо проприетарного названия)',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.6',
     date: '2026-02-17',
     status: 'released',
@@ -100,7 +112,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       {
         items: [
           'Начальная версия прототипа',
-          'Плагин PUDU для iikoFront',
+          'Плагин PUDU для Front',
           'Экраны управления роботами из Front-интерфейса',
         ],
       },
