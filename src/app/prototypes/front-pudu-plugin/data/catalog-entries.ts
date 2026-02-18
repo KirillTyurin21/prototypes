@@ -8,6 +8,30 @@ import { CatalogCell, CatalogSection } from '../types';
 
 const CONTEXT_ORDER_CELLS: CatalogCell[] = [
   {
+    id: 'ctx-order-plugins-menu',
+    label: 'Дополнения → Плагины',
+    description: 'Кнопка «Дополнения → Плагины» из экрана заказа. Открывает окно «Плагины» с кнопкой «Pudu: Команды»',
+    icon: 'puzzle',
+    iconColor: '#b8c959',
+    category: 'context-order',
+    modalType: 'plugins_menu_order',
+    context: 'order',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
+  },
+  {
+    id: 'ctx-order-pudu-commands',
+    label: 'Команды роботам (из заказа)',
+    description: 'Окно «Команды роботам» из контекста заказа — 4 кнопки: Отправить меню, Уборка, Доставка, Повторить',
+    icon: 'terminal',
+    iconColor: '#3b82f6',
+    category: 'context-order',
+    modalType: 'pudu_commands_order',
+    context: 'order',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
+  },
+  {
     id: 'ctx-order-send-menu',
     label: 'Отправить меню',
     description: 'Робот везёт физическое меню от станции выдачи к столу гостя. Стол определён из заказа',

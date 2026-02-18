@@ -32,6 +32,47 @@ import { IconsModule } from '@/shared/icons.module';
           </div>
         </div>
 
+        <!-- Робот info (v1.9) -->
+        <div *ngIf="robotName" class="bg-[#2d2d2d] rounded p-4 space-y-2">
+          <div class="flex items-center gap-2 mb-2">
+            <lucide-icon name="bot" [size]="16" class="text-gray-400"></lucide-icon>
+            <span class="text-xs text-gray-400 font-medium uppercase tracking-wide">Робот из предыдущей доставки</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-400">Имя</span>
+            <span class="text-sm font-medium text-white">{{ robotName }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-400">ID</span>
+            <span class="text-sm text-gray-300 font-mono">{{ robotId }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-400">Статус</span>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full"
+                    [ngClass]="{
+                      'bg-green-500': robotStatus === 'free',
+                      'bg-orange-500': robotStatus === 'busy',
+                      'bg-gray-500': robotStatus === 'offline'
+                    }"></span>
+              <span class="text-sm"
+                    [ngClass]="{
+                      'text-green-400': robotStatus === 'free',
+                      'text-orange-400': robotStatus === 'busy',
+                      'text-gray-500': robotStatus === 'offline'
+                    }">
+                {{ robotStatus === 'free' ? 'Свободен' : robotStatus === 'busy' ? 'Занят' : 'Оффлайн' }}
+              </span>
+            </div>
+          </div>
+          <!-- Предупреждение если робот занят -->
+          <div *ngIf="robotStatus === 'busy'"
+               class="flex gap-2 bg-orange-500/20 border border-orange-500/40 rounded p-3 mt-2">
+            <lucide-icon name="clock" [size]="16" class="shrink-0 text-orange-400 mt-0.5"></lucide-icon>
+            <p class="text-xs text-gray-300">Робот сейчас занят. Команда будет отправлена и выполнена после завершения текущей задачи.</p>
+          </div>
+        </div>
+
         <!-- Phrase preview -->
         <div class="bg-amber-500/10 border border-amber-500/30 rounded p-3 text-center">
           <p class="text-xs text-gray-400 mb-1">Робот произнесёт:</p>
@@ -63,6 +104,9 @@ export class SendDishRepeatComponent {
   @Input() open = false;
   @Input() tableName = '';
   @Input() phraseRepeat = '';
+  @Input() robotName = '';
+  @Input() robotId = '';
+  @Input() robotStatus: 'free' | 'busy' | 'offline' = 'busy';
   @Output() onCancel = new EventEmitter<void>();
   @Input() isSubmitting = false;
   @Output() onConfirm = new EventEmitter<void>();

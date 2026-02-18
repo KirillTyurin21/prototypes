@@ -137,32 +137,41 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           </div>
         </div>
 
-        <!-- Панель кнопок PUDU — контекст «Из заказа»: 4 кнопки -->
-        <div class="grid gap-3 p-4 border-t border-gray-600 mt-3"
-             [ngClass]="isCleanupButtonVisible ? 'grid-cols-4' : 'grid-cols-3'">
-          <button (click)="onSendMenu()" aria-label="Отправить меню"
-            class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
-            <lucide-icon name="utensils" [size]="20"></lucide-icon>
-            <span class="text-xs">Отправить меню</span>
+        <!-- Панель кнопок PUDU — контекст «Из заказа»: кнопка «Дополнения» + 4 кнопки действий -->
+        <div class="p-4 border-t border-gray-600 mt-3 space-y-3">
+          <!-- Кнопка «Дополнения → Плагины» (по аналогии с главным экраном) -->
+          <button (click)="openPluginsMenuOrder()" aria-label="Дополнения"
+            class="w-full h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
+            <lucide-icon name="puzzle" [size]="20"></lucide-icon>
+            <span class="text-xs">Дополнения → Плагины</span>
           </button>
-          <button (click)="onCleanup()" aria-label="Уборка посуды"
-            *ngIf="isCleanupButtonVisible"
-            class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
-            <lucide-icon name="trash-2" [size]="20"></lucide-icon>
-            <span class="text-xs">Уборка посуды</span>
-          </button>
-          <button (click)="onSendDish()" aria-label="Доставка блюд"
-            class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
-            <lucide-icon name="utensils" [size]="20"></lucide-icon>
-            <span class="text-xs">Доставка блюд</span>
-          </button>
-          <button (click)="onSendDishRepeat()" aria-label="Повторить"
-            class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors"
-            [ngClass]="sendDishCompleted ? 'bg-[#1a1a1a] text-white hover:bg-[#252525]' : 'bg-[#1a1a1a] text-gray-500 cursor-not-allowed'"
-            [disabled]="!sendDishCompleted">
-            <lucide-icon name="repeat" [size]="20"></lucide-icon>
-            <span class="text-xs">Повторить</span>
-          </button>
+          <!-- 4 кнопки действий -->
+          <div class="grid gap-3"
+               [ngClass]="isCleanupButtonVisible ? 'grid-cols-4' : 'grid-cols-3'">
+            <button (click)="onSendMenu()" aria-label="Отправить меню"
+              class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
+              <lucide-icon name="utensils" [size]="20"></lucide-icon>
+              <span class="text-xs">Отправить меню</span>
+            </button>
+            <button (click)="onCleanup()" aria-label="Уборка посуды"
+              *ngIf="isCleanupButtonVisible"
+              class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
+              <lucide-icon name="trash-2" [size]="20"></lucide-icon>
+              <span class="text-xs">Уборка посуды</span>
+            </button>
+            <button (click)="onSendDish()" aria-label="Доставка блюд"
+              class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
+              <lucide-icon name="utensils" [size]="20"></lucide-icon>
+              <span class="text-xs">Доставка блюд</span>
+            </button>
+            <button (click)="onSendDishRepeat()" aria-label="Повторить"
+              class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors"
+              [ngClass]="sendDishCompleted ? 'bg-[#1a1a1a] text-white hover:bg-[#252525]' : 'bg-[#1a1a1a] text-gray-500 cursor-not-allowed'"
+              [disabled]="!sendDishCompleted">
+              <lucide-icon name="repeat" [size]="20"></lucide-icon>
+              <span class="text-xs">Повторить</span>
+            </button>
+          </div>
         </div>
       </ng-container>
 
@@ -449,6 +458,9 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
         [open]="activeModal === 'send_dish_repeat'"
         [tableName]="currentOrder.table.table_name"
         [phraseRepeat]="settings.send_dish.phrase_repeat"
+        [robotName]="lastDeliveryRobotName"
+        [robotId]="lastDeliveryRobotId"
+        [robotStatus]="lastDeliveryRobotStatus"
         [isSubmitting]="isSubmitting"
         (onCancel)="closeDialog()"
         (onConfirm)="executeRepeatSendDish()"
@@ -565,6 +577,78 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           </div>
         </div>
       </div>
+
+      <!-- v1.9: Окно «Плагины» (из контекста заказа) -->
+      <div *ngIf="activeModal === 'plugins_menu_order'"
+           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+           (click)="closeDialog()">
+        <div class="bg-[#3a3a3a] rounded-lg w-full max-w-md mx-4 overflow-hidden animate-slide-up"
+             (click)="$event.stopPropagation()">
+          <!-- Заголовок -->
+          <div class="flex items-center justify-between px-5 py-4 border-b border-gray-600">
+            <h2 class="text-lg font-semibold text-white">Плагины</h2>
+            <button (click)="closeDialog()" class="text-gray-400 hover:text-white transition-colors">
+              <lucide-icon name="x" [size]="20"></lucide-icon>
+            </button>
+          </div>
+          <!-- Сетка кнопок плагинов (3 в ряд, 6 рядов) -->
+          <div class="p-4">
+            <div class="grid grid-cols-3 gap-2" style="grid-template-rows: repeat(6, 1fr);">
+              <button (click)="onPluginPuduCommandsOrder()"
+                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
+                <span class="text-center leading-tight px-1">Pudu: Команды</span>
+              </button>
+              <!-- Пустые плейсхолдеры для визуализации сетки 3×6 -->
+              <div *ngFor="let i of pluginPlaceholdersOrder"
+                   class="h-16 bg-[#2d2d2d] border border-gray-600/30 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- v1.9: Окно «Команды роботам» (из контекста заказа) — 4 кнопки -->
+      <div *ngIf="activeModal === 'pudu_commands_order'"
+           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+           (click)="closeDialog()">
+        <div class="bg-[#3a3a3a] rounded-lg w-full max-w-md mx-4 overflow-hidden animate-slide-up"
+             (click)="$event.stopPropagation()">
+          <!-- Заголовок -->
+          <div class="flex items-center justify-between px-5 py-4 border-b border-gray-600">
+            <div class="flex items-center gap-2">
+              <button (click)="activeModal = 'plugins_menu_order'" class="text-gray-400 hover:text-white transition-colors">
+                <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
+              </button>
+              <h2 class="text-lg font-semibold text-white">Команды роботам</h2>
+            </div>
+            <button (click)="closeDialog()" class="text-gray-400 hover:text-white transition-colors">
+              <lucide-icon name="x" [size]="20"></lucide-icon>
+            </button>
+          </div>
+          <!-- Кнопки команд (4 штуки) -->
+          <div class="p-4">
+            <div class="grid grid-cols-2 gap-2">
+              <button (click)="onOrderCommandSendMenu()"
+                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
+                <span class="text-center leading-tight px-1">Отправить меню</span>
+              </button>
+              <button (click)="onOrderCommandCleanup()"
+                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
+                <span class="text-center leading-tight px-1">Уборка посуды</span>
+              </button>
+              <button (click)="onOrderCommandSendDish()"
+                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
+                <span class="text-center leading-tight px-1">Доставка блюд</span>
+              </button>
+              <button (click)="onOrderCommandRepeat()"
+                class="h-16 text-sm border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1"
+                [ngClass]="sendDishCompleted ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
+                [disabled]="!sendDishCompleted">
+                <span class="text-center leading-tight px-1">Повторить отправку</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
 })
@@ -641,6 +725,17 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   // v1.8: Плейсхолдеры для сетки плагинов (3 колонки × 6 рядов = 18, минус 2 реальные кнопки = 16)
   pluginPlaceholders = Array.from({ length: 16 }, (_, i) => i);
 
+  // v1.9: Плейсхолдеры для сетки плагинов из заказа (1 кнопка → 17 плейсхолдеров)
+  pluginPlaceholdersOrder = Array.from({ length: 17 }, (_, i) => i);
+
+  // v1.9: Запоминаем робота, который выполнял доставку (для «Повторить доставку»)
+  lastDeliveryRobotName: string = 'Белла Зал 1 (BellaBot-01)';
+  lastDeliveryRobotId: string = 'PD2024060001';
+  lastDeliveryRobotStatus: 'free' | 'busy' | 'offline' = 'busy';
+
+  // v1.9: Pending команда из контекста заказа (после выбора робота)
+  pendingOrderCommand: 'send_menu' | 'cleanup' | 'send_dish' | null = null;
+
   get totalTrips(): number {
     return Math.ceil(this.orderDishes.length / this.settings.send_dish.max_dishes_per_trip) || 1;
   }
@@ -703,9 +798,9 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     'send-dish-quick': [
       { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — Белла Зал 1 (BellaBot-01) — отправлено. Стол 7', delay: 2000 },
     ],
-    // Повторная отправка: fire-and-forget (v1.4 H14)
+    // Повторная отправка: fire-and-forget (v1.4 H14) — v1.9: увеличен delay чтобы не закрывалось автоматически
     'send-dish-repeat': [
-      { modal: 'send_dish_repeat', delay: 3000 },
+      { modal: 'send_dish_repeat', delay: 60000 },
       { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — Белла Зал 1 (BellaBot-01) — отправлено. Стол 7', delay: 2000 },
     ],
     // Ошибка: стол не замаплен
@@ -965,6 +1060,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     this.scenarioTimeouts.forEach(t => clearTimeout(t));
     this.scenarioTimeouts = [];
     this.activeModal = null;
+    this.pendingOrderCommand = null;
   }
 
   // ===== Button handlers (контекст «Из заказа») =====
@@ -1115,6 +1211,69 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     setTimeout(() => this.openRobotSelectForMarketing(), 100);
   }
 
+  // ===== v1.9: Button handlers (контекст «Из заказа» — через Дополнения → Плагины) =====
+
+  // v1.9: Открыть меню «Плагины» из контекста заказа
+  openPluginsMenuOrder(): void {
+    this.activeModal = 'plugins_menu_order';
+  }
+
+  // v1.9: Из «Плагины (заказ)» → «Pudu: Команды»
+  onPluginPuduCommandsOrder(): void {
+    this.activeModal = 'pudu_commands_order';
+  }
+
+  // v1.9: Команды из заказа — через выбор робота
+  onOrderCommandSendMenu(): void {
+    if (!this.currentOrder.table.is_mapped) {
+      this.activeModal = 'unmapped_table';
+      return;
+    }
+    this.pendingOrderCommand = 'send_menu';
+    this.activeModal = null;
+    setTimeout(() => {
+      this.robotSelectPurpose = null;
+      this.activeModal = 'robot_select';
+      this.loadRobots();
+    }, 100);
+  }
+
+  onOrderCommandCleanup(): void {
+    if (!this.currentOrder.table.is_mapped) {
+      this.activeModal = 'unmapped_table';
+      return;
+    }
+    this.pendingOrderCommand = 'cleanup';
+    this.activeModal = null;
+    setTimeout(() => {
+      this.robotSelectPurpose = null;
+      this.activeModal = 'robot_select';
+      this.loadRobots();
+    }, 100);
+  }
+
+  onOrderCommandSendDish(): void {
+    if (!this.currentOrder.table.is_mapped) {
+      this.activeModal = 'unmapped_table';
+      return;
+    }
+    this.pendingOrderCommand = 'send_dish';
+    this.activeModal = null;
+    setTimeout(() => {
+      this.robotSelectPurpose = null;
+      this.activeModal = 'robot_select';
+      this.loadRobots();
+    }, 100);
+  }
+
+  onOrderCommandRepeat(): void {
+    if (!this.sendDishCompleted) return;
+    this.activeModal = null;
+    setTimeout(() => {
+      this.activeModal = 'send_dish_repeat';
+    }, 100);
+  }
+
   // v1.4 (H2): Загрузка роботов
   async loadRobots(): Promise<void> {
     this.robotsLoading = true;
@@ -1134,18 +1293,53 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   confirmRobotSelection(robot: AvailableRobot): void {
     if (robot.status === 'offline') return;
 
+    const robotDisplayName = displayRobotName(robot.ne_name, robot.alias, robot.robot_id);
+
+    // v1.9: Если есть pending команда из заказа — открыть соответствующую модалку
+    if (this.pendingOrderCommand) {
+      if (robot.status === 'busy') {
+        this.infoToast = { title: `Робот ${robotDisplayName} занят. Задача будет в очереди` };
+      }
+      // Запоминаем выбранного робота для отображения
+      this.lastDeliveryRobotName = robotDisplayName;
+      this.lastDeliveryRobotId = robot.robot_id;
+      this.lastDeliveryRobotStatus = robot.status as 'free' | 'busy' | 'offline';
+
+      const cmd = this.pendingOrderCommand;
+      this.pendingOrderCommand = null;
+      this.activeModal = null;
+      this.selectedRobot = null;
+
+      setTimeout(() => {
+        switch (cmd) {
+          case 'send_menu':
+            this.activeModal = 'send_menu_confirm';
+            break;
+          case 'cleanup':
+            this.activeModal = 'cleanup_confirm';
+            break;
+          case 'send_dish':
+            this.currentTripDishes = this.orderDishes.slice(0, this.settings.send_dish.max_dishes_per_trip);
+            this.currentTripNumber = 1;
+            this.activeModal = 'send_dish_confirm';
+            break;
+        }
+      }, 100);
+      return;
+    }
+
     if (robot.status === 'busy') {
-      this.infoToast = { title: `Робот ${displayRobotName(robot.ne_name, robot.alias, robot.robot_id)} занят. Задача будет в очереди` };
+      this.infoToast = { title: `Робот ${robotDisplayName} занят. Задача будет в очереди` };
     }
 
     this.marketingRobotId = robot.robot_id;
-    this.marketingRobotName = displayRobotName(robot.ne_name, robot.alias, robot.robot_id);
+    this.marketingRobotName = robotDisplayName;
     this.isCruiseActive = !this.isCruiseActive;
     this.activeModal = null;
     this.selectedRobot = null;
 
     // H11: Toast «Отправлено» для маркетинга
-    this.showDispatchedToast('marketing', undefined, displayRobotName(robot.ne_name, robot.alias, robot.robot_id));
+    this.showDispatchedToast('marketing', undefined, robotDisplayName);
   }
 
   onToggleMarketing(): void {
