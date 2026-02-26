@@ -107,7 +107,7 @@ export function getInitialSettings(): ScenarioSettings {
     send_menu: {
       phrase: 'Заберите, пожалуйста, меню',
       phrase_url: '',
-      phrase_pickup: 'Положите меню для стола №{N}',
+      phrase_pickup: 'Положите меню для стола',
       phrase_pickup_url: '',
       wait_time: 30,
       wait_time_pickup: 30,
@@ -139,13 +139,6 @@ export function getInitialSettings(): ScenarioSettings {
       phrase_failure: 'К сожалению, оплата не прошла. Обратитесь к официанту',
       phrase_failure_url: '',
     },
-    marketing: {
-      robot_ids: ['PD2024060001'],    // BellaBot-01 назначен на маркетинг
-      auto_cruise_on_idle: false,
-      idle_timeout_sec: 30,           // v1.10: таймаут простоя (сек), по умолчанию 30
-      timer_enabled: false,
-      timer_start: '11:00',
-      timer_end: '14:00',
-    },
+    // v1.11 N12: marketing removed
   };
 }

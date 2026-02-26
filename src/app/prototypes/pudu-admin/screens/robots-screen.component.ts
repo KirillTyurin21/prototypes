@@ -91,7 +91,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Серийный номер робота в системе PUDU. Неизменяемый, задаётся при регистрации">ID робота</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Текущий статус подключения робота к облаку PUDU. online — робот доступен, offline — нет связи, ошибка — сбой подключения">Статус</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Название активной карты зала робота в системе PUDU. Настраивается инженером NE при установке">Активная карта</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Поведение робота после завершения задачи: ожидает новую задачу или переходит в маркетинговый круиз">Действие после задачи</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Поведение робота после завершения задачи: ожидает новую задачу или переходит в маркетинговый круиз. При значении 'Маркетинг' — робот на постоянной основе запускает круиз сразу после завершения любой задачи, без таймеров и расписания. NE автоматически снимает робота с маркетинга при нехватке свободных роботов">Действие после задачи</th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
             </tr>
           </thead>
@@ -445,7 +445,7 @@ export class RobotsScreenComponent implements OnInit {
     }
     if (id === 'PD000ERROR') {
       this.registrationError =
-        'Робот не найден в системе PUDU. Обратитесь к специалистам NE для добавления робота в магазин';
+        'Робот не найден. Проверьте ID робота. Если данные верны — обратитесь в Next Era для уточнения';
       this.formErrors['id'] = '';
       return;
     }

@@ -144,7 +144,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
                 [error]="getPhraseError(settings.send_menu.phrase_pickup)"
               ></ui-input>
               <div class="flex justify-between mt-1">
-                <span class="text-xs text-gray-400">Фраза робота на станции выдачи. Подстановка &#123;N&#125; — номер стола</span>
+                <span class="text-xs text-gray-400">Фраза робота на станции выдачи</span>
                 <span class="text-xs" [ngClass]="settings.send_menu.phrase_pickup.length > 180 ? 'text-red-500' : 'text-gray-400'">
                   {{ settings.send_menu.phrase_pickup.length }} / 180
                 </span>
@@ -587,156 +587,7 @@ import { PuduPrototypeComponent } from '../pudu-prototype.component';
               ></ui-input>
               <p class="text-xs text-gray-400 mt-1">Ссылка на mp4/mp3 при неуспешной оплате</p>
             </div>
-          </ng-container>
-
-          <!-- ============================================ -->
-          <!-- TAB 5: Маркетинг (marketing)                 -->
-          <!-- ============================================ -->
-          <ng-container *ngIf="activeTab === 'marketing'">
-            <!-- Warning card -->
-            <div class="border border-orange-200 bg-orange-50/50 rounded-lg p-5" role="alert"
-                 title="Загрузка рекламных материалов через PuduLink">
-              <div class="flex gap-3">
-                <lucide-icon name="alert-triangle" [size]="20" class="text-orange-500 shrink-0 mt-0.5"></lucide-icon>
-                <div>
-                  <h4 class="text-sm font-semibold text-gray-900 mb-1">Загрузка рекламных материалов</h4>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Загрузка рекламных материалов (видео, изображения, аудио) производится через приложение PuduLink.
-                    Обратитесь к инженеру NE для настройки контента. В будущем функция будет доступна через Signage.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- M2: Info-блок: взаимодействие after_action и маркетинга (v1.10) -->
-            <div class="border border-blue-200 bg-blue-50/50 rounded-lg p-4" role="note">
-              <div class="flex gap-3">
-                <lucide-icon name="info" [size]="18" class="text-blue-500 shrink-0 mt-0.5"></lucide-icon>
-                <div>
-                  <h4 class="text-sm font-semibold text-blue-800 mb-1">Взаимодействие с настройкой «Действие после задачи»</h4>
-                  <p class="text-xs text-blue-700 leading-relaxed">
-                    Роботы с настройкой «Действие после задачи = Маркетинг» (вкладка Роботы)
-                    автоматически включаются в список маркетинга и запускают круиз
-                    сразу после каждой рабочей задачи. Здесь настраивается дополнительный
-                    запуск при простое и по расписанию.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Роботы для маркетинга (Multi-Select) -->
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-700">Роботы для маркетинга</label>
-
-              <!-- Чипы выбранных роботов -->
-              <div *ngIf="settings.marketing.robot_ids.length > 0" class="flex flex-wrap gap-2 mb-2">
-                <span
-                  *ngFor="let id of settings.marketing.robot_ids"
-                  class="inline-flex items-center gap-1 px-2 py-1 text-xs font-normal bg-blue-50 text-blue-700 border border-blue-200 rounded"
-                >
-                  {{ getRobotName(id) }}
-                  <button
-                    (click)="removeMarketingRobot(id)"
-                    class="ml-1 hover:text-blue-900 transition-colors"
-                    [attr.aria-label]="'Убрать ' + getRobotName(id) + ' из маркетинга'"
-                  >
-                    <lucide-icon name="x" [size]="12"></lucide-icon>
-                  </button>
-                </span>
-              </div>
-
-              <!-- Select для добавления робота -->
-              <div *ngIf="availableMarketingRobotOptions.length > 0">
-                <select
-                  #marketingSelect
-                  class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors duration-150 cursor-pointer appearance-none hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
-                  (change)="onMarketingSelectChange($event)"
-                >
-                  <option value="" disabled selected>
-                    {{ settings.marketing.robot_ids.length === 0 ? 'Выберите роботов для маркетинга' : 'Добавить ещё робота...' }}
-                  </option>
-                  <option *ngFor="let opt of availableMarketingRobotOptions" [value]="opt.value">
-                    {{ opt.label }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Все роботы добавлены -->
-              <div *ngIf="availableMarketingRobotOptions.length === 0 && settings.marketing.robot_ids.length > 0"
-                   class="w-full h-9 rounded border border-border bg-gray-50 text-sm text-gray-400 px-3 flex items-center justify-center">
-                Все роботы добавлены
-              </div>
-
-              <!-- Пустое состояние: нет роботов вообще -->
-              <div *ngIf="availableMarketingRobotOptions.length === 0 && settings.marketing.robot_ids.length === 0">
-                <select disabled
-                  class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors duration-150 cursor-not-allowed opacity-50 appearance-none">
-                  <option value="" disabled selected>Выберите роботов для маркетинга</option>
-                </select>
-              </div>
-
-              <p class="text-xs text-gray-500"
-                 title="Какие роботы используются для маркетингового круиза. Можно выбрать несколько">
-                Какие роботы используются для маркетингового круиза. Можно выбрать несколько
-              </p>
-            </div>
-
-            <!-- Автозапуск круиза при простое -->
-            <ui-checkbox
-              label="Автозапуск круиза при простое"
-              [(checked)]="settings.marketing.auto_cruise_on_idle"
-              title="Автоматически запускать маркетинг, когда у выбранного робота нет активных задач"
-            ></ui-checkbox>
-
-            <!-- M1: Таймаут простоя (idle_timeout_sec) — видно только при auto_cruise_on_idle (v1.10) -->
-            <div *ngIf="settings.marketing.auto_cruise_on_idle" class="animate-fade-in">
-              <label class="block text-sm font-medium text-gray-700 mb-1" for="idle_timeout_sec">Таймаут простоя (сек)</label>
-              <div class="flex items-center gap-3">
-                <input
-                  id="idle_timeout_sec"
-                  type="number"
-                  [(ngModel)]="settings.marketing.idle_timeout_sec"
-                  min="0"
-                  max="300"
-                  aria-label="Таймаут простоя в секундах"
-                  class="w-24 h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
-                />
-                <span class="text-sm text-gray-500">секунд</span>
-              </div>
-              <p class="text-xs text-gray-400 italic mt-1">
-                Через сколько секунд после парковки робот считается «в простое» и запускается маркетинг.
-                Рекомендуемое значение: 30 сек. При настройке «Действие после задачи = Маркетинг» круиз запускается немедленно (без этого таймаута).
-              </p>
-              <p *ngIf="settings.marketing.idle_timeout_sec < 0 || settings.marketing.idle_timeout_sec > 300"
-                 class="text-xs text-red-500 mt-1">Значение должно быть от 0 до 300</p>
-            </div>
-
-            <!-- Запуск по таймеру -->
-            <ui-checkbox
-              label="Запуск по таймеру"
-              [(checked)]="settings.marketing.timer_enabled"
-              title="Запускать маркетинговый круиз в заданном временном диапазоне"
-            ></ui-checkbox>
-
-            <!-- Timer fields -->
-            <div *ngIf="settings.marketing.timer_enabled" class="grid grid-cols-2 gap-4 animate-fade-in">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" title="Время начала маркетингового режима">Время начала</label>
-                <input
-                  type="time"
-                  [(ngModel)]="settings.marketing.timer_start"
-                  class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" title="Время окончания маркетингового режима">Время окончания</label>
-                <input
-                  type="time"
-                  [(ngModel)]="settings.marketing.timer_end"
-                  class="w-full h-9 rounded border border-border bg-surface text-sm text-text-primary px-3 outline-none transition-colors hover:border-border-strong focus:border-border-focus focus:ring-2 focus:ring-app-primary/20"
-                />
-              </div>
-            </div>
+          <!-- v1.11 N11: Вкладка «Маркетинг» удалена -->
           </ng-container>
 
         </div>
@@ -829,7 +680,7 @@ export class SettingsScreenComponent implements OnInit {
     { key: 'send_dish', label: 'Доставка блюд' },
     { key: 'cleanup', label: 'Уборка посуды' },
     { key: 'qr_payment', label: 'Оплата по QR' },
-    { key: 'marketing', label: 'Маркетинг', title: 'Настройки маркетингового круиза робота по залу' },
+    // v1.11 N11: Вкладка «Маркетинг» удалена
   ];
 
   robotOptions: SelectOption[] = [];
@@ -838,14 +689,6 @@ export class SettingsScreenComponent implements OnInit {
     setTimeout(() => {
       this.robots = [...MOCK_ROBOTS];
       this.settings = this.storage.load('pudu-admin', 'settings', getInitialSettings());
-
-      // Migrate old localStorage format: robot_id (string) → robot_ids (string[])
-      const m = this.settings.marketing as any;
-      if (!Array.isArray(m.robot_ids)) {
-        m.robot_ids = m.robot_id ? [m.robot_id] : [];
-        delete m.robot_id;
-        this.storage.save('pudu-admin', 'settings', this.settings);
-      }
 
       this.originalSettings = JSON.stringify(this.settings);
       this.savedPhrase = this.settings.send_menu.phrase;
@@ -863,43 +706,7 @@ export class SettingsScreenComponent implements OnInit {
     }, 1000);
   }
 
-  // ---- Marketing multi-select ----
-
-  /** Options for the marketing robot dropdown (excluding already selected) */
-  get availableMarketingRobotOptions(): SelectOption[] {
-    if (!this.settings) return [];
-    return this.robots
-      .filter(r => !this.settings.marketing.robot_ids.includes(r.id))
-      .map(r => ({ value: r.id, label: `${r.name} (${r.id})` }));
-  }
-
-  getRobotName(id: string): string {
-    const robot = this.robots.find(r => r.id === id);
-    return robot ? `${robot.name} (${robot.id})` : id;
-  }
-
-  addMarketingRobot(id: string): void {
-    if (id && !this.settings.marketing.robot_ids.includes(id)) {
-      this.settings.marketing.robot_ids = [...this.settings.marketing.robot_ids, id];
-    }
-  }
-
-  /** Handle native <select> change for marketing multi-select — adds robot and resets select to placeholder */
-  onMarketingSelectChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const id = select.value;
-    this.addMarketingRobot(id);
-    // Reset select back to placeholder
-    select.value = '';
-  }
-
-  removeMarketingRobot(id: string): void {
-    this.settings.marketing.robot_ids = this.settings.marketing.robot_ids.filter(rid => rid !== id);
-    // J5: Toast при удалении последнего робота
-    if (this.settings.marketing.robot_ids.length === 0) {
-      this.showToast('Не выбран ни один робот для маркетинга. Круиз не будет запускаться', 'info');
-    }
-  }
+  // v1.11 N12: Marketing methods removed
 
   // ---- URL proxy getters/setters for optional fields ----
 

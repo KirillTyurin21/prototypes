@@ -79,25 +79,7 @@ interface Toast {
               <span>Назад к списку ресторанов</span>
             </button>
           </div>
-          <div class="flex items-center gap-3">
-            <!-- Segmented Control -->
-            <div class="inline-flex rounded-lg bg-gray-100 p-0.5">
-              <button
-                class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150"
-                [ngClass]="mappingMode === 'tables-to-points'
-                  ? 'bg-white shadow text-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'"
-                (click)="setMappingMode('tables-to-points')"
-              >Столы → Точки</button>
-              <button
-                class="px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150"
-                [ngClass]="mappingMode === 'points-to-tables'
-                  ? 'bg-white shadow text-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'"
-                (click)="setMappingMode('points-to-tables')"
-              >Точки → Столы</button>
-            </div>
-          </div>
+          <!-- v1.11 N6: SegmentedControl УДАЛЁН — только режим «Столы → Точки» -->
         </div>
         <!-- Breadcrumb -->
         <nav class="flex items-center gap-1.5 text-sm mt-2" aria-label="Breadcrumb">
@@ -173,9 +155,9 @@ interface Toast {
         </div>
 
         <!-- ═══════════════════════════════════════════ -->
-        <!-- MODE: TABLES → POINTS (v1.3)                -->
+        <!-- MODE: TABLES → POINTS (единственный режим)  -->
         <!-- ═══════════════════════════════════════════ -->
-        <div *ngIf="mappingMode === 'tables-to-points'" class="animate-fade-in">
+        <div class="animate-fade-in">
           <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
@@ -346,7 +328,7 @@ interface Toast {
         </div>
 
         <!-- v1.9 L3: Кнопка «+ Ручной стол» и inline-форма -->
-        <div class="mt-4 mb-2" *ngIf="mappingMode === 'tables-to-points'">
+        <div class="mt-4 mb-2">
           <button
             *ngIf="!showManualTableForm"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
@@ -385,147 +367,12 @@ interface Toast {
           </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════ -->
-        <!-- MODE: POINTS → TABLES (v1.3)                -->
-        <!-- ═══════════════════════════════════════════ -->
+        <!-- v1.11 N6: Режим «Точки → Столы» закомментирован — оставлен только «Столы → Точки» -->
+        <!-- COMMENTED OUT: points-to-tables mode
         <div *ngIf="mappingMode === 'points-to-tables'" class="animate-fade-in">
-
-          <!-- Панель управления ручными столами -->
-          <div class="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-sm font-medium text-gray-700">Ручные столы <span class="text-xs text-gray-400 font-normal">(фудкорт)</span></h3>
-              <button
-                *ngIf="!showManualTableForm"
-                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-                (click)="openManualTableForm()"
-              >
-                <lucide-icon name="plus" [size]="13"></lucide-icon>
-                Добавить стол
-              </button>
-            </div>
-
-            <!-- Список ручных столов (чипы) -->
-            <div *ngIf="manualTables.length === 0 && !showManualTableForm" class="text-xs text-gray-400 italic mb-1">Ручные столы не добавлены</div>
-            <div class="flex flex-wrap gap-2 mb-2" *ngIf="manualTables.length > 0">
-              <div *ngFor="let t of manualTables" class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
-                <!-- Режим переименования чипа -->
-                <ng-container *ngIf="renamingTableId === t.table_id">
-                  <input
-                    type="text"
-                    class="h-6 w-28 rounded border px-1.5 text-xs outline-none transition-colors"
-                    [ngClass]="{
-                      'border-red-400 ring-1 ring-red-400': renameTableError,
-                      'border-blue-400 ring-1 ring-blue-400': !renameTableError
-                    }"
-                    [(ngModel)]="renameTableName"
-                    (ngModelChange)="renameTableError = ''"
-                    (keydown.enter)="saveRename()"
-                    (keydown.escape)="cancelRename()"
-                    maxlength="50"
-                    aria-label="Новое название стола"
-                  />
-                  <button class="p-0.5 rounded text-green-600 hover:bg-green-100 transition-colors" (click)="saveRename()" title="Сохранить">
-                    <lucide-icon name="check" [size]="13"></lucide-icon>
-                  </button>
-                  <button class="p-0.5 rounded text-gray-400 hover:bg-gray-200 transition-colors" (click)="cancelRename()" title="Отмена">
-                    <lucide-icon name="x" [size]="13"></lucide-icon>
-                  </button>
-                  <p *ngIf="renameTableError" class="text-xs text-red-500 ml-1">{{ renameTableError }}</p>
-                </ng-container>
-                <!-- Обычный вид чипа -->
-                <ng-container *ngIf="renamingTableId !== t.table_id">
-                  <span class="text-xs text-gray-700 font-medium">{{ t.table_name }}</span>
-                  <button class="p-0.5 rounded text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors" (click)="startRenameTable(t.table_id)" title="Переименовать">
-                    <lucide-icon name="pencil" [size]="12"></lucide-icon>
-                  </button>
-                  <button class="p-0.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors" (click)="confirmDeleteManualTable(t.table_id)" title="Удалить">
-                    <lucide-icon name="trash-2" [size]="12"></lucide-icon>
-                  </button>
-                </ng-container>
-              </div>
-            </div>
-
-            <!-- Inline-форма добавления -->
-            <div *ngIf="showManualTableForm" class="flex items-start gap-2 pt-3 border-t border-gray-100 animate-fade-in">
-              <div class="space-y-1">
-                <input
-                  type="text"
-                  class="h-8 w-48 rounded-md border px-2.5 text-sm outline-none transition-colors"
-                  [ngClass]="{
-                    'border-red-500 ring-1 ring-red-500': manualTableError,
-                    'border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500': !manualTableError
-                  }"
-                  [(ngModel)]="manualTableName"
-                  (ngModelChange)="manualTableError = ''"
-                  (keydown.enter)="handleAddManualTable()"
-                  (keydown.escape)="closeManualTableForm()"
-                  placeholder="Номер / название стола"
-                  maxlength="50"
-                  aria-label="Номер или название ручного стола"
-                />
-                <p *ngIf="manualTableError" class="text-xs text-red-500">{{ manualTableError }}</p>
-                <p class="text-xs text-gray-400">Макс. 50 символов</p>
-              </div>
-              <div class="flex gap-1.5 mt-0.5">
-                <ui-button size="sm" variant="primary" [disabled]="!manualTableName.trim()" (click)="handleAddManualTable()">Добавить</ui-button>
-                <ui-button size="sm" variant="ghost" (click)="closeManualTableForm()">Отмена</ui-button>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48" title="Название точки на карте робота">Точка робота</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" title="Стол, привязанный к этой точке робота">Привязанный стол</th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20" title="Индикатор наличия привязки стола к точке">Статус</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  <tr *ngFor="let point of availablePoints; let pi = index" class="hover:bg-gray-50/50">
-                    <!-- Точка робота -->
-                    <td class="px-4 py-3">
-                      <div class="font-medium font-mono text-sm text-gray-600">{{ point.point_name }}</div>
-                    </td>
-
-                    <!-- Привязанный стол -->
-                    <td class="px-4 py-3">
-                      <div class="max-w-xs">
-                        <select
-                          class="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                          (change)="onTableSelectChange(point.point_id, $event)"
-                        >
-                          <option value="" [selected]="!pointToTableMap[point.point_id]">Не назначена</option>
-                          <option *ngFor="let opt of cachedTableOptions; trackBy: trackOptionValue" [value]="opt.value" [selected]="pointToTableMap[point.point_id] === opt.value">{{ opt.label }}</option>
-                        </select>
-                      </div>
-                    </td>
-
-                    <!-- Статус -->
-                    <td class="px-4 py-3 text-center">
-                      <lucide-icon
-                        *ngIf="pointToTableMap[point.point_id]"
-                        name="check-circle-2"
-                        [size]="18"
-                        class="text-green-600"
-                        title="Стол привязан к точке робота"
-                      ></lucide-icon>
-                      <lucide-icon
-                        *ngIf="!pointToTableMap[point.point_id]"
-                        name="circle"
-                        [size]="18"
-                        class="text-gray-300"
-                        title="Стол не привязан к точке — робот не сможет доставить заказ"
-                      ></lucide-icon>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          ... (код режима «Точки → Столы» сохранён для возможного возврата)
         </div>
+        END COMMENTED OUT -->
       </div>
 
       <!-- STICKY FOOTER -->
@@ -604,7 +451,9 @@ export class MappingScreenComponent implements OnInit {
   isLoadingPoints = false;
   isRefreshing = false;
   hasChanges = false;
-  mappingMode: 'tables-to-points' | 'points-to-tables' = 'tables-to-points';
+  // v1.11: режим «Точки → Столы» отключён, оставлен только «Столы → Точки»
+  // mappingMode: 'tables-to-points' | 'points-to-tables' = 'tables-to-points';
+  mappingMode: 'tables-to-points' = 'tables-to-points';
 
   // v1.4: Hall filter
   selectedHall = '';
@@ -664,14 +513,13 @@ export class MappingScreenComponent implements OnInit {
     }, 1000);
   }
 
-  // ── Mode switch ────────────────────────────────────────
-
-  setMappingMode(mode: 'tables-to-points' | 'points-to-tables'): void {
-    if (this.mappingMode === mode) return;
-    this.mappingMode = mode;
-    this.openDropdownKey = null;
-    this.rebuildPointToTableCache();
-  }
+  // ── Mode switch (v1.11: отключён — только «Столы → Точки») ─────
+  // setMappingMode(mode: 'tables-to-points' | 'points-to-tables'): void {
+  //   if (this.mappingMode === mode) return;
+  //   this.mappingMode = mode;
+  //   this.openDropdownKey = null;
+  //   this.rebuildPointToTableCache();
+  // }
 
   // ── Refresh points ─────────────────────────────────────
 
@@ -925,25 +773,12 @@ export class MappingScreenComponent implements OnInit {
     ).length;
   }
 
-  /** Count of unmapped tables considering current mode and hall filter */
+  /** Count of unmapped tables (v1.11: only tables→points mode) */
   get currentUnmappedTablesCount(): number {
-    if (this.mappingMode === 'tables-to-points') {
-      // In tables->points mode, count from filtered mappings
-      const source = this.selectedHall ? this.filteredMappings : this.mappings;
-      return source.filter(
-        (m) => m.points.length === 0 || !m.points.some((p) => !!p.point_id)
-      ).length;
-    } else {
-      // In points->tables mode, count tables (filtered by hall) that have NO point assigned
-      // v1.9 L8: Include manual tables in count regardless of hall filter
-      const tablesToCheck = this.selectedHall
-        ? this.tables.filter(t => t.section_name === this.selectedHall || t.is_manual)
-        : this.tables;
-      return tablesToCheck.filter(t => {
-        const mapping = this.mappings.find(m => m.table_id === t.table_id);
-        return !mapping || mapping.points.length === 0 || !mapping.points.some(p => !!p.point_id);
-      }).length;
-    }
+    const source = this.selectedHall ? this.filteredMappings : this.mappings;
+    return source.filter(
+      (m) => m.points.length === 0 || !m.points.some((p) => !!p.point_id)
+    ).length;
   }
 
   get currentUnmappedTablesLabel(): string {

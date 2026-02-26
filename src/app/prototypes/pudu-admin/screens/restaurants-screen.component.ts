@@ -3,18 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
-import { UiButtonComponent, UiAlertComponent, UiModalComponent, UiInputComponent } from '@/components/ui';
+import { UiButtonComponent, UiAlertComponent } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { Restaurant } from '../types';
 import { MOCK_RESTAURANTS } from '../data/mock-data';
 import { PuduPrototypeComponent } from '../pudu-prototype.component';
 
-type NeConnectionStatus = 'connected' | 'not_configured' | 'error';
-
 @Component({
   selector: 'app-restaurants-screen',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule, UiButtonComponent, UiAlertComponent, UiModalComponent, UiInputComponent],
+  imports: [CommonModule, FormsModule, IconsModule, UiButtonComponent, UiAlertComponent],
   template: `
     <!-- SUBHEADER -->
     <div class="border-b border-gray-200 bg-white px-6 py-4 shrink-0">
@@ -48,63 +46,7 @@ type NeConnectionStatus = 'connected' | 'not_configured' | 'error';
       <!-- WITH DATA -->
       <ng-container *ngIf="!isLoading && !hasError && restaurants.length > 0">
 
-        <!-- v1.8 K1: Карточка подключения к NE — 3 состояния -->
-
-        <!-- CONNECTED -->
-        <div *ngIf="neConnectionStatus === 'connected'"
-             class="flex items-center justify-between px-4 py-3 mb-6 border border-green-200 bg-green-50 rounded-lg animate-fade-in">
-          <div class="flex items-center gap-3">
-            <div class="h-2.5 w-2.5 rounded-full bg-green-500"></div>
-            <div>
-              <p class="text-sm font-medium text-green-800">Подключено к Next Era</p>
-              <p class="text-xs text-green-600">Учётные данные настроены. JWT-токен активен</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <ui-button variant="ghost" size="sm" (click)="showCredentialsModal = true">
-              <span class="text-green-700 hover:text-green-800">Изменить</span>
-            </ui-button>
-            <ui-button variant="ghost" size="sm" (click)="disconnectNeConnection()">
-              <span class="text-red-600 hover:text-red-700">Отключить</span>
-            </ui-button>
-            <span class="text-[10px] uppercase tracking-wide text-red-600">Только в прототипе</span>
-          </div>
-        </div>
-
-        <!-- NOT CONFIGURED (K7: Alert-баннер) -->
-        <div *ngIf="neConnectionStatus === 'not_configured'" class="mb-6 animate-fade-in">
-          <ui-alert variant="warning" [dismissible]="false">
-            <div class="flex items-center justify-between w-full">
-              <div>
-                <p class="text-sm font-medium">Подключение к Next Era не настроено</p>
-                <p class="text-xs text-gray-600 mt-1">
-                  Для работы с роботами PUDU необходимо ввести учётные данные NE API.
-                  Данные предоставляются компанией Next Era при подключении ресторана.
-                </p>
-              </div>
-              <ui-button size="sm" (click)="showCredentialsModal = true" class="ml-4 shrink-0">
-                Настроить подключение
-              </ui-button>
-            </div>
-          </ui-alert>
-        </div>
-
-        <!-- ERROR -->
-        <div *ngIf="neConnectionStatus === 'error'" class="mb-6 animate-fade-in">
-          <ui-alert variant="error" [dismissible]="false">
-            <div class="flex items-center justify-between w-full">
-              <div>
-                <p class="text-sm font-medium">Ошибка подключения к Next Era</p>
-                <p class="text-xs mt-1">
-                  Не удалось авторизоваться в NE API. Проверьте учётные данные.
-                </p>
-              </div>
-              <ui-button variant="danger" size="sm" (click)="showCredentialsModal = true" class="ml-4 shrink-0">
-                Обновить данные
-              </ui-button>
-            </div>
-          </ui-alert>
-        </div>
+        <!-- v1.11 N1: NeConnectionCard УДАЛЕНА — credentials являются системными константами -->
 
         <!-- SEARCH -->
         <div class="mb-4 relative" style="width: 320px;">
@@ -154,13 +96,10 @@ type NeConnectionStatus = 'connected' | 'not_configured' | 'error';
                 </tr>
               </thead>
               <tbody>
-                <!-- v1.8 K8: Блокировка строк при отсутствии подключения -->
+                  <!-- v1.11 N3: Строки всегда кликабельны (soft-block удалён) -->
                 <tr
                   *ngFor="let r of filteredRestaurants; let last = last"
-                  class="transition-colors"
-                  [ngClass]="neConnectionStatus === 'connected'
-                    ? 'cursor-pointer hover:bg-gray-100'
-                    : 'opacity-50 cursor-not-allowed'"
+                  class="transition-colors cursor-pointer hover:bg-gray-100"
                   [class.border-b]="!last"
                   [class.border-gray-200]="!last"
                   role="link"
@@ -212,74 +151,8 @@ type NeConnectionStatus = 'connected' | 'not_configured' | 'error';
           </div>
         </div>
 
-        <!-- v1.8 K3: Mock-переключатели (для демонстрации) -->
-        <div class="flex items-center gap-4 text-xs text-gray-400 px-1 pt-4 flex-wrap">
-          <span class="font-medium text-gray-500">Mock-панель:</span>
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="mockNeAvailable" class="h-3.5 w-3.5 rounded border-gray-300" />
-            <span>NE API доступен</span>
-          </label>
-          <button
-            (click)="setNeConnectionStatus('not_configured')"
-            class="px-2 py-0.5 rounded border text-[10px] hover:bg-gray-100"
-          >
-            Сбросить подключение
-          </button>
-          <button
-            (click)="setNeConnectionStatus('error')"
-            class="px-2 py-0.5 rounded border text-[10px] hover:bg-gray-100 text-red-500"
-          >
-            Симуляция ошибки
-          </button>
-        </div>
       </ng-container>
     </div>
-
-    <!-- v1.8 K2: Модальное окно ввода учётных данных NE -->
-    <ui-modal
-      [open]="showCredentialsModal"
-      title="Подключение к Next Era"
-      size="sm"
-      (modalClose)="closeCredentialsModal()"
-    >
-      <p class="text-sm text-gray-500 mb-4">
-        Введите учётные данные, предоставленные компанией Next Era.
-        Данные используются для авторизации в API сервиса роботов.
-      </p>
-
-      <div class="space-y-4">
-        <ui-input
-          label="Идентификатор клиента (Client ID)"
-          [(value)]="credClientId"
-          placeholder="iiko_restaurant_001"
-          [disabled]="credSaving"
-          hint="Выдаётся компанией Next Era при подключении ресторана"
-        ></ui-input>
-
-        <ui-input
-          label="API-секрет"
-          type="password"
-          [(value)]="credApiSecret"
-          placeholder="as_xxxxxxxxxxxx"
-          [disabled]="credSaving"
-          hint="Секретный ключ API. Хранится в зашифрованном виде"
-        ></ui-input>
-      </div>
-
-      <div modalFooter class="flex items-center justify-end gap-2">
-        <ui-button variant="ghost" (click)="closeCredentialsModal()" [disabled]="credSaving">
-          Отмена
-        </ui-button>
-        <ui-button
-          variant="primary"
-          (click)="handleSaveCredentials()"
-          [loading]="credSaving"
-          [disabled]="credSaving || !credClientId.trim() || !credApiSecret.trim()"
-        >
-          {{ credSaving ? 'Проверка подключения...' : 'Подключить' }}
-        </ui-button>
-      </div>
-    </ui-modal>
   `,
   styles: [`
     :host {
@@ -294,8 +167,6 @@ export class RestaurantsScreenComponent implements OnInit {
   private router = inject(Router);
   private storage = inject(StorageService);
   parent = inject(PuduPrototypeComponent);
-  private readonly storageSlug = 'pudu-admin';
-  private readonly connectionStorageKey = 'neConnectionStatus';
 
   restaurants: Restaurant[] = [];
   filteredRestaurants: Restaurant[] = [];
@@ -304,24 +175,9 @@ export class RestaurantsScreenComponent implements OnInit {
   searchQuery = '';
   private searchTimeout: any = null;
 
-  // v1.8 K3: Статус подключения к NE
-  neConnectionStatus: NeConnectionStatus = 'not_configured';
-  mockNeAvailable = true;
-
-  // v1.8 K2: Модальное окно credentials
-  showCredentialsModal = false;
-  credClientId = '';
-  credApiSecret = '';
-  credSaving = false;
-
   ngOnInit(): void {
     // Clear restaurant context when navigating back to Э0
     this.parent.clearRestaurantContext();
-    this.neConnectionStatus = this.storage.load<NeConnectionStatus>(
-      this.storageSlug,
-      this.connectionStorageKey,
-      'not_configured'
-    );
     this.loadData();
   }
 
@@ -371,70 +227,9 @@ export class RestaurantsScreenComponent implements OnInit {
     }
   }
 
-  // v1.8 K8: Блокировка перехода без подключения
+  // v1.11 N3: Переход всегда доступен (soft-block удалён)
   selectRestaurant(restaurant: Restaurant): void {
-    if (this.neConnectionStatus === 'connected') {
-      this.parent.setRestaurantContext(restaurant);
-      this.router.navigate(['/prototype/pudu-admin/robots']);
-    } else {
-      this.parent.showToast(
-        'Сначала настройте подключение к NE',
-        undefined,
-        3000,
-        'warning'
-      );
-    }
-  }
-
-  // v1.8 K2: Сохранение credentials
-  handleSaveCredentials(): void {
-    if (!this.credClientId.trim() || !this.credApiSecret.trim()) {
-      this.parent.showToast('Заполните оба поля', undefined, 3000, 'destructive');
-      return;
-    }
-
-    this.credSaving = true;
-
-    // Mock: имитация POST /api/pudu/credentials
-    setTimeout(() => {
-      if (this.mockNeAvailable) {
-        // Сценарий 1: NE доступен, credentials валидны (200)
-        this.setNeConnectionStatus('connected');
-        this.showCredentialsModal = false;
-        this.credClientId = '';
-        this.credApiSecret = '';
-        // K4: Toast #14
-        this.parent.showToast('Подключение к NE настроено');
-      } else {
-        // Сценарий 2: NE недоступен (502)
-        // K6: Toast #16
-        this.parent.showToast(
-          'Сервис NE временно недоступен. Попробуйте позже',
-          undefined,
-          4000,
-          'warning'
-        );
-      }
-      this.credSaving = false;
-    }, 1500);
-  }
-
-  disconnectNeConnection(): void {
-    this.setNeConnectionStatus('not_configured');
-    this.parent.showToast('Подключение к NE отключено (только для прототипа)');
-  }
-
-  setNeConnectionStatus(status: NeConnectionStatus): void {
-    this.neConnectionStatus = status;
-    this.storage.save(this.storageSlug, this.connectionStorageKey, status);
-  }
-
-  // Закрытие модалки
-  closeCredentialsModal(): void {
-    if (!this.credSaving) {
-      this.showCredentialsModal = false;
-      this.credClientId = '';
-      this.credApiSecret = '';
-    }
+    this.parent.setRestaurantContext(restaurant);
+    this.router.navigate(['/prototype/pudu-admin/robots']);
   }
 }
