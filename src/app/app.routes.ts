@@ -107,6 +107,9 @@ export const routes: Routes = [
         ],
       },
       // Добавляй новые прототипы здесь
+
+      // Wildcard — перенаправление на главную для несуществующих URL
+      { path: '**', redirectTo: '', pathMatch: 'full' },
     ],
   },
 ];

@@ -223,7 +223,8 @@ export class RateLimitService {
     try {
       // Cookie на 48 часов (покрывает максимальную блокировку 24ч)
       const maxAge = 48 * 60 * 60;
-      document.cookie = `${COOKIE_NAME}=${encodeURIComponent(json)}; max-age=${maxAge}; path=/; SameSite=Strict`;
+      const secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `${COOKIE_NAME}=${encodeURIComponent(json)}; max-age=${maxAge}; path=/; SameSite=Strict${secure}`;
     } catch {}
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 
 const STORAGE_PREFIX = 'prototype';
 
@@ -25,7 +25,7 @@ export class StorageService {
       const storageKey = this.buildKey(slug, key);
       localStorage.setItem(storageKey, JSON.stringify(data));
     } catch (e) {
-      console.warn(`[StorageService] Failed to save ${slug}:${key}`, e);
+      if (isDevMode()) console.warn(`[StorageService] Failed to save ${slug}:${key}`, e);
     }
   }
 
@@ -37,7 +37,7 @@ export class StorageService {
       if (raw === null) return fallback;
       return JSON.parse(raw) as T;
     } catch (e) {
-      console.warn(`[StorageService] Failed to load ${slug}:${key}`, e);
+      if (isDevMode()) console.warn(`[StorageService] Failed to load ${slug}:${key}`, e);
       return fallback;
     }
   }
