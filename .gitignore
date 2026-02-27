@@ -38,6 +38,10 @@ ACCESS_CODES.md
 SECURITY_PLAN.md
 files/
 
+# === Internal docs (local only) ===
+PROMPTS.md
+PROTOTYPES.md
+
 # === Misc ===
 *.log
 *.tgz
