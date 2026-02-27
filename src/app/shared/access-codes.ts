@@ -45,16 +45,14 @@ export interface AccessConfig {
  * Версия конфигурации кодов. При смене кодов увеличивайте версию —
  * это автоматически инвалидирует все ранее сохранённые сессии.
  */
-export const ACCESS_CONFIG_VERSION = 2;
+export const ACCESS_CONFIG_VERSION = 3;
 
 export const ACCESS_CONFIG: AccessConfig = {
-  // LAU3ILBB1
   masterCodeHash: '8cbbfe30b3cb7e14a76bf1f08c8cfc512424d02027ad5452df9b7ca52bc9bc9a',
   masterTtlDays: 30,
 
   groups: [
     {
-      // MUFP3XZ11
       codeHash: '2bd5ef03f44050113fb1809a86f96528609a2607c1099dcd42053b714e6dce55',
       ttlDays: 7,
       label: 'Pudu — Все прототипы',
@@ -67,27 +65,22 @@ export const ACCESS_CONFIG: AccessConfig = {
 
   prototypes: {
     'front-pudu-plugin': {
-      // SO5IYCDBO
       codeHash: '8af8b038cdd0f86bab1d8c888935bf8bffb10ad4a767b6580f72ac2dac4fd2a8',
       ttlDays: 7,
     },
     'pudu-admin': {
-      // YZGBW4B3T
       codeHash: 'e6dcc2ff880f95164d3bbbb09316b7be0943d98ce4d7d02c74624c4662af97d6',
       ttlDays: 7,
     },
     'front-plugins': {
-      // DBL3C3KRB
       codeHash: 'dfd8ce1b4c6ef2e65046d9ec16b4fd6c2e4af45c48f401c3856c1e39b4a18dd2',
       ttlDays: 7,
     },
     'web-screens': {
-      // NRZ79D1SG
       codeHash: '6f81de714afb3f03a3f1b562b8ffcfa565d9e21303e38bc414d10f006f72c109',
       ttlDays: 7,
     },
     'demo': {
-      // PY3DV8D9Z
       codeHash: '1eeea1373983a9dbd26d85862ae334faf2eba833c40218239c53044d8db7f59c',
       ttlDays: 7,
     },

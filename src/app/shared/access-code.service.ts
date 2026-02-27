@@ -221,18 +221,34 @@ export class AccessCodeService {
   }
 
   /**
-   * Проверяет, что запись в localStorage существует и не просрочена.
+   * Проверяет, что запись в localStorage существует, не просрочена
+   * и содержит валидный codeHash (защита от подмены localStorage).
    */
   private isStoredAccessValid(key: string): boolean {
     const raw = localStorage.getItem(key);
     if (!raw) return false;
 
     try {
-      const data = JSON.parse(raw) as { expiresAt: number };
-      return Date.now() < data.expiresAt;
+      const data = JSON.parse(raw) as { codeHash: string; expiresAt: number };
+      if (Date.now() >= data.expiresAt) return false;
+      // LS_LIST не имеет codeHash — проверяем только expiry
+      if (key === LS_LIST) return true;
+      // Верифицируем что codeHash совпадает с одним из известных
+      return this.isKnownCodeHash(data.codeHash);
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Проверяет, что хеш принадлежит одному из валидных кодов в конфигурации.
+   */
+  private isKnownCodeHash(hash: string): boolean {
+    if (!hash) return false;
+    if (hash === ACCESS_CONFIG.masterCodeHash) return true;
+    if (ACCESS_CONFIG.groups.some(g => g.codeHash === hash)) return true;
+    if (Object.values(ACCESS_CONFIG.prototypes).some(p => p.codeHash === hash)) return true;
+    return false;
   }
 
   /**
