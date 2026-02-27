@@ -79,7 +79,7 @@ export class AccessCodeService {
     const codeHash = await this.sha256(code.trim().toUpperCase());
 
     // 1. Мастер-код
-    if (codeHash === ACCESS_CONFIG.masterCodeHash) {
+    if (this.constantTimeEqual(codeHash, ACCESS_CONFIG.masterCodeHash)) {
       this.storeAccess(LS_MASTER, codeHash, ACCESS_CONFIG.masterTtlDays);
       this.storeAccess(LS_LIST, '', 30); // доступ к списку — 30 дней
       this.rateLimitService.recordSuccess();
@@ -88,7 +88,7 @@ export class AccessCodeService {
 
     // 2. Групповой код
     for (const group of ACCESS_CONFIG.groups) {
-      if (codeHash === group.codeHash) {
+      if (this.constantTimeEqual(codeHash, group.codeHash)) {
         const groupKey = LS_GROUP_PREFIX + group.codeHash.substring(0, 12);
         this.storeAccess(groupKey, codeHash, group.ttlDays);
         this.rateLimitService.recordSuccess();
@@ -98,7 +98,7 @@ export class AccessCodeService {
 
     // 3. Код прототипа
     for (const [slug, entry] of Object.entries(ACCESS_CONFIG.prototypes)) {
-      if (codeHash === entry.codeHash) {
+      if (this.constantTimeEqual(codeHash, entry.codeHash)) {
         const protoKey = LS_PROTO_PREFIX + slug;
         this.storeAccess(protoKey, codeHash, entry.ttlDays);
         this.rateLimitService.recordSuccess();
@@ -224,6 +224,19 @@ export class AccessCodeService {
   }
 
   /**
+   * Constant-time сравнение строк.
+   * Предотвращает timing-атаки при сравнении хешей.
+   */
+  private constantTimeEqual(a: string, b: string): boolean {
+    if (a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) {
+      diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return diff === 0;
+  }
+
+  /**
    * Проверяет, что запись в localStorage существует, не просрочена
    * и содержит валидный codeHash (защита от подмены localStorage).
    */
@@ -248,9 +261,9 @@ export class AccessCodeService {
    */
   private isKnownCodeHash(hash: string): boolean {
     if (!hash) return false;
-    if (hash === ACCESS_CONFIG.masterCodeHash) return true;
-    if (ACCESS_CONFIG.groups.some(g => g.codeHash === hash)) return true;
-    if (Object.values(ACCESS_CONFIG.prototypes).some(p => p.codeHash === hash)) return true;
+    if (this.constantTimeEqual(hash, ACCESS_CONFIG.masterCodeHash)) return true;
+    if (ACCESS_CONFIG.groups.some(g => this.constantTimeEqual(hash, g.codeHash))) return true;
+    if (Object.values(ACCESS_CONFIG.prototypes).some(p => this.constantTimeEqual(hash, p.codeHash))) return true;
     return false;
   }
 
