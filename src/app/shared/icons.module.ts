@@ -23,6 +23,7 @@ import {
   FileEdit,
   Settings,
   BarChart3,
+  KeyRound,
   // Web Screens prototype
   Menu,
   Bell,
@@ -182,6 +183,7 @@ const icons = {
   LogOut,
   Eye,
   EyeOff,
+  KeyRound,
   // Reset button
   RotateCcw,
   // Changelog

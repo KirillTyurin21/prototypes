@@ -19,12 +19,14 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
         <h2 class="text-2xl font-medium text-text-primary mb-2">Добро пожаловать в Прототипы</h2>
         <p class="text-text-secondary">
           Рабочая область для создания интерактивных прототипов плагинов Front и Web.
-          Выберите прототип из списка ниже или создайте новый.
+          <span *ngIf="hasAnyAccess && !hasMaster">Ниже показаны доступные вам прототипы.</span>
+          <span *ngIf="hasMaster">Выберите прототип из списка ниже или создайте новый.</span>
+          <span *ngIf="!hasAnyAccess">Введите код доступа, чтобы открыть прототип.</span>
         </p>
       </div>
 
-      <!-- Prototypes grid (visible only with list access) -->
-      <div *ngIf="hasListAccess && visiblePrototypes.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <!-- Карточки доступных прототипов -->
+      <div *ngIf="visiblePrototypes.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <ui-card *ngFor="let proto of visiblePrototypes" [hoverable]="true" [padding]="'lg'" (cardClick)="navigate(proto.path)">
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-lg bg-app-primary/10 text-app-primary flex items-center justify-center shrink-0">
@@ -42,21 +44,40 @@ import { CodeInputModalComponent } from '@/components/ui/code-input-modal.compon
         </ui-card>
       </div>
 
-      <!-- Locked state (no list access) -->
-      <ui-card *ngIf="!hasListAccess" padding="lg" class="mb-8">
+      <!-- Состояние: 0 кодов — большая карточка с замком -->
+      <ui-card *ngIf="!hasAnyAccess" padding="lg" class="mb-8">
         <div class="flex flex-col items-center py-10 text-center">
           <div class="w-16 h-16 rounded-full bg-app-primary/10 flex items-center justify-center mb-4">
             <lucide-icon name="lock" [size]="32" class="text-app-primary"></lucide-icon>
           </div>
-          <h3 class="text-lg font-medium text-text-primary mb-2">Список прототипов</h3>
+          <h3 class="text-lg font-medium text-text-primary mb-2">Доступ к прототипам</h3>
           <p class="text-sm text-text-secondary mb-6 max-w-md">
-            Для просмотра списка всех прототипов введите код доступа.
+            Для просмотра прототипов введите код доступа.
             Если у вас есть прямая ссылка на прототип — перейдите по ней.
           </p>
           <button (click)="openCodeModal()"
                   class="px-6 py-2.5 bg-app-primary text-white font-medium rounded-lg hover:bg-app-primary/90 transition-colors flex items-center gap-2">
-            <lucide-icon name="lock" [size]="16"></lucide-icon>
+            <lucide-icon name="key-round" [size]="16"></lucide-icon>
             Ввести код доступа
+          </button>
+        </div>
+      </ui-card>
+
+      <!-- CTA: есть доступы, но не мастер — предложение ввести ещё код -->
+      <ui-card *ngIf="hasAnyAccess && !hasMaster" padding="md" class="mb-8">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center shrink-0">
+            <lucide-icon name="key-round" [size]="20" class="text-text-secondary"></lucide-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-text-secondary">
+              Есть ещё код доступа? Введите его, чтобы открыть дополнительные прототипы.
+            </p>
+          </div>
+          <button (click)="openCodeModal()"
+                  class="px-4 py-2 text-sm font-medium text-app-primary border border-app-primary/30 rounded-lg hover:bg-app-primary/5 transition-colors shrink-0 flex items-center gap-1.5">
+            <lucide-icon name="plus" [size]="14"></lucide-icon>
+            Ввести код
           </button>
         </div>
       </ui-card>
@@ -87,17 +108,22 @@ export class HomeComponent implements OnInit {
   remainingAttempts = 10;
   maxAttempts = 10;
 
-  get hasListAccess(): boolean {
-    return this.accessService.hasAccessToList();
-  }
-
   get hasMaster(): boolean {
     return this.accessService.hasMasterAccess();
   }
 
+  get hasAnyAccess(): boolean {
+    return this.accessService.getAccessiblePrototypeSlugs().length > 0;
+  }
+
   get visiblePrototypes() {
-    if (!this.hasListAccess) return [];
-    return PROTOTYPES;
+    if (this.hasMaster) return PROTOTYPES;
+    const slugs = this.accessService.getAccessiblePrototypeSlugs();
+    if (slugs.length === 0) return [];
+    return PROTOTYPES.filter(p => {
+      const slug = p.path.replace('/prototype/', '');
+      return slugs.includes(slug);
+    });
   }
 
   async ngOnInit(): Promise<void> {
