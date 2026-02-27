@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ACCESS_CONFIG, GroupAccessEntry } from './access-codes';
+import { ACCESS_CONFIG, ACCESS_CONFIG_VERSION, GroupAccessEntry } from './access-codes';
 import { RateLimitService } from './rate-limit.service';
 import { FingerprintService } from './fingerprint.service';
 
@@ -7,11 +7,32 @@ const LS_MASTER = 'master_access';
 const LS_LIST = 'list_access';
 const LS_GROUP_PREFIX = 'group_access_';
 const LS_PROTO_PREFIX = 'proto_access_';
+const LS_CONFIG_VERSION = 'access_config_version';
 
 @Injectable({ providedIn: 'root' })
 export class AccessCodeService {
   private rateLimitService = inject(RateLimitService);
   private fingerprintService = inject(FingerprintService);
+
+  constructor() {
+    this.checkConfigVersion();
+  }
+
+  /**
+   * Проверяет версию конфигурации кодов доступа.
+   * Если версия изменилась — удаляет все сохранённые сессии,
+   * чтобы старые коды гарантированно не работали.
+   */
+  private checkConfigVersion(): void {
+    const storedVersion = localStorage.getItem(LS_CONFIG_VERSION);
+    const currentVersion = String(ACCESS_CONFIG_VERSION);
+
+    if (storedVersion !== currentVersion) {
+      // Версия изменилась — инвалидируем все старые сессии
+      this.revokeAll();
+      localStorage.setItem(LS_CONFIG_VERSION, currentVersion);
+    }
+  }
 
   // ───── Public methods ─────
 

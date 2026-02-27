@@ -41,15 +41,21 @@ export interface AccessConfig {
   prototypes: Record<string, PrototypeAccessEntry>;
 }
 
+/**
+ * Версия конфигурации кодов. При смене кодов увеличивайте версию —
+ * это автоматически инвалидирует все ранее сохранённые сессии.
+ */
+export const ACCESS_CONFIG_VERSION = 2;
+
 export const ACCESS_CONFIG: AccessConfig = {
-  // TEAM_2026
-  masterCodeHash: '21535e72d28a2d23f28eaab61e428e33d3674ec65b5f12e2aa94ab90a45faf2d',
+  // LAU3ILBB1
+  masterCodeHash: '8cbbfe30b3cb7e14a76bf1f08c8cfc512424d02027ad5452df9b7ca52bc9bc9a',
   masterTtlDays: 30,
 
   groups: [
     {
-      // PUDU_GROUP_2026
-      codeHash: 'd09906fcc8f7e3f5c346dcac14e74229f5e63caa18a102e06b36531f6726e08f',
+      // MUFP3XZ11
+      codeHash: '2bd5ef03f44050113fb1809a86f96528609a2607c1099dcd42053b714e6dce55',
       ttlDays: 7,
       label: 'Pudu — Все прототипы',
       prototypeSlugs: [
@@ -61,28 +67,28 @@ export const ACCESS_CONFIG: AccessConfig = {
 
   prototypes: {
     'front-pudu-plugin': {
-      // PUDU_FRONT_2026
-      codeHash: '9a927e2761342938868375c024d97f52c4c24a000fbdc3087abe3466915f4380',
+      // SO5IYCDBO
+      codeHash: '8af8b038cdd0f86bab1d8c888935bf8bffb10ad4a767b6580f72ac2dac4fd2a8',
       ttlDays: 7,
     },
     'pudu-admin': {
-      // PUDU_ADMIN_2026
-      codeHash: 'afc11d9ededce10e5b5b1cd8180d7b650769fe1cac403dc0cb7e2a40dfc106bf',
+      // YZGBW4B3T
+      codeHash: 'e6dcc2ff880f95164d3bbbb09316b7be0943d98ce4d7d02c74624c4662af97d6',
       ttlDays: 7,
     },
     'front-plugins': {
-      // FRONT_PLUGINS_2026
-      codeHash: 'ed33412c1a5030817905748600cce58d4fccae24d319616094e19f03eab9250f',
+      // DBL3C3KRB
+      codeHash: 'dfd8ce1b4c6ef2e65046d9ec16b4fd6c2e4af45c48f401c3856c1e39b4a18dd2',
       ttlDays: 7,
     },
     'web-screens': {
-      // WEB_SCREENS_2026
-      codeHash: '824ea8f6f8d1baa5383e8a8800d0c6d83400914d6db86794fdb815428a2cb8c7',
+      // NRZ79D1SG
+      codeHash: '6f81de714afb3f03a3f1b562b8ffcfa565d9e21303e38bc414d10f006f72c109',
       ttlDays: 7,
     },
     'demo': {
-      // DEMO_2026
-      codeHash: '5f88efe1ee74c92acd7d5e00ecb89e50d533ca1f1a6b89655fa3f4159385a1ae',
+      // PY3DV8D9Z
+      codeHash: '1eeea1373983a9dbd26d85862ae334faf2eba833c40218239c53044d8db7f59c',
       ttlDays: 7,
     },
   },

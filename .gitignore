@@ -34,6 +34,7 @@ ehthumbs.db
 .env
 .env.local
 .env.*.local
+ACCESS_CODES.md
 
 # === Misc ===
 *.log
