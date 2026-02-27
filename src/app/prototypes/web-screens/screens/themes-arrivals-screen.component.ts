@@ -63,10 +63,8 @@ export class ThemesArrivalsScreenComponent {
   ];
 
   onRowClick(item: ScreenTheme): void {
-    console.log('Theme clicked:', item);
   }
 
   onAdd(): void {
-    console.log('Add arrival theme');
   }
 }

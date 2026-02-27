@@ -11,17 +11,22 @@ import { FingerprintService } from './fingerprint.service';
  * - IndexedDB
  *
  * Блокировка применяется, если ХОТЬ ОДНО хранилище содержит блокировку.
- * Дополнительно привязка к fingerprint браузера — блокировка восстанавливается
- * даже после полной очистки site data (на основе fingerprint в IndexedDB другого origin
- * нельзя, но мы дублируем fingerprint в cookie, который часто забывают чистить).
+ * Дополнительно привязка к fingerprint браузера.
+ *
+ * Прогрессивная блокировка:
+ * - 1-я: 4 часа
+ * - 2-я: 8 часов
+ * - 3-я+: 24 часа (максимум)
  *
  * Конфигурация:
- * - MAX_ATTEMPTS = 10
- * - LOCKOUT_MS = 1 час
+ * - MAX_ATTEMPTS = 5
+ * - BASE_LOCKOUT_MS = 4 часа
+ * - MAX_LOCKOUT_MS = 24 часа
  */
 
-const MAX_ATTEMPTS = 10;
-const LOCKOUT_MS = 60 * 60 * 1000; // 1 час
+const MAX_ATTEMPTS = 5;
+const BASE_LOCKOUT_MS = 4 * 60 * 60 * 1000; // 4 часа
+const MAX_LOCKOUT_MS = 24 * 60 * 60 * 1000; // 24 часа
 
 const LS_KEY = '__rl_state';
 const SS_KEY = '__rl_state';
@@ -37,10 +42,12 @@ export interface RateLimitState {
   lockedUntil: number;
   /** Fingerprint браузера */
   fp: string;
+  /** Счётчик блокировок (для прогрессивного увеличения) */
+  lockCount: number;
 }
 
 function emptyState(fp: string = ''): RateLimitState {
-  return { attempts: 0, lockedUntil: 0, fp };
+  return { attempts: 0, lockedUntil: 0, fp, lockCount: 0 };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -102,12 +109,16 @@ export class RateLimitService {
   }
 
   /**
-   * Зарегистрировать неудачную попытку. Если >= MAX — ставим блокировку.
+   * Зарегистрировать неудачную попытку. Если >= MAX — ставим прогрессивную блокировку.
    */
   recordFailedAttempt(): void {
     this.state.attempts++;
     if (this.state.attempts >= MAX_ATTEMPTS) {
-      this.state.lockedUntil = Date.now() + LOCKOUT_MS;
+      this.state.lockCount = (this.state.lockCount || 0) + 1;
+      // Прогрессивная блокировка: 4ч → 8ч → 24ч (макс)
+      const multiplier = Math.pow(2, this.state.lockCount - 1);
+      const lockoutMs = Math.min(BASE_LOCKOUT_MS * multiplier, MAX_LOCKOUT_MS);
+      this.state.lockedUntil = Date.now() + lockoutMs;
       this.state.attempts = 0; // сброс счётчика, блокировка по времени
     }
     this.persistAll();
@@ -210,8 +221,8 @@ export class RateLimitService {
 
   private saveToCookie(json: string): void {
     try {
-      // Cookie на 2 часа (больше чем lockout) — чтобы не исчезла раньше
-      const maxAge = 2 * 60 * 60;
+      // Cookie на 48 часов (покрывает максимальную блокировку 24ч)
+      const maxAge = 48 * 60 * 60;
       document.cookie = `${COOKIE_NAME}=${encodeURIComponent(json)}; max-age=${maxAge}; path=/; SameSite=Strict`;
     } catch {}
   }

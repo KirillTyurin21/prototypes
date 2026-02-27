@@ -77,11 +77,9 @@ export class TerminalsScreenComponent {
   ];
 
   onRowClick(item: ArrivalTerminal): void {
-    console.log('Terminal clicked:', item);
   }
 
   onAdd(): void {
-    console.log('Add terminal');
   }
 
   formatDate(isoDate: string): string {

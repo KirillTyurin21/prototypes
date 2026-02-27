@@ -138,11 +138,9 @@ export class DisplaysScreenComponent {
 
   onRowClick(item: CustomerScreenDisplay): void {
     // Будет реализовано позже — переход к деталям дисплея
-    console.log('Display clicked:', item);
   }
 
   onAdd(): void {
     // Будет реализовано позже — добавление нового дисплея
-    console.log('Add display');
   }
 }
