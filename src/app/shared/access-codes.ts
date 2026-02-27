@@ -45,15 +45,15 @@ export interface AccessConfig {
  * Версия конфигурации кодов. При смене кодов увеличивайте версию —
  * это автоматически инвалидирует все ранее сохранённые сессии.
  */
-export const ACCESS_CONFIG_VERSION = 3;
+export const ACCESS_CONFIG_VERSION = 4;
 
 export const ACCESS_CONFIG: AccessConfig = {
-  masterCodeHash: '8cbbfe30b3cb7e14a76bf1f08c8cfc512424d02027ad5452df9b7ca52bc9bc9a',
+  masterCodeHash: '11c96e17631a83155e5ccdeec38c5272de12b99f440a693a0c10c67b2d29f493',
   masterTtlDays: 30,
 
   groups: [
     {
-      codeHash: '2bd5ef03f44050113fb1809a86f96528609a2607c1099dcd42053b714e6dce55',
+      codeHash: '9c9adc004e8e239483beea66104ed383c07f866faad86c10d615451efb25989e',
       ttlDays: 7,
       label: 'Pudu — Все прототипы',
       prototypeSlugs: [
@@ -65,23 +65,23 @@ export const ACCESS_CONFIG: AccessConfig = {
 
   prototypes: {
     'front-pudu-plugin': {
-      codeHash: '8af8b038cdd0f86bab1d8c888935bf8bffb10ad4a767b6580f72ac2dac4fd2a8',
+      codeHash: '181da7bc377d648d041fafd9bed30ec9cd5a2ba68b7e85a6f6d0bf079b2fd50a',
       ttlDays: 7,
     },
     'pudu-admin': {
-      codeHash: 'e6dcc2ff880f95164d3bbbb09316b7be0943d98ce4d7d02c74624c4662af97d6',
+      codeHash: '715206f2f04fec37ea7e85d743c26bae7932e18aa6d3debdd14b8a9ed48f6022',
       ttlDays: 7,
     },
     'front-plugins': {
-      codeHash: 'dfd8ce1b4c6ef2e65046d9ec16b4fd6c2e4af45c48f401c3856c1e39b4a18dd2',
+      codeHash: 'ba3964075591f15fd5d3843e6e197670ec7f9bb5f3a6a7c840483609e0150001',
       ttlDays: 7,
     },
     'web-screens': {
-      codeHash: '6f81de714afb3f03a3f1b562b8ffcfa565d9e21303e38bc414d10f006f72c109',
+      codeHash: '275614a98b9f2588e3baf32928d5cc4a20c92c9833c02e7197a883210cccce56',
       ttlDays: 7,
     },
     'demo': {
-      codeHash: '1eeea1373983a9dbd26d85862ae334faf2eba833c40218239c53044d8db7f59c',
+      codeHash: 'd8c579ecc4b91795174215031b57fe7fe6db3383130a7cb588332888b3541bc9',
       ttlDays: 7,
     },
   },

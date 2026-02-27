@@ -36,6 +36,7 @@ ehthumbs.db
 .env.*.local
 ACCESS_CODES.md
 SECURITY_PLAN.md
+files/
 
 # === Misc ===
 *.log
