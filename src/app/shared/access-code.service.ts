@@ -53,6 +53,9 @@ export class AccessCodeService {
 
     if (code) {
       await this.validateAndStoreCode(code);
+      // Очистить код из URL — предотвращает утечку через историю браузера и Referer
+      const cleanHash = hash.substring(0, qIndex);
+      history.replaceState(null, '', cleanHash || '#/');
     }
   }
 
