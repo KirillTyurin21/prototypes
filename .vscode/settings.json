@@ -96,6 +96,7 @@
         "/^cd \"d:\\\\1Документы\\\\Задачи iiko\\\\Прототипы\"; node node_modules/@angular/cli/bin/ng\\.js build --no-progress 2>&1 \\| Select-Object -Last 40$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "1..9": true
     }
 }
