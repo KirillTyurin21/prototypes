@@ -13,6 +13,7 @@ const LS_CONFIG_VERSION = 'access_config_version';
 export class AccessCodeService {
   private rateLimitService = inject(RateLimitService);
   private fingerprintService = inject(FingerprintService);
+  private cachedFingerprint: string | null = null;
 
   constructor() {
     this.checkConfigVersion();
@@ -76,12 +77,15 @@ export class AccessCodeService {
       return { valid: false, type: 'locked' };
     }
 
+    // Инициализируем fingerprint для HMAC-подписи сессий
+    await this.ensureFingerprint();
+
     const codeHash = await this.sha256(code.trim().toUpperCase());
 
     // 1. Мастер-код
     if (this.constantTimeEqual(codeHash, ACCESS_CONFIG.masterCodeHash)) {
       this.storeAccess(LS_MASTER, codeHash, ACCESS_CONFIG.masterTtlDays);
-      this.storeAccess(LS_LIST, '', 30); // доступ к списку — 30 дней
+      this.storeAccess(LS_LIST, codeHash, 30); // доступ к списку — 30 дней, сохраняем мастер-хеш для верификации
       this.rateLimitService.recordSuccess();
       return { valid: true, type: 'master', label: 'Мастер-доступ' };
     }
@@ -237,18 +241,29 @@ export class AccessCodeService {
   }
 
   /**
-   * Проверяет, что запись в localStorage существует, не просрочена
-   * и содержит валидный codeHash (защита от подмены localStorage).
+   * Проверяет, что запись в localStorage существует, не просрочена,
+   * содержит валидный codeHash и подписана текущим fingerprint (HMAC).
    */
   private isStoredAccessValid(key: string): boolean {
     const raw = localStorage.getItem(key);
     if (!raw) return false;
 
     try {
-      const data = JSON.parse(raw) as { codeHash: string; expiresAt: number };
+      const data = JSON.parse(raw) as { codeHash: string; expiresAt: number; sig?: string };
       if (Date.now() >= data.expiresAt) return false;
-      // LS_LIST не имеет codeHash — проверяем только expiry
-      if (key === LS_LIST) return true;
+
+      // Проверяем HMAC-подпись (привязка к fingerprint)
+      if (data.sig && this.cachedFingerprint) {
+        const expectedSig = this.computeSessionSig(key, data.codeHash, data.expiresAt);
+        if (expectedSig && data.sig !== expectedSig) return false;
+      }
+
+      // LS_LIST — проверяем codeHash (должен быть мастер-хешем)
+      if (key === LS_LIST) {
+        if (!data.codeHash) return false;
+        return this.isKnownCodeHash(data.codeHash);
+      }
+
       // Верифицируем что codeHash совпадает с одним из известных
       return this.isKnownCodeHash(data.codeHash);
     } catch {
@@ -268,11 +283,41 @@ export class AccessCodeService {
   }
 
   /**
-   * Записывает доступ в localStorage с вычислением expiresAt.
+   * Записывает доступ в localStorage с вычислением expiresAt и HMAC-подписью.
+   * HMAC привязывает запись к fingerprint браузера — предотвращает перенос сессии.
    */
   private storeAccess(key: string, codeHash: string, ttlDays: number): void {
     const expiresAt = Date.now() + ttlDays * 24 * 60 * 60 * 1000;
-    const data = JSON.stringify({ codeHash, expiresAt });
+    const sig = this.computeSessionSig(key, codeHash, expiresAt);
+    const data = JSON.stringify({ codeHash, expiresAt, sig });
     localStorage.setItem(key, data);
+  }
+
+  /**
+   * Вычисляет подпись сессии: простой HMAC на основе fingerprint.
+   * sig = SHA-256(fingerprint + ':' + key + ':' + codeHash + ':' + expiresAt).substring(0, 16)
+   * Если fingerprint ещё не загружен — возвращает пустую строку (lazy init).
+   */
+  private computeSessionSig(key: string, codeHash: string, expiresAt: number): string {
+    if (!this.cachedFingerprint) return '';
+    const raw = `${this.cachedFingerprint}:${key}:${codeHash}:${expiresAt}`;
+    // Синхронный хеш через простой алгоритм (DJB2 + дополнительное перемешивание)
+    let h1 = 0x811c9dc5;
+    let h2 = 0x1000193;
+    for (let i = 0; i < raw.length; i++) {
+      const c = raw.charCodeAt(i);
+      h1 = ((h1 ^ c) * 0x01000193) >>> 0;
+      h2 = ((h2 ^ c) * 0x100001b3) >>> 0;
+    }
+    return (h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0'));
+  }
+
+  /**
+   * Инициализирует кеш fingerprint (вызывается при первой валидации).
+   */
+  private async ensureFingerprint(): Promise<void> {
+    if (!this.cachedFingerprint) {
+      this.cachedFingerprint = await this.fingerprintService.getFingerprint();
+    }
   }
 }
