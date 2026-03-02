@@ -718,6 +718,73 @@ const NOTIFICATION_CELLS: CatalogCell[] = [
 ];
 
 // ═══════════════════════════════════════════════════
+// РЕГИСТРАЦИЯ (v1.10 N4, SPEC-003 §2.4.9)
+// ═══════════════════════════════════════════════════
+
+export const REGISTRATION_CELLS: CatalogCell[] = [
+  {
+    id: 'registration-generating',
+    label: 'M19: Генерация кода',
+    description: 'Модалка регистрации: идёт генерация кода (спиннер), запрос к NE Cloud API',
+    icon: 'loader-2',
+    iconColor: '#38bdf8',
+    category: 'modal',
+    badge: 'v1.10',
+    badgeColor: '#06b6d4',
+  },
+  {
+    id: 'registration-code-displayed',
+    label: 'M19: Код отображён',
+    description: 'Модалка регистрации: код готов, отображается таймер TTL и кнопки Copy / QR',
+    icon: 'key-round',
+    iconColor: '#38bdf8',
+    category: 'modal',
+    badge: 'v1.10',
+    badgeColor: '#06b6d4',
+  },
+  {
+    id: 'registration-code-expired',
+    label: 'M19: Код истёк',
+    description: 'Модалка регистрации: время действия кода вышло, кнопка «Получить новый код»',
+    icon: 'timer-off',
+    iconColor: '#f97316',
+    category: 'modal',
+    badge: 'v1.10',
+    badgeColor: '#06b6d4',
+  },
+  {
+    id: 'registration-success',
+    label: 'M19: Регистрация успешна',
+    description: 'Модалка регистрации: ресторан успешно подключён к NE Cloud',
+    icon: 'check-circle-2',
+    iconColor: '#22c55e',
+    category: 'modal',
+    badge: 'v1.10',
+    badgeColor: '#06b6d4',
+  },
+  {
+    id: 'registration-error',
+    label: 'M19: Ошибка регистрации',
+    description: 'Модалка регистрации: ошибка связи с NE Cloud, кнопка «Повторить»',
+    icon: 'alert-triangle',
+    iconColor: '#ef4444',
+    category: 'modal',
+    badge: 'v1.10',
+    badgeColor: '#06b6d4',
+  },
+  {
+    id: 'registration-already-registered',
+    label: 'M19: Уже зарегистрирован',
+    description: 'Модалка регистрации: ресторан уже подключён к NE Cloud',
+    icon: 'info',
+    iconColor: '#38bdf8',
+    category: 'modal',
+    badge: 'v1.10',
+    badgeColor: '#06b6d4',
+  },
+];
+
+// ═══════════════════════════════════════════════════
 // ЭКСПОРТ: Секции каталога
 // ═══════════════════════════════════════════════════
 
@@ -756,5 +823,12 @@ export const CATALOG_SECTIONS: CatalogSection[] = [
     description: 'Toast-уведомления и overlay-состояния',
     category: 'notification',
     cells: NOTIFICATION_CELLS,
+  },
+  {
+    title: 'Регистрация (Cold Registration)',
+    icon: 'key-round',
+    description: 'Подключение ресторана к NE Cloud — модалка M19 в разных состояниях',
+    category: 'registration',
+    cells: REGISTRATION_CELLS,
   },
 ];

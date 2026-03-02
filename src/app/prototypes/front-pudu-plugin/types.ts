@@ -171,6 +171,8 @@ export type PuduModalType =
   // v1.9: Контекст «Из заказа» — Дополнения → Плагины → Команды
   | 'plugins_menu_order'             // v1.9: Окно «Плагины» из контекста заказа
   | 'pudu_commands_order'            // v1.9: Окно «Команды роботам» из заказа (4 кнопки)
+  // v1.10 N1: Холодная регистрация (П8)
+  | 'registration_code'              // v1.10 N1: Код регистрации П8
   | null;
 
 /** Для регистрации в plugin-main-screen (каталог плагинов) */
@@ -191,7 +193,8 @@ export type CellCategory =
   | 'context-main'      // Контекст: главный экран
   | 'scenario'          // Сценарий (цепочка переходов)
   | 'modal'             // Одиночное модальное окно
-  | 'notification';     // Уведомление / спецсостояние
+  | 'notification'      // Уведомление / спецсостояние
+  | 'registration';     // Регистрация (v1.10)
 
 export interface CatalogCell {
   id: string;                         // Уникальный ID ячейки (slug)
@@ -223,4 +226,32 @@ export interface ScenarioStep {
   params?: Record<string, any>;       // v1.4: параметры действия
   toast?: 'dispatched' | 'completed' | 'error' | 'info';  // v1.4 (H14): тип toast для показа
   toastText?: string;                 // v1.4 (H14): текст toast
+}
+
+// --- Регистрация (v1.10 N2) ---
+
+/** Состояние модалки регистрации П8 (6 состояний из SPEC-003 §2.4.9.3) */
+export type RegistrationState =
+  | 'generating'           // Spinner — генерация кода
+  | 'code_displayed'       // Код крупным шрифтом + таймер
+  | 'code_expired'         // Код истёк — кнопка «Обновить код»
+  | 'success'              // Регистрация OK
+  | 'error'                // Ошибка — «Повторить» / «Закрыть»
+  | 'already_registered';  // Уже зарегистрирован — «Закрыть»
+
+/** Ответ POST /v1/registration/init [DRAFT] */
+export interface RegistrationInitResponse {
+  code: string;            // Буквенно-цифровой код (пр. "A7X92K")
+  code_ttl: number;        // Срок жизни в секундах
+  code_url: string;        // URL портала NE для ввода кода
+  registration_id: string; // UUID регистрации
+}
+
+/** Ответ GET /v1/registration/status [DRAFT] */
+export interface RegistrationStatusResponse {
+  registered: boolean;
+  org_id?: string;
+  registered_at?: string;
+  restaurants_count?: number;
+  synced_at?: string;
 }

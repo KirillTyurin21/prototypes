@@ -389,3 +389,31 @@ export const MOCK_PUDU_DIALOGS: PuduDialogEntry[] = [
     iconBg: 'bg-red-500/20',
   },
 ];
+
+// --- Mock: регистрация (v1.10 N3) ---
+
+import { RegistrationInitResponse, RegistrationStatusResponse, RegistrationState } from '../types';
+
+export const MOCK_REGISTRATION_RESPONSE: RegistrationInitResponse = {
+  code: 'A7X92K',
+  code_ttl: 3600,   // 1 час
+  code_url: 'https://admin.nextera.io/activate?code=A7X92K',
+  registration_id: 'reg-uuid-001',
+};
+
+export const MOCK_REGISTRATION_STATUS: RegistrationStatusResponse = {
+  registered: false,
+  org_id: undefined,
+  registered_at: undefined,
+  restaurants_count: undefined,
+  synced_at: undefined,
+};
+
+export const REGISTRATION_DEMO_STATES: RegistrationState[] = [
+  'generating',
+  'code_displayed',
+  'code_expired',
+  'success',
+  'error',
+  'already_registered',
+];

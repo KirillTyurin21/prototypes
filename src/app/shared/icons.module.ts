@@ -92,6 +92,8 @@ import {
   Check,
   // PUDU v1.8: plugins menu
   Terminal,
+  // PUDU v1.10: registration
+  TimerOff,
 } from 'lucide-angular';
 
 /**
@@ -192,6 +194,8 @@ const icons = {
   Check,
   // PUDU v1.8: plugins menu
   Terminal,
+  // PUDU v1.10: registration
+  TimerOff,
 };
 
 @NgModule({

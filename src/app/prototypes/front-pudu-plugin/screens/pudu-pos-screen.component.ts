@@ -1,8 +1,9 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
-import { PuduModalType, PuduContextType, ScenarioStep, AvailableRobot } from '../types';
+import { PuduModalType, PuduContextType, ScenarioStep, AvailableRobot, RegistrationState } from '../types';
 import {
   MOCK_CURRENT_ORDER,
   MOCK_TABLES,
@@ -17,6 +18,7 @@ import {
   MockDish,
   getAssignedRobot,
   splitDishesIntoTrips,
+  MOCK_REGISTRATION_RESPONSE,
 } from '../data/mock-data';
 import { CurrentOrder, PuduNotification, OrderTable } from '../types';
 import { displayRobotName } from '../utils/display-robot-name';
@@ -39,12 +41,14 @@ import { SendDishPickupNotifyComponent } from '../components/dialogs/send-dish-p
 import { SendDishRepeatComponent } from '../components/dialogs/send-dish-repeat.component';
 import { RobotSelectComponent } from '../components/dialogs/robot-select.component';
 import { RobotStatusComponent } from '../components/dialogs/robot-status.component';
+import { RegistrationCodeComponent } from '../components/dialogs/registration-code.component';
 
 @Component({
   selector: 'app-pudu-pos-screen',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IconsModule,
     SendMenuConfirmComponent,
     CleanupConfirmComponent,
@@ -63,6 +67,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
     SendDishRepeatComponent,
     RobotSelectComponent,
     RobotStatusComponent,
+    RegistrationCodeComponent,
   ],
   template: `
     <div class="min-h-screen bg-[#2d2d2d] flex flex-col relative" style="font-family: Roboto, sans-serif;">
@@ -250,6 +255,19 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           <button (click)="simulateAllBusy()" class="text-xs text-yellow-400 hover:text-yellow-300 transition-colors">
             Все заняты
           </button>
+          <!-- v1.10 N1: Cold registration -->
+          <button (click)="handleOpenRegistration()" class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+            Регистрация
+          </button>
+          <select [(ngModel)]="demoRegistrationState" (ngModelChange)="handleDemoRegistrationState($event)"
+            class="text-xs bg-[#333] text-gray-300 rounded px-1 py-0.5 border border-gray-600">
+            <option value="generating">generating</option>
+            <option value="code_displayed">code_displayed</option>
+            <option value="code_expired">code_expired</option>
+            <option value="success">success</option>
+            <option value="error">error</option>
+            <option value="already_registered">already_registered</option>
+          </select>
         </div>
       </div>
 
@@ -463,6 +481,20 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
         (onCancel)="closeDialog()"
         (onConfirm)="executeRepeatSendDish()"
       ></pudu-send-dish-repeat>
+
+      <!-- М19: Код регистрации (v1.10 N1, SPEC-003 §2.4.9) -->
+      <pudu-registration-code
+        [open]="activeModal === 'registration_code'"
+        [state]="registrationState"
+        [code]="registrationCode"
+        [codeUrl]="registrationCodeUrl"
+        [timerSeconds]="registrationTimerSeconds"
+        [errorMessage]="registrationError"
+        (onClose)="handleRegistrationClose()"
+        (onCopyCode)="handleCopyCode()"
+        (onRegenerate)="handleRegenerateCode()"
+        (onRetry)="handleRetryRegistration()"
+      ></pudu-registration-code>
 
       <!-- М9: Loading -->
       <pudu-loading-dialog
@@ -731,6 +763,15 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   // v1.9: Pending команда из контекста заказа (после выбора робота)
   pendingOrderCommand: 'send_menu' | 'cleanup' | 'send_dish' | null = null;
 
+  // v1.10 N1 (SPEC-003 §2.4.9): Cold registration
+  registrationState: RegistrationState = 'generating';
+  registrationCode = '';
+  registrationCodeUrl = '';
+  registrationTimerSeconds = 0;
+  registrationError = '';
+  private registrationTimerInterval: any = null;
+  demoRegistrationState: RegistrationState = 'code_displayed';
+
   get totalTrips(): number {
     return Math.ceil(this.orderDishes.length / this.settings.send_dish.max_dishes_per_trip) || 1;
   }
@@ -853,6 +894,11 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
       { modal: 'send_menu_confirm', delay: 3000 },
       { modal: null, toast: 'dispatched', toastText: 'Доставка меню — Белла Зал 1 (BellaBot-01) — отправлено. Стол 5', delay: 5000 },
     ],
+
+    // v1.10 N5: Cold registration — полный успешный цикл
+    'registration-cold-full': [
+      { modal: 'registration_code', delay: 0 },
+    ],
   };
 
   /** Автоназначение робота */
@@ -912,6 +958,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     if (this.estopRepeatId) {
       clearTimeout(this.estopRepeatId);
     }
+    this.clearRegistrationTimer();
   }
 
   // ===== Навигация =====
@@ -1057,6 +1104,37 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
         this.isSubmitting = true;
         setTimeout(() => { this.isSubmitting = false; }, 3000);
         break;
+      // v1.10 N4: Registration cells
+      case 'registration-generating':
+        this.handleOpenRegistration();
+        break;
+      case 'registration-code-displayed':
+        this.registrationState = 'code_displayed';
+        this.registrationCode = MOCK_REGISTRATION_RESPONSE.code;
+        this.registrationCodeUrl = MOCK_REGISTRATION_RESPONSE.code_url;
+        this.registrationTimerSeconds = MOCK_REGISTRATION_RESPONSE.code_ttl;
+        this.startRegistrationTimer();
+        this.activeModal = 'registration_code';
+        break;
+      case 'registration-code-expired':
+        this.registrationState = 'code_expired';
+        this.registrationCode = MOCK_REGISTRATION_RESPONSE.code;
+        this.registrationTimerSeconds = 0;
+        this.activeModal = 'registration_code';
+        break;
+      case 'registration-success':
+        this.registrationState = 'success';
+        this.activeModal = 'registration_code';
+        break;
+      case 'registration-error':
+        this.registrationState = 'error';
+        this.registrationError = 'Не удалось связаться с сервером NE Cloud. Проверьте интернет-соединение.';
+        this.activeModal = 'registration_code';
+        break;
+      case 'registration-already-registered':
+        this.registrationState = 'already_registered';
+        this.activeModal = 'registration_code';
+        break;
     }
   }
 
@@ -1068,6 +1146,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     this.scenarioTimeouts = [];
     this.activeModal = null;
     this.pendingOrderCommand = null;
+    this.clearRegistrationTimer();
   }
 
   // ===== Button handlers (контекст «Из заказа») =====
@@ -1657,5 +1736,77 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     const idx = modes.indexOf(this.settings.cleanup.mode);
     this.settings.cleanup.mode = modes[(idx + 1) % modes.length];
     this.infoToast = { title: `Режим уборки: ${this.settings.cleanup.mode}` };
+  }
+
+  // ===== v1.10 N1: Cold Registration handlers =====
+
+  handleOpenRegistration(): void {
+    this.registrationState = 'generating';
+    this.registrationCode = '';
+    this.registrationCodeUrl = '';
+    this.registrationTimerSeconds = 0;
+    this.registrationError = '';
+    this.clearRegistrationTimer();
+    this.activeModal = 'registration_code';
+    // Имитация запроса к API (1.5 сек)
+    setTimeout(() => {
+      this.generateRegistrationCode();
+    }, 1500);
+  }
+
+  private generateRegistrationCode(): void {
+    this.registrationCode = MOCK_REGISTRATION_RESPONSE.code;
+    this.registrationCodeUrl = MOCK_REGISTRATION_RESPONSE.code_url;
+    this.registrationTimerSeconds = MOCK_REGISTRATION_RESPONSE.code_ttl;
+    this.registrationState = 'code_displayed';
+    this.startRegistrationTimer();
+  }
+
+  private startRegistrationTimer(): void {
+    this.clearRegistrationTimer();
+    this.registrationTimerInterval = setInterval(() => {
+      if (this.registrationTimerSeconds > 0) {
+        this.registrationTimerSeconds--;
+      }
+      if (this.registrationTimerSeconds <= 0) {
+        this.clearRegistrationTimer();
+        if (this.registrationState === 'code_displayed') {
+          this.registrationState = 'code_expired';
+        }
+      }
+    }, 1000);
+  }
+
+  private clearRegistrationTimer(): void {
+    if (this.registrationTimerInterval) {
+      clearInterval(this.registrationTimerInterval);
+      this.registrationTimerInterval = null;
+    }
+  }
+
+  handleCopyCode(): void {
+    // В прототипе просто показываем info-toast
+    this.infoToast = { title: `Код ${this.registrationCode} скопирован в буфер` };
+  }
+
+  handleRegenerateCode(): void {
+    this.registrationState = 'generating';
+    this.clearRegistrationTimer();
+    setTimeout(() => {
+      this.generateRegistrationCode();
+    }, 1500);
+  }
+
+  handleRetryRegistration(): void {
+    this.handleOpenRegistration();
+  }
+
+  handleRegistrationClose(): void {
+    this.clearRegistrationTimer();
+    this.activeModal = null;
+  }
+
+  handleDemoRegistrationState(state: RegistrationState): void {
+    this.showNotification('registration-' + state.replace(/_/g, '-'));
   }
 }

@@ -2,6 +2,36 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '2.3',
+    date: '2026-03-04',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'POS — Регистрация (M19)',
+        pageRoute: '/prototype/front-pudu-plugin/pos?modal=registration_code',
+        items: [
+          'Новая модалка M19: «Код регистрации» — подключение ресторана к NE Cloud',
+          '6 состояний: генерация кода, код отображён (таймер TTL), код истёк, успех, ошибка, уже зарегистрирован',
+          'Копирование кода, таймер обратного отсчёта, перегенерация кода',
+        ],
+      },
+      {
+        page: 'Каталог состояний',
+        pageRoute: '/prototype/front-pudu-plugin/catalog',
+        items: [
+          'Новая секция «Регистрация (Cold Registration)» — 6 ячеек для всех состояний M19',
+        ],
+      },
+      {
+        page: 'POS — Демо-панель',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'Кнопка «Регистрация» и выпадающий список состояний M19 в демо-панели',
+        ],
+      },
+    ],
+  },
+  {
     version: '2.2',
     date: '2026-03-03',
     status: 'unreleased',
