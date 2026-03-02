@@ -124,18 +124,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           </div>
         </div>
 
-        <!-- Индикатор маркетинга -->
-        <div *ngIf="isCruiseActive" class="mx-4 mt-3">
-          <div class="flex items-center gap-2 bg-[#b8c959]/20 border border-[#b8c959] rounded px-4 py-2">
-            <lucide-icon name="radio" [size]="18" class="text-[#b8c959] animate-pulse"></lucide-icon>
-            <span class="text-sm text-[#b8c959] font-medium">
-              Маркетинг-круиз активен<span *ngIf="marketingRobotName"> · {{ marketingRobotName }}</span>
-            </span>
-            <button (click)="stopCruise()" class="ml-auto text-xs text-gray-400 hover:text-white transition-colors">
-              Остановить
-            </button>
-          </div>
-        </div>
+        <!-- Индикатор маркетинга — v1.7 K11: убран (маркетинг управляется через after_action в Web) -->
 
         <!-- Панель кнопок PUDU — контекст «Из заказа»: кнопка «Дополнения» + 4 кнопки действий -->
         <div class="p-4 border-t border-gray-600 mt-3 space-y-3">
@@ -145,24 +134,51 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
             <lucide-icon name="puzzle" [size]="20"></lucide-icon>
             <span class="text-xs">Дополнения → Плагины</span>
           </button>
-          <!-- 4 кнопки действий -->
+          <!-- 4 кнопки действий — v1.7 K9: fire-and-forget на POS-кнопке (без confirm-модалок) -->
           <div class="grid gap-3"
                [ngClass]="isCleanupButtonVisible ? 'grid-cols-4' : 'grid-cols-3'">
+            <!-- Отправить меню: inline fire-and-forget (v1.7 K9) -->
             <button (click)="onSendMenu()" aria-label="Отправить меню"
-              class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
-              <lucide-icon name="utensils" [size]="20"></lucide-icon>
-              <span class="text-xs">Отправить меню</span>
+              [disabled]="isSubmitting"
+              class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors"
+              [ngClass]="(isSubmitting && submittingTask === 'send_menu') ? 'bg-[#252525] cursor-wait' : isSubmitting ? 'bg-[#1a1a1a] opacity-50 cursor-not-allowed' : 'bg-[#1a1a1a] text-white hover:bg-[#252525]'">
+              <ng-container *ngIf="isSubmitting && submittingTask === 'send_menu'; else sendMenuDefault">
+                <lucide-icon name="loader-2" [size]="20" class="text-[#b8c959] animate-spin"></lucide-icon>
+                <span class="text-xs text-[#b8c959]">Отправка...</span>
+              </ng-container>
+              <ng-template #sendMenuDefault>
+                <lucide-icon name="utensils" [size]="20"></lucide-icon>
+                <span class="text-xs">Отправить меню</span>
+              </ng-template>
             </button>
+            <!-- Уборка посуды: inline fire-and-forget (v1.7 K9) -->
             <button (click)="onCleanup()" aria-label="Уборка посуды"
               *ngIf="isCleanupButtonVisible"
-              class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
-              <lucide-icon name="trash-2" [size]="20"></lucide-icon>
-              <span class="text-xs">Уборка посуды</span>
+              [disabled]="isSubmitting"
+              class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors"
+              [ngClass]="(isSubmitting && submittingTask === 'cleanup') ? 'bg-[#252525] cursor-wait' : isSubmitting ? 'bg-[#1a1a1a] opacity-50 cursor-not-allowed' : 'bg-[#1a1a1a] text-white hover:bg-[#252525]'">
+              <ng-container *ngIf="isSubmitting && submittingTask === 'cleanup'; else cleanupDefault">
+                <lucide-icon name="loader-2" [size]="20" class="text-[#b8c959] animate-spin"></lucide-icon>
+                <span class="text-xs text-[#b8c959]">Отправка...</span>
+              </ng-container>
+              <ng-template #cleanupDefault>
+                <lucide-icon name="trash-2" [size]="20"></lucide-icon>
+                <span class="text-xs">Уборка посуды</span>
+              </ng-template>
             </button>
+            <!-- Доставка блюд: inline fire-and-forget (v1.7 K9) -->
             <button (click)="onSendDish()" aria-label="Доставка блюд"
-              class="h-14 bg-[#1a1a1a] text-white hover:bg-[#252525] rounded flex flex-col items-center justify-center gap-1 transition-colors">
-              <lucide-icon name="utensils" [size]="20"></lucide-icon>
-              <span class="text-xs">Доставка блюд</span>
+              [disabled]="isSubmitting"
+              class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors"
+              [ngClass]="(isSubmitting && submittingTask === 'send_dish') ? 'bg-[#252525] cursor-wait' : isSubmitting ? 'bg-[#1a1a1a] opacity-50 cursor-not-allowed' : 'bg-[#1a1a1a] text-white hover:bg-[#252525]'">
+              <ng-container *ngIf="isSubmitting && submittingTask === 'send_dish'; else sendDishDefault">
+                <lucide-icon name="loader-2" [size]="20" class="text-[#b8c959] animate-spin"></lucide-icon>
+                <span class="text-xs text-[#b8c959]">Отправка...</span>
+              </ng-container>
+              <ng-template #sendDishDefault>
+                <lucide-icon name="utensils" [size]="20"></lucide-icon>
+                <span class="text-xs">Доставка блюд</span>
+              </ng-template>
             </button>
             <button (click)="onSendDishRepeat()" aria-label="Повторить"
               class="h-14 rounded flex flex-col items-center justify-center gap-1 transition-colors bg-[#1a1a1a] text-white hover:bg-[#252525]">
@@ -181,18 +197,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           <p class="text-gray-500 text-sm">(заглушка для демонстрации контекста)</p>
         </div>
 
-        <!-- Индикатор маркетинга -->
-        <div *ngIf="isCruiseActive" class="mx-4 mb-3">
-          <div class="flex items-center gap-2 bg-[#b8c959]/20 border border-[#b8c959] rounded px-4 py-2">
-            <lucide-icon name="radio" [size]="18" class="text-[#b8c959] animate-pulse"></lucide-icon>
-            <span class="text-sm text-[#b8c959] font-medium">
-              Маркетинг-круиз активен<span *ngIf="marketingRobotName"> · {{ marketingRobotName }}</span>
-            </span>
-            <button (click)="stopCruise()" class="ml-auto text-xs text-gray-400 hover:text-white transition-colors">
-              Остановить
-            </button>
-          </div>
-        </div>
+        <!-- Индикатор маркетинга — v1.7 K11: убран -->
 
         <!-- Панель кнопок PUDU — контекст «Главный экран»: 1 кнопка «Дополнения» v1.8 -->
         <div class="grid grid-cols-1 gap-3 p-4 border-t border-gray-600">
@@ -560,16 +565,12 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
               <lucide-icon name="x" [size]="20"></lucide-icon>
             </button>
           </div>
-          <!-- Кнопки команд -->
+          <!-- Кнопки команд — v1.7 K11: Маркетинг удалён (управляется через after_action в Web) -->
           <div class="p-4">
             <div class="grid grid-cols-3 gap-2">
               <button (click)="onCommandCleanup()"
                 class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
                 <span class="text-center leading-tight px-1">Уборка (Столы)</span>
-              </button>
-              <button (click)="onCommandMarketing()"
-                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
-                <span class="text-center leading-tight px-1">Маркетинг</span>
               </button>
             </div>
           </div>
@@ -705,6 +706,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
 
   // H10: Fire-and-forget
   isSubmitting = false;
+  submittingTask: string | null = null; // v1.7 K9: текущая POS-кнопка в режиме отправки
   currentTaskType = 'send_menu';
   currentTableName = 'Стол 5';
   mockTaskId = 'task-mock-001';
@@ -1066,7 +1068,8 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
       this.activeModal = 'unmapped_table';
       return;
     }
-    this.activeModal = 'send_menu_confirm';
+    // v1.7 K9: fire-and-forget на POS-кнопке (без confirm-модалки M1)
+    this.handleSendTask('send_menu');
   }
 
   onCleanup(): void {
@@ -1087,7 +1090,8 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
         return;
       }
     }
-    this.activeModal = 'cleanup_confirm';
+    // v1.7 K9: fire-and-forget на POS-кнопке (без confirm-модалки M2)
+    this.handleSendTask('cleanup');
   }
 
   onSendDish(): void {
@@ -1095,14 +1099,37 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
       this.activeModal = 'unmapped_table';
       return;
     }
-    // v1.3 (G5): РАЗБЛОКИРОВАНО
-    this.currentTripDishes = this.orderDishes.slice(0, this.settings.send_dish.max_dishes_per_trip);
-    this.currentTripNumber = 1;
-    this.activeModal = 'send_dish_confirm';
+    // v1.7 K9: fire-and-forget на POS-кнопке (без confirm-модалки M14)
+    this.handleSendTask('send_dish');
   }
 
   onSendDishRepeat(): void {
     this.activeModal = 'send_dish_repeat';
+  }
+
+  /** v1.7 K9: Fire-and-forget на POS-кнопке (без confirm-модалки, без robot_id, П-4/П-5) */
+  async handleSendTask(taskType: string): Promise<void> {
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
+    this.submittingTask = taskType;
+
+    // v1.7 K9: payload БЕЗ robot_id (П-4: NE автоматически выбирает робота)
+    console.log('[PUDU] POST /api/tasks/', taskType, {
+      table_id: this.currentOrder.table.table_id,
+      task_type: taskType
+      // robot_id — НЕ передаётся (v1.7 П-4)
+    });
+
+    try {
+      await this.simulateHttpRequest();
+      // v1.7 K10: toast БЕЗ имени робота (робот неизвестен на момент отправки, П-4)
+      this.showDispatchedToast(taskType, this.currentOrder.table.table_name);
+    } catch {
+      this.activeModal = 'error';
+    } finally {
+      this.isSubmitting = false;
+      this.submittingTask = null;
+    }
   }
 
   executeSendDish(): void {
@@ -1366,17 +1393,16 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     this.submitTask();
   }
 
-  /** v1.4 (H10): Универсальная fire-and-forget отправка */
+  /** v1.4 (H10): Универсальная fire-and-forget отправка (из модалок M12, M16) */
   async submitTask(): Promise<void> {
     if (this.isSubmitting) return;
     this.isSubmitting = true;
 
     try {
       await this.simulateHttpRequest();
-      // Успех: закрыть модалку + toast
+      // Успех: закрыть модалку + toast (v1.7 K10: без имени робота — П-4)
       this.activeModal = null;
-      const robot = getAssignedRobot();
-      this.showDispatchedToast(this.currentTaskType, this.currentTableName, displayRobotName(robot.ne_name, robot.alias, robot.robot_id));
+      this.showDispatchedToast(this.currentTaskType, this.currentTableName);
     } catch {
       this.activeModal = 'error';
     } finally {

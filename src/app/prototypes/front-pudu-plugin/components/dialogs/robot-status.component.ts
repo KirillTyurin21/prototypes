@@ -4,6 +4,7 @@ import { PuduPosDialogComponent } from '../pos-dialog.component';
 import { IconsModule } from '@/shared/icons.module';
 import { AvailableRobot } from '../../types';
 import { displayRobotNameDual } from '../../utils/display-robot-name';
+import { TASK_HUMAN_NAMES } from '../../data/mock-data';
 
 /** М18: Быстрый просмотр статусов роботов (robot_status) — П7 */
 @Component({
@@ -29,24 +30,23 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
         <!-- Таблица роботов -->
         <div *ngIf="!loading && !error && sortedRobots.length > 0"
              class="bg-[#2d2d2d] rounded overflow-hidden mb-4">
-          <!-- Заголовок таблицы -->
-          <div class="grid grid-cols-4 gap-2 px-4 py-2 border-b border-gray-600">
+          <!-- Заголовок таблицы — v1.7 K1: убрана колонка ID (3 колонки) -->
+          <div class="grid grid-cols-3 gap-2 px-4 py-2 border-b border-gray-600">
             <span class="text-xs text-gray-400 font-medium">Имя робота</span>
-            <span class="text-xs text-gray-400 font-medium">ID</span>
             <span class="text-xs text-gray-400 font-medium">Статус</span>
             <span class="text-xs text-gray-400 font-medium">Текущая задача</span>
           </div>
 
-          <!-- Строки роботов -->
+          <!-- Строки роботов — v1.7 K1: grid-cols-3 (без ID), K2: task_type локализован -->
           <div *ngFor="let robot of sortedRobots"
-               class="grid grid-cols-4 gap-2 px-4 py-3 border-b border-gray-600/30 transition-colors"
+               class="grid grid-cols-3 gap-2 px-4 py-3 border-b border-gray-600/30 transition-colors"
                [ngClass]="{
                  'cursor-pointer hover:bg-[#3d3d3d]': proceedLabel && robot.status !== 'offline',
                  'cursor-not-allowed opacity-50': proceedLabel && robot.status === 'offline',
                  'bg-[#b8c959]/10 border-l-2 border-l-[#b8c959]': isSelected(robot)
                }"
                (click)="onRowClick(robot)">
-            <!-- Выбор (галочка) — только в режиме выбора -->
+            <!-- Колонка 1: Имя робота -->
             <div class="flex items-center gap-2">
               <span *ngIf="proceedLabel"
                     class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors"
@@ -63,11 +63,7 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
                 </span>
               </div>
             </div>
-            <!-- ID (обрезанный) -->
-            <span class="text-sm text-gray-400 truncate" [title]="robot.robot_id">
-              {{ robot.robot_id.length > 12 ? (robot.robot_id | slice:0:12) + '...' : robot.robot_id }}
-            </span>
-            <!-- Статус с цветовым индикатором -->
+            <!-- Колонка 2: Статус с цветовым индикатором -->
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full"
                     [ngClass]="{
@@ -84,10 +80,10 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
                 {{ robot.status === 'free' ? 'Свободен' : robot.status === 'busy' ? 'Занят' : 'Оффлайн' }}
               </span>
             </div>
-            <!-- Текущая задача -->
+            <!-- Колонка 3: Текущая задача — v1.7 K2: локализован через TASK_HUMAN_NAMES -->
             <span class="text-sm"
                   [ngClass]="robot.current_task ? 'text-gray-300' : 'text-gray-500'">
-              {{ robot.current_task?.task_type || '—' }}
+              {{ robot.current_task ? (TASK_HUMAN_NAMES[robot.current_task.task_type] || robot.current_task.task_type) : '—' }}
               <span *ngIf="robot.current_task?.target_point" class="text-gray-500">
                 → {{ formatPointName(robot.current_task!.target_point) }}
               </span>
@@ -164,6 +160,7 @@ import { displayRobotNameDual } from '../../utils/display-robot-name';
   `,
 })
 export class RobotStatusComponent {
+  readonly TASK_HUMAN_NAMES = TASK_HUMAN_NAMES;
   @Input() open = false;
   @Input() robots: AvailableRobot[] = [];
   @Input() loading = false;

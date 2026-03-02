@@ -4,6 +4,7 @@ import { PuduPosDialogComponent } from '../pos-dialog.component';
 import { IconsModule } from '@/shared/icons.module';
 import { AvailableRobot } from '../../types';
 import { displayRobotName, displayRobotNameDual } from '../../utils/display-robot-name';
+import { TASK_HUMAN_NAMES } from '../../data/mock-data';
 
 /** М17: Выбор робота (robot_select) — П1 */
 @Component({
@@ -74,10 +75,10 @@ import { displayRobotName, displayRobotNameDual } from '../../utils/display-robo
                 {{ robot.status === 'free' ? 'Свободен' : robot.status === 'busy' ? 'Занят' : 'Оффлайн' }}
               </span>
             </div>
-            <!-- Задача -->
+            <!-- Задача — v1.7 K2: локализован через TASK_HUMAN_NAMES -->
             <span class="text-sm"
                   [ngClass]="robot.current_task ? 'text-gray-300' : 'text-gray-500'">
-              {{ robot.current_task?.task_type || '—' }}
+              {{ robot.current_task ? (TASK_HUMAN_NAMES[robot.current_task.task_type] || robot.current_task.task_type) : '—' }}
               <span *ngIf="robot.current_task?.target_point" class="text-gray-500">
                 → {{ formatPointName(robot.current_task!.target_point) }}
               </span>
@@ -155,6 +156,7 @@ import { displayRobotName, displayRobotNameDual } from '../../utils/display-robo
   `,
 })
 export class RobotSelectComponent {
+  readonly TASK_HUMAN_NAMES = TASK_HUMAN_NAMES;
   @Input() open = false;
   @Input() robots: AvailableRobot[] = [];
   @Input() loading = false;

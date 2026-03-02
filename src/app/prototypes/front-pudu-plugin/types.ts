@@ -134,7 +134,8 @@ export interface ScenarioSettings {
     phrase_fail: string;           // v1.3: renamed from phrase_failure
     phrase_fail_url: string;       // v1.3: renamed from phrase_failure_url
   };
-  marketing: {
+  // v1.7 K11: marketing - опционально (П-6: убран из плагина, управляется через Web after_action)
+  marketing?: {
     robot_id: string;
     auto_cruise_on_idle: boolean;
   };

@@ -112,13 +112,14 @@ export const MOCK_GENERAL_SETTINGS = {
 };
 
 /** v1.4 (H11): Маппинг task_type → человекочитаемое название */
+// v1.7 K11: marketing удалён (П-6: управляется через Web after_action, не через плагин)
 export const TASK_HUMAN_NAMES: Record<string, string> = {
   send_menu: 'Доставка меню',
   cleanup: 'Уборка посуды',
   cleanup_auto: 'Авто-уборка',
   qr_payment: 'QR-оплата',
   send_dish: 'Доставка блюд',
-  marketing: 'Маркетинг-круиз',
+  // marketing — УДАЛЁН v1.7 П-6
 };
 
 export const MOCK_ACTIVE_TASKS: RobotTask[] = [
@@ -188,11 +189,7 @@ export const MOCK_SCENARIO_SETTINGS: ScenarioSettings = {
     phrase_fail_url: '',                                     // v1.3: renamed from phrase_failure_url
   },
 
-  // --- Маркетинг (S6) ---
-  marketing: {
-    robot_id: 'PD2024080042',
-    auto_cruise_on_idle: true,
-  },
+  // marketing — УДАЛЁН v1.7 К11 (П-6: управляется через Web after_action, не через плагин)
 };
 
 // v1.3 (G6): Mock-данные заказа для демо send_dish
