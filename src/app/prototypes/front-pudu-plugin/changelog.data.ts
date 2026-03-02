@@ -3,8 +3,8 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '2.3',
-    date: '2026-03-04',
-    status: 'unreleased',
+    date: '2026-03-02',
+    status: 'released',
     changes: [
       {
         page: 'POS — Регистрация (M19)',
@@ -33,8 +33,8 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '2.2',
-    date: '2026-03-03',
-    status: 'unreleased',
+    date: '2026-03-02',
+    status: 'released',
     changes: [
       {
         page: 'POS — Повторная доставка (М16)',
@@ -84,7 +84,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '2.1',
     date: '2026-03-02',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'POS — Уведомления',
@@ -122,7 +122,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '2.0',
     date: '2026-03-02',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'POS — Из заказа',

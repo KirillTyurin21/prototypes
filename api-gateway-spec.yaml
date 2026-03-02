@@ -1,0 +1,179 @@
+# ============================================================
+# Yandex Cloud API Gateway — OpenAPI 3.0 спецификация
+# Домен: view21.ru
+# Все запросы проксируются в одну Cloud Function
+# ============================================================
+
+openapi: 3.0.0
+
+info:
+  title: view21.ru API Gateway
+  description: |
+    API Gateway для view21.ru.
+    Все входящие запросы (любой путь, GET/POST) маршрутизируются
+    в единую Cloud Function, которая обрабатывает авторизацию
+    и бизнес-логику самостоятельно.
+  version: "1.0.0"
+
+# Кастомный домен — view21.ru
+servers:
+  - url: https://view21.ru
+    description: Продакшен (кастомный домен)
+
+# Глобальные CORS-заголовки для всех ответов
+x-yc-apigateway:
+  cors:
+    origin: "*"
+    methods: "GET, POST, OPTIONS"
+    headers: "Content-Type, Authorization, X-Requested-With"
+    maxAge: 86400
+
+paths:
+  # ===========================================================
+  # Корневой путь "/"
+  # Обрабатывает запросы без дополнительного пути
+  # ===========================================================
+  /:
+    get:
+      summary: Корневой GET-запрос
+      operationId: root-get
+      parameters:
+        # Прокидываем все query-параметры как есть
+        - name: dummy
+          in: query
+          required: false
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        # ⬇️ ЗАМЕНИТЬ на реальный ID Cloud Function
+        function_id: d4e1234567890abcdef
+        # ⬇️ ЗАМЕНИТЬ на реальный ID сервисного аккаунта
+        service_account_id: aje1234567890abcdef
+        # Тег версии (используем $latest для последней версии)
+        tag: "$latest"
+        # Таймаут вызова функции (секунды)
+        payload_format_version: "1.0"
+      responses:
+        "200":
+          description: Успешный ответ
+        "401":
+          description: Не авторизован
+        "404":
+          description: Не найдено
+
+    post:
+      summary: Корневой POST-запрос
+      operationId: root-post
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e1234567890abcdef
+        service_account_id: aje1234567890abcdef
+        tag: "$latest"
+        payload_format_version: "1.0"
+      responses:
+        "200":
+          description: Успешный ответ
+
+    # Обработка CORS preflight-запросов
+    options:
+      summary: CORS preflight для корня
+      operationId: root-options
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e1234567890abcdef
+        service_account_id: aje1234567890abcdef
+        tag: "$latest"
+        payload_format_version: "1.0"
+      responses:
+        "200":
+          description: CORS preflight ответ
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+
+  # ===========================================================
+  # Wildcard — перехватывает ВСЕ остальные пути
+  # Паттерн {path+} матчит любой путь с любой глубиной вложенности
+  # Примеры: /prototype/demo, /api/auth, /assets/style.css
+  # ===========================================================
+  /{path+}:
+    get:
+      summary: GET-запрос на любой путь
+      operationId: wildcard-get
+      parameters:
+        # Переменная пути — передаётся в функцию автоматически
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e1234567890abcdef
+        service_account_id: aje1234567890abcdef
+        tag: "$latest"
+        payload_format_version: "1.0"
+      responses:
+        "200":
+          description: Успешный ответ
+        "401":
+          description: Не авторизован
+        "404":
+          description: Не найдено
+
+    post:
+      summary: POST-запрос на любой путь
+      operationId: wildcard-post
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e1234567890abcdef
+        service_account_id: aje1234567890abcdef
+        tag: "$latest"
+        payload_format_version: "1.0"
+      responses:
+        "200":
+          description: Успешный ответ
+
+    # CORS preflight для всех путей
+    options:
+      summary: CORS preflight для любого пути
+      operationId: wildcard-options
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4e1234567890abcdef
+        service_account_id: aje1234567890abcdef
+        tag: "$latest"
+        payload_format_version: "1.0"
+      responses:
+        "200":
+          description: CORS preflight ответ
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
