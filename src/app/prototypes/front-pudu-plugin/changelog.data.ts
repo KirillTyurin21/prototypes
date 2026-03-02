@@ -2,6 +2,44 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '2.1',
+    date: '2026-03-02',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'POS — Уведомления',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'Toast «Завершено» (зелёный) полностью удалён — официант не ждёт завершения задачи роботом',
+          'Toast «Отправлено» теперь автоматически закрывается через 10 секунд (крестик ручного закрытия остаётся)',
+          'Toast отправки блюд показывает расширенную информацию: количество блюд и номер рейса',
+        ],
+      },
+      {
+        page: 'POS — Демо-панель',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'Убраны кнопки «Completed ВКЛ/ВЫКЛ» и «Задача завершена» — уведомления завершения удалены',
+        ],
+      },
+      {
+        page: 'Каталог состояний',
+        pageRoute: '/prototype/front-pudu-plugin',
+        items: [
+          'Удалена ячейка «Toast: Сценарий выполнен» и сценарий «Polling: задача завершена»',
+          'Обновлены ячейки dispatched-тостов с пометкой «auto-close 10s»',
+          'Добавлены ячейки toast send_dish: варианты с несколькими рейсами и одним рейсом',
+          'Сценарий «Fire-and-forget (полный цикл)» обновлён: отправлено вместо отправлено → завершено',
+        ],
+      },
+      {
+        items: [
+          'Mock-данные: max_dishes_per_trip изменён с 4 на 2 для наглядной демонстрации рейсов',
+        ],
+      },
+    ],
+  },
+  {
     version: '2.0',
     date: '2026-03-02',
     status: 'unreleased',

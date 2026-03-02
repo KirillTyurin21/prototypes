@@ -105,10 +105,10 @@ export const MOCK_AVAILABLE_ROBOTS: AvailableRobot[] = [
   },
 ];
 
-/** v1.4 (H11): Mock general_settings */
+/** v1.4 (H11) / v1.8 L2: Mock general_settings */
 export const MOCK_GENERAL_SETTINGS = {
   notification_sound_enabled: true,
-  show_success_notifications: false,   // по умолчанию ВЫКЛ (решение Руслана от 06.02)
+  // v1.8 L2 (П-7): show_success_notifications УДАЛЁН — completion-уведомления полностью убраны
 };
 
 /** v1.4 (H11): Маппинг task_type → человекочитаемое название */
@@ -172,7 +172,7 @@ export const MOCK_SCENARIO_SETTINGS: ScenarioSettings = {
     pickup_phrase_url: '',
     wait_time: 60,                                           // Ожидание у стола, сек (SPEC-003: 60)
     pickup_wait_time: 60,                                    // Ожидание на раздаче, сек (SPEC-003: 60)
-    max_dishes_per_trip: 4,                                  // Макс. блюд за один рейс (З-48)
+    max_dishes_per_trip: 2,                                  // v1.8 L10 (П-9): 6 блюд / 2 = 3 рейса для демонстрации
     phrase_repeat: 'Заберите, пожалуйста, ваш заказ!',
     phrase_repeat_url: '',
   },

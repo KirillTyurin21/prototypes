@@ -11,7 +11,7 @@ import {
   MOCK_NE_ERROR_NOTIFICATIONS,
   MOCK_ORDER_DISHES,
   MOCK_AVAILABLE_ROBOTS,
-  MOCK_GENERAL_SETTINGS,
+  // v1.8 L2: MOCK_GENERAL_SETTINGS больше не импортируется (П-7)
   MOCK_ACTIVE_TASKS,
   TASK_HUMAN_NAMES,
   MockDish,
@@ -232,13 +232,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           <button (click)="showNeError()" class="text-xs text-orange-400 hover:text-orange-300 transition-colors">
             Ошибки NE
           </button>
-          <!-- v1.4 (H11): Демо lifecycle toast -->
-          <button (click)="toggleSuccessNotifications()" class="text-xs text-gray-400 hover:text-white transition-colors">
-            Completed: {{ generalSettings.show_success_notifications ? 'ВКЛ' : 'ВЫКЛ' }}
-          </button>
-          <button (click)="simulateTaskCompleted()" class="text-xs text-gray-400 hover:text-white transition-colors">
-            Задача завершена
-          </button>
+          <!-- v1.8 L2: Кнопки Completed УДАЛЕНЫ (П-7) -->
           <!-- v1.4 (H6): Демо режим уборки -->
           <button (click)="cycleCleanupMode()" class="text-xs text-gray-400 hover:text-white transition-colors">
             Уборка: {{ settings.cleanup.mode }}
@@ -315,20 +309,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
           </div>
         </div>
 
-        <!-- Toast: Завершено / completed (v1.4 H11) -->
-        <div *ngIf="completedToast" class="animate-slide-up">
-          <div class="bg-green-600/90 text-white rounded-lg p-4 shadow-lg max-w-sm flex items-start gap-3">
-            <lucide-icon name="check-circle-2" [size]="20" class="shrink-0 mt-0.5"></lucide-icon>
-            <div class="flex-1">
-              <p class="text-sm font-medium">{{ completedToast.title }}</p>
-              <p *ngIf="completedToast.subtitle" class="text-xs text-green-100 mt-1">{{ completedToast.subtitle }}</p>
-            </div>
-            <button (click)="completedToast = null" class="text-green-200 hover:text-white transition-colors"
-                    aria-label="Закрыть уведомление о завершении">
-              <lucide-icon name="x" [size]="16"></lucide-icon>
-            </button>
-          </div>
-        </div>
+        <!-- v1.8 L1: Toast Completed УДАЛЁН (П-7) -->
       </div>
 
       <!-- E-STOP уведомление (D4, З-40) — повторяющееся [H12: top-left] -->
@@ -713,8 +694,8 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
 
   // H11: Lifecycle toast'ы
   dispatchedToast: { title: string; subtitle?: string } | null = null;
-  completedToast: { title: string; subtitle?: string } | null = null;
-  generalSettings = { ...MOCK_GENERAL_SETTINGS };
+  // v1.8 L1 (П-7): completedToast УДАЛЁН
+  // v1.8 L2 (П-7): generalSettings.show_success_notifications УДАЛЁН
 
   // H5: Repeating notifications
   private readonly REPEATING_ERROR_CODES = ['E_STOP', 'MANUAL_MODE', 'OBSTACLE', 'LOW_BATTERY'];
@@ -850,14 +831,12 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
       { modal: null, delay: 0, action: 'showCleanupDedupToast' },
     ],
 
-    // === Lifecycle — v1.4 (H14) ===
-    'task-completed-polling': [
-      { modal: null, toast: 'completed', toastText: 'Доставка меню — Белла Зал 1 (BellaBot-01) — выполнено. Стол 5', delay: 0 },
-    ],
+    // === Lifecycle — v1.4 (H14) / v1.8 (L3, L4) ===
+    // v1.8 L3 (П-7): task-completed-polling УДАЛЁН — completed toast не показывается
+    // v1.8 L4 (П-7): fire-and-forget-full — убран шаг completed, dispatched auto-close 10s (П-8)
     'fire-and-forget-full': [
       { modal: 'send_menu_confirm', delay: 3000 },
       { modal: null, toast: 'dispatched', toastText: 'Доставка меню — Белла Зал 1 (BellaBot-01) — отправлено. Стол 5', delay: 5000 },
-      { modal: null, toast: 'completed', toastText: 'Доставка меню — Белла Зал 1 (BellaBot-01) — выполнено. Стол 5', delay: 3000 },
     ],
   };
 
@@ -961,8 +940,12 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     // Показать toast если указан
     if (step.toast === 'dispatched' && step.toastText) {
       this.dispatchedToast = { title: step.toastText };
-    } else if (step.toast === 'completed' && step.toastText) {
-      this.completedToast = { title: step.toastText };
+      // v1.8 L6: Auto-close через 10 секунд (П-8)
+      if (this.dispatchedAutoCloseTimer) { clearTimeout(this.dispatchedAutoCloseTimer); }
+      this.dispatchedAutoCloseTimer = setTimeout(() => {
+        this.dispatchedToast = null;
+        this.dispatchedAutoCloseTimer = null;
+      }, this.DISPATCHED_AUTO_CLOSE_MS);
     } else if (step.toast === 'error' && step.toastText) {
       this.pushNotification(step.toastText, '');
     } else if (step.toast === 'info' && step.toastText) {
@@ -1041,8 +1024,20 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
       case 'toast-dispatched-marketing':
         this.showDispatchedToast('marketing');
         break;
-      case 'toast-completed-generic':
-        this.showCompletedToast('send_menu', 'Стол 5');
+      // v1.8 L1 (П-7): toast-completed-generic УДАЛЁН
+      case 'toast-dispatched-send_dish-multi-trip':
+        this.showDispatchedToastSendDish('Стол 3');
+        break;
+      case 'toast-dispatched-send_dish-single-trip':
+        // Имитация single trip: 2 блюда, max_per_trip=4 → 1 рейс
+        this.dispatchedToast = {
+          title: 'Доставка блюд — отправлено. Стол 3. Блюд: 2 из 2 (рейс 1 из 1)',
+        };
+        if (this.dispatchedAutoCloseTimer) { clearTimeout(this.dispatchedAutoCloseTimer); }
+        this.dispatchedAutoCloseTimer = setTimeout(() => {
+          this.dispatchedToast = null;
+          this.dispatchedAutoCloseTimer = null;
+        }, this.DISPATCHED_AUTO_CLOSE_MS);
         break;
       case 'toast-button-submitting':
         this.isSubmitting = true;
@@ -1122,8 +1117,13 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
 
     try {
       await this.simulateHttpRequest();
-      // v1.7 K10: toast БЕЗ имени робота (робот неизвестен на момент отправки, П-4)
-      this.showDispatchedToast(taskType, this.currentOrder.table.table_name);
+      // v1.8 L8: send_dish — расширенный toast с кол-вом блюд и рейсами (П-9)
+      if (taskType === 'send_dish') {
+        this.showDispatchedToastSendDish(this.currentOrder.table.table_name);
+      } else {
+        // v1.7 K10: toast БЕЗ имени робота (робот неизвестен на момент отправки, П-4)
+        this.showDispatchedToast(taskType, this.currentOrder.table.table_name);
+      }
     } catch {
       this.activeModal = 'error';
     } finally {
@@ -1582,7 +1582,11 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     return notif.id;
   }
 
-  // ===== v1.4 (H11): Lifecycle toast'ы =====
+  // ===== v1.4 (H11) / v1.8 (L1, L6): Lifecycle toast'ы =====
+
+  // v1.8 L6: Auto-close для dispatched toast (П-8, 10 секунд)
+  private readonly DISPATCHED_AUTO_CLOSE_MS = 10_000;
+  private dispatchedAutoCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   showDispatchedToast(taskType: string, tableName?: string, robotDisplayName?: string): void {
     const name = TASK_HUMAN_NAMES[taskType] || taskType;
@@ -1592,36 +1596,41 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
         : `${name} — отправлено`,
       subtitle: tableName || undefined,
     };
-  }
 
-  showCompletedToast(taskType: string, tableName?: string, robotDisplayName?: string): void {
-    const name = TASK_HUMAN_NAMES[taskType] || taskType;
-    this.dispatchedToast = null;
-    this.completedToast = {
-      title: robotDisplayName
-        ? `${name} — ${robotDisplayName} — выполнено`
-        : `${name} — выполнено`,
-      subtitle: tableName || undefined,
-    };
-  }
-
-  // v1.4 (H11): Демо-переключатель
-  toggleSuccessNotifications(): void {
-    this.generalSettings.show_success_notifications = !this.generalSettings.show_success_notifications;
-    this.infoToast = {
-      title: this.generalSettings.show_success_notifications
-        ? 'Уведомления о завершении: ВКЛ'
-        : 'Уведомления о завершении: ВЫКЛ'
-    };
-  }
-
-  simulateTaskCompleted(): void {
-    if (this.generalSettings.show_success_notifications) {
-      this.showCompletedToast('send_menu', 'Стол 5');
-    } else {
-      this.infoToast = { title: 'Уведомление не показано (show_success_notifications = false)' };
+    // v1.8 L6: Auto-close через 10 секунд (П-8). Крестик ручного закрытия остаётся.
+    if (this.dispatchedAutoCloseTimer) {
+      clearTimeout(this.dispatchedAutoCloseTimer);
     }
+    this.dispatchedAutoCloseTimer = setTimeout(() => {
+      this.dispatchedToast = null;
+      this.dispatchedAutoCloseTimer = null;
+    }, this.DISPATCHED_AUTO_CLOSE_MS);
   }
+
+  // v1.8 L8: Специальный dispatched toast для send_dish с информацией о рейсах (П-9)
+  showDispatchedToastSendDish(tableName: string): void {
+    const totalDishes = this.orderDishes.length;
+    const maxPerTrip = this.settings.send_dish.max_dishes_per_trip;
+    const totalTrips = Math.ceil(totalDishes / maxPerTrip) || 1;
+    const currentTrip = this.currentTripNumber || 1;
+    const dishesThisTrip = Math.min(maxPerTrip, totalDishes - (currentTrip - 1) * maxPerTrip);
+
+    this.dispatchedToast = {
+      title: `Доставка блюд — отправлено. Стол ${tableName}. Блюд: ${dishesThisTrip} из ${totalDishes} (рейс ${currentTrip} из ${totalTrips})`,
+    };
+
+    // v1.8 L6: Auto-close через 10 секунд
+    if (this.dispatchedAutoCloseTimer) {
+      clearTimeout(this.dispatchedAutoCloseTimer);
+    }
+    this.dispatchedAutoCloseTimer = setTimeout(() => {
+      this.dispatchedToast = null;
+      this.dispatchedAutoCloseTimer = null;
+    }, this.DISPATCHED_AUTO_CLOSE_MS);
+  }
+
+  // v1.8 L1 (П-7): showCompletedToast УДАЛЁН — completion-уведомления не показываются
+  // v1.8 L2 (П-7): toggleSuccessNotifications, simulateTaskCompleted УДАЛЕНЫ
 
   // v1.4 (H6): Демо-переключатель режима уборки
   cycleCleanupMode(): void {
