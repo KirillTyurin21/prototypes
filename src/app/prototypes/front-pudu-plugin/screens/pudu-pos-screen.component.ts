@@ -246,6 +246,10 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
                   class="text-xs text-red-400 hover:text-red-300 transition-colors">
             OBSTACLE (повтор)
           </button>
+          <!-- v1.9 M5 (П-13): Имитация «Все заняты» -->
+          <button (click)="simulateAllBusy()" class="text-xs text-yellow-400 hover:text-yellow-300 transition-colors">
+            Все заняты
+          </button>
         </div>
       </div>
 
@@ -304,6 +308,20 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
             </div>
             <button (click)="dispatchedToast = null" class="text-black/60 hover:text-black transition-colors"
                     aria-label="Закрыть уведомление об отправке">
+              <lucide-icon name="x" [size]="16"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Toast: Задача в очереди / queued (v1.9 M5, П-13) -->
+        <div *ngIf="queuedToast" class="animate-slide-up">
+          <div class="bg-[#b8c959]/90 text-black rounded-lg p-4 shadow-lg max-w-sm flex items-start gap-3">
+            <lucide-icon name="clock" [size]="20" class="shrink-0 mt-0.5"></lucide-icon>
+            <div class="flex-1">
+              <p class="text-sm font-medium">{{ queuedToast.title }}</p>
+            </div>
+            <button (click)="queuedToast = null" class="text-black/60 hover:text-black transition-colors"
+                    aria-label="Закрыть уведомление об очереди">
               <lucide-icon name="x" [size]="16"></lucide-icon>
             </button>
           </div>
@@ -437,14 +455,10 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
         (onTimeout)="onPickupTimeout()"
       ></pudu-send-dish-pickup-notify>
 
-      <!-- М16: Повторить доставку -->
+      <!-- М16: Повторить доставку? (v1.9 M1, П-11 — упрощённый confirm) -->
       <pudu-send-dish-repeat
         [open]="activeModal === 'send_dish_repeat'"
         [tableName]="currentOrder.table.table_name"
-        [phraseRepeat]="settings.send_dish.phrase_repeat"
-        [robotName]="lastDeliveryRobotName"
-        [robotId]="lastDeliveryRobotId"
-        [robotStatus]="lastDeliveryRobotStatus"
         [isSubmitting]="isSubmitting"
         (onCancel)="closeDialog()"
         (onConfirm)="executeRepeatSendDish()"
@@ -571,12 +585,18 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
               <lucide-icon name="x" [size]="20"></lucide-icon>
             </button>
           </div>
-          <!-- Сетка кнопок плагинов (3 в ряд, 6 рядов) -->
+          <!-- Сетка кнопок плагинов (3 в ряд, 6 рядов) — v1.9 M2: «Повторить отправку» рядом с «Команды» -->
           <div class="p-4">
             <div class="grid grid-cols-3 gap-2" style="grid-template-rows: repeat(6, 1fr);">
               <button (click)="onPluginPuduCommandsOrder()"
                 class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
                 <span class="text-center leading-tight px-1">Pudu: Команды</span>
+              </button>
+              <!-- v1.9 M2 (П-11): кнопка «Повторить отправку» рядом с «Команды», видна только после send_dish -->
+              <button *ngIf="sendDishCompleted"
+                (click)="onOrderCommandRepeat()"
+                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
+                <span class="text-center leading-tight px-1">Pudu: Повторить отправку</span>
               </button>
               <!-- Пустые плейсхолдеры для визуализации сетки 3×6 -->
               <div *ngFor="let i of pluginPlaceholdersOrder"
@@ -604,7 +624,7 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
               <lucide-icon name="x" [size]="20"></lucide-icon>
             </button>
           </div>
-          <!-- Кнопки команд (4 штуки) -->
+          <!-- Кнопки команд (3 штуки, v1.9 M2: «Повторить» убрана — перенесена на уровень плагинов) -->
           <div class="p-4">
             <div class="grid grid-cols-2 gap-2">
               <button (click)="onOrderCommandSendMenu()"
@@ -618,10 +638,6 @@ import { RobotStatusComponent } from '../components/dialogs/robot-status.compone
               <button (click)="onOrderCommandSendDish()"
                 class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
                 <span class="text-center leading-tight px-1">Доставка блюд</span>
-              </button>
-              <button (click)="onOrderCommandRepeat()"
-                class="h-16 text-sm bg-white text-black hover:bg-gray-100 border border-gray-300 rounded font-medium transition-colors flex flex-col items-center justify-center gap-1">
-                <span class="text-center leading-tight px-1">Повторить отправку</span>
               </button>
             </div>
           </div>
@@ -694,6 +710,8 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
 
   // H11: Lifecycle toast'ы
   dispatchedToast: { title: string; subtitle?: string } | null = null;
+  // v1.9 M5 (П-13): Queued toast
+  queuedToast: { title: string } | null = null;
   // v1.8 L1 (П-7): completedToast УДАЛЁН
   // v1.8 L2 (П-7): generalSettings.show_success_notifications УДАЛЁН
 
@@ -704,13 +722,11 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   // v1.8: Плейсхолдеры для сетки плагинов (3 колонки × 6 рядов = 18, минус 2 реальные кнопки = 16)
   pluginPlaceholders = Array.from({ length: 16 }, (_, i) => i);
 
-  // v1.9: Плейсхолдеры для сетки плагинов из заказа (1 кнопка → 17 плейсхолдеров)
-  pluginPlaceholdersOrder = Array.from({ length: 17 }, (_, i) => i);
+  // v1.9 M2 (П-11): Плейсхолдеры для сетки плагинов из заказа (2 кнопки Pudu → 16 плейсхолдеров)
+  pluginPlaceholdersOrder = Array.from({ length: 16 }, (_, i) => i);
 
-  // v1.9: Запоминаем робота, который выполнял доставку (для «Повторить доставку»)
-  lastDeliveryRobotName: string = 'Белла Зал 1 (BellaBot-01)';
-  lastDeliveryRobotId: string = 'PD2024060001';
-  lastDeliveryRobotStatus: 'free' | 'busy' | 'offline' = 'busy';
+  // v1.9 M1 (П-11): lastDeliveryRobot* УБРАНЫ — M16 больше не отображает робота
+  // robot_id не передаётся — NE назначает свободного
 
   // v1.9: Pending команда из контекста заказа (после выбора робота)
   pendingOrderCommand: 'send_menu' | 'cleanup' | 'send_dish' | null = null;
@@ -766,21 +782,20 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
       { modal: 'unmapped_table', delay: 0 },
     ],
 
-    // === Доставка блюд — v1.3 (G4) ===
+    // === Доставка блюд — v1.3 (G4), v1.9 M3+M8 (П-10: одна команда) ===
 
-    // Полный цикл: подтверждение → fire-and-forget (v1.4 H14)
+    // Полный цикл: fire-and-forget (v1.9 M8: одна команда, NE управляет рейсами)
     'send-dish-full': [
-      { modal: 'send_dish_confirm', delay: 3000 },
-      { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — Белла Зал 1 (BellaBot-01) — отправлено. Стол 7', delay: 2000 },
+      { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — отправлено. Стол 7', delay: 2000 },
     ],
-    // Быстрый путь: fire-and-forget (v1.4 H14)
+    // Быстрый путь: fire-and-forget
     'send-dish-quick': [
-      { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — Белла Зал 1 (BellaBot-01) — отправлено. Стол 7', delay: 2000 },
+      { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — отправлено. Стол 7', delay: 2000 },
     ],
-    // Повторная отправка: fire-and-forget (v1.4 H14) — v1.9: увеличен delay чтобы не закрывалось автоматически
-    'send-dish-repeat': [
+    // v1.9 M8: Повторная отправка (упрощённый confirm, П-11)
+    'send-dish-repeat-simple': [
       { modal: 'send_dish_repeat', delay: 60000 },
-      { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — Белла Зал 1 (BellaBot-01) — отправлено. Стол 7', delay: 2000 },
+      { modal: null, toast: 'dispatched', toastText: 'Доставка блюд — отправлено. Стол 7', delay: 2000 },
     ],
     // Ошибка: стол не замаплен
     'send-dish-error-mapping': [
@@ -1025,19 +1040,18 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
         this.showDispatchedToast('marketing');
         break;
       // v1.8 L1 (П-7): toast-completed-generic УДАЛЁН
+      // v1.9 M3 (П-10): рейсовые toastы заменены на стандартный dispatched
       case 'toast-dispatched-send_dish-multi-trip':
-        this.showDispatchedToastSendDish('Стол 3');
-        break;
       case 'toast-dispatched-send_dish-single-trip':
-        // Имитация single trip: 2 блюда, max_per_trip=4 → 1 рейс
-        this.dispatchedToast = {
-          title: 'Доставка блюд — отправлено. Стол 3. Блюд: 2 из 2 (рейс 1 из 1)',
-        };
-        if (this.dispatchedAutoCloseTimer) { clearTimeout(this.dispatchedAutoCloseTimer); }
-        this.dispatchedAutoCloseTimer = setTimeout(() => {
-          this.dispatchedToast = null;
-          this.dispatchedAutoCloseTimer = null;
-        }, this.DISPATCHED_AUTO_CLOSE_MS);
+        this.showDispatchedToast('send_dish', 'Стол 3');
+        break;
+      // v1.9 M4 (П-12): Toast qr_payment dispatched
+      case 'toast-dispatched-qr_payment':
+        this.showDispatchedToast('qr_payment', 'Стол 3');
+        break;
+      // v1.9 M5 (П-13): Toast «queued» (нет свободных роботов)
+      case 'toast-queued-no-robots':
+        this.showQueuedToast('send_menu', 'Стол 3');
         break;
       case 'toast-button-submitting':
         this.isSubmitting = true;
@@ -1117,12 +1131,12 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
 
     try {
       await this.simulateHttpRequest();
-      // v1.8 L8: send_dish — расширенный toast с кол-вом блюд и рейсами (П-9)
+      // v1.9 M3 (П-10): send_dish — стандартный toast (NE управляет рейсами, плагин не знает о трипах)
+      // v1.7 K10: toast БЕЗ имени робота (робот неизвестен на момент отправки, П-4)
+      this.showDispatchedToast(taskType, this.currentOrder.table.table_name);
+      // v1.9 M3: Помечаем send_dish как выполненный (для кнопки «Повторить»)
       if (taskType === 'send_dish') {
-        this.showDispatchedToastSendDish(this.currentOrder.table.table_name);
-      } else {
-        // v1.7 K10: toast БЕЗ имени робота (робот неизвестен на момент отправки, П-4)
-        this.showDispatchedToast(taskType, this.currentOrder.table.table_name);
+        this.sendDishCompleted = true;
       }
     } catch {
       this.activeModal = 'error';
@@ -1140,10 +1154,9 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
   }
 
   executeRepeatSendDish(): void {
-    this.currentTaskType = 'send_dish';
-    this.currentTableName = this.currentOrder.table.table_name;
-    this.mockTaskId = `task-${Date.now()}`;
-    this.submitTask();
+    // v1.9 M3+M1 (П-10, П-11): Повтор через handleSendTask, полный заказ, без robot_id
+    this.activeModal = null;
+    this.handleSendTask('send_dish');
   }
 
   onPickupTimeout(): void {
@@ -1322,9 +1335,7 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
         this.infoToast = { title: `Робот ${robotDisplayName} занят. Задача будет в очереди` };
       }
       // Запоминаем выбранного робота для отображения
-      this.lastDeliveryRobotName = robotDisplayName;
-      this.lastDeliveryRobotId = robot.robot_id;
-      this.lastDeliveryRobotStatus = robot.status as 'free' | 'busy' | 'offline';
+      // v1.9 M1 (П-11): lastDeliveryRobot* убраны — M16 не отображает робота
 
       const cmd = this.pendingOrderCommand;
       this.pendingOrderCommand = null;
@@ -1422,6 +1433,8 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     this.pendingAction = 'qr_payment';
     this.loadingMessage = 'Отправка робота к столу...';
     this.activeModal = 'loading';
+    // v1.9 M4 (П-12): Toast «QR-оплата — команда отправлена» (zero-interaction)
+    this.showDispatchedToast('qr_payment', this.currentOrder.table.table_name);
 
     this.loadingTimeoutId = setTimeout(() => {
       this.activeModal = 'qr_guest_phase';
@@ -1607,30 +1620,36 @@ export class PuduPosScreenComponent implements OnInit, OnDestroy {
     }, this.DISPATCHED_AUTO_CLOSE_MS);
   }
 
-  // v1.8 L8: Специальный dispatched toast для send_dish с информацией о рейсах (П-9)
-  showDispatchedToastSendDish(tableName: string): void {
-    const totalDishes = this.orderDishes.length;
-    const maxPerTrip = this.settings.send_dish.max_dishes_per_trip;
-    const totalTrips = Math.ceil(totalDishes / maxPerTrip) || 1;
-    const currentTrip = this.currentTripNumber || 1;
-    const dishesThisTrip = Math.min(maxPerTrip, totalDishes - (currentTrip - 1) * maxPerTrip);
-
-    this.dispatchedToast = {
-      title: `Доставка блюд — отправлено. Стол ${tableName}. Блюд: ${dishesThisTrip} из ${totalDishes} (рейс ${currentTrip} из ${totalTrips})`,
-    };
-
-    // v1.8 L6: Auto-close через 10 секунд
-    if (this.dispatchedAutoCloseTimer) {
-      clearTimeout(this.dispatchedAutoCloseTimer);
-    }
-    this.dispatchedAutoCloseTimer = setTimeout(() => {
-      this.dispatchedToast = null;
-      this.dispatchedAutoCloseTimer = null;
-    }, this.DISPATCHED_AUTO_CLOSE_MS);
-  }
+  // v1.8 L8: showDispatchedToastSendDish УДАЛЁН (v1.9 M3, П-10 — NE управляет рейсами, плагин использует стандартный toast)
 
   // v1.8 L1 (П-7): showCompletedToast УДАЛЁН — completion-уведомления не показываются
   // v1.8 L2 (П-7): toggleSuccessNotifications, simulateTaskCompleted УДАЛЕНЫ
+
+  // ===== v1.9 M5 (П-13): Queued toast (задача в очереди NE) =====
+
+  private queuedAutoCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  showQueuedToast(taskType: string, tableName?: string): void {
+    const name = TASK_HUMAN_NAMES[taskType] || taskType;
+    this.queuedToast = {
+      title: tableName
+        ? `${name} — задача поставлена в очередь. ${tableName}`
+        : `${name} — задача поставлена в очередь`,
+    };
+
+    if (this.queuedAutoCloseTimer) {
+      clearTimeout(this.queuedAutoCloseTimer);
+    }
+    this.queuedAutoCloseTimer = setTimeout(() => {
+      this.queuedToast = null;
+      this.queuedAutoCloseTimer = null;
+    }, this.DISPATCHED_AUTO_CLOSE_MS);
+  }
+
+  /** v1.9 M5 (П-13): Имитация «Все заняты» → задача в очередь */
+  simulateAllBusy(): void {
+    this.showQueuedToast('send_menu', this.currentOrder.table.table_name);
+  }
 
   // v1.4 (H6): Демо-переключатель режима уборки
   cycleCleanupMode(): void {

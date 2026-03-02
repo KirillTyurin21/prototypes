@@ -64,14 +64,14 @@ const CONTEXT_ORDER_CELLS: CatalogCell[] = [
   {
     id: 'ctx-order-send-dish-repeat',
     label: 'Повторить доставку',
-    description: 'Повторная отправка рейса к столу (доступно после завершения рейса)',   // v1.3 (G5): NEW
+    description: 'Упрощённый confirm «Повторить доставку?» — только стол, «Уехать» / «Повторить» (v1.9 M1, П-11)',
     icon: 'repeat',
     iconColor: '#f59e0b',
     category: 'context-order',
-    scenario: 'send-dish-repeat',
+    scenario: 'send-dish-repeat-simple',
     context: 'order',
-    badge: 'v1.3',
-    badgeColor: '#3b82f6',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
   },
 ];
 
@@ -411,15 +411,15 @@ const MODAL_CELLS: CatalogCell[] = [
     badgeColor: '#3b82f6',
   },
   {
-    id: 'modal-send-dish-repeat',
-    label: 'М16: Повторить доставку',
-    description: 'Подтверждение повторной отправки рейса, фраза повтора',
+    id: 'modal-send-dish-repeat-simple',
+    label: 'М16: Повторить доставку? (confirm)',
+    description: 'Упрощённый confirm «Повторить доставку?» — только стол, «Уехать» / «Повторить» (v1.9 M1, П-11)',
     icon: 'repeat',
     iconColor: '#f59e0b',
     category: 'modal',
     modalType: 'send_dish_repeat',
-    badge: 'v1.3',
-    badgeColor: '#3b82f6',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
   },
   // === Выбор робота и статусы (v1.4 H8) ===
   {
@@ -672,26 +672,48 @@ const NOTIFICATION_CELLS: CatalogCell[] = [
     category: 'notification',
     scenario: 'fire-and-forget-full',
   },
-  // v1.8 L9: Toast send_dish с информацией о рейсах (П-9)
+  // v1.8 L9 → v1.9 M3: Toast send_dish (упрощён — NE управляет рейсами, П-10)
   {
     id: 'toast-dispatched-send_dish-multi-trip',
-    label: 'Toast: send_dish (блюд: 2 из 6, рейс 1 из 3)',
-    description: 'Dispatched toast send_dish с расширенной информацией: несколько рейсов (auto-close 10s)',
+    label: 'Toast: send_dish (стандартный)',
+    description: 'Dispatched toast send_dish: «Доставка блюд — отправлено. Стол N» (v1.9 M3, auto-close 10s)',
     icon: 'send',
     iconColor: '#b8c959',
     category: 'notification',
-    badge: 'NEW',
-    badgeColor: '#22c55e',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
   },
   {
     id: 'toast-dispatched-send_dish-single-trip',
-    label: 'Toast: send_dish (блюд: 2 из 2, рейс 1 из 1)',
-    description: 'Dispatched toast send_dish с расширенной информацией: один рейс (auto-close 10s)',
+    label: 'Toast: send_dish (алиас)',
+    description: 'Алиас для toast-dispatched-send_dish-multi-trip (v1.9 M3 — рейсы убраны)',
     icon: 'send',
     iconColor: '#b8c959',
     category: 'notification',
-    badge: 'NEW',
-    badgeColor: '#22c55e',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
+  },
+  // v1.9 M4 (П-12): Toast qr_payment dispatched
+  {
+    id: 'toast-dispatched-qr_payment',
+    label: 'Toast: QR-оплата — команда отправлена',
+    description: 'Dispatched toast qr_payment: «QR-оплата — отправлено. Стол N» (auto-close 10s, zero-interaction)',
+    icon: 'send',
+    iconColor: '#b8c959',
+    category: 'notification',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
+  },
+  // v1.9 M5 (П-13): Toast очередь (NO_AVAILABLE_ROBOTS)
+  {
+    id: 'toast-queued-no-robots',
+    label: 'Toast: Задача в очереди (нет роботов)',
+    description: 'Queued toast: «Доставка меню — задача поставлена в очередь. Стол N» (auto-close 10s, П-13)',
+    icon: 'clock',
+    iconColor: '#b8c959',
+    category: 'notification',
+    badge: 'v1.9',
+    badgeColor: '#8b5cf6',
   },
 ];
 

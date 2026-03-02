@@ -2,6 +2,56 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '2.2',
+    date: '2026-03-03',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'POS — Повторная доставка (М16)',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'М16 полностью переработан: упрощённый confirm-диалог «Повторить доставку?» с кнопками «Уехать» / «Повторить»',
+          'Убрано отображение имени, ID и статуса робота — NE назначает свободного автоматически',
+          'Кнопка «Pudu: Повторить отправку» вынесена на уровень плагинов (рядом с «Pudu: Команды»)',
+          'Кнопка «Повторить отправку» видна только после выполнения хотя бы одной доставки блюд',
+        ],
+      },
+      {
+        page: 'POS — Доставка блюд',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'Доставка блюд отправляется одной командой — NE самостоятельно рассчитывает рейсы и распределяет роботов',
+          'Toast отправки блюд упрощён: информация о рейсах убрана (NE управляет)',
+        ],
+      },
+      {
+        page: 'POS — QR-оплата',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'Добавлен toast «QR-оплата — отправлено» при создании задачи qr_payment (auto-close 10 сек)',
+        ],
+      },
+      {
+        page: 'POS — Уведомления',
+        pageRoute: '/prototype/front-pudu-plugin/pos?context=order',
+        items: [
+          'Новый тип toast «Задача в очереди» — при отсутствии свободных роботов задача принимается NE в очередь',
+          'Добавлена кнопка «Все заняты» в демо-панели для имитации очереди',
+        ],
+      },
+      {
+        page: 'Каталог состояний',
+        pageRoute: '/prototype/front-pudu-plugin',
+        items: [
+          'Обновлена ячейка М16: упрощённый confirm вместо полного окна',
+          'Добавлены ячейки: toast qr_payment dispatched, toast queued (нет роботов)',
+          'Обновлены ячейки send_dish dispatched (рейсы убраны)',
+          'Добавлена цепочка send-dish-repeat-simple',
+        ],
+      },
+    ],
+  },
+  {
     version: '2.1',
     date: '2026-03-02',
     status: 'unreleased',

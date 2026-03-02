@@ -207,6 +207,10 @@ export const MOCK_ORDER_DISHES: MockDish[] = [
   { id: 'dish-005', name: 'Тирамису', quantity: 2 },
   { id: 'dish-006', name: 'Латте', quantity: 3 },
 ];
+// v1.9 (П-10): Все 6 блюд отправляются ОДНОЙ командой.
+// NE рассчитывает: 6 блюд / max_dishes_per_trip=2 = 3 рейса.
+// NE определяет: 2 свободных робота → 2 робота параллельно + 1 рейс последовательно.
+// Плагин НЕ разбивает на рейсы — это ответственность NE.
 
 /** Разбиение блюд на рейсы по max_dishes_per_trip */
 export function splitDishesIntoTrips(dishes: MockDish[], maxPerTrip: number): MockDish[][] {
