@@ -9,7 +9,7 @@
  * Формирует отображаемое имя робота (однострочное).
  *
  * @param ne_name - Системное имя из NE / Falcon Cloud (например, "BellaBot-1")
- * @param alias - Пользовательский alias из iiko Web (ConfigManager). null если не задан
+ * @param alias - Пользовательский alias из Web (ConfigManager). null если не задан
  * @param robot_id - Серийный номер робота (fallback)
  * @returns Форматированная строка для показа в UI
  *

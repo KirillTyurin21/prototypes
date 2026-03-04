@@ -370,7 +370,7 @@ const MODAL_CELLS: CatalogCell[] = [
   {
     id: 'modal-unmapped',
     label: 'М7: Стол не замаплен',
-    description: 'Предупреждение + ссылка на iikoWeb для настройки маппинга',
+    description: 'Предупреждение + ссылка на Web для настройки маппинга',
     icon: 'map-pin-off',
     iconColor: '#f97316',
     category: 'modal',
@@ -792,14 +792,14 @@ export const CATALOG_SECTIONS: CatalogSection[] = [
   {
     title: 'Контекст: Главный экран',
     icon: 'monitor',
-    description: 'Действия с главного экрана iikoFront (нет контекста стола)',
+    description: 'Действия с главного экрана Front (нет контекста стола)',
     category: 'context-main',
     cells: CONTEXT_MAIN_CELLS,
   },
   {
     title: 'Контекст: Из заказа',
     icon: 'receipt',
-    description: 'Действия, вызванные из экрана заказа iikoFront (стол известен)',
+    description: 'Действия, вызванные из экрана заказа Front (стол известен)',
     category: 'context-order',
     cells: CONTEXT_ORDER_CELLS,
   },

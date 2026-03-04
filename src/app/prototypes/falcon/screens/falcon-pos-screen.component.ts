@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, isDevMode, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -198,7 +198,7 @@ import { RegistrationCodeComponent } from '../components/dialogs/registration-co
       <ng-container *ngIf="currentContext === 'main'">
         <!-- Заглушка главного экрана -->
         <div class="flex-1 flex flex-col items-center justify-center bg-[#2d2d2d]">
-          <p class="text-gray-400 text-lg mb-2">Главный экран iikoFront</p>
+          <p class="text-gray-400 text-lg mb-2">Главный экран Front</p>
           <p class="text-gray-500 text-sm">(заглушка для демонстрации контекста)</p>
         </div>
 
@@ -1202,11 +1202,13 @@ export class FalconPosScreenComponent implements OnInit, OnDestroy {
     this.submittingTask = taskType;
 
     // v1.7 K9: payload БЕЗ robot_id (П-4: NE автоматически выбирает робота)
-    console.log('[Falcon] POST /api/tasks/', taskType, {
-      table_id: this.currentOrder.table.table_id,
-      task_type: taskType
-      // robot_id — НЕ передаётся (v1.7 П-4)
-    });
+    if (isDevMode()) {
+      console.log('[Falcon] POST /api/tasks/', taskType, {
+        table_id: this.currentOrder.table.table_id,
+        task_type: taskType
+        // robot_id — НЕ передаётся (v1.7 П-4)
+      });
+    }
 
     try {
       await this.simulateHttpRequest();

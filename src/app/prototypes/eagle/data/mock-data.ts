@@ -70,18 +70,18 @@ export const MOCK_POINTS: RobotPoint[] = [
 ];
 
 export const MOCK_TABLES: DiningTable[] = [
-  // Зал 1 этаж (5 столов из iiko)
+  // Зал 1 этаж (5 столов из системы)
   { table_id: 'tbl-001', table_name: 'Стол №1', section_name: 'Зал 1 этаж', is_manual: false },
   { table_id: 'tbl-002', table_name: 'Стол №2', section_name: 'Зал 1 этаж', is_manual: false },
   { table_id: 'tbl-003', table_name: 'Стол №3 (VIP)', section_name: 'Зал 1 этаж', is_manual: false },
   { table_id: 'tbl-004', table_name: 'Стол №4 (бар)', section_name: 'Зал 1 этаж', is_manual: false },
   { table_id: 'tbl-005', table_name: 'Стол №5', section_name: 'Зал 1 этаж', is_manual: false },
-  // Терраса (2 стола из iiko)
+  // Терраса (2 стола из системы)
   { table_id: 'tbl-006', table_name: 'Стол №6', section_name: 'Терраса', is_manual: false },
   { table_id: 'tbl-007', table_name: 'Стол №7', section_name: 'Терраса', is_manual: false },
-  // VIP-зал (1 стол из iiko)
+  // VIP-зал (1 стол из системы)
   { table_id: 'tbl-008', table_name: 'Стол №8 (VIP)', section_name: 'VIP-зал', is_manual: false },
-  // Ручные столы (фудкорт) — без привязки к залу iiko
+  // Ручные столы (фудкорт) — без привязки к залу системы
   { table_id: 'manual-001', table_name: '42', section_name: '', is_manual: true },
   { table_id: 'manual-002', table_name: 'Столик у входа', section_name: '', is_manual: true },
 ];

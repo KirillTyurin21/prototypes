@@ -98,7 +98,7 @@ import { TASK_HUMAN_NAMES } from '../../data/mock-data';
             <lucide-icon name="bot" [size]="48" class="text-gray-400"></lucide-icon>
           </div>
           <p class="text-sm text-gray-300">Нет зарегистрированных роботов.</p>
-          <p class="text-xs text-gray-400">Настройте роботов в <span class="text-[#b8c959]">iiko Web → Роботы Falcon</span>.</p>
+          <p class="text-xs text-gray-400">Настройте роботов в <span class="text-[#b8c959]">Web → Роботы Falcon</span>.</p>
         </div>
 
         <!-- Метка обновления + кнопка -->

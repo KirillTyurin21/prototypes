@@ -170,7 +170,7 @@ interface Toast {
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <tr *ngFor="let mapping of filteredMappings" class="hover:bg-gray-50/50">
-                    <!-- Стол iiko (v1.9: L4 бейдж, L5 удаление; переименование) -->
+                    <!-- Стол системы (v1.9: L4 бейдж, L5 удаление; переименование) -->
                     <td class="px-4 py-3 align-top">
                       <!-- Режим переименования -->
                       <ng-container *ngIf="renamingTableId === mapping.table_id">
@@ -986,7 +986,7 @@ export class MappingScreenComponent implements OnInit {
     return this.sortedMappings(filtered);
   }
 
-  /** v1.9 L8: Sort mappings — iiko tables first, manual tables at the end */
+  /** v1.9 L8: Sort mappings — system tables first, manual tables at the end */
   private sortedMappings(mappings: TableMapping[]): TableMapping[] {
     return [...mappings].sort((a, b) => {
       const tableA = this.tables.find(t => t.table_id === a.table_id);

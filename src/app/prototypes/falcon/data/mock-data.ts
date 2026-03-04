@@ -51,7 +51,7 @@ export const MOCK_ROBOTS: FalconRobot[] = [
     robot_id: 'PD2024060001',
     robot_name: 'BellaBot-01',
     ne_name: 'BellaBot-01',
-    alias: 'Белла Зал 1',        // Администратор задал alias в iiko Web
+    alias: 'Белла Зал 1',        // Администратор задал alias в Web
     status: 'idle',
     after_action: 'idle',
   },

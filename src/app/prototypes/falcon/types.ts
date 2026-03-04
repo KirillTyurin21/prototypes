@@ -7,7 +7,7 @@ export interface FalconRobot {
   robot_id: string;
   robot_name: string;        // системное имя из NE / Falcon Cloud: "BellaBot-01"
   ne_name: string;           // v1.5: системное имя NE (= robot_name). Для единообразия с AvailableRobot
-  alias: string | null;      // v1.5: пользовательский alias из iiko Web (ConfigManager). null если не задан
+  alias: string | null;      // v1.5: пользовательский alias из Web (ConfigManager). null если не задан
   status: 'idle' | 'busy' | 'offline';
   after_action: 'idle' | 'marketing';  // per-robot настройка (из Admin Panel)
 }
@@ -51,7 +51,7 @@ export interface RobotTask {
   task_id: string;
   task_type: 'send_menu' | 'cleanup' | 'qr_payment' | 'send_dish' | 'marketing';
   ne_name: string;           // v1.5: системное имя робота из NE
-  alias: string | null;      // v1.5: пользовательский alias из iiko Web
+  alias: string | null;      // v1.5: пользовательский alias из Web
 
   // === Polling endpoint (подтверждён NE): ===
   // GET /v1/scenarios/scenario-status/{task_id}
