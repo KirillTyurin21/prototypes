@@ -81,8 +81,8 @@ import { MockGuest } from '../../types';
                 {{ guest.status }}
               </span>
               <div class="text-sm text-gray-600 mt-2">Customer ID: {{ guest.customer_id }}</div>
-              <div class="text-sm text-gray-600">Card: 4590 1234 5678</div>
-              <div class="text-sm text-gray-600">Birthday: {{ formatBirthday(guest.birthday) }}</div>
+              <div class="text-sm text-gray-600">Номер карты: 4590 1234 5678</div>
+              <div class="text-sm text-gray-600">Дата рождения: {{ formatBirthday(guest.birthday) }}</div>
             </div>
           </div>
         </div>

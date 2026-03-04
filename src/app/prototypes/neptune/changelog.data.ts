@@ -2,6 +2,19 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.1',
+    date: '2026-03-04',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Профиль гостя',
+        items: [
+          'Исправлены подписи полей в карточке гостя: «Card» → «Номер карты», «Birthday» → «Дата рождения»',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.0',
     date: '2026-03-03',
     status: 'released',
