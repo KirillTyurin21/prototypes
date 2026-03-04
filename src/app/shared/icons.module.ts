@@ -45,12 +45,12 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  // Pudu Admin prototype
+  // Eagle Admin prototype
   RefreshCw,
   Loader2,
   Circle,
   Wallet,
-  // Pudu Admin Panel
+  // Eagle Admin Panel
   Bot,
   MapPin,
   XCircle,
@@ -58,25 +58,25 @@ import {
   WifiOff,
   ShieldAlert,
   CreditCard,
-  // PUDU POS plugin
+  // Eagle POS plugin
   Utensils,
   Package,
   Radio,
   Printer,
   QrCode,
   Octagon,
-  // PUDU catalog (v1.2)
+  // Eagle catalog (v1.2)
   Receipt,
   Workflow,
   LayoutGrid,
   SprayCan,
   Clock,
   MapPinOff,
-  // PUDU send_dish v1.3
+  // Eagle send_dish v1.3
   ChefHat,
   Repeat,
   Zap,
-  // PUDU v1.4 fire-and-forget + robot status
+  // Eagle v1.4 fire-and-forget + robot status
   Send,
   Activity,
   // Access control
@@ -90,11 +90,11 @@ import {
   ScrollText,
   // Rename / confirm inline edit
   Check,
-  // PUDU v1.8: plugins menu
+  // Eagle v1.8: plugins menu
   Terminal,
-  // PUDU v1.10: registration
+  // Eagle v1.10: registration
   TimerOff,
-  // MGS Casino
+  // Neptune
   ScanLine,
   Star,
   Gift,
@@ -151,12 +151,12 @@ const icons = {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  // Pudu Admin prototype
+  // Eagle Admin prototype
   RefreshCw,
   Loader2,
   Circle,
   Wallet,
-  // Pudu Admin Panel
+  // Eagle Admin Panel
   Bot,
   MapPin,
   XCircle,
@@ -164,25 +164,25 @@ const icons = {
   WifiOff,
   ShieldAlert,
   CreditCard,
-  // PUDU POS plugin
+  // Eagle POS plugin
   Utensils,
   Package,
   Radio,
   Printer,
   QrCode,
   Octagon,
-  // PUDU catalog (v1.2)
+  // Eagle catalog (v1.2)
   Receipt,
   Workflow,
   LayoutGrid,
   SprayCan,
   Clock,
   MapPinOff,
-  // PUDU send_dish v1.3
+  // Eagle send_dish v1.3
   ChefHat,
   Repeat,
   Zap,
-  // PUDU v1.4 fire-and-forget + robot status
+  // Eagle v1.4 fire-and-forget + robot status
   Send,
   Activity,
   // Access control
@@ -197,11 +197,11 @@ const icons = {
   ScrollText,
   // Rename / confirm inline edit
   Check,
-  // PUDU v1.8: plugins menu
+  // Eagle v1.8: plugins menu
   Terminal,
-  // PUDU v1.10: registration
+  // Eagle v1.10: registration
   TimerOff,
-  // MGS Casino
+  // Neptune
   ScanLine,
   Star,
   Gift,

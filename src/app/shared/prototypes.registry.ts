@@ -29,22 +29,22 @@ export const PROTOTYPES: PrototypeEntry[] = [
     description: 'Прототип модуля управления гостевыми экранами и табло прибытия',
   },
   {
-    path: '/prototype/pudu-admin',
-    label: 'Роботы PUDU',
+    path: '/prototype/eagle',
+    label: 'Eagle — Панель управления',
     icon: 'bot',
-    description: 'Панель администрирования роботов PUDU: регистрация, маппинг столов, настройки сценариев',
+    description: 'Панель администрирования: регистрация, маппинг столов, настройки сценариев',
   },
   {
-    path: '/prototype/front-pudu-plugin',
-    label: 'PUDU — Плагин Front',
+    path: '/prototype/falcon',
+    label: 'Falcon — Плагин Front',
     icon: 'bot',
-    description: 'Плагин POS-терминала: управление роботами PUDU, отправка меню, уборка, QR-оплата',
+    description: 'Плагин POS-терминала: управление роботами, отправка меню, уборка, QR-оплата',
   },
   {
-    path: '/prototype/mgs-casino',
-    label: 'MGS Casino',
+    path: '/prototype/neptune',
+    label: 'Neptune — Guest Management',
     icon: 'scan-line',
-    description: 'Плагин интеграции Front с системой управления гостями казино MGS',
+    description: 'Плагин интеграции Front с системой управления гостями',
   },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];

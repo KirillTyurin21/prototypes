@@ -8,10 +8,10 @@ const STORAGE_PREFIX = 'prototype';
  * Ключи формируются как: `prototype:<slug>:<key>`
  *
  * Использование:
- *   save('pudu-admin', 'robots', robotsArray)
- *   load('pudu-admin', 'robots', INITIAL_ROBOTS)
- *   reset('pudu-admin')  // удаляет ВСЕ данные прототипа
- *   hasData('pudu-admin') // есть ли сохранённые данные
+ *   save('eagle', 'robots', robotsArray)
+ *   load('eagle', 'robots', INITIAL_ROBOTS)
+ *   reset('eagle')  // удаляет ВСЕ данные прототипа
+ *   hasData('eagle') // есть ли сохранённые данные
  */
 @Injectable({ providedIn: 'root' })
 export class StorageService {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 
 const TOKEN_STORAGE_KEY = '__session_token';
 
@@ -23,8 +23,15 @@ export class SessionService {
     this.initSession();
   }
 
-  /** Инициализация: URL → localStorage → пусто */
+  /** Инициализация: devMode → URL → localStorage → пусто */
   private initSession(): void {
+    // Dev-режим (localhost) — полный доступ без токена
+    if (isDevMode()) {
+      this.sessionType = 'master';
+      this.slugs = ['*'];
+      return;
+    }
+
     // 1. Пробуем из URL (?_s=TOKEN)
     const params = new URLSearchParams(window.location.search);
     const urlToken = params.get('_s');

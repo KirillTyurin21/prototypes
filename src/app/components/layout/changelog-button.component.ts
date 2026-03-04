@@ -127,12 +127,12 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/front-plugins/changelog.data');
       case 'web-screens':
         return import('../../prototypes/web-screens/changelog.data');
-      case 'pudu-admin':
-        return import('../../prototypes/pudu-admin/changelog.data');
-      case 'front-pudu-plugin':
-        return import('../../prototypes/front-pudu-plugin/changelog.data');
-      case 'mgs-casino':
-        return import('../../prototypes/mgs-casino/changelog.data');
+      case 'eagle':
+        return import('../../prototypes/eagle/changelog.data');
+      case 'falcon':
+        return import('../../prototypes/falcon/changelog.data');
+      case 'neptune':
+        return import('../../prototypes/neptune/changelog.data');
       default:
         return Promise.reject('Unknown prototype');
     }

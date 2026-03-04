@@ -8,6 +8,37 @@
 
 ---
 
+## Кодовые имена прототипов (ОБЯЗАТЕЛЬНО)
+
+### Правило конфиденциальности
+
+Прототипы для **внешних клиентов** НЕ должны содержать реальных названий проектов, компаний или продуктов в коде, URL, UI, заголовках, breadcrumbs, описаниях и changelog.
+
+Вместо реальных названий используются **кодовые имена** (codenames) — нейтральные слова, не связанные с содержанием проекта.
+
+### Когда применять
+
+Если пользователь говорит, что прототип создаётся для **внешнего клиента** (или «клиентский прототип»), автоматически:
+
+1. **Выбрать кодовое имя** — предложить нейтральное слово (стиль: названия космических тел, птиц, погодных явлений и т.п., например: `orion`, `hawk`, `aurora`, `titan`)
+2. **Использовать кодовое имя как slug** — `src/app/prototypes/<codename>/`
+3. **Все упоминания** — в URL (`/prototype/<codename>`), заголовках, sidebar, breadcrumbs, changelog, классах, селекторах, переменных
+4. **Таблица соответствий** — реальное название записать ТОЛЬКО в `files/ACCESS_CODES.md` (не коммитится в git)
+
+### Текущие кодовые имена
+
+| Кодовое имя | Реальный проект |
+|---|---|
+| `falcon` | *(см. files/ACCESS_CODES.md)* |
+| `eagle` | *(см. files/ACCESS_CODES.md)* |
+| `neptune` | *(см. files/ACCESS_CODES.md)* |
+
+### Не клиентские прототипы (кодовое имя НЕ нужно)
+
+Прототипы `demo`, `front-plugins`, `web-screens` — внутренние, кодовое имя не применяется.
+
+---
+
 ## Git Branching Strategy
 
 Репозиторий использует **две ветки**:
@@ -29,8 +60,61 @@
 
 - **Вся разработка** — только в ветке `dev`
 - Мерж в `master` — через автоматический промт (checkout master → merge dev → push)
+- **Альтернатива**: если VS Code блокирует `git checkout`, использовать `git push origin dev:master` + `git branch -f master origin/master`
 - Перед мержем — убедиться что `npm run build` проходит без ошибок
 - Можно накопить несколько изменений в `dev` и замержить разом
+
+---
+
+## Серверная авторизация и доступ
+
+Продакшен-версия (view21.ru) защищена серверным прокси на **Yandex Cloud Function** (`cloud-function/` — в `.gitignore`, не коммитится).
+
+### Как работает
+
+1. Заказчик получает ссылку вида `https://view21.ru/?code=ACCESS_CODE`
+2. Cloud Function проверяет код → генерирует **подписанный токен** (BASE64 payload + HMAC)
+3. Редирект на `https://view21.ru/?_s=TOKEN`
+4. Angular (`SessionService`) декодирует payload для UX-фильтрации прототипов
+5. HMAC-подпись проверяется **только на сервере** — клиент просто читает payload
+
+### SessionService (`src/app/shared/session.service.ts`)
+
+Сервис управления сессиями. Используется в `sidebar` и `home` для фильтрации видимых прототипов.
+
+**API:**
+- `isMaster()` — полный доступ (все прототипы)
+- `hasAccess(slug)` — доступ к конкретному прототипу
+- `getAccessibleSlugs()` — список доступных slugs
+- `isAuthenticated()` — есть ли активная сессия
+- `getSessionType()` — `'master' | 'group' | 'proto' | ''`
+- `clearSession()` — очистка сессии (logout)
+
+**Логика инициализации (приоритет):**
+1. `isDevMode()` (localhost) → мастер-доступ ко всему, токен не нужен
+2. URL `?_s=TOKEN` → декодирует, сохраняет в localStorage
+3. localStorage fallback → для F5 на глубоких маршрутах
+4. Пусто → нет доступа
+
+**Использование в компонентах:**
+```typescript
+import { SessionService } from '@/shared/session.service';
+
+private session = inject(SessionService);
+
+// В sidebar — фильтрация прототипов
+get visiblePrototypes() {
+  return this.session.isMaster()
+    ? PROTOTYPES
+    : PROTOTYPES.filter(p => this.session.hasAccess(p.path.split('/').pop()!));
+}
+```
+
+### Коды доступа
+
+Коды и хеши хранятся **ТОЛЬКО** в `files/ACCESS_CODES.md` (в `.gitignore`).
+
+**Правило:** НИКОГДА не упоминать коды доступа, хеши, токены или механизмы безопасности в коде, changelog, UI или коммитах.
 
 ---
 
@@ -45,7 +129,11 @@ src/app/prototypes/<slug>/changelog.data.ts   ← для каждого прот
 src/app/shared/changelog.types.ts              ← типы ChangelogRelease, ChangeGroup
 src/app/components/layout/
 ├── changelog-button.component.ts              ← кнопка версии в top-bar
-└── changelog-modal.component.ts               ← модалка с историей
+├── changelog-modal.component.ts               ← модалка с историей
+├── main-layout.component.ts                   ← корневой layout (sidebar + top-bar + router-outlet)
+├── top-bar.component.ts                       ← верхняя панель (заголовок, Reset, Changelog, бейдж «Прототип»)
+├── sidebar.component.ts                       ← боковая панель с навигацией (фильтрация через SessionService)
+└── reset-button.component.ts                  ← кнопка сброса данных прототипа
 ```
 
 ### Формат данных (TypeScript)
@@ -61,7 +149,7 @@ export const CHANGELOG: ChangelogRelease[] = [
     changes: [
       {
         page: 'Список ресторанов',                          // группировка по странице
-        pageRoute: '/prototype/pudu-admin',                  // кликабельная ссылка
+        pageRoute: '/prototype/eagle',                       // кликабельная ссылка
         items: [
           'Добавлена колонка «Статус NE» в таблицу',
           'Кнопка подключения к NE с модальным окном',
@@ -128,7 +216,7 @@ export const CHANGELOG: ChangelogRelease[] = [
 - **Tailwind CSS** — утилитарные стили, кастомная тема
 - **Angular Router** — маршрутизация (lazy loading)
 - **Lucide Angular** — иконки (`lucide-angular`)
-- UI-компоненты: `@/components/ui` (UiButton, UiCard, UiInput, UiSelect, UiTextarea, UiCheckbox, UiToggle, UiModal, UiConfirmDialog, UiTable, UiTabs, UiBadge, UiAlert, UiBreadcrumbs, UiStatusDot, UiEmptyState, UiDivider, UiSkeleton)
+- UI-компоненты: `@/components/ui` (UiButton, UiCard, UiCardHeader, UiCardTitle, UiCardContent, UiInput, UiSelect, UiTextarea, UiCheckbox, UiToggle, UiModal, UiConfirmDialog, UiTable, UiTabs, UiBadge, UiAlert, UiBreadcrumbs, UiStatusDot, UiEmptyState, UiDivider, UiSkeleton)
 
 ## Angular 16 — ключевые паттерны
 
@@ -147,7 +235,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   - `app-accent` (#FF6D00) — акцентный оранжевый
   - `sidebar-bg` (#263238) — тёмный sidebar
   - `surface`, `border`, `text` — семантические токены
-- **Тени**: `elevation-1`, `elevation-2`, `elevation-3`, `elevation-modal`
+- **Тени** (boxShadow): `card`, `card-hover`, `modal`, `dropdown`
 - Когда пользователь присылает **скриншоты Web** — воспроизводить дизайн максимально близко
 
 ---
@@ -392,6 +480,14 @@ import { IconsModule } from '@/shared/icons.module';
 import { Router } from '@angular/router';
 private router = inject(Router);
 
+// Сессии и доступ
+import { SessionService } from '@/shared/session.service';
+private session = inject(SessionService);
+
+// Хранение данных (localStorage)
+import { StorageService } from '@/shared/storage.service';
+private storage = inject(StorageService);
+
 // Реестр прототипов
 import { PROTOTYPES, PrototypeEntry } from '@/shared/prototypes.registry';
 ```
@@ -460,4 +556,8 @@ git pull origin master
 git merge dev
 git push origin master
 git checkout dev
+
+# Альтернатива (если VS Code блокирует checkout):
+git push origin dev:master
+git branch -f master origin/master
 ```

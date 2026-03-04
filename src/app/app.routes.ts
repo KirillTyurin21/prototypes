@@ -41,24 +41,24 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'prototype/pudu-admin',
+        path: 'prototype/eagle',
         loadChildren: () =>
-          import('./prototypes/pudu-admin/pudu-admin.routes').then(
-            m => m.PUDU_ADMIN_ROUTES
+          import('./prototypes/eagle/eagle.routes').then(
+            m => m.EAGLE_ROUTES
           ),
       },
       {
-        path: 'prototype/front-pudu-plugin',
+        path: 'prototype/falcon',
         loadChildren: () =>
-          import('./prototypes/front-pudu-plugin/pudu-plugin.routes').then(
-            m => m.PUDU_PLUGIN_ROUTES
+          import('./prototypes/falcon/falcon.routes').then(
+            m => m.FALCON_ROUTES
           ),
       },
       {
-        path: 'prototype/mgs-casino',
+        path: 'prototype/neptune',
         loadChildren: () =>
-          import('./prototypes/mgs-casino/mgs-casino.routes').then(
-            m => m.MGS_CASINO_ROUTES
+          import('./prototypes/neptune/neptune.routes').then(
+            m => m.NEPTUNE_ROUTES
           ),
       },
       // Добавляй новые прототипы здесь
