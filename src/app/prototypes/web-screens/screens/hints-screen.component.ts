@@ -313,8 +313,9 @@ import { CS_CONTROLS, DISCOUNTS, PRODUCT_TREE } from '../data/cs-mock-data';
                     [value]="drawerHint.discountValue"
                     (input)="onDiscountValueChange($event)"
                     min="0"
+                    step="0.01"
                   />
-                  <span class="discount-suffix">{{ drawerHint.discountType === 'percent' ? '%' : '₽' }}</span>
+                  <span class="discount-suffix" *ngIf="drawerHint.discountType === 'percent'">%</span>
                 </div>
               </div>
               <div class="field-row">
@@ -605,7 +606,8 @@ export class HintsScreenComponent implements OnInit {
   // Options
   discountOptions: SelectOption[] = DISCOUNTS.map(d => ({
     value: d.name,
-    label: `${d.name} (${d.type === 'percent' ? d.value + '%' : d.value + ' ₽'})`,
+    label: `${d.name} (${d.type === 'percent' ? d.value + '%' : d.value})`,
+
   }));
 
   hintControlOptions: SelectOption[] = [];
@@ -867,7 +869,7 @@ export class HintsScreenComponent implements OnInit {
   onDiscountValueChange(event: Event): void {
     if (!this.drawerHint) return;
     const val = (event.target as HTMLInputElement).valueAsNumber;
-    this.drawerHint.discountValue = isNaN(val) ? 0 : val;
+    this.drawerHint.discountValue = isNaN(val) ? 0 : Math.round(val * 100) / 100;
   }
 
   // ─── Toast ─────────────────────────────────
