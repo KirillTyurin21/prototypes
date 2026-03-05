@@ -310,8 +310,7 @@ import { CS_CONTROLS, DISCOUNTS, PRODUCT_TREE } from '../data/cs-mock-data';
                   <input
                     type="number"
                     class="discount-input"
-                    [value]="drawerHint.discountValue"
-                    (input)="onDiscountValueChange($event)"
+                    [(ngModel)]="drawerHint.discountValue"
                     min="0"
                     step="0.01"
                   />
