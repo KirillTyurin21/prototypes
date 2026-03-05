@@ -611,7 +611,6 @@ export class HintsScreenComponent implements OnInit {
   discountOptions: SelectOption[] = DISCOUNTS.map(d => ({
     value: d.name,
     label: `${d.name} (${d.type === 'percent' ? d.value + '%' : d.value})`,
-
   }));
 
   hintControlOptions: SelectOption[] = [];
