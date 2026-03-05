@@ -476,8 +476,8 @@ import { CS_CONTROLS, DISCOUNTS, PRODUCT_TREE } from '../data/cs-mock-data';
     /* ─── Link row (triggers → recommendation) ─── */
     .link-row { display: flex; gap: 12px; align-items: stretch; }
     .link-card {
-      flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;
-      display: flex; flex-direction: column;
+      flex: 1; border: 1px solid #e0e0e0; border-radius: 8px;
+      display: flex; flex-direction: column; position: relative;
     }
     .link-card-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -524,7 +524,7 @@ import { CS_CONTROLS, DISCOUNTS, PRODUCT_TREE } from '../data/cs-mock-data';
 
     /* ─── Item dropdown ─── */
     .item-dropdown {
-      position: absolute; bottom: 100%; left: 0; right: 0; z-index: 50; margin-bottom: 4px;
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 50; margin-top: 4px;
       background: #fff; border: 1px solid #e0e0e0; border-radius: 6px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.12); animation: dropIn 0.15s ease-out;
     }
