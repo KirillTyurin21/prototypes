@@ -46,5 +46,11 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'scan-line',
     description: 'Плагин интеграции Front с системой управления гостями',
   },
+  {
+    path: '/prototype/demo-wizard',
+    label: 'Демонстрация Wizard',
+    icon: 'wand-2',
+    description: 'Сравнение 4 подходов к автоматической демонстрации User Stories',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];

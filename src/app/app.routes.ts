@@ -61,6 +61,13 @@ export const routes: Routes = [
             m => m.NEPTUNE_ROUTES
           ),
       },
+      {
+        path: 'prototype/demo-wizard',
+        loadChildren: () =>
+          import('./prototypes/demo-wizard/demo-wizard.routes').then(
+            m => m.DEMO_WIZARD_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL

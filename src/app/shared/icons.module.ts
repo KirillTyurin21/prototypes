@@ -99,6 +99,8 @@ import {
   Star,
   Gift,
   Users,
+  // Demo Wizard
+  Wand2,
 } from 'lucide-angular';
 
 /**
@@ -206,6 +208,8 @@ const icons = {
   Star,
   Gift,
   Users,
+  // Demo Wizard
+  Wand2,
 };
 
 @NgModule({
