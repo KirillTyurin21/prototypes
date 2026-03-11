@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { CSControl, CSTheme, Hint, CSTerminal, Campaign } from './cs-types';
-import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS } from './data/cs-mock-data';
+import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, ThemeOption, CampaignOption, HintOption } from './cs-types';
+import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS, CS_RESTAURANTS, THEME_OPTIONS, CAMPAIGN_OPTIONS, HINT_OPTIONS } from './data/cs-mock-data';
 import { StorageService } from '@/shared/storage.service';
 
 /**
@@ -16,6 +16,12 @@ export class CsDataService {
   hints: Hint[] = [];
   terminals: CSTerminal[] = [];
   campaigns: Campaign[] = [];
+
+  // ─── Настройки дисплея V2 ───
+  restaurants: CSRestaurant[] = [];
+  themeOptions: ThemeOption[] = [];
+  campaignOptions: CampaignOption[] = [];
+  hintOptions: HintOption[] = [];
 
   private nextControlId = 7;
   private nextThemeId = 4;
@@ -41,6 +47,13 @@ export class CsDataService {
     this.nextControlId = this.storage.load('web-screens', 'nextControlId', 7);
     this.nextThemeId = this.storage.load('web-screens', 'nextThemeId', 4);
     this.nextHintId = this.storage.load('web-screens', 'nextHintId', 6);
+
+    // V2 данные
+    const defaultRestaurants = JSON.parse(JSON.stringify(CS_RESTAURANTS));
+    this.restaurants = this.storage.load('web-screens', 'restaurants', defaultRestaurants);
+    this.themeOptions = THEME_OPTIONS;
+    this.campaignOptions = CAMPAIGN_OPTIONS;
+    this.hintOptions = HINT_OPTIONS;
   }
 
   private persist(): void {
@@ -52,6 +65,7 @@ export class CsDataService {
     this.storage.save('web-screens', 'nextControlId', this.nextControlId);
     this.storage.save('web-screens', 'nextThemeId', this.nextThemeId);
     this.storage.save('web-screens', 'nextHintId', this.nextHintId);
+    this.storage.save('web-screens', 'restaurants', this.restaurants);
   }
 
   // ─── Контролы ──────────────────────────────
@@ -155,5 +169,85 @@ export class CsDataService {
       return { ...t, campaigns: has ? t.campaigns.filter(id => id !== campaignId) : [...t.campaigns, campaignId] };
     });
     this.persist();
+  }
+
+  // ─── Настройки дисплея V2 ─────────────────────
+
+  updateRestaurants(restaurants: CSRestaurant[]): void {
+    this.restaurants = [...restaurants];
+    this.persist();
+  }
+
+  updateTerminalV2(restaurantId: number, terminal: CSTerminalV2): void {
+    this.restaurants = this.restaurants.map(r => {
+      if (r.id !== restaurantId) return r;
+      return {
+        ...r,
+        terminals: r.terminals.map(t => t.id === terminal.id ? { ...terminal } : t),
+      };
+    });
+    this.persist();
+  }
+
+  markTerminalChanged(restaurantId: number, terminalId: number): void {
+    this.restaurants = this.restaurants.map(r => {
+      if (r.id !== restaurantId) return r;
+      return {
+        ...r,
+        terminals: r.terminals.map(t =>
+          t.id === terminalId ? { ...t, hasUnsavedChanges: true } : t
+        ),
+      };
+    });
+    this.persist();
+  }
+
+  sendSettings(terminalIds: number[]): Promise<void> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const now = new Date().toISOString();
+        this.restaurants = this.restaurants.map(r => ({
+          ...r,
+          terminals: r.terminals.map(t => {
+            if (!terminalIds.includes(t.id)) return t;
+            return { ...t, hasUnsavedChanges: false, lastActivity: now };
+          }),
+        }));
+        this.persist();
+        resolve();
+      }, 1500);
+    });
+  }
+
+  requestScreenshot(terminalId: number): Promise<TerminalScreenshot | null> {
+    let terminal: CSTerminalV2 | undefined;
+    let restaurant: CSRestaurant | undefined;
+    for (const r of this.restaurants) {
+      const t = r.terminals.find(t => t.id === terminalId);
+      if (t) { terminal = t; restaurant = r; break; }
+    }
+    if (!terminal || !restaurant) return Promise.resolve(null);
+    if (!terminal.isOnline) return Promise.reject(new Error(`Терминал недоступен. Последняя активность: ${terminal.lastActivity}`));
+
+    const delay = 2000 + Math.random() * 2000;
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          terminalId: terminal!.id,
+          terminalName: terminal!.name,
+          restaurantName: restaurant!.name,
+          imageUrl: '',
+          capturedAt: new Date().toISOString(),
+          timezone: restaurant!.timezone,
+          timezoneLabel: restaurant!.timezoneLabel,
+          resolution: '1920x1080',
+        });
+      }, delay);
+    });
+  }
+
+  getThemeName(themeId: number | null): string {
+    if (!themeId) return '—';
+    return this.themeOptions.find(t => t.id === themeId)?.name ?? '—';
   }
 }

@@ -1,6 +1,7 @@
 import {
   CSControl, ControlElement, CSTheme, ThemeElement, HintAreaSettings,
   Hint, CSTerminal, Campaign, HintAssignment, Discount, ProductNode,
+  CSTerminalV2, CSRestaurant, ThemeOption, CampaignOption, HintOption,
 } from '../cs-types';
 
 // ═══════════════════════════════════════════════
@@ -270,4 +271,112 @@ export const PRODUCT_TREE: ProductNode[] = [
     { id: 72, name: 'Цезарь с курицей', type: 'product' },
     { id: 73, name: 'Греческий салат', type: 'product' },
   ] },
+];
+
+// ═══════════════════════════════════════════════
+// Настройки дисплея — Рестораны и терминалы V2
+// ═══════════════════════════════════════════════
+
+export const THEME_OPTIONS: ThemeOption[] = [
+  { id: 1, name: 'Основная тема кофейни' },
+  { id: 2, name: 'Акционная тема' },
+  { id: 3, name: 'Минимальная тема' },
+  { id: 4, name: 'Тема 3' },
+];
+
+export const CAMPAIGN_OPTIONS: CampaignOption[] = [
+  { id: 1, name: 'Весенняя акция' },
+  { id: 2, name: 'Новинки меню' },
+  { id: 3, name: 'Программа лояльности' },
+];
+
+export const HINT_OPTIONS: HintOption[] = [
+  { id: 1, name: 'Десерт к кофе' },
+  { id: 2, name: 'Увеличенная порция' },
+  { id: 3, name: 'Сезонный напиток' },
+  { id: 4, name: 'Комбо-обед' },
+  { id: 5, name: 'Детское меню' },
+];
+
+export const CS_RESTAURANTS: CSRestaurant[] = [
+  {
+    id: 1,
+    name: 'Ресторан на Горке',
+    timezone: 'Europe/Moscow',
+    timezoneLabel: 'Москва',
+    terminals: [
+      {
+        id: 101, name: 'Касса 1 (Зал)', ip: '192.168.1.10',
+        lastActivity: '2026-03-11T14:30:26',
+        lastActivityTimezone: '+3',
+        themeId: 1, campaignIds: [1, 2], hintIds: [1, 2, 4],
+        isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
+        hasUnsavedChanges: false,
+      },
+      {
+        id: 102, name: 'Касса 2 (Терраса)', ip: '192.168.1.11',
+        lastActivity: '2026-03-11T14:28:12',
+        lastActivityTimezone: '+3',
+        themeId: 1, campaignIds: [1], hintIds: [1, 3],
+        isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
+        hasUnsavedChanges: true,
+      },
+      {
+        id: 103, name: 'Касса 3 (Бар)', ip: '192.168.1.12',
+        lastActivity: '2026-03-10T18:05:44',
+        lastActivityTimezone: '+3',
+        themeId: 3, campaignIds: [], hintIds: [],
+        isOnline: false, pluginVersion: '1.8.0', supportsScreenshot: false,
+        hasUnsavedChanges: false,
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Кофейня «Восток»',
+    timezone: 'Asia/Vladivostok',
+    timezoneLabel: 'Владивосток',
+    terminals: [
+      {
+        id: 201, name: 'Терминал 1 (Основной)', ip: '85.140.93.34',
+        lastActivity: '2026-03-11T23:30:26',
+        lastActivityTimezone: '+10',
+        themeId: 4, campaignIds: [1, 2], hintIds: [1, 2, 3],
+        isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
+        hasUnsavedChanges: false,
+      },
+      {
+        id: 202, name: 'Терминал 2 (Доставка)', ip: '85.140.93.35',
+        lastActivity: '2026-03-11T23:15:08',
+        lastActivityTimezone: '+10',
+        themeId: 2, campaignIds: [3], hintIds: [4, 5],
+        isOnline: true, pluginVersion: '2.2.0', supportsScreenshot: true,
+        hasUnsavedChanges: true,
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Гриль-бар «Сибирь»',
+    timezone: 'Asia/Novosibirsk',
+    timezoneLabel: 'Новосибирск',
+    terminals: [
+      {
+        id: 301, name: 'Касса 1 (Зал)', ip: '10.0.0.50',
+        lastActivity: '2026-03-11T17:45:33',
+        lastActivityTimezone: '+7',
+        themeId: 2, campaignIds: [2, 3], hintIds: [1, 2, 3, 4, 5],
+        isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
+        hasUnsavedChanges: false,
+      },
+      {
+        id: 302, name: 'Касса 2 (Веранда)', ip: '10.0.0.51',
+        lastActivity: '2026-03-09T12:10:00',
+        lastActivityTimezone: '+7',
+        themeId: 3, campaignIds: [], hintIds: [],
+        isOnline: false, pluginVersion: '2.1.0', supportsScreenshot: true,
+        hasUnsavedChanges: false,
+      },
+    ],
+  },
 ];

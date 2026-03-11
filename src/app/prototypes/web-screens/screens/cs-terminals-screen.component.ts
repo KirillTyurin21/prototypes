@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CsDataService } from '../cs-data.service';
-import { CSTerminal, Campaign, Hint } from '../cs-types';
+import { CSRestaurant, CSTerminalV2, TerminalScreenshot } from '../cs-types';
 import { IconsModule } from '@/shared/icons.module';
 
 @Component({
@@ -13,278 +13,571 @@ import { IconsModule } from '@/shared/icons.module';
     <!-- Toast -->
     <div
       *ngIf="showToast"
-      class="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg animate-fade-in"
+      class="fixed top-4 right-4 z-50 flex items-center gap-2 px-5 py-3 rounded-lg shadow-lg animate-fade-in"
+      [ngClass]="toastType === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'"
     >
-      <lucide-icon name="check-circle" [size]="18"></lucide-icon>
-      <span>Настройки терминалов сохранены</span>
+      <lucide-icon [name]="toastType === 'success' ? 'check-circle-2' : 'alert-circle'" [size]="18"></lucide-icon>
+      <span>{{ toastMessage }}</span>
     </div>
 
-    <div class="p-6 animate-fade-in">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-medium text-gray-800">Настройки терминалов</h2>
-        <button
-          class="inline-flex items-center gap-2 px-4 py-2 bg-app-primary text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
-          (click)="save()"
+    <div class="cs-page" (click)="onPageClick($event)">
+      <!-- ── Top toolbar ── -->
+      <div class="cs-toolbar">
+        <h2 class="cs-toolbar-title">Настройки дисплея</h2>
+        <div class="cs-toolbar-actions">
+          <button class="cs-btn cs-btn-outline" (click)="toggleSelectAll()">
+            <lucide-icon name="check" [size]="16"></lucide-icon>
+            {{ isAllSelected() ? 'Снять выделение' : 'Отметить все' }}
+          </button>
+          <button
+            class="cs-btn cs-btn-outline"
+            [class.cs-btn-outline--active]="showInactive"
+            (click)="showInactive = !showInactive"
+          >
+            <lucide-icon name="eye" [size]="16"></lucide-icon>
+            Показать неактивные
+          </button>
+          <button
+            class="cs-btn cs-btn-primary"
+            [disabled]="selectedTerminals.size === 0 || isSending"
+            (click)="sendSettings()"
+          >
+            <lucide-icon [name]="isSending ? 'loader-2' : 'upload'" [size]="16" [class.cs-spin]="isSending"></lucide-icon>
+            {{ isSending ? 'Отправка...' : 'Отправить настройки' + (selectedTerminals.size > 0 ? ' (' + selectedTerminals.size + ')' : '') }}
+          </button>
+          <button class="cs-btn cs-btn-outline" (click)="save()">
+            <lucide-icon name="save" [size]="16"></lucide-icon>
+            Сохранить
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Accordion of restaurants ── -->
+      <div class="cs-accordion" *ngFor="let restaurant of dataService.restaurants">
+        <!-- Accordion header -->
+        <div
+          class="cs-accordion-header"
+          (click)="toggleRestaurant(restaurant.id)"
         >
-          <lucide-icon name="save" [size]="16"></lucide-icon>
-          Сохранить
-        </button>
-      </div>
+          <div class="cs-accordion-header-left">
+            <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                class="cs-checkbox"
+                [checked]="isRestaurantSelected(restaurant)"
+                (change)="toggleSelectRestaurant(restaurant)"
+              />
+            </label>
+            <span class="cs-accordion-name">{{ restaurant.name }}</span>
+            <span class="cs-accordion-badge">
+              {{ getVisibleTerminals(restaurant).length }}
+              {{ getTerminalWord(getVisibleTerminals(restaurant).length) }}
+            </span>
+          </div>
+          <lucide-icon
+            [name]="expandedRestaurants.has(restaurant.id) ? 'chevron-up' : 'chevron-down'"
+            [size]="20"
+            class="cs-accordion-chevron"
+          ></lucide-icon>
+        </div>
 
-      <!-- Matrix table -->
-      <div class="border border-gray-200 rounded-lg overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="cs-matrix-table">
-            <!-- Group headers row -->
-            <thead>
-              <tr class="bg-gray-100 border-b border-gray-200">
-                <th class="sticky-col sticky-col-1 bg-gray-100 z-20" rowspan="2">
-                  Терминал
-                </th>
-                <th class="sticky-col sticky-col-2 bg-gray-100 z-20" rowspan="2">
-                  Тема
-                </th>
-                <th
-                  *ngIf="campaigns.length > 0"
-                  [attr.colspan]="campaigns.length"
-                  class="group-header campaign-group"
+        <!-- Accordion content -->
+        <div class="cs-accordion-body" *ngIf="expandedRestaurants.has(restaurant.id)">
+          <div class="cs-table-wrap">
+            <table class="cs-table">
+              <thead>
+                <tr>
+                  <th class="cs-th cs-th-checkbox"></th>
+                  <th class="cs-th cs-th-terminal">Терминал</th>
+                  <th class="cs-th cs-th-theme">Тема</th>
+                  <th class="cs-th cs-th-multi">Кампании</th>
+                  <th class="cs-th cs-th-multi">Подсказки</th>
+                  <th class="cs-th cs-th-actions">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let terminal of getVisibleTerminals(restaurant)"
+                  class="cs-row"
+                  [class.cs-row--offline]="!terminal.isOnline"
                 >
-                  Рекл. кампании
-                </th>
-                <th
-                  *ngIf="hints.length > 0"
-                  [attr.colspan]="hints.length"
-                  class="group-header hint-group"
-                >
-                  Подсказки
-                </th>
-              </tr>
-              <!-- Individual column headers -->
-              <tr class="bg-gray-50 border-b border-gray-300">
-                <th
-                  *ngFor="let c of campaigns"
-                  class="col-header"
-                  [title]="c.name"
-                >
-                  <span class="col-header-text">{{ c.name }}</span>
-                </th>
-                <th
-                  *ngFor="let h of hints"
-                  class="col-header"
-                  [title]="h.name"
-                >
-                  <span class="col-header-text">{{ h.name }}</span>
-                </th>
-              </tr>
-            </thead>
+                  <!-- Checkbox -->
+                  <td class="cs-td cs-td-checkbox">
+                    <label class="cs-checkbox-wrap">
+                      <input
+                        type="checkbox"
+                        class="cs-checkbox"
+                        [checked]="selectedTerminals.has(terminal.id)"
+                        (change)="toggleTerminal(terminal.id)"
+                      />
+                    </label>
+                  </td>
 
-            <tbody>
-              <tr
-                *ngFor="let terminal of terminals; let odd = odd"
-                [class.bg-gray-50]="odd"
-                class="border-b border-gray-100 hover:bg-blue-50/40 transition-colors"
-              >
-                <!-- Terminal name (sticky) -->
-                <td
-                  class="sticky-col sticky-col-1 font-medium text-gray-800 text-sm"
-                  [class.bg-gray-50]="odd"
-                  [class.bg-white]="!odd"
-                >
-                  {{ terminal.name }}
-                </td>
+                  <!-- Terminal info -->
+                  <td class="cs-td cs-td-terminal">
+                    <div class="cs-terminal-name-row">
+                      <span
+                        class="cs-status-dot"
+                        [class.cs-status-dot--online]="terminal.isOnline"
+                        [class.cs-status-dot--offline]="!terminal.isOnline"
+                      ></span>
+                      <span class="cs-terminal-name">{{ terminal.name }}</span>
+                      <span
+                        *ngIf="terminal.hasUnsavedChanges"
+                        class="cs-badge-changed"
+                      >
+                        Изменено
+                      </span>
+                    </div>
+                    <div class="cs-terminal-ip">{{ terminal.ip }}</div>
+                    <div class="cs-terminal-activity">
+                      <lucide-icon name="clock" [size]="12" class="cs-activity-icon"></lucide-icon>
+                      Последняя активность: {{ formatLastActivity(terminal) }}
+                    </div>
+                  </td>
 
-                <!-- Theme name (sticky) -->
-                <td
-                  class="sticky-col sticky-col-2 text-sm text-gray-600"
-                  [class.bg-gray-50]="odd"
-                  [class.bg-white]="!odd"
-                >
-                  {{ terminal.themeName }}
-                </td>
+                  <!-- Theme select -->
+                  <td class="cs-td cs-td-theme">
+                    <select
+                      class="cs-select"
+                      [ngModel]="terminal.themeId"
+                      (ngModelChange)="onThemeChange(restaurant.id, terminal, $event)"
+                    >
+                      <option [ngValue]="null">— Не выбрана —</option>
+                      <option
+                        *ngFor="let theme of dataService.themeOptions"
+                        [ngValue]="theme.id"
+                      >{{ theme.name }}</option>
+                    </select>
+                  </td>
 
-                <!-- Campaign checkboxes -->
-                <td *ngFor="let c of campaigns" class="checkbox-cell">
-                  <label class="checkbox-wrapper">
-                    <input
-                      type="checkbox"
-                      [checked]="hasCampaign(terminal, c.id)"
-                      (change)="toggleCampaign(terminal.id, c.id)"
-                      class="cs-checkbox"
-                    />
-                  </label>
-                </td>
+                  <!-- Campaigns multi-select -->
+                  <td class="cs-td cs-td-multi">
+                    <div class="cs-multiselect" (click)="$event.stopPropagation()">
+                      <button
+                        class="cs-multiselect-trigger"
+                        (click)="toggleDropdown(terminal.id, 'campaigns')"
+                        type="button"
+                      >
+                        <span class="cs-multiselect-text">
+                          {{ getCampaignsSummary(terminal) }}
+                        </span>
+                        <lucide-icon
+                          [name]="isDropdownOpen(terminal.id, 'campaigns') ? 'chevron-up' : 'chevron-down'"
+                          [size]="14"
+                          class="cs-multiselect-chevron"
+                        ></lucide-icon>
+                      </button>
+                      <div
+                        class="cs-multiselect-dropdown"
+                        *ngIf="isDropdownOpen(terminal.id, 'campaigns')"
+                      >
+                        <label
+                          class="cs-multiselect-option"
+                          *ngFor="let opt of dataService.campaignOptions"
+                        >
+                          <input
+                            type="checkbox"
+                            class="cs-checkbox cs-checkbox--small"
+                            [checked]="terminal.campaignIds.includes(opt.id)"
+                            (change)="toggleCampaign(restaurant.id, terminal, opt.id)"
+                          />
+                          <span>{{ opt.name }}</span>
+                        </label>
+                        <div *ngIf="dataService.campaignOptions.length === 0" class="cs-multiselect-empty">
+                          Нет доступных кампаний
+                        </div>
+                      </div>
+                    </div>
+                  </td>
 
-                <!-- Hint checkboxes -->
-                <td *ngFor="let h of hints" class="checkbox-cell">
-                  <label class="checkbox-wrapper">
-                    <input
-                      type="checkbox"
-                      [checked]="hasHint(terminal, h.id)"
-                      (change)="toggleHint(terminal.id, h.id)"
-                      class="cs-checkbox"
-                    />
-                  </label>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <!-- Hints multi-select -->
+                  <td class="cs-td cs-td-multi">
+                    <div class="cs-multiselect" (click)="$event.stopPropagation()">
+                      <button
+                        class="cs-multiselect-trigger"
+                        (click)="toggleDropdown(terminal.id, 'hints')"
+                        type="button"
+                      >
+                        <span class="cs-multiselect-text">
+                          {{ getHintsSummary(terminal) }}
+                        </span>
+                        <lucide-icon
+                          [name]="isDropdownOpen(terminal.id, 'hints') ? 'chevron-up' : 'chevron-down'"
+                          [size]="14"
+                          class="cs-multiselect-chevron"
+                        ></lucide-icon>
+                      </button>
+                      <div
+                        class="cs-multiselect-dropdown"
+                        *ngIf="isDropdownOpen(terminal.id, 'hints')"
+                      >
+                        <label
+                          class="cs-multiselect-option"
+                          *ngFor="let opt of dataService.hintOptions"
+                        >
+                          <input
+                            type="checkbox"
+                            class="cs-checkbox cs-checkbox--small"
+                            [checked]="terminal.hintIds.includes(opt.id)"
+                            (change)="toggleHint(restaurant.id, terminal, opt.id)"
+                          />
+                          <span>{{ opt.name }}</span>
+                        </label>
+                        <div *ngIf="dataService.hintOptions.length === 0" class="cs-multiselect-empty">
+                          Нет доступных подсказок
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="cs-td cs-td-actions">
+                    <button
+                      class="cs-icon-btn"
+                      [class.cs-icon-btn--disabled]="!terminal.supportsScreenshot"
+                      [disabled]="!terminal.supportsScreenshot || screenshotLoadingId === terminal.id"
+                      [title]="!terminal.supportsScreenshot ? 'Версия плагина не поддерживает скриншоты' : 'Получить скриншот'"
+                      (click)="requestScreenshot(terminal, restaurant)"
+                    >
+                      <lucide-icon
+                        [name]="screenshotLoadingId === terminal.id ? 'loader-2' : 'camera'"
+                        [size]="16"
+                        [class.cs-spin]="screenshotLoadingId === terminal.id"
+                      ></lucide-icon>
+                    </button>
+                    <button
+                      class="cs-icon-btn cs-icon-btn--danger"
+                      title="Удалить терминал"
+                      (click)="deleteTerminal(restaurant, terminal)"
+                    >
+                      <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Empty state -->
+                <tr *ngIf="getVisibleTerminals(restaurant).length === 0">
+                  <td colspan="6" class="cs-td-empty">
+                    <div class="cs-empty-state">
+                      <lucide-icon name="monitor" [size]="32" class="text-gray-300"></lucide-icon>
+                      <span *ngIf="!showInactive">Нет активных терминалов. Включите «Показать неактивные» для отображения всех.</span>
+                      <span *ngIf="showInactive">Нет терминалов в этом ресторане.</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer: default bindings -->
+          <div class="cs-default-row">
+            <span class="cs-default-label">Привязка по умолчанию:</span>
+            <span class="cs-default-value">
+              Тема: {{ getDefaultThemeName(restaurant) }}
+            </span>
+            <span class="cs-default-sep">&bull;</span>
+            <span class="cs-default-value">
+              Кампании: {{ getDefaultCampaignsSummary(restaurant) }}
+            </span>
+            <span class="cs-default-sep">&bull;</span>
+            <span class="cs-default-value">
+              Подсказки: {{ getDefaultHintsSummary(restaurant) }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Legend -->
-      <div class="mt-4 flex items-center gap-6 text-xs text-gray-500">
-        <div class="flex items-center gap-1.5">
-          <span class="inline-block w-3 h-3 rounded-sm bg-blue-100 border border-blue-300"></span>
-          Рекл. кампании ({{ campaigns.length }})
+      <!-- No restaurants -->
+      <div *ngIf="dataService.restaurants.length === 0" class="cs-no-data">
+        <lucide-icon name="monitor" [size]="48" class="text-gray-300"></lucide-icon>
+        <p class="text-gray-500 mt-2">Нет подключённых ресторанов</p>
+      </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div class="cs-modal-overlay" *ngIf="screenshotModal" (click)="closeScreenshotModal()">
+      <div class="cs-modal" (click)="$event.stopPropagation()">
+        <div class="cs-modal-header">
+          <h3 class="cs-modal-title">Скриншот экрана</h3>
+          <button class="cs-icon-btn" (click)="closeScreenshotModal()">
+            <lucide-icon name="x" [size]="20"></lucide-icon>
+          </button>
         </div>
-        <div class="flex items-center gap-1.5">
-          <span class="inline-block w-3 h-3 rounded-sm bg-amber-100 border border-amber-300"></span>
-          Подсказки ({{ hints.length }})
+        <div class="cs-modal-body">
+          <div class="cs-screenshot-image-wrap">
+            <img [src]="getScreenshotUrl(screenshotModal)" [alt]="'Скриншот: ' + screenshotModal.terminalName" class="cs-screenshot-img" />
+          </div>
+          <div class="cs-screenshot-meta">
+            <div class="cs-meta-row">
+              <span class="cs-meta-label">Ресторан</span>
+              <span class="cs-meta-value">{{ screenshotModal.restaurantName }}</span>
+            </div>
+            <div class="cs-meta-row">
+              <span class="cs-meta-label">Терминал</span>
+              <span class="cs-meta-value">{{ screenshotModal.terminalName }}</span>
+            </div>
+            <div class="cs-meta-row">
+              <span class="cs-meta-label">Время снимка</span>
+              <span class="cs-meta-value">{{ formatScreenshotTime(screenshotModal) }}</span>
+            </div>
+            <div class="cs-meta-row">
+              <span class="cs-meta-label">Разрешение</span>
+              <span class="cs-meta-value">{{ screenshotModal.resolution }}</span>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <span class="inline-block w-3 h-3 rounded-sm bg-gray-100 border border-gray-300"></span>
-          Терминалов: {{ terminals.length }}
+        <div class="cs-modal-footer">
+          <button class="cs-btn cs-btn-outline" (click)="closeScreenshotModal()">Закрыть</button>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    :host {
-      display: block;
+    /* ── Page ── */
+    .cs-page {
+      padding: 24px;
+      background: #fafafa;
+      min-height: 100%;
       font-family: 'Roboto', sans-serif;
     }
 
-    /* ── Table base ── */
-    .cs-matrix-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 13px;
+    /* ── Toolbar ── */
+    .cs-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
-
-    .cs-matrix-table th,
-    .cs-matrix-table td {
-      border-right: 1px solid #e5e7eb;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 0;
-    }
-
-    .cs-matrix-table th:last-child,
-    .cs-matrix-table td:last-child {
-      border-right: none;
-    }
-
-    /* ── Sticky columns ── */
-    .sticky-col {
-      position: sticky;
-      z-index: 10;
-    }
-    .sticky-col-1 {
-      left: 0;
-      min-width: 180px;
-      max-width: 220px;
-      padding: 10px 14px;
-      border-right: 2px solid #d1d5db !important;
-    }
-    .sticky-col-2 {
-      left: 180px;
-      min-width: 160px;
-      max-width: 200px;
-      padding: 10px 14px;
-      border-right: 2px solid #d1d5db !important;
-    }
-
-    /* ── Group headers ── */
-    .group-header {
-      text-align: center;
+    .cs-toolbar-title {
+      font-size: 20px;
       font-weight: 500;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      padding: 8px 4px;
-      border-bottom: 1px solid #d1d5db;
+      color: rgba(0,0,0,.87);
+      margin: 0;
     }
-    .campaign-group {
-      background: #dbeafe;
-      color: #1e40af;
-      border-right: 2px solid #93c5fd;
-    }
-    .hint-group {
-      background: #fef3c7;
-      color: #92400e;
+    .cs-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    /* ── Column headers (rotated) ── */
-    .col-header {
-      width: 48px;
-      min-width: 48px;
-      max-width: 48px;
-      height: 100px;
-      padding: 4px 2px;
-      vertical-align: bottom;
-      text-align: center;
-      position: relative;
-    }
-    .col-header-text {
-      display: block;
-      max-width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 11px;
-      font-weight: 500;
-      color: #374151;
-      transform: rotate(-55deg);
-      transform-origin: center center;
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      margin-left: -50px;
-      width: 100px;
-      text-align: center;
-    }
-
-    /* ── Checkbox cells ── */
-    .checkbox-cell {
-      width: 48px;
-      min-width: 48px;
-      max-width: 48px;
-      text-align: center;
-      vertical-align: middle;
-      padding: 6px 0;
-    }
-
-    .checkbox-wrapper {
+    /* ── Buttons ── */
+    .cs-btn {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Roboto', sans-serif;
+      border-radius: 4px;
       cursor: pointer;
-      width: 100%;
-      height: 100%;
+      transition: all .15s ease;
+      white-space: nowrap;
+      border: 1px solid transparent;
+      line-height: 1.4;
+    }
+    .cs-btn-outline {
+      background: #fff;
+      color: rgba(0,0,0,.87);
+      border-color: rgba(0,0,0,.23);
+    }
+    .cs-btn-outline:hover {
+      background: #f5f5f5;
+      border-color: rgba(0,0,0,.4);
+    }
+    .cs-btn-outline--active {
+      background: #e3f2fd;
+      color: #1976d2;
+      border-color: #1976d2;
+    }
+    .cs-btn-outline--active:hover {
+      background: #bbdefb;
+    }
+    .cs-btn-primary {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1976d2;
+    }
+    .cs-btn-primary:hover {
+      background: #1565c0;
     }
 
-    /* ── Custom checkbox ── */
+    /* ── Accordion ── */
+    .cs-accordion {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .cs-accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .cs-accordion-header:hover {
+      background: #fafafa;
+    }
+    .cs-accordion-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cs-accordion-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(0,0,0,.87);
+    }
+    .cs-accordion-badge {
+      font-size: 12px;
+      color: #616161;
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 2px 10px;
+      font-weight: 400;
+    }
+    .cs-accordion-chevron {
+      color: #9e9e9e;
+    }
+    .cs-accordion-body {
+      border-top: 1px solid rgba(0,0,0,.12);
+    }
+
+    /* ── Table ── */
+    .cs-table-wrap {
+      overflow-x: auto;
+    }
+    .cs-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      min-width: 900px;
+    }
+    .cs-th {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #616161;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      text-align: left;
+      background: #f5f5f5;
+      border-bottom: 1px solid rgba(0,0,0,.12);
+      white-space: nowrap;
+    }
+    .cs-th-checkbox { width: 44px; }
+    .cs-th-terminal { width: 260px; }
+    .cs-th-theme { width: 200px; }
+    .cs-th-multi { width: 200px; }
+    .cs-th-actions { width: 80px; text-align: center; }
+
+    .cs-td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      vertical-align: top;
+      font-size: 14px;
+      color: rgba(0,0,0,.87);
+    }
+    .cs-td-checkbox { vertical-align: middle; }
+    .cs-td-actions { text-align: center; vertical-align: middle; }
+    .cs-td-theme { vertical-align: middle; }
+    .cs-td-multi { vertical-align: middle; position: relative; }
+
+    .cs-row { transition: background .1s; }
+    .cs-row:hover { background: #f8fbff; }
+    .cs-row--offline { opacity: .65; }
+
+    .cs-td-empty {
+      padding: 40px 16px;
+      text-align: center;
+    }
+    .cs-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #9e9e9e;
+      font-size: 14px;
+    }
+
+    /* ── Terminal cell ── */
+    .cs-terminal-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .cs-terminal-name {
+      font-weight: 500;
+      font-size: 14px;
+      color: rgba(0,0,0,.87);
+    }
+    .cs-terminal-ip {
+      font-size: 12px;
+      color: #9e9e9e;
+      margin-bottom: 2px;
+    }
+    .cs-terminal-activity {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #9e9e9e;
+    }
+    .cs-activity-icon {
+      color: #bdbdbd;
+    }
+    .cs-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cs-status-dot--online { background: #4caf50; }
+    .cs-status-dot--offline { background: #ef5350; }
+
+    .cs-badge-changed {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 3px;
+      background: #fff3e0;
+      color: #e65100;
+      font-weight: 500;
+    }
+
+    /* ── Checkbox ── */
+    .cs-checkbox-wrap {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
     .cs-checkbox {
       appearance: none;
       -webkit-appearance: none;
       width: 18px;
       height: 18px;
-      border: 2px solid #9ca3af;
-      border-radius: 3px;
-      background: #fff;
+      border: 2px solid rgba(0,0,0,.38);
+      border-radius: 2px;
       cursor: pointer;
       position: relative;
-      transition: all 0.15s ease;
+      transition: all .15s;
       flex-shrink: 0;
+      background: #fff;
     }
     .cs-checkbox:hover {
-      border-color: #1976D2;
-      background: #eff6ff;
+      border-color: #1976d2;
     }
     .cs-checkbox:checked {
-      background: #1976D2;
-      border-color: #1976D2;
+      background: #1976d2;
+      border-color: #1976d2;
     }
     .cs-checkbox:checked::after {
       content: '';
@@ -297,54 +590,583 @@ import { IconsModule } from '@/shared/icons.module';
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
     }
-    .cs-checkbox:focus-visible {
-      outline: 2px solid #1976D2;
-      outline-offset: 2px;
+    .cs-checkbox--small {
+      width: 16px;
+      height: 16px;
+    }
+    .cs-checkbox--small:checked::after {
+      top: 0px;
+      left: 4px;
+      width: 4px;
+      height: 8px;
     }
 
-    /* ── Row hover highlight ── */
-    .cs-matrix-table tbody tr:hover .sticky-col {
-      background: #eff6ff !important;
+    /* ── Native select (theme) ── */
+    .cs-select {
+      width: 100%;
+      padding: 7px 28px 7px 10px;
+      font-size: 13px;
+      font-family: 'Roboto', sans-serif;
+      border: 1px solid rgba(0,0,0,.23);
+      border-radius: 4px;
+      background: #f5f5f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23757575'/%3E%3C/svg%3E") no-repeat right 10px center;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      color: rgba(0,0,0,.87);
+      transition: border-color .15s;
+    }
+    .cs-select:hover {
+      border-color: rgba(0,0,0,.6);
+    }
+    .cs-select:focus {
+      border-color: #1976d2;
+      outline: none;
+      box-shadow: 0 0 0 1px #1976d2;
+    }
+
+    /* ── Multi-select ── */
+    .cs-multiselect {
+      position: relative;
+    }
+    .cs-multiselect-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: 'Roboto', sans-serif;
+      border: 1px solid rgba(0,0,0,.23);
+      border-radius: 4px;
+      background: #f5f5f5;
+      cursor: pointer;
+      color: rgba(0,0,0,.87);
+      text-align: left;
+      transition: border-color .15s;
+      gap: 4px;
+    }
+    .cs-multiselect-trigger:hover {
+      border-color: rgba(0,0,0,.6);
+    }
+    .cs-multiselect-trigger:focus {
+      border-color: #1976d2;
+      outline: none;
+      box-shadow: 0 0 0 1px #1976d2;
+    }
+    .cs-multiselect-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+    }
+    .cs-multiselect-chevron {
+      color: #757575;
+      flex-shrink: 0;
+    }
+    .cs-multiselect-dropdown {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      min-width: 200px;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      z-index: 30;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px 0;
+      animation: cs-dropdown-in .12s ease-out;
+    }
+    @keyframes cs-dropdown-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .cs-multiselect-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .1s;
+      color: rgba(0,0,0,.87);
+    }
+    .cs-multiselect-option:hover {
+      background: #f5f5f5;
+    }
+    .cs-multiselect-empty {
+      padding: 12px;
+      font-size: 13px;
+      color: #9e9e9e;
+      text-align: center;
+    }
+
+    /* ── Icon button ── */
+    .cs-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all .15s;
+      color: #757575;
+    }
+    .cs-icon-btn:hover { background: #f5f5f5; }
+    .cs-icon-btn--danger { color: #e53935; }
+    .cs-icon-btn--danger:hover { background: #fce4ec; }
+
+    /* ── Footer default row ── */
+    .cs-default-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: #fafafa;
+      border-top: 1px solid rgba(0,0,0,.06);
+      font-size: 12px;
+      color: #9e9e9e;
+      flex-wrap: wrap;
+    }
+    .cs-default-label {
+      font-weight: 500;
+      color: #757575;
+    }
+    .cs-default-value {
+      color: #9e9e9e;
+    }
+    .cs-default-sep {
+      color: #e0e0e0;
+    }
+
+    /* ── No data ── */
+    .cs-no-data {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    /* ── Disabled states ── */
+    .cs-btn-primary:disabled {
+      background: #90caf9;
+      border-color: #90caf9;
+      cursor: not-allowed;
+    }
+    .cs-icon-btn--disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    .cs-icon-btn--disabled:hover {
+      background: transparent;
+    }
+
+    /* ── Spinner ── */
+    @keyframes cs-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .cs-spin {
+      animation: cs-spin 1s linear infinite;
+    }
+
+    /* ── Modal ── */
+    .cs-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: cs-overlay-in .2s ease-out;
+    }
+    @keyframes cs-overlay-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .cs-modal {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 24px 48px rgba(0,0,0,.2);
+      max-width: 720px;
+      width: 95%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: cs-modal-in .25s ease-out;
+    }
+    @keyframes cs-modal-in {
+      from { opacity: 0; transform: scale(.95) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .cs-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(0,0,0,.12);
+    }
+    .cs-modal-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(0,0,0,.87);
+      margin: 0;
+    }
+    .cs-modal-body {
+      padding: 20px;
+    }
+    .cs-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 12px 20px;
+      border-top: 1px solid rgba(0,0,0,.12);
+    }
+
+    /* ── Screenshot ── */
+    .cs-screenshot-image-wrap {
+      background: #263238;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .cs-screenshot-img {
+      width: 100%;
+      display: block;
+    }
+    .cs-screenshot-meta {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+    .cs-meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .cs-meta-row:last-child {
+      border-bottom: none;
+    }
+    .cs-meta-label {
+      color: #757575;
+      font-weight: 500;
+    }
+    .cs-meta-value {
+      color: rgba(0,0,0,.87);
     }
   `],
 })
 export class CsTerminalsScreenComponent {
-  private dataService = inject(CsDataService);
+  dataService = inject(CsDataService);
 
+  expandedRestaurants = new Set<number>();
+  selectedTerminals = new Set<number>();
+  showInactive = true;
   showToast = false;
+  toastMessage = '';
+  toastType: 'success' | 'error' = 'success';
+  openDropdown: { terminalId: number; column: 'campaigns' | 'hints' } | null = null;
+  isSending = false;
+  screenshotLoadingId: number | null = null;
+  screenshotModal: TerminalScreenshot | null = null;
 
-  get terminals(): CSTerminal[] {
-    return this.dataService.terminals;
+  constructor() {
+    const restaurants = this.dataService.restaurants;
+    if (restaurants.length > 0) {
+      this.expandedRestaurants.add(restaurants[0].id);
+    }
   }
 
-  get campaigns(): Campaign[] {
-    return this.dataService.campaigns;
+  // ─── Accordion ──────────────────────────────
+
+  toggleRestaurant(id: number): void {
+    if (this.expandedRestaurants.has(id)) {
+      this.expandedRestaurants.delete(id);
+    } else {
+      this.expandedRestaurants.add(id);
+    }
   }
 
-  get hints(): Hint[] {
-    return this.dataService.hints;
+  // ─── Selection ──────────────────────────────
+
+  toggleSelectAll(): void {
+    if (this.isAllSelected()) {
+      this.selectedTerminals.clear();
+    } else {
+      for (const r of this.dataService.restaurants) {
+        for (const t of this.getVisibleTerminals(r)) {
+          this.selectedTerminals.add(t.id);
+        }
+      }
+    }
   }
 
-  hasCampaign(terminal: CSTerminal, campaignId: number): boolean {
-    return terminal.campaigns.includes(campaignId);
+  isAllSelected(): boolean {
+    let total = 0;
+    for (const r of this.dataService.restaurants) {
+      total += this.getVisibleTerminals(r).length;
+    }
+    return total > 0 && this.selectedTerminals.size >= total;
   }
 
-  hasHint(terminal: CSTerminal, hintId: number): boolean {
-    return terminal.hints.includes(hintId);
+  toggleSelectRestaurant(restaurant: CSRestaurant): void {
+    const visible = this.getVisibleTerminals(restaurant);
+    const allSelected = visible.every(t => this.selectedTerminals.has(t.id));
+    if (allSelected) {
+      for (const t of visible) {
+        this.selectedTerminals.delete(t.id);
+      }
+    } else {
+      for (const t of visible) {
+        this.selectedTerminals.add(t.id);
+      }
+    }
   }
 
-  toggleCampaign(terminalId: number, campaignId: number): void {
-    this.dataService.toggleCampaignAssignment(terminalId, campaignId);
+  isRestaurantSelected(restaurant: CSRestaurant): boolean {
+    const visible = this.getVisibleTerminals(restaurant);
+    return visible.length > 0 && visible.every(t => this.selectedTerminals.has(t.id));
   }
 
-  toggleHint(terminalId: number, hintId: number): void {
-    this.dataService.toggleHintAssignment(terminalId, hintId);
+  toggleTerminal(id: number): void {
+    if (this.selectedTerminals.has(id)) {
+      this.selectedTerminals.delete(id);
+    } else {
+      this.selectedTerminals.add(id);
+    }
+  }
+
+  // ─── Terminals filter ───────────────────────
+
+  getVisibleTerminals(restaurant: CSRestaurant): CSTerminalV2[] {
+    if (this.showInactive) return restaurant.terminals;
+    return restaurant.terminals.filter(t => t.isOnline);
+  }
+
+  // ─── Theme ──────────────────────────────────
+
+  onThemeChange(restaurantId: number, terminal: CSTerminalV2, themeId: number | null): void {
+    terminal.themeId = themeId;
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  // ─── Multi-select dropdowns ─────────────────
+
+  toggleDropdown(terminalId: number, column: 'campaigns' | 'hints'): void {
+    if (this.openDropdown?.terminalId === terminalId && this.openDropdown?.column === column) {
+      this.openDropdown = null;
+    } else {
+      this.openDropdown = { terminalId, column };
+    }
+  }
+
+  isDropdownOpen(terminalId: number, column: 'campaigns' | 'hints'): boolean {
+    return this.openDropdown?.terminalId === terminalId && this.openDropdown?.column === column;
+  }
+
+  closeDropdown(): void {
+    this.openDropdown = null;
+  }
+
+  onPageClick(event: Event): void {
+    if (this.openDropdown) {
+      this.openDropdown = null;
+    }
+  }
+
+  toggleCampaign(restaurantId: number, terminal: CSTerminalV2, campaignId: number): void {
+    const idx = terminal.campaignIds.indexOf(campaignId);
+    if (idx >= 0) {
+      terminal.campaignIds.splice(idx, 1);
+    } else {
+      terminal.campaignIds.push(campaignId);
+    }
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  toggleHint(restaurantId: number, terminal: CSTerminalV2, hintId: number): void {
+    const idx = terminal.hintIds.indexOf(hintId);
+    if (idx >= 0) {
+      terminal.hintIds.splice(idx, 1);
+    } else {
+      terminal.hintIds.push(hintId);
+    }
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  // ─── Summaries ──────────────────────────────
+
+  getCampaignsSummary(terminal: CSTerminalV2): string {
+    if (terminal.campaignIds.length === 0) return '— Не выбрано —';
+    if (terminal.campaignIds.length === 1) {
+      const opt = this.dataService.campaignOptions.find(c => c.id === terminal.campaignIds[0]);
+      return opt?.name ?? '1 выбрано';
+    }
+    return terminal.campaignIds.length + ' выбрано';
+  }
+
+  getHintsSummary(terminal: CSTerminalV2): string {
+    if (terminal.hintIds.length === 0) return '— Не выбрано —';
+    if (terminal.hintIds.length === 1) {
+      const opt = this.dataService.hintOptions.find(h => h.id === terminal.hintIds[0]);
+      return opt?.name ?? '1 выбрано';
+    }
+    return terminal.hintIds.length + ' выбрано';
+  }
+
+  // ─── Default bindings (footer) ──────────────
+
+  getDefaultThemeName(restaurant: CSRestaurant): string {
+    const themeCounts = new Map<number | null, number>();
+    for (const t of restaurant.terminals) {
+      themeCounts.set(t.themeId, (themeCounts.get(t.themeId) ?? 0) + 1);
+    }
+    let maxId: number | null = null;
+    let maxCount = 0;
+    themeCounts.forEach((count, id) => {
+      if (count > maxCount) { maxCount = count; maxId = id; }
+    });
+    return this.dataService.getThemeName(maxId);
+  }
+
+  getDefaultCampaignsSummary(restaurant: CSRestaurant): string {
+    const allIds = new Set<number>();
+    for (const t of restaurant.terminals) {
+      for (const id of t.campaignIds) allIds.add(id);
+    }
+    if (allIds.size === 0) return '—';
+    const names = Array.from(allIds)
+      .map(id => this.dataService.campaignOptions.find(c => c.id === id)?.name)
+      .filter(Boolean);
+    return names.length <= 2 ? names.join(', ') : names.length + ' кампаний';
+  }
+
+  getDefaultHintsSummary(restaurant: CSRestaurant): string {
+    const allIds = new Set<number>();
+    for (const t of restaurant.terminals) {
+      for (const id of t.hintIds) allIds.add(id);
+    }
+    if (allIds.size === 0) return '—';
+    const names = Array.from(allIds)
+      .map(id => this.dataService.hintOptions.find(h => h.id === id)?.name)
+      .filter(Boolean);
+    return names.length <= 2 ? names.join(', ') : names.length + ' подсказок';
+  }
+
+  // ─── Actions ────────────────────────────────
+
+  deleteTerminal(restaurant: CSRestaurant, terminal: CSTerminalV2): void {
+    restaurant.terminals = restaurant.terminals.filter(t => t.id !== terminal.id);
+    this.selectedTerminals.delete(terminal.id);
+    this.dataService.updateRestaurants(this.dataService.restaurants);
   }
 
   save(): void {
+    this.dataService.updateRestaurants(this.dataService.restaurants);
+    this.showToastMessage('Настройки терминалов сохранены', 'success');
+  }
+
+  // ─── Format ─────────────────────────────────
+
+  formatLastActivity(terminal: CSTerminalV2): string {
+    if (!terminal.lastActivity) return '—';
+    const d = new Date(terminal.lastActivity);
+    if (isNaN(d.getTime())) return terminal.lastActivity;
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    const tz = terminal.lastActivityTimezone || '';
+    return dd + '.' + mm + '.' + yyyy + ', ' + hh + ':' + min + ':' + ss + ' ' + tz;
+  }
+
+  getTerminalWord(n: number): string {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 19) return 'терминалов';
+    if (mod10 === 1) return 'терминал';
+    if (mod10 >= 2 && mod10 <= 4) return 'терминала';
+    return 'терминалов';
+  }
+
+  // ─── Send settings ─────────────────────────
+
+  async sendSettings(): Promise<void> {
+    if (this.selectedTerminals.size === 0 || this.isSending) return;
+    const ids = Array.from(this.selectedTerminals);
+    this.isSending = true;
+    this.showToastMessage('Отправка настроек на ' + ids.length + ' ' + this.getTerminalWord(ids.length) + '...', 'success');
+    try {
+      await this.dataService.sendSettings(ids);
+      this.showToastMessage('Настройки успешно отправлены на ' + ids.length + ' ' + this.getTerminalWord(ids.length), 'success');
+      this.selectedTerminals.clear();
+    } catch {
+      this.showToastMessage('Ошибка при отправке настроек', 'error');
+    } finally {
+      this.isSending = false;
+    }
+  }
+
+  // ─── Screenshot ─────────────────────────────
+
+  async requestScreenshot(terminal: CSTerminalV2, restaurant: CSRestaurant): Promise<void> {
+    if (this.screenshotLoadingId || !terminal.supportsScreenshot) return;
+    if (!terminal.isOnline) {
+      this.showToastMessage('Терминал «' + terminal.name + '» недоступен', 'error');
+      return;
+    }
+    this.screenshotLoadingId = terminal.id;
+    this.showToastMessage('Получение скриншота с «' + terminal.name + '»...', 'success');
+    try {
+      const screenshot = await this.dataService.requestScreenshot(terminal.id);
+      if (screenshot) {
+        this.screenshotModal = screenshot;
+      }
+    } catch (e: any) {
+      this.showToastMessage(e?.message || 'Ошибка получения скриншота', 'error');
+    } finally {
+      this.screenshotLoadingId = null;
+    }
+  }
+
+  closeScreenshotModal(): void {
+    this.screenshotModal = null;
+  }
+
+  getScreenshotUrl(screenshot: TerminalScreenshot): string {
+    if (screenshot.imageUrl) return screenshot.imageUrl;
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Crect fill='%23263238' width='1920' height='1080'/%3E%3Crect x='40' y='40' width='1840' height='200' rx='12' fill='%2337474f'/%3E%3Ctext x='960' y='160' font-family='sans-serif' font-size='64' fill='%23fff' text-anchor='middle'%3ECustomer Screen%3C/text%3E%3Crect x='80' y='300' width='500' height='680' rx='12' fill='%2337474f'/%3E%3Crect x='640' y='300' width='500' height='680' rx='12' fill='%2337474f'/%3E%3Crect x='1200' y='300' width='640' height='320' rx='12' fill='%2337474f'/%3E%3Crect x='1200' y='660' width='640' height='320' rx='12' fill='%2337474f'/%3E%3Ctext x='330' y='660' font-family='sans-serif' font-size='24' fill='%2390a4ae' text-anchor='middle'%3E%D0%9C%D0%B5%D0%BD%D1%8E%3C/text%3E%3Ctext x='890' y='660' font-family='sans-serif' font-size='24' fill='%2390a4ae' text-anchor='middle'%3E%D0%90%D0%BA%D1%86%D0%B8%D0%B8%3C/text%3E%3Ctext x='1520' y='480' font-family='sans-serif' font-size='24' fill='%2390a4ae' text-anchor='middle'%3E%D0%9F%D0%BE%D0%B4%D1%81%D0%BA%D0%B0%D0%B7%D0%BA%D0%B8%3C/text%3E%3Ctext x='1520' y='840' font-family='sans-serif' font-size='24' fill='%2390a4ae' text-anchor='middle'%3E%D0%98%D0%BD%D1%84%D0%BE%3C/text%3E%3C/svg%3E";
+  }
+
+  formatScreenshotTime(screenshot: TerminalScreenshot): string {
+    if (!screenshot.capturedAt) return '—';
+    const d = new Date(screenshot.capturedAt);
+    if (isNaN(d.getTime())) return screenshot.capturedAt;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return dd + '.' + mm + '.' + d.getFullYear() + ', ' + hh + ':' + min + ':' + ss + ' (' + screenshot.timezoneLabel + ')';
+  }
+
+  // ─── Toast ──────────────────────────────────
+
+  private showToastMessage(message: string, type: 'success' | 'error'): void {
+    this.toastMessage = message;
+    this.toastType = type;
     this.showToast = true;
-    setTimeout(() => {
-      this.showToast = false;
-    }, 3000);
+    setTimeout(() => { this.showToast = false; }, 3000);
   }
 }

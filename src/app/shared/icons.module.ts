@@ -101,6 +101,8 @@ import {
   Users,
   // Demo Wizard
   Wand2,
+  Camera,
+  Upload,
 } from 'lucide-angular';
 
 /**
@@ -210,6 +212,8 @@ const icons = {
   Users,
   // Demo Wizard
   Wand2,
+  Camera,
+  Upload,
 };
 
 @NgModule({

@@ -161,6 +161,57 @@ export interface HintAssignment {
   name: string;
 }
 
+// ─── Терминалы V2 (расширенные — для экрана настроек дисплея) ───
+
+export interface CSTerminalV2 {
+  id: number;
+  name: string;
+  ip: string;
+  lastActivity: string;
+  lastActivityTimezone: string;
+  themeId: number | null;
+  campaignIds: number[];
+  hintIds: number[];
+  isOnline: boolean;
+  pluginVersion: string;
+  supportsScreenshot: boolean;
+  hasUnsavedChanges: boolean;
+}
+
+export interface CSRestaurant {
+  id: number;
+  name: string;
+  terminals: CSTerminalV2[];
+  timezone: string;
+  timezoneLabel: string;
+}
+
+export interface TerminalScreenshot {
+  terminalId: number;
+  terminalName: string;
+  restaurantName: string;
+  imageUrl: string;
+  capturedAt: string;
+  timezone: string;
+  timezoneLabel: string;
+  resolution: string;
+}
+
+export interface ThemeOption {
+  id: number;
+  name: string;
+}
+
+export interface CampaignOption {
+  id: number;
+  name: string;
+}
+
+export interface HintOption {
+  id: number;
+  name: string;
+}
+
 // ─── Элементы для dropdown ───────────────────
 
 export interface ElementTypeOption {
