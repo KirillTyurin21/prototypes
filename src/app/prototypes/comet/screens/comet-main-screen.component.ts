@@ -1090,6 +1090,22 @@ export class CometMainScreenComponent implements OnInit {
     this.showMerchantForm = false;
     this.resetMerchantForm();
     this.showToast('Заявка подана', merchant.name);
+
+    // Автоматическое одобрение через 10 секунд
+    const partnerId = this.selectedPartner!.partner_id;
+    setTimeout(() => {
+      const all = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
+      const idx = all.findIndex(m => m.merchant_id === merchant.merchant_id);
+      if (idx !== -1 && all[idx].registration_status === 'processing') {
+        all[idx].registration_status = 'active';
+        all[idx].updated = new Date().toISOString();
+        this.storage.save('comet', 'merchants', all);
+        if (this.selectedPartner?.partner_id === partnerId) {
+          this.merchants = all.filter(m => m.partner_id === partnerId);
+        }
+        this.showToast('Заявка одобрена', merchant.name);
+      }
+    }, 10000);
   }
 
   generateMerchantToken(merchantId: string): void {
