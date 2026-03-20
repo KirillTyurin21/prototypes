@@ -38,6 +38,7 @@ export interface OAuthState {
   accessToken: string | null;
   expiresAt: string | null;
   userName: string | null;
+  userEmail: string | null;
 }
 
 export interface RegistrationData {
