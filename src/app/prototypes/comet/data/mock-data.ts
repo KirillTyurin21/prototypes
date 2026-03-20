@@ -62,37 +62,17 @@ export function getMockDefaultAccountKey(storeId: string): string | null {
 
 // --- OAuth-онбординг: мок-данные ---
 
-/** Маппинг: storeId → merchantId (какой мерчант привязан к какому ресторану) */
-export const MOCK_STORE_MERCHANT_MAP: Record<string, string> = {
-  '101': 'merchant-101', // Премьер → active
-  '102': 'merchant-102', // Уют → processing
-  '103': 'merchant-103', // Огонёк → processing
-  '201': 'merchant-201', // Капричоза → failed
-  '202': 'merchant-202', // Токио → active
-  '301': 'merchant-301', // Бургерная №1 → active
-  '302': 'merchant-302', // Бургерная №2 → processing
-  '303': 'merchant-303', // Бургерная №3 → active
-};
-
-/** Маппинг: organizationId → partner_id */
-export const MOCK_ORG_PARTNER_MAP: Record<string, string> = {
-  '1': 'partner-org-1',
-  '2': 'partner-org-2',
-  '3': 'partner-org-3',
-};
-
 export const MOCK_OAUTH_STATE: OAuthState = {
   isAuthorized: false,
   accessToken: null,
   expiresAt: null,
   userName: null,
-  userEmail: null,
 };
 
 export const MOCK_PARTNERS: Partner[] = [
   {
-    partner_id: 'partner-org-1',
-    name: 'ООО "Ресторанная группа Север"',
+    partner_id: '6a3a39f6-1111-2222-3333-444455556666',
+    name: 'ООО Ромашка',
     registration_data: {
       tax_ref_number: '7707083893',
       ogrn: '1027700132195',
@@ -100,160 +80,53 @@ export const MOCK_PARTNERS: Partner[] = [
       legal_address: '119021, г. Москва, ул. Льва Толстого, д. 16',
       postal_address: '119021, г. Москва, ул. Льва Толстого, д. 16',
       postal_code: '119021',
-      full_company_name: 'Общество с ограниченной ответственностью "Ресторанная группа Север"',
-      ceo_name: 'Петров Алексей Михайлович',
-      url: 'http://gruppa-sever.ru',
+      full_company_name: 'Общество с ограниченной ответственностью Ромашка',
+      ceo_name: 'Иванов Иван Иванович',
+      url: 'http://romashka.ru',
     },
     contact: {
-      email: 'admin@gruppa-sever.ru',
+      email: 'merchant@romashka.ru',
       phone: '+79001234567',
-      first_name: 'Алексей',
-      last_name: 'Петров',
-      middle_name: 'Михайлович',
-    },
-  },
-  {
-    partner_id: 'partner-org-2',
-    name: 'ИП Иванов А.В.',
-    registration_data: {
-      tax_ref_number: '771234567890',
-      ogrn: '318774600000000',
-      kpp: '',
-      legal_address: '125009, г. Москва, ул. Тверская, д. 22',
-      postal_address: '125009, г. Москва, ул. Тверская, д. 22',
-      postal_code: '125009',
-      full_company_name: 'Индивидуальный предприниматель Иванов Андрей Владимирович',
-      ceo_name: 'Иванов Андрей Владимирович',
-      url: '',
-    },
-    contact: {
-      email: 'ivanov.av@mail.ru',
-      phone: '+79009876543',
-      first_name: 'Андрей',
+      first_name: 'Иван',
       last_name: 'Иванов',
-      middle_name: 'Владимирович',
-    },
-  },
-  {
-    partner_id: 'partner-org-3',
-    name: 'ООО "Быстрое питание"',
-    registration_data: {
-      tax_ref_number: '7709456789',
-      ogrn: '1157746000000',
-      kpp: '770901001',
-      legal_address: '107023, г. Москва, ул. Большая Семёновская, д. 11',
-      postal_address: '107023, г. Москва, ул. Большая Семёновская, д. 11',
-      postal_code: '107023',
-      full_company_name: 'Общество с ограниченной ответственностью "Быстрое питание"',
-      ceo_name: 'Сидоров Дмитрий Николаевич',
-      url: 'http://fast-food.ru',
-    },
-    contact: {
-      email: 'info@fast-food.ru',
-      phone: '+79005551234',
-      first_name: 'Дмитрий',
-      last_name: 'Сидоров',
-      middle_name: 'Николаевич',
+      middle_name: 'Иванович',
     },
   },
 ];
 
 export const MOCK_MERCHANTS: MerchantInfo[] = [
-  // ООО "Ресторанная группа Север" — 3 ресторана
   {
-    merchant_id: 'merchant-101',
-    partner_id: 'partner-org-1',
-    name: 'Ресторан "Премьер"',
+    merchant_id: '500924a8-aaaa-bbbb-cccc-ddddeeee0001',
+    partner_id: '6a3a39f6-1111-2222-3333-444455556666',
+    name: 'Ресторан Ромашка на Тверской',
     is_offline: true,
     enabled: true,
     registration_status: 'active',
-    created: '2026-03-10T10:00:00Z',
-    updated: '2026-03-15T14:00:00Z',
+    created: '2026-03-18T10:30:00Z',
+    updated: '2026-03-19T14:00:00Z',
   },
   {
-    merchant_id: 'merchant-102',
-    partner_id: 'partner-org-1',
-    name: 'Кафе "Уют"',
+    merchant_id: '500924a8-aaaa-bbbb-cccc-ddddeeee0002',
+    partner_id: '6a3a39f6-1111-2222-3333-444455556666',
+    name: 'Ресторан Ромашка на Арбате',
     is_offline: true,
     enabled: true,
     registration_status: 'processing',
-    created: '2026-03-18T09:00:00Z',
-    updated: '2026-03-18T09:00:00Z',
-  },
-  {
-    merchant_id: 'merchant-103',
-    partner_id: 'partner-org-1',
-    name: 'Бар "Огонёк"',
-    is_offline: true,
-    enabled: true,
-    registration_status: 'processing',
-    created: '2026-03-19T11:00:00Z',
-    updated: '2026-03-19T11:00:00Z',
-  },
-  // ИП Иванов А.В. — 2 ресторана
-  {
-    merchant_id: 'merchant-201',
-    partner_id: 'partner-org-2',
-    name: 'Пиццерия "Капричоза"',
-    is_offline: true,
-    enabled: true,
-    registration_status: 'failed',
-    created: '2026-03-12T08:00:00Z',
-    updated: '2026-03-14T16:00:00Z',
-  },
-  {
-    merchant_id: 'merchant-202',
-    partner_id: 'partner-org-2',
-    name: 'Суши-бар "Токио"',
-    is_offline: true,
-    enabled: true,
-    registration_status: 'active',
-    created: '2026-03-08T10:30:00Z',
-    updated: '2026-03-10T12:00:00Z',
-  },
-  // ООО "Быстрое питание" — 3 бургерных
-  {
-    merchant_id: 'merchant-301',
-    partner_id: 'partner-org-3',
-    name: 'Бургерная №1',
-    is_offline: true,
-    enabled: true,
-    registration_status: 'active',
-    created: '2026-03-05T09:00:00Z',
-    updated: '2026-03-06T11:00:00Z',
-  },
-  {
-    merchant_id: 'merchant-302',
-    partner_id: 'partner-org-3',
-    name: 'Бургерная №2',
-    is_offline: true,
-    enabled: true,
-    registration_status: 'processing',
-    created: '2026-03-19T15:00:00Z',
-    updated: '2026-03-19T15:00:00Z',
-  },
-  {
-    merchant_id: 'merchant-303',
-    partner_id: 'partner-org-3',
-    name: 'Бургерная №3',
-    is_offline: true,
-    enabled: true,
-    registration_status: 'active',
-    created: '2026-03-07T13:00:00Z',
-    updated: '2026-03-09T10:00:00Z',
+    created: '2026-03-19T09:00:00Z',
+    updated: '2026-03-19T09:00:00Z',
   },
 ];
 
 export const MOCK_MERCHANT_STATUS: MerchantStatus = {
-  merchant_id: 'merchant-101',
+  merchant_id: '500924a8-aaaa-bbbb-cccc-ddddeeee0001',
   registration_status: 'active',
   poses: [
     {
-      pos_id: 'pos-premier-1',
+      pos_id: '2697c7ff-1111-2222-3333-444455556666',
       title: 'Касса #1',
       activated: true,
-      token: 'ut_premier_a1b2c3d4',
-      qrc_id: 'qrc_premier_001',
+      token: 'ut_a1b2c3d4e5f6g7h8',
+      qrc_id: 'qrc_12345',
       bind_status: 'bound',
     },
   ],
@@ -261,36 +134,12 @@ export const MOCK_MERCHANT_STATUS: MerchantStatus = {
 
 export const MOCK_USER_TOKENS: UserTokenInfo[] = [
   {
-    id: 'tok-premier-001',
-    merchant_id: 'merchant-101',
-    partner_id: 'partner-org-1',
-    last_four: 'c3d4',
+    id: 'tok-1111-2222-3333-444455556666',
+    merchant_id: '500924a8-aaaa-bbbb-cccc-ddddeeee0001',
+    partner_id: '6a3a39f6-1111-2222-3333-444455556666',
+    last_four: 'g7h8',
     token_format: 'YANDEX_PAY',
-    created_at: '2026-03-15T12:00:00Z',
-  },
-  {
-    id: 'tok-tokyo-001',
-    merchant_id: 'merchant-202',
-    partner_id: 'partner-org-2',
-    last_four: 'f7g8',
-    token_format: 'YANDEX_PAY',
-    created_at: '2026-03-10T14:00:00Z',
-  },
-  {
-    id: 'tok-burger1-001',
-    merchant_id: 'merchant-301',
-    partner_id: 'partner-org-3',
-    last_four: 'k9m0',
-    token_format: 'YANDEX_PAY',
-    created_at: '2026-03-06T16:00:00Z',
-  },
-  {
-    id: 'tok-burger3-001',
-    merchant_id: 'merchant-303',
-    partner_id: 'partner-org-3',
-    last_four: 'p2q3',
-    token_format: 'YANDEX_PAY',
-    created_at: '2026-03-09T11:00:00Z',
+    created_at: '2026-03-19T12:00:00Z',
   },
 ];
 
