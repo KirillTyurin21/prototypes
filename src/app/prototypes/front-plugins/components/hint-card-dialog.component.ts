@@ -3,8 +3,13 @@ import { CommonModule } from '@angular/common';
 import { HintData } from '../data/hint-types';
 
 /**
- * Дизайн 1: «Карточка товара» — в стилистике диалоговых окон iiko Front.
- * Тёмный фон, прямые углы, жёлтые заголовки, чёрные кнопки.
+ * Основной дизайн окна подсказки — в стилистике диалоговых окон iiko Front.
+ * Тёмный фон, прямые углы, жёлтые акценты, чёрные кнопки.
+ *
+ * buttonLayout:
+ *  - 'default':   [Отказаться | Добавить] горизонтально
+ *  - 'add-first': [Добавить | Отказаться] горизонтально (свап)
+ *  - 'vertical':  Добавить сверху, Отказаться снизу
  */
 @Component({
   selector: 'hint-card-dialog',
@@ -24,9 +29,9 @@ import { HintData } from '../data/hint-types';
           <span class="text-[11px] font-medium uppercase tracking-widest text-white/40">Подсказка</span>
         </div>
 
-        <!-- Заголовок — по центру -->
+        <!-- Заголовок — по центру, белый -->
         <div class="px-5 pb-3">
-          <h2 class="text-center text-lg font-bold text-[#c9a84c]">{{ hint.title }}</h2>
+          <h2 class="text-center text-lg font-bold text-white">{{ hint.title }}</h2>
         </div>
 
         <!-- Слоган — слева, жёлтый акцент без обрамления -->
@@ -82,24 +87,62 @@ import { HintData } from '../data/hint-types';
           </div>
         </div>
 
-        <!-- Кнопки — чёрные, в стиле iiko -->
-        <div class="border-t border-white/10">
+        <!-- Кнопки: горизонтальные (default или add-first) -->
+        <div *ngIf="buttonLayout !== 'vertical'" class="border-t border-white/10">
           <div class="flex">
-            <button (click)="onDecline()"
-                    class="flex-1 py-4 text-center text-white/70 font-bold text-base
-                           bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
-                           border-r border-white/10"
-                    style="border-radius: 0;">
-              Отказаться
-            </button>
-            <button (click)="onAdd()"
-                    class="flex-1 py-4 text-center text-[#c9a84c] font-bold text-base
-                           bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors"
-                    style="border-radius: 0;">
-              Добавить {{ hint.recommendation.name }}
-              <span *ngIf="displayPrice"> — {{ displayPrice }} ₽</span>
-            </button>
+            <!-- add-first: Добавить слева, Отказаться справа -->
+            <ng-container *ngIf="buttonLayout === 'add-first'">
+              <button (click)="onAdd()"
+                      class="flex-1 py-4 text-center text-[#c9a84c] font-bold text-base
+                             bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
+                             border-r border-white/10"
+                      style="border-radius: 0;">
+                Добавить {{ hint.recommendation.name }}
+                <span *ngIf="displayPrice"> — {{ displayPrice }} ₽</span>
+              </button>
+              <button (click)="onDecline()"
+                      class="flex-1 py-4 text-center text-white/70 font-bold text-base
+                             bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors"
+                      style="border-radius: 0;">
+                Отказаться
+              </button>
+            </ng-container>
+            <!-- default: Отказаться слева, Добавить справа -->
+            <ng-container *ngIf="buttonLayout !== 'add-first'">
+              <button (click)="onDecline()"
+                      class="flex-1 py-4 text-center text-white/70 font-bold text-base
+                             bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
+                             border-r border-white/10"
+                      style="border-radius: 0;">
+                Отказаться
+              </button>
+              <button (click)="onAdd()"
+                      class="flex-1 py-4 text-center text-[#c9a84c] font-bold text-base
+                             bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors"
+                      style="border-radius: 0;">
+                Добавить {{ hint.recommendation.name }}
+                <span *ngIf="displayPrice"> — {{ displayPrice }} ₽</span>
+              </button>
+            </ng-container>
           </div>
+        </div>
+
+        <!-- Кнопки: вертикальные (vertical) -->
+        <div *ngIf="buttonLayout === 'vertical'" class="border-t border-white/10">
+          <button (click)="onAdd()"
+                  class="w-full py-4 text-center text-[#c9a84c] font-bold text-base
+                         bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
+                         border-b border-white/10"
+                  style="border-radius: 0;">
+            Добавить {{ hint.recommendation.name }}
+            <span *ngIf="displayPrice"> — {{ displayPrice }} ₽</span>
+          </button>
+          <button (click)="onDecline()"
+                  class="w-full py-4 text-center text-white/70 font-bold text-base
+                         bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors"
+                  style="border-radius: 0;">
+            Отказаться
+          </button>
         </div>
       </div>
     </div>
@@ -108,6 +151,7 @@ import { HintData } from '../data/hint-types';
 export class HintCardDialogComponent implements OnChanges {
   @Input() open = false;
   @Input() hint!: HintData;
+  @Input() buttonLayout: 'default' | 'add-first' | 'vertical' = 'default';
   @Output() add = new EventEmitter<void>();
   @Output() decline = new EventEmitter<void>();
 
