@@ -109,6 +109,11 @@ import {
   Building2,
   FileCheck,
   Key,
+  // Hints anatomy panel
+  Maximize2,
+  BookOpen,
+  Columns,
+  Rows,
 } from 'lucide-angular';
 
 /**
@@ -226,6 +231,11 @@ const icons = {
   Building2,
   FileCheck,
   Key,
+  // Hints anatomy panel
+  Maximize2,
+  BookOpen,
+  Columns,
+  Rows,
 };
 
 @NgModule({

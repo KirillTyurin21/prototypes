@@ -5,15 +5,23 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiBreadcrumbsComponent, UiBadgeComponent } from '@/components/ui';
 import { HintCardDialogComponent } from '../components/hint-card-dialog.component';
 import { HintPosDialogComponent } from '../components/hint-pos-dialog.component';
+import { HintAnatomyPanelComponent } from '../components/hint-anatomy-panel.component';
 import { HintData } from '../data/hint-types';
-import { HINT_VARIANT_A, HINT_VARIANT_B, HINT_VARIANT_C } from '../data/hint-mock-data';
+import {
+  HINT_FULL_DISCOUNT,
+  HINT_FULL_NO_DISCOUNT,
+  HINT_NOIMG_DISCOUNT,
+  HINT_NOIMG_NO_DISCOUNT,
+  HINT_LONG_TEXT,
+  HINT_BIG_DISCOUNT,
+} from '../data/hint-mock-data';
 
 type DesignType = 'card-add-first' | 'card-vertical' | 'pos';
-type DataVariant = 'A' | 'B' | 'C';
+type DataVariant = '1' | '2' | '3' | '4' | '5' | '6';
 
 /**
  * Экран сравнения вариантов дизайна окна подсказки.
- * Два варианта расположения кнопок основного окна + компактный POS.
+ * Три варианта + интерактивная анатомия с аннотациями источников данных.
  */
 @Component({
   selector: 'app-hint-variants-screen',
@@ -25,6 +33,7 @@ type DataVariant = 'A' | 'B' | 'C';
     UiBadgeComponent,
     HintCardDialogComponent,
     HintPosDialogComponent,
+    HintAnatomyPanelComponent,
   ],
   template: `
     <div class="p-6 max-w-5xl mx-auto animate-fade-in">
@@ -35,8 +44,7 @@ type DataVariant = 'A' | 'B' | 'C';
       <div class="mb-6">
         <h1 class="text-2xl font-semibold text-text-primary mb-2">Сравнение вариантов дизайна</h1>
         <p class="text-text-secondary text-sm">
-          Нажмите на карточку, чтобы открыть модальное окно подсказки в выбранном дизайне.
-          Переключайте данные (A/B/C) для проверки разных сценариев.
+          Нажмите на карточку варианта, чтобы открыть анатомию карточки подсказки с аннотациями источников данных.
         </p>
       </div>
 
@@ -49,35 +57,36 @@ type DataVariant = 'A' | 'B' | 'C';
         <div class="flex gap-2 flex-wrap">
           <button *ngFor="let v of dataVariants"
                   (click)="selectData(v.key)"
-                  class="px-4 py-2 rounded-lg text-sm font-medium transition-all border"
+                  class="px-3 py-2 rounded-lg text-sm font-medium transition-all border"
                   [ngClass]="{
                     'bg-app-primary text-white border-app-primary': selectedData === v.key,
                     'bg-surface text-text-secondary border-border hover:border-app-primary': selectedData !== v.key
                   }">
-            <span class="font-bold">{{ v.key }}</span> — {{ v.label }}
+            {{ v.label }}
           </button>
         </div>
         <p class="text-xs text-text-disabled mt-2">{{ currentDataDescription }}</p>
       </div>
 
       <!-- 3 варианта дизайна -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
 
         <!-- Вариант 1: Кнопки горизонтально, Добавить слева -->
-        <div (click)="openDesign('card-add-first')"
-             class="group bg-surface rounded-xl border border-border hover:border-app-primary/40
-                    hover:shadow-card-hover transition-all duration-200 cursor-pointer overflow-hidden">
-          <div class="h-1.5 bg-[#2d2d2d]"></div>
+        <div (click)="toggleExpanded('card-add-first')"
+             class="group bg-surface rounded-xl border-2 transition-all duration-200 cursor-pointer overflow-hidden"
+             [ngClass]="{
+               'border-app-primary shadow-card-hover': expandedDesign === 'card-add-first',
+               'border-border hover:border-app-primary/40 hover:shadow-card-hover': expandedDesign !== 'card-add-first'
+             }">
+          <div class="h-1.5" [ngClass]="{'bg-app-primary': expandedDesign === 'card-add-first', 'bg-[#2d2d2d]': expandedDesign !== 'card-add-first'}"></div>
           <div class="p-5">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-lg bg-[#2d2d2d] flex items-center justify-center">
-                <lucide-icon name="list" [size]="16" class="text-[#c9a84c]"></lucide-icon>
+                <lucide-icon name="columns" [size]="16" class="text-[#c9a84c]"></lucide-icon>
               </div>
-              <div>
-                <h3 class="text-sm font-semibold text-text-primary group-hover:text-app-primary transition-colors">
-                  Вариант 1: Кнопки в ряд
-                </h3>
-              </div>
+              <h3 class="text-sm font-semibold text-text-primary group-hover:text-app-primary transition-colors">
+                Вариант 1: Кнопки в ряд
+              </h3>
             </div>
             <!-- Мини-превью -->
             <div class="bg-[#2d2d2d] rounded-lg p-3 mb-3">
@@ -106,20 +115,21 @@ type DataVariant = 'A' | 'B' | 'C';
         </div>
 
         <!-- Вариант 2: Кнопки вертикально -->
-        <div (click)="openDesign('card-vertical')"
-             class="group bg-surface rounded-xl border border-border hover:border-app-primary/40
-                    hover:shadow-card-hover transition-all duration-200 cursor-pointer overflow-hidden">
-          <div class="h-1.5 bg-[#2d2d2d]"></div>
+        <div (click)="toggleExpanded('card-vertical')"
+             class="group bg-surface rounded-xl border-2 transition-all duration-200 cursor-pointer overflow-hidden"
+             [ngClass]="{
+               'border-app-primary shadow-card-hover': expandedDesign === 'card-vertical',
+               'border-border hover:border-app-primary/40 hover:shadow-card-hover': expandedDesign !== 'card-vertical'
+             }">
+          <div class="h-1.5" [ngClass]="{'bg-app-primary': expandedDesign === 'card-vertical', 'bg-[#2d2d2d]': expandedDesign !== 'card-vertical'}"></div>
           <div class="p-5">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-lg bg-[#2d2d2d] flex items-center justify-center">
-                <lucide-icon name="list" [size]="16" class="text-[#c9a84c]"></lucide-icon>
+                <lucide-icon name="rows" [size]="16" class="text-[#c9a84c]"></lucide-icon>
               </div>
-              <div>
-                <h3 class="text-sm font-semibold text-text-primary group-hover:text-app-primary transition-colors">
-                  Вариант 2: Кнопки столбцом
-                </h3>
-              </div>
+              <h3 class="text-sm font-semibold text-text-primary group-hover:text-app-primary transition-colors">
+                Вариант 2: Кнопки столбцом
+              </h3>
             </div>
             <!-- Мини-превью -->
             <div class="bg-[#2d2d2d] rounded-lg p-3 mb-3">
@@ -148,42 +158,43 @@ type DataVariant = 'A' | 'B' | 'C';
         </div>
 
         <!-- Дизайн 3: POS -->
-        <div (click)="openDesign('pos')"
-             class="group bg-surface rounded-xl border border-border hover:border-app-primary/40
-                    hover:shadow-card-hover transition-all duration-200 cursor-pointer overflow-hidden">
-          <div class="h-1.5 bg-[#3a3a3a]"></div>
+        <div (click)="toggleExpanded('pos')"
+             class="group bg-surface rounded-xl border-2 transition-all duration-200 cursor-pointer overflow-hidden"
+             [ngClass]="{
+               'border-app-primary shadow-card-hover': expandedDesign === 'pos',
+               'border-border hover:border-app-primary/40 hover:shadow-card-hover': expandedDesign !== 'pos'
+             }">
+          <div class="h-1.5" [ngClass]="{'bg-app-primary': expandedDesign === 'pos', 'bg-[#3a3a3a]': expandedDesign !== 'pos'}"></div>
           <div class="p-5">
             <div class="flex items-center gap-2 mb-3">
               <div class="w-8 h-8 rounded-lg bg-[#2d2d2d] flex items-center justify-center">
                 <lucide-icon name="monitor" [size]="16" class="text-[#c9a84c]"></lucide-icon>
               </div>
-              <div>
-                <h3 class="text-sm font-semibold text-text-primary group-hover:text-app-primary transition-colors">
-                  Вариант 3: «Компактный POS»
-                </h3>
-              </div>
+              <h3 class="text-sm font-semibold text-text-primary group-hover:text-app-primary transition-colors">
+                Вариант 3: «Компактный POS»
+              </h3>
             </div>
             <!-- Мини-превью -->
             <div class="bg-[#3a3a3a] rounded-lg p-3 mb-3">
-              <div class="flex items-center gap-1 mb-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-[#c9a84c]"></div>
-                <div class="h-1.5 w-14 bg-white/30 rounded"></div>
+              <div class="flex items-center gap-1 mb-1">
+                <div class="h-1.5 w-3 bg-white/30" style="border-radius: 0;"></div>
+                <div class="h-1.5 w-14 bg-white/20" style="border-radius: 0;"></div>
               </div>
-              <div class="h-1.5 w-24 bg-[#c9a84c]/30 rounded mb-2"></div>
-              <div class="bg-[#2d2d2d] rounded p-1.5 flex items-center gap-1 mb-2">
-                <div class="w-6 h-6 rounded bg-[#1a1a1a] flex items-center justify-center text-[8px]">🍽️</div>
+              <div class="h-1.5 w-24 bg-[#c9a84c]/30 mb-2" style="border-radius: 0;"></div>
+              <div class="bg-[#2d2d2d] p-1.5 flex items-center gap-1 mb-2 border border-white/10" style="border-radius: 0;">
+                <div class="w-6 h-6 bg-[#1a1a1a] flex items-center justify-center text-[8px]" style="border-radius: 0;">🍽️</div>
                 <div class="flex-1">
-                  <div class="h-1.5 w-12 bg-white/20 rounded"></div>
+                  <div class="h-1.5 w-12 bg-white/20" style="border-radius: 0;"></div>
                 </div>
-                <div class="h-2 w-6 bg-[#c9a84c]/40 rounded"></div>
+                <div class="h-2 w-6 bg-[#c9a84c]/40" style="border-radius: 0;"></div>
               </div>
-              <div class="flex gap-1">
-                <div class="flex-1 h-5 bg-[#4a4a4a] rounded"></div>
-                <div class="flex-1 h-5 bg-[#c9a84c]/30 rounded"></div>
+              <div class="flex gap-0 border-t border-white/10 pt-1">
+                <div class="flex-1 h-5 bg-white/10 border-r border-white/10" style="border-radius: 0;"></div>
+                <div class="flex-1 h-5 bg-[#c9a84c]/20" style="border-radius: 0;"></div>
               </div>
             </div>
             <p class="text-xs text-text-secondary leading-relaxed">
-              Стиль POS-терминала: минималистичный, консистентен с другими окнами Front.
+              Компактная строка-карточка с товаром. Консистентный стиль Front.
             </p>
             <div class="flex flex-wrap gap-1 mt-2">
               <ui-badge variant="info">Консистентный</ui-badge>
@@ -191,6 +202,15 @@ type DataVariant = 'A' | 'B' | 'C';
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Панель анатомии (раскрывается при клике на вариант) -->
+      <div *ngIf="expandedDesign" class="mb-8">
+        <hint-anatomy-panel
+          [designType]="expandedDesign"
+          [hint]="activeHint"
+          (openModal)="openDesignModal(expandedDesign)">
+        </hint-anatomy-panel>
       </div>
 
       <!-- Таблица сравнения -->
@@ -220,28 +240,28 @@ type DataVariant = 'A' | 'B' | 'C';
         </div>
       </div>
 
-      <!-- Модалки -->
+      <!-- Модалки (открываются по кнопке из панели анатомии) -->
       <hint-card-dialog
-        [open]="activeDesign === 'card-add-first'"
+        [open]="activeModal === 'card-add-first'"
         [hint]="activeHint"
         buttonLayout="add-first"
-        (add)="onClose()"
-        (decline)="onClose()">
+        (add)="closeModal()"
+        (decline)="closeModal()">
       </hint-card-dialog>
 
       <hint-card-dialog
-        [open]="activeDesign === 'card-vertical'"
+        [open]="activeModal === 'card-vertical'"
         [hint]="activeHint"
         buttonLayout="vertical"
-        (add)="onClose()"
-        (decline)="onClose()">
+        (add)="closeModal()"
+        (decline)="closeModal()">
       </hint-card-dialog>
 
       <hint-pos-dialog
-        [open]="activeDesign === 'pos'"
+        [open]="activeModal === 'pos'"
         [hint]="activeHint"
-        (add)="onClose()"
-        (decline)="onClose()">
+        (add)="closeModal()"
+        (decline)="closeModal()">
       </hint-pos-dialog>
     </div>
   `,
@@ -256,13 +276,17 @@ export class HintVariantsScreenComponent {
     { label: 'Сравнение вариантов' },
   ];
 
-  activeDesign: DesignType | null = null;
-  selectedData: DataVariant = 'A';
+  expandedDesign: DesignType | null = null;
+  activeModal: DesignType | null = null;
+  selectedData: DataVariant = '1';
 
   dataVariants: { key: DataVariant; label: string }[] = [
-    { key: 'A', label: 'Со скидкой (полный)' },
-    { key: 'B', label: 'Без картинки, без скидки' },
-    { key: 'C', label: 'Комбо со скидкой' },
+    { key: '1', label: 'Со скидкой (Полный)' },
+    { key: '2', label: 'Без скидки (Полный)' },
+    { key: '3', label: 'Со скидкой (Без картинки)' },
+    { key: '4', label: 'Без скидки (Без картинки)' },
+    { key: '5', label: 'Длинные тексты' },
+    { key: '6', label: 'Большая скидка (–50%)' },
   ];
 
   comparisonData = [
@@ -275,9 +299,12 @@ export class HintVariantsScreenComponent {
   ];
 
   private hintMap: Record<DataVariant, HintData> = {
-    A: HINT_VARIANT_A,
-    B: HINT_VARIANT_B,
-    C: HINT_VARIANT_C,
+    '1': HINT_FULL_DISCOUNT,
+    '2': HINT_FULL_NO_DISCOUNT,
+    '3': HINT_NOIMG_DISCOUNT,
+    '4': HINT_NOIMG_NO_DISCOUNT,
+    '5': HINT_LONG_TEXT,
+    '6': HINT_BIG_DISCOUNT,
   };
 
   get activeHint(): HintData {
@@ -286,9 +313,12 @@ export class HintVariantsScreenComponent {
 
   get currentDataDescription(): string {
     const descs: Record<DataVariant, string> = {
-      A: 'Полный набор: картинка, скидка (–7 ₽), описание',
-      B: 'Минимальный набор: без картинки, без скидки, без описания',
-      C: 'Комбо: картинка, скидка –30%, развёрнутое описание',
+      '1': 'Полный набор: картинка, скидка (–7 ₽), описание с триггер-блюдом',
+      '2': 'Полный набор без скидки: картинка, обычная цена, описание',
+      '3': 'Без картинки: скидка (–15%), слоган и описание',
+      '4': 'Минимальная подсказка: без картинки, без скидки, без описания',
+      '5': 'Стресс-тест: длинное название товара (40+ символов), длинный слоган',
+      '6': 'Агрессивная акция: скидка –50% (490 ₽ → 245 ₽)',
     };
     return descs[this.selectedData];
   }
@@ -297,11 +327,15 @@ export class HintVariantsScreenComponent {
     this.selectedData = key;
   }
 
-  openDesign(design: DesignType): void {
-    this.activeDesign = design;
+  toggleExpanded(design: DesignType): void {
+    this.expandedDesign = this.expandedDesign === design ? null : design;
   }
 
-  onClose(): void {
-    this.activeDesign = null;
+  openDesignModal(design: DesignType): void {
+    this.activeModal = design;
+  }
+
+  closeModal(): void {
+    this.activeModal = null;
   }
 }

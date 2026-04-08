@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { HintData } from '../data/hint-types';
 
 /**
- * Дизайн 3: «Компактный POS» — в стиле существующих POS-диалогов Front.
- * Тёмный фон #3a3a3a, акцент #b8c959. Минималистичный. Блюдо в строке-карточке.
+ * Дизайн 3: «Компактный POS» — адаптирован под стилистику карточных вариантов.
+ * Тёмный фон #3a3a3a, акцент #c9a84c, прямые углы, кнопки в ряд с разделителем.
  */
 @Component({
   selector: 'hint-pos-dialog',
@@ -16,36 +16,46 @@ import { HintData } from '../data/hint-types';
       <div class="absolute inset-0 bg-black/60"></div>
 
       <!-- Dialog -->
-      <div class="relative bg-[#3a3a3a] rounded-lg text-white w-full max-w-[500px] mx-4 animate-scale-in border border-white/5">
-        <!-- Header — как в POS-диалогах -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <div class="flex items-center gap-2">
-            <div class="w-2.5 h-2.5 rounded-full bg-[#b8c959]"></div>
-            <span class="text-white font-semibold">{{ hint.title }}</span>
-          </div>
+      <div class="relative bg-[#3a3a3a] text-white w-full max-w-[500px] mx-4 animate-scale-in border border-white/10 shadow-2xl"
+           style="border-radius: 0;">
+
+        <!-- Метка ПОДСКАЗКА -->
+        <div class="px-5 pt-4 pb-1">
+          <span class="text-[11px] font-medium uppercase tracking-widest text-white/40">Подсказка</span>
+        </div>
+
+        <!-- Заголовок — по центру -->
+        <div class="px-5 pb-2">
+          <h2 class="text-center text-base font-bold text-white">{{ hint.title }}</h2>
         </div>
 
         <!-- Слоган -->
-        <div class="px-6 pt-5 pb-3">
-          <p class="text-[#b8c959] font-medium text-base">{{ hint.slogan }}</p>
+        <div class="px-5 pb-3">
+          <p class="text-[#c9a84c] text-sm leading-snug">{{ hint.slogan }}</p>
         </div>
 
-        <!-- Описание -->
-        <div *ngIf="hint.description" class="px-6 pb-3">
-          <p class="text-sm text-white/50">{{ hint.description }}</p>
+        <!-- Триггер-текст -->
+        <div *ngIf="triggerText" class="px-5 pb-3">
+          <p class="text-xs text-white/40">{{ triggerText }}</p>
         </div>
 
-        <!-- Карточка блюда — строка как в POS -->
-        <div class="mx-6 mb-4 bg-[#2d2d2d] rounded-lg border border-white/10 overflow-hidden">
-          <div class="flex items-center gap-3 p-3">
+        <!-- Разделитель -->
+        <div class="border-t border-white/10 mx-5"></div>
+
+        <!-- Карточка блюда — компактная строка -->
+        <div class="px-5 py-3">
+          <div class="flex items-center gap-3 bg-[#2d2d2d] border border-white/10 p-3"
+               style="border-radius: 0;">
             <!-- Картинка (маленькая) -->
-            <div *ngIf="hint.imageUrl" class="w-[56px] h-[56px] rounded-lg overflow-hidden bg-[#1a1a1a] flex-shrink-0">
+            <div *ngIf="hint.imageUrl" class="w-[48px] h-[48px] overflow-hidden bg-[#1a1a1a] flex-shrink-0"
+                 style="border-radius: 0;">
               <img [src]="hint.imageUrl" [alt]="hint.recommendation.name"
                    class="w-full h-full object-cover"
                    (error)="onImageError($event)">
             </div>
-            <div *ngIf="!hint.imageUrl" class="w-[56px] h-[56px] rounded-lg bg-[#1a1a1a] flex-shrink-0 flex items-center justify-center">
-              <span class="text-2xl">🍽️</span>
+            <div *ngIf="!hint.imageUrl" class="w-[48px] h-[48px] bg-[#1a1a1a] flex-shrink-0 flex items-center justify-center"
+                 style="border-radius: 0;">
+              <span class="text-xl">🍽️</span>
             </div>
 
             <!-- Название и атрибуты -->
@@ -58,10 +68,10 @@ import { HintData } from '../data/hint-types';
 
             <!-- Цена -->
             <div class="text-right flex-shrink-0">
-              <div *ngIf="hint.recommendation.discountedPrice !== null" class="text-lg font-bold text-[#b8c959]">
+              <div *ngIf="hint.recommendation.discountedPrice !== null" class="text-base font-bold text-[#c9a84c]">
                 {{ hint.recommendation.discountedPrice }} ₽
               </div>
-              <div *ngIf="hint.recommendation.discountedPrice === null" class="text-lg font-bold text-white">
+              <div *ngIf="hint.recommendation.discountedPrice === null" class="text-base font-bold text-white">
                 {{ hint.recommendation.price }} ₽
               </div>
               <div *ngIf="hint.recommendation.oldPrice !== null && hint.recommendation.discountedPrice !== null"
@@ -69,26 +79,31 @@ import { HintData } from '../data/hint-types';
                 {{ hint.recommendation.oldPrice }} ₽
               </div>
               <div *ngIf="hint.recommendation.discountAmount !== null"
-                   class="text-xs text-[#b8c959]/70">
+                   class="text-xs text-[#c9a84c]/70">
                 –{{ hint.recommendation.discountAmount }} ₽
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Кнопки — как в POS -->
-        <div class="px-6 pb-6 flex gap-3">
-          <button (click)="onDecline()"
-                  class="flex-1 py-3.5 rounded-lg bg-[#4a4a4a] text-white/70 font-medium text-sm
-                         hover:bg-[#555] active:bg-[#444] transition-colors border border-white/10">
-            Отказаться
-          </button>
-          <button (click)="onAdd()"
-                  class="flex-1 py-3.5 rounded-lg bg-[#b8c959] text-[#1a1a1a] font-bold text-sm
-                         hover:bg-[#c9da6a] active:bg-[#a7b84a] transition-colors">
-            Добавить {{ hint.recommendation.name }}
-            <span *ngIf="displayPrice"> — {{ displayPrice }} ₽</span>
-          </button>
+        <!-- Кнопки — полная ширина с разделителем -->
+        <div class="border-t border-white/10">
+          <div class="flex">
+            <button (click)="onDecline()"
+                    class="flex-1 py-3.5 text-center text-white/70 font-bold text-sm
+                           bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
+                           border-r border-white/10"
+                    style="border-radius: 0;">
+              Отказаться
+            </button>
+            <button (click)="onAdd()"
+                    class="flex-1 py-3.5 text-center text-[#c9a84c] font-bold text-sm
+                           bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors"
+                    style="border-radius: 0;">
+              Добавить {{ hint.recommendation.name }}
+              <span *ngIf="displayPrice"> — {{ displayPrice }} ₽</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -102,6 +117,12 @@ export class HintPosDialogComponent implements OnChanges {
 
   get displayPrice(): number | null {
     return this.hint.recommendation.discountedPrice ?? this.hint.recommendation.price;
+  }
+
+  get triggerText(): string {
+    if (!this.hint.description) return '';
+    const dotIdx = this.hint.description.indexOf('.');
+    return dotIdx > 0 ? this.hint.description.substring(0, dotIdx + 1) : this.hint.description;
   }
 
   ngOnChanges(changes: SimpleChanges): void {

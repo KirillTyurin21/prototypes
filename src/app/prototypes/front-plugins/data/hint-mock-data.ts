@@ -23,15 +23,15 @@ export const MOCK_MENU_ITEMS: OrderDish[] = [
 /** Быстрые кнопки меню (правая полоса) */
 export const MOCK_QUICK_MENU = ['Чай Nesty', 'Шоколадный батончик', 'Кока Кола'];
 
-/** Вариант A — полный набор данных со скидкой */
-export const HINT_VARIANT_A: HintData = {
-  id: 'hint-1',
+/** 1. Со скидкой (Полный) — картинка, скидка, описание */
+export const HINT_FULL_DISCOUNT: HintData = {
+  id: 'hint-full-discount',
   title: 'Специальное предложение',
   slogan: 'Купи яблоко на 7 рублей дешевле!',
   description: 'Вы добавили Бургер Классик. Рекомендуем: Яблоко Голден — отличная пара!',
-  imageUrl: 'https://placehold.co/200x200/2d2d2d/b8c959?text=🍎',
+  imageUrl: 'https://placehold.co/200x200/2d2d2d/c9a84c?text=🍎',
   recommendation: {
-    id: 'rec-1',
+    id: 'rec-full-discount',
     name: 'Яблоко Голден',
     price: 56,
     oldPrice: 56,
@@ -42,17 +42,55 @@ export const HINT_VARIANT_A: HintData = {
   },
 };
 
-/** Вариант B — без картинки и скидки */
-export const HINT_VARIANT_B: HintData = {
-  id: 'hint-2',
+/** 2. Без скидки (Полный) — картинка, без скидки */
+export const HINT_FULL_NO_DISCOUNT: HintData = {
+  id: 'hint-full-no-discount',
+  title: 'Рекомендация кассиру',
+  slogan: 'Предложите клиенту свежую выпечку к напитку!',
+  description: 'Вы добавили Латте. Рекомендуем: Круассан с миндалём — идеальное сочетание!',
+  imageUrl: 'https://placehold.co/200x200/2d2d2d/c9a84c?text=🥐',
+  recommendation: {
+    id: 'rec-full-no-discount',
+    name: 'Круассан с миндалём',
+    price: 189,
+    oldPrice: null,
+    discountedPrice: null,
+    discountName: null,
+    discountAmount: null,
+    attributes: ['85 г', '320 ккал'],
+  },
+};
+
+/** 3. Со скидкой (Без картинки) — без изображения, со скидкой */
+export const HINT_NOIMG_DISCOUNT: HintData = {
+  id: 'hint-noimg-discount',
+  title: 'Акция дня',
+  slogan: 'Картошка Фри со скидкой 15% к любому бургеру!',
+  description: 'Вы добавили Чизбургер. При добавлении Картошки Фри действует скидка.',
+  imageUrl: null,
+  recommendation: {
+    id: 'rec-noimg-discount',
+    name: 'Картошка Фри',
+    price: 189,
+    oldPrice: 189,
+    discountedPrice: 161,
+    discountName: 'Скидка к бургеру',
+    discountAmount: 28,
+    attributes: [],
+  },
+};
+
+/** 4. Без скидки (Без картинки) — минимальная подсказка */
+export const HINT_NOIMG_NO_DISCOUNT: HintData = {
+  id: 'hint-noimg-no-discount',
   title: 'Подсказка для кассира',
-  slogan: 'Предложите клиенту дополнить заказ!',
+  slogan: 'Предложите клиенту дополнить заказ напитком!',
   description: '',
   imageUrl: null,
   recommendation: {
-    id: 'rec-2',
-    name: 'Картошка Фри',
-    price: 189,
+    id: 'rec-noimg-no-discount',
+    name: 'Морс клюквенный',
+    price: 150,
     oldPrice: null,
     discountedPrice: null,
     discountName: null,
@@ -61,27 +99,49 @@ export const HINT_VARIANT_B: HintData = {
   },
 };
 
-/** Вариант C — комбо со скидкой */
-export const HINT_VARIANT_C: HintData = {
-  id: 'hint-3',
-  title: 'Акция дня',
-  slogan: 'Комбо-обед: Напиток + Десерт = –30%!',
-  description: 'Клиент заказал Пасту Карбонара. При добавлении Латте и Тирамису действует скидка 30%.',
-  imageUrl: 'https://placehold.co/200x200/2d2d2d/b8c959?text=🍰+☕',
+/** 5. Длинные тексты — проверка overflow и переносов */
+export const HINT_LONG_TEXT: HintData = {
+  id: 'hint-long-text',
+  title: 'Специальное предложение от шеф-повара ресторана',
+  slogan: 'Закажите фирменный стейк Рибай с гарниром из запечённых овощей и фирменным соусом Демиглас — сегодня со скидкой 20%!',
+  description: 'Вы добавили Салат Цезарь с креветками. Рекомендуем дополнить заказ фирменным стейком от шеф-повара.',
+  imageUrl: 'https://placehold.co/200x200/2d2d2d/c9a84c?text=🥩',
   recommendation: {
-    id: 'rec-3',
-    name: 'Комбо Латте + Тирамису',
-    price: 457,
-    oldPrice: 457,
-    discountedPrice: 320,
-    discountName: 'Комбо -30%',
-    discountAmount: 137,
-    attributes: ['Содержит молоко', 'Глютен'],
+    id: 'rec-long',
+    name: 'Стейк Рибай с гарниром из запечённых овощей',
+    price: 1890,
+    oldPrice: 1890,
+    discountedPrice: 1512,
+    discountName: 'Фирменная скидка -20%',
+    discountAmount: 378,
+    attributes: ['350 г', '680 ккал', 'Содержит глютен'],
+  },
+};
+
+/** 6. Большая скидка — агрессивная акция –50% */
+export const HINT_BIG_DISCOUNT: HintData = {
+  id: 'hint-big-discount',
+  title: 'Горячая акция',
+  slogan: 'Только сегодня: Тирамису за полцены!',
+  description: 'Вы добавили Пасту Карбонара. Десерт Тирамису — идеальное завершение обеда!',
+  imageUrl: 'https://placehold.co/200x200/2d2d2d/c9a84c?text=🍰',
+  recommendation: {
+    id: 'rec-big',
+    name: 'Тирамису',
+    price: 490,
+    oldPrice: 490,
+    discountedPrice: 245,
+    discountName: 'Скидка -50%',
+    discountAmount: 245,
+    attributes: ['150 г', '380 ккал', 'Содержит молоко'],
   },
 };
 
 /** Все варианты подсказок для сравнения */
-export const ALL_HINTS: HintData[] = [HINT_VARIANT_A, HINT_VARIANT_B, HINT_VARIANT_C];
+export const ALL_HINTS: HintData[] = [
+  HINT_FULL_DISCOUNT, HINT_FULL_NO_DISCOUNT, HINT_NOIMG_DISCOUNT,
+  HINT_NOIMG_NO_DISCOUNT, HINT_LONG_TEXT, HINT_BIG_DISCOUNT,
+];
 
 /**
  * Подсказки, привязанные к конкретным блюдам меню.
@@ -143,4 +203,4 @@ export const HINTS_BY_DISH: Record<string, HintData> = {
 };
 
 /** Подсказка по умолчанию для блюд, не имеющих индивидуальной привязки */
-export const HINT_DEFAULT = HINT_VARIANT_A;
+export const HINT_DEFAULT = HINT_FULL_DISCOUNT;
