@@ -115,6 +115,16 @@ export const MOCK_MERCHANTS: MerchantInfo[] = [
     created: '2026-03-19T09:00:00Z',
     updated: '2026-03-19T09:00:00Z',
   },
+  {
+    merchant_id: '500924a8-aaaa-bbbb-cccc-ddddeeee0003',
+    partner_id: '6a3a39f6-1111-2222-3333-444455556666',
+    name: 'Ресторан Ромашка на Патриках',
+    is_offline: true,
+    enabled: true,
+    registration_status: 'active',
+    created: '2026-03-17T11:00:00Z',
+    updated: '2026-03-18T08:30:00Z',
+  },
 ];
 
 export const MOCK_MERCHANT_STATUS: MerchantStatus = {

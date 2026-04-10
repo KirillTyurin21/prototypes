@@ -1300,7 +1300,12 @@ export class CometMainScreenComponent implements OnInit {
     const allMerchants = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
     allMerchants.forEach(m => {
       if (m.registration_status === 'active') {
-        // В моке первый мерчант уже активен — считаем что токен получен
+        // Третий мерчант — демонстрация retry-индикатора (COR-14)
+        if (m.merchant_id === '500924a8-aaaa-bbbb-cccc-ddddeeee0003') {
+          this.merchantTokenStatusMap.set(m.merchant_id, 'retrying');
+          return;
+        }
+        // Остальные активные — считаем что токен получен
         this.merchantTokenStatusMap.set(m.merchant_id, 'received');
         // Генерируем мок-токен если нет
         if (!this.userTokens.has(m.merchant_id)) {
