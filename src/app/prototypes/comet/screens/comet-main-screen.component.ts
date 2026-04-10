@@ -32,6 +32,8 @@ import {
   MerchantRegistrationRequest,
   RegistrationData,
   ContactInfo,
+  AvailableTerminal,
+  MerchantTokenStatus,
 } from '../types';
 import {
   MOCK_ORGANIZATIONS,
@@ -41,6 +43,7 @@ import {
   MOCK_PARTNERS,
   MOCK_MERCHANTS,
   MOCK_MCC_CODES,
+  MOCK_AVAILABLE_TERMINALS,
 } from '../data/mock-data';
 
 @Component({
@@ -419,7 +422,10 @@ import {
         <!-- Блок авторизации (не авторизован) -->
         <div *ngIf="!oauthState.isAuthorized" class="bg-white rounded-lg border border-gray-200 p-8 text-center">
           <lucide-icon name="log-in" [size]="48" class="text-gray-300 mx-auto mb-4"></lucide-icon>
-          <p class="text-gray-500 mb-6">Для управления организациями и заявками необходимо авторизоваться через Яндекс ID</p>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Шаг 1: Авторизация</h3>
+          <p class="text-gray-500 mb-6">Авторизуйтесь через Яндекс ID, чтобы начать процесс онбординга:<br/>
+            <span class="text-sm text-gray-400">Авторизация → Организация → Заявка → Подключение</span>
+          </p>
           <button (click)="startOAuth()"
                   class="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
             <lucide-icon name="log-in" [size]="18"></lucide-icon>
@@ -430,7 +436,7 @@ import {
         <!-- Основная панель (авторизован) -->
         <div *ngIf="oauthState.isAuthorized">
           <!-- Шапка авторизации -->
-          <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-6">
+          <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-4">
             <div class="flex items-center gap-2">
               <lucide-icon name="check-circle-2" [size]="16" class="text-green-600"></lucide-icon>
               <span class="text-green-700 text-sm font-medium">Авторизовано: {{ oauthState.userName }}</span>
@@ -438,7 +444,18 @@ import {
             <button (click)="logoutOAuth()" class="text-sm text-red-600 hover:text-red-800">Выйти</button>
           </div>
 
-          <!-- Вкладки -->
+          <!-- Flow-индикатор -->
+          <div class="flex items-center gap-2 text-xs text-gray-400 mb-6">
+            <span class="text-green-600 font-medium">✓ Авторизация</span>
+            <span>→</span>
+            <span [class]="oauthSection === 'partners' ? 'text-gray-900 font-medium' : 'text-gray-400'">Организация</span>
+            <span>→</span>
+            <span [class]="oauthSection === 'merchants' ? 'text-gray-900 font-medium' : 'text-gray-400'">Заявка</span>
+            <span>→</span>
+            <span class="text-gray-400">Подключение</span>
+          </div>
+
+          <!-- Вкладки (без Токенов) -->
           <div class="flex gap-1 mb-6 border-b border-gray-200">
             <button (click)="oauthSection = 'partners'"
                     [class]="oauthSection === 'partners' ? 'px-4 py-2 text-sm font-medium border-b-2 border-gray-900 text-gray-900' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
@@ -447,10 +464,6 @@ import {
             <button (click)="oauthSection = 'merchants'"
                     [class]="oauthSection === 'merchants' ? 'px-4 py-2 text-sm font-medium border-b-2 border-gray-900 text-gray-900' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
               <span class="flex items-center gap-1.5"><lucide-icon name="file-check" [size]="14"></lucide-icon> Заявки</span>
-            </button>
-            <button (click)="oauthSection = 'tokens'"
-                    [class]="oauthSection === 'tokens' ? 'px-4 py-2 text-sm font-medium border-b-2 border-gray-900 text-gray-900' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
-              <span class="flex items-center gap-1.5"><lucide-icon name="key" [size]="14"></lucide-icon> Токены</span>
             </button>
           </div>
 
@@ -465,18 +478,23 @@ import {
               </button>
             </div>
 
-            <!-- Форма создания партнера -->
+            <!-- Форма создания партнера (COR-01: только ИНН обязателен) -->
             <div *ngIf="showPartnerForm" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 animate-fade-in">
-              <h4 class="font-medium text-gray-900 mb-3">Новая организация</h4>
+              <h4 class="font-medium text-gray-900 mb-1">Новая организация</h4>
+              <p class="text-xs text-gray-400 mb-3">
+                <lucide-icon name="info" [size]="12" class="inline-block mr-1"></lucide-icon>
+                Обязательно только ИНН. Остальные реквизиты Яндекс подтянет по ИНН через DaData.
+              </p>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm text-gray-600 mb-1">Название *</label>
-                  <input [(ngModel)]="newPartnerName" type="text" placeholder="ООО Ромашка"
+                  <label class="block text-sm text-gray-600 mb-1">ИНН <span class="text-red-500">*</span></label>
+                  <input [(ngModel)]="newPartnerInn" type="text" placeholder="7707083893" maxlength="12"
                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                  <p *ngIf="partnerInnError" class="text-xs text-red-500 mt-1">{{ partnerInnError }}</p>
                 </div>
                 <div>
-                  <label class="block text-sm text-gray-600 mb-1">ИНН</label>
-                  <input [(ngModel)]="newPartnerInn" type="text" placeholder="7707083893"
+                  <label class="block text-sm text-gray-600 mb-1">Название юрлица</label>
+                  <input [(ngModel)]="newPartnerName" type="text" placeholder="ООО Ромашка"
                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                 </div>
                 <div>
@@ -521,7 +539,9 @@ import {
                 </div>
               </div>
               <div class="flex gap-2 mt-4">
-                <button (click)="createPartner()" class="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">Создать</button>
+                <button (click)="createPartner()"
+                        [disabled]="!isPartnerFormValid"
+                        class="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Создать</button>
                 <button (click)="showPartnerForm = false" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">Отмена</button>
               </div>
             </div>
@@ -550,63 +570,126 @@ import {
             <div *ngIf="selectedPartner">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Заявки: {{ selectedPartner.name }}</h3>
-                <button (click)="showMerchantForm = !showMerchantForm"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">
-                  <lucide-icon name="plus" [size]="16"></lucide-icon>
-                  Подать заявку
-                </button>
+                <div class="flex items-center gap-2">
+                  <button (click)="showMerchantForm = !showMerchantForm"
+                          class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">
+                    <lucide-icon name="plus" [size]="16"></lucide-icon>
+                    Подать заявку
+                  </button>
+                  <!-- Заготовка для будущего batch (P2 #15) -->
+                  <button disabled
+                          title="Массовая подача заявок будет доступна в будущих версиях"
+                          class="inline-flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-400 text-sm rounded-lg cursor-not-allowed">
+                    <lucide-icon name="plus-circle" [size]="16"></lucide-icon>
+                    Пакетная
+                  </button>
+                </div>
               </div>
 
-              <!-- Форма заявки -->
+              <!-- Форма заявки (полностью переработана) -->
               <div *ngIf="showMerchantForm" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 animate-fade-in">
                 <h4 class="font-medium text-gray-900 mb-3">Регистрация торговой точки</h4>
+                <p class="text-xs text-gray-400 mb-3">Одна заявка = один ресторан. Все поля обязательны.</p>
+
+                <!-- Основные данные -->
+                <p class="text-sm font-medium text-gray-700 mb-2 mt-2">Основные данные</p>
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm text-gray-600 mb-1">Название точки *</label>
+                    <label class="block text-sm text-gray-600 mb-1">Название точки <span class="text-red-500">*</span></label>
                     <input [(ngModel)]="newMerchantName" type="text" placeholder="Ресторан на Тверской"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                   </div>
                   <div>
-                    <label class="block text-sm text-gray-600 mb-1">MCC-код</label>
+                    <label class="block text-sm text-gray-600 mb-1">MCC-код <span class="text-red-500">*</span></label>
                     <select [(ngModel)]="newMerchantMcc"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                       <option value="">Выберите категорию</option>
                       <option *ngFor="let mcc of mccCodes" [value]="mcc.mcc">{{ mcc.mcc }} - {{ mcc.name }}</option>
                     </select>
                   </div>
-                  <div>
-                    <label class="block text-sm text-gray-600 mb-1">Сайт</label>
-                    <input [(ngModel)]="newMerchantUrl" type="text" placeholder="http://restaurant.ru"
+                  <div class="col-span-2">
+                    <label class="block text-sm text-gray-600 mb-1">Физический адрес <span class="text-red-500">*</span></label>
+                    <input [(ngModel)]="newMerchantAddress" type="text" placeholder="г. Москва, ул. Тверская, д. 12"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                   </div>
-                  <div>
-                    <label class="block text-sm text-gray-600 mb-1">Кол-во точек продаж</label>
-                    <input [(ngModel)]="newMerchantPosesCount" type="number" placeholder="1" min="1"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                </div>
+
+                <!-- Выбор терминалов (чекбоксы) -->
+                <p class="text-sm font-medium text-gray-700 mb-2 mt-4">Терминалы (кассы) <span class="text-red-500">*</span></p>
+                <div class="bg-white border border-gray-200 rounded-lg p-3 mb-1">
+                  <div *ngFor="let term of availableTerminals" class="flex items-center gap-2 py-1.5">
+                    <input type="checkbox"
+                           [checked]="selectedTerminalIds.has(term.terminalId)"
+                           (change)="toggleTerminalSelection(term.terminalId)"
+                           class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500">
+                    <label class="text-sm text-gray-700">{{ term.terminalName }}</label>
                   </div>
+                </div>
+                <p class="text-xs mb-3" [class]="selectedTerminalIds.size > 0 ? 'text-gray-500' : 'text-red-500'">
+                  Выбрано: {{ selectedTerminalIds.size }} из {{ availableTerminals.length }}
+                  <span *ngIf="selectedTerminalIds.size === 0"> — выберите хотя бы одну кассу</span>
+                </p>
+
+                <!-- Банковские реквизиты -->
+                <p class="text-sm font-medium text-gray-700 mb-2 mt-4">Банковские реквизиты</p>
+                <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm text-gray-600 mb-1">Расчётный счёт</label>
+                    <label class="block text-sm text-gray-600 mb-1">Расчётный счёт <span class="text-red-500">*</span></label>
                     <input [(ngModel)]="newMerchantSettlementAccount" type="text" placeholder="40702810000000000001"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                   </div>
                   <div>
-                    <label class="block text-sm text-gray-600 mb-1">БИК</label>
+                    <label class="block text-sm text-gray-600 mb-1">БИК <span class="text-red-500">*</span></label>
                     <input [(ngModel)]="newMerchantBik" type="text" placeholder="044525225"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                   </div>
                   <div class="col-span-2">
-                    <label class="block text-sm text-gray-600 mb-1">Корреспондентский счёт</label>
+                    <label class="block text-sm text-gray-600 mb-1">Корреспондентский счёт <span class="text-red-500">*</span></label>
                     <input [(ngModel)]="newMerchantCorrAccount" type="text" placeholder="30101810400000000225"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
                   </div>
                 </div>
+
+                <!-- Контактные данные -->
+                <p class="text-sm font-medium text-gray-700 mb-2 mt-4">Контактные данные</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm text-gray-600 mb-1">Фамилия <span class="text-red-500">*</span></label>
+                    <input [(ngModel)]="newMerchantContactLastName" type="text" placeholder="Иванов"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                  </div>
+                  <div>
+                    <label class="block text-sm text-gray-600 mb-1">Имя <span class="text-red-500">*</span></label>
+                    <input [(ngModel)]="newMerchantContactFirstName" type="text" placeholder="Иван"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                  </div>
+                  <div>
+                    <label class="block text-sm text-gray-600 mb-1">Отчество <span class="text-red-500">*</span></label>
+                    <input [(ngModel)]="newMerchantContactMiddleName" type="text" placeholder="Иванович"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                  </div>
+                  <div>
+                    <label class="block text-sm text-gray-600 mb-1">Телефон <span class="text-red-500">*</span></label>
+                    <input [(ngModel)]="newMerchantContactPhone" type="tel" placeholder="+79001234567"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                  </div>
+                  <div class="col-span-2">
+                    <label class="block text-sm text-gray-600 mb-1">Email <span class="text-red-500">*</span></label>
+                    <input [(ngModel)]="newMerchantContactEmail" type="email" placeholder="contact@restaurant.ru"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                  </div>
+                </div>
+
                 <div class="flex gap-2 mt-4">
-                  <button (click)="submitMerchantApplication()" class="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">Подать заявку</button>
+                  <button (click)="submitMerchantApplication()"
+                          [disabled]="!isMerchantFormValid"
+                          [title]="!isMerchantFormValid ? 'Заполните все обязательные поля и выберите хотя бы одну кассу' : ''"
+                          class="px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Подать заявку</button>
                   <button (click)="showMerchantForm = false" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">Отмена</button>
                 </div>
               </div>
 
-              <!-- Таблица заявок -->
+              <!-- Таблица заявок (переработана: статус токена вместо действий) -->
               <div *ngIf="merchants.length === 0" class="text-center text-gray-400 py-12">
                 Нет заявок. Нажмите «Подать заявку» для регистрации торговой точки.
               </div>
@@ -615,8 +698,9 @@ import {
                   <tr class="bg-gray-50 text-left">
                     <th class="px-4 py-2 font-medium text-gray-600">Название</th>
                     <th class="px-4 py-2 font-medium text-gray-600">Статус</th>
+                    <th class="px-4 py-2 font-medium text-gray-600">Токен</th>
                     <th class="px-4 py-2 font-medium text-gray-600">Дата подачи</th>
-                    <th class="px-4 py-2 font-medium text-gray-600">Действия</th>
+                    <th class="px-4 py-2 font-medium text-gray-600"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -627,37 +711,47 @@ import {
                         {{ getStatusLabel(m.registration_status) }}
                       </span>
                     </td>
+                    <td class="px-4 py-3">
+                      <span *ngIf="m.registration_status === 'processing'" class="text-gray-400 text-xs">—</span>
+                      <span *ngIf="m.registration_status === 'failed'" class="text-gray-400 text-xs">—</span>
+                      <ng-container *ngIf="m.registration_status === 'active'">
+                        <span *ngIf="getMerchantTokenStatus(m.merchant_id) === 'pending'"
+                              class="text-yellow-600 text-xs font-medium">⏳ Ожидание токена</span>
+                        <span *ngIf="getMerchantTokenStatus(m.merchant_id) === 'received'"
+                              class="text-green-600 text-xs font-medium">✓ Подключено</span>
+                        <span *ngIf="getMerchantTokenStatus(m.merchant_id) === 'error'"
+                              class="text-red-600 text-xs font-medium">✗ Ошибка токена</span>
+                        <span *ngIf="getMerchantTokenStatus(m.merchant_id) === 'retrying'"
+                              class="text-orange-500 text-xs font-medium">↻ Повторная попытка...</span>
+                        <span *ngIf="getMerchantTokenStatus(m.merchant_id) === 'none'"
+                              class="text-gray-400 text-xs">Ожидание</span>
+                      </ng-container>
+                    </td>
                     <td class="px-4 py-3 text-gray-500">{{ m.created | date:'dd.MM.yyyy' }}</td>
                     <td class="px-4 py-3">
-                      <button *ngIf="m.registration_status === 'active'" (click)="generateMerchantToken(m.merchant_id)"
-                              class="text-sm text-gray-900 hover:underline">Создать токен</button>
-                      <span *ngIf="m.registration_status !== 'active'" class="text-gray-400 text-xs">—</span>
+                      <button *ngIf="m.registration_status === 'active' && getMerchantTokenStatus(m.merchant_id) === 'received'"
+                              (click)="goToSettings(m)"
+                              class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                        Перейти в настройки
+                      </button>
                     </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
-          </div>
 
-          <!-- Вкладка: Токены -->
-          <div *ngIf="oauthSection === 'tokens'">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">User Token</h3>
-            <div *ngIf="merchants.length === 0" class="text-center text-gray-400 py-12">
-              Нет активных мерчантов
-            </div>
-            <div *ngFor="let m of merchants">
-              <div *ngIf="m.registration_status === 'active'" class="mb-4">
-                <h4 class="font-medium text-gray-700 mb-2">{{ m.name }}</h4>
-                <div *ngIf="getMerchantTokens(m.merchant_id).length === 0" class="text-sm text-gray-400 mb-2 ml-2">
-                  Нет токенов. Перейдите на вкладку «Заявки» → «Создать токен».
-                </div>
-                <div *ngFor="let t of getMerchantTokens(m.merchant_id)" class="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-2 mb-1">
-                  <div>
-                    <span class="font-mono text-sm text-gray-900">****{{ t.last_four }}</span>
-                    <span class="text-xs text-gray-400 ml-2">{{ t.token_format }}</span>
-                    <span *ngIf="t.token_value" class="ml-3 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded font-mono">{{ t.token_value }}</span>
-                  </div>
-                  <span class="text-xs text-gray-400">{{ t.created_at | date:'dd.MM.yyyy HH:mm' }}</span>
+              <!-- Индикатор поллинга (P2 #13) -->
+              <div *ngIf="merchants.length > 0" class="flex items-center gap-2 mt-3 text-xs text-gray-400">
+                <lucide-icon name="refresh-cw" [size]="12"></lucide-icon>
+                <span>Статус обновляется раз в 10 минут</span>
+              </div>
+
+              <!-- Подсказка про автоматический токен -->
+              <div *ngIf="merchants.length > 0" class="mt-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                <div class="flex items-start gap-2">
+                  <lucide-icon name="info" [size]="16" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
+                  <p class="text-sm text-blue-700">
+                    Токен будет получен автоматически после одобрения заявки. Управление токенами происходит без вашего участия.
+                  </p>
                 </div>
               </div>
             </div>
@@ -712,10 +806,14 @@ export class CometMainScreenComponent implements OnInit {
   merchants: MerchantInfo[] = [];
   merchantStatuses: Map<string, MerchantStatus> = new Map();
   userTokens: Map<string, UserTokenInfo[]> = new Map();
+  merchantTokenStatusMap: Map<string, MerchantTokenStatus> = new Map();
   mccCodes: MccCode[] = [];
+  availableTerminals: AvailableTerminal[] = MOCK_AVAILABLE_TERMINALS;
+  selectedTerminalIds: Set<string> = new Set();
   showPartnerForm = false;
   showMerchantForm = false;
-  oauthSection: 'partners' | 'merchants' | 'tokens' = 'partners';
+  oauthSection: 'partners' | 'merchants' = 'partners';
+  partnerInnError = '';
 
   // Поля формы партнера
   newPartnerName = '';
@@ -729,14 +827,18 @@ export class CometMainScreenComponent implements OnInit {
   newPartnerEmail = '';
   newPartnerPhone = '';
 
-  // Поля формы мерчанта
+  // Поля формы мерчанта (переработано)
   newMerchantName = '';
   newMerchantMcc = '';
-  newMerchantUrl = '';
-  newMerchantPosesCount = 1;
+  newMerchantAddress = '';
   newMerchantSettlementAccount = '';
   newMerchantBik = '';
   newMerchantCorrAccount = '';
+  newMerchantContactFirstName = '';
+  newMerchantContactLastName = '';
+  newMerchantContactMiddleName = '';
+  newMerchantContactPhone = '';
+  newMerchantContactEmail = '';
 
   ngOnInit(): void {
     this.organizations = this.storage.load('comet', 'organizations', MOCK_ORGANIZATIONS);
@@ -747,6 +849,8 @@ export class CometMainScreenComponent implements OnInit {
       this.oauthState = savedOAuth;
       this.loadPartners();
       this.loadMccCodes();
+      // Восстановить статусы токенов для активных мерчантов
+      this.initMerchantTokenStatuses();
     }
   }
 
@@ -1041,12 +1145,23 @@ export class CometMainScreenComponent implements OnInit {
   }
 
   createPartner(): void {
-    if (!this.newPartnerName.trim()) return;
+    // COR-01: Обязательно только ИНН
+    const inn = this.newPartnerInn.trim();
+    if (!inn) {
+      this.partnerInnError = 'ИНН обязателен';
+      return;
+    }
+    if (!/^\d{10}$|^\d{12}$/.test(inn)) {
+      this.partnerInnError = 'ИНН должен содержать 10 или 12 цифр';
+      return;
+    }
+    this.partnerInnError = '';
+
     const partner: Partner = {
       partner_id: this.generateId(),
-      name: this.newPartnerName,
+      name: this.newPartnerName || `Организация (ИНН ${inn})`,
       registration_data: {
-        tax_ref_number: this.newPartnerInn,
+        tax_ref_number: inn,
         ogrn: this.newPartnerOgrn,
         kpp: this.newPartnerKpp,
         legal_address: this.newPartnerLegalAddress,
@@ -1071,8 +1186,14 @@ export class CometMainScreenComponent implements OnInit {
     this.showToast('Организация создана', partner.name);
   }
 
+  // COR-01: Валидация формы организации (только ИНН)
+  get isPartnerFormValid(): boolean {
+    const inn = this.newPartnerInn.trim();
+    return /^\d{10}$|^\d{12}$/.test(inn);
+  }
+
   submitMerchantApplication(): void {
-    if (!this.selectedPartner || !this.newMerchantName.trim()) return;
+    if (!this.selectedPartner || !this.isMerchantFormValid) return;
     const merchant: MerchantInfo = {
       merchant_id: this.generateId(),
       partner_id: this.selectedPartner.partner_id,
@@ -1091,11 +1212,12 @@ export class CometMainScreenComponent implements OnInit {
     this.resetMerchantForm();
     this.showToast('Заявка подана', merchant.name);
 
-    // Автоматическое одобрение через 10 секунд
+    // Автоматическое одобрение через 10 секунд + автополучение токена
     const partnerId = this.selectedPartner!.partner_id;
+    const merchantId = merchant.merchant_id;
     setTimeout(() => {
       const all = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
-      const idx = all.findIndex(m => m.merchant_id === merchant.merchant_id);
+      const idx = all.findIndex(m => m.merchant_id === merchantId);
       if (idx !== -1 && all[idx].registration_status === 'processing') {
         all[idx].registration_status = 'active';
         all[idx].updated = new Date().toISOString();
@@ -1104,11 +1226,47 @@ export class CometMainScreenComponent implements OnInit {
           this.merchants = all.filter(m => m.partner_id === partnerId);
         }
         this.showToast('Заявка одобрена', merchant.name);
+
+        // COR-05: Автоматическое получение токена
+        this.merchantTokenStatusMap.set(merchantId, 'pending');
+        // Симуляция автополучения токена через 3 секунды
+        setTimeout(() => {
+          this.autoGenerateToken(merchantId);
+        }, 3000);
       }
     }, 10000);
   }
 
-  generateMerchantToken(merchantId: string): void {
+  // Валидация формы мерчанта (COR-02, COR-04, COR-10, COR-12)
+  get isMerchantFormValid(): boolean {
+    return !!(
+      this.newMerchantName.trim() &&
+      this.newMerchantMcc &&
+      this.newMerchantAddress.trim() &&
+      this.selectedTerminalIds.size > 0 &&
+      this.newMerchantSettlementAccount.trim() &&
+      this.newMerchantBik.trim() &&
+      this.newMerchantCorrAccount.trim() &&
+      this.newMerchantContactFirstName.trim() &&
+      this.newMerchantContactLastName.trim() &&
+      this.newMerchantContactMiddleName.trim() &&
+      this.newMerchantContactPhone.trim() &&
+      this.newMerchantContactEmail.trim()
+    );
+  }
+
+  // COR-04: Переключение выбора терминала
+  toggleTerminalSelection(terminalId: string): void {
+    if (this.selectedTerminalIds.has(terminalId)) {
+      this.selectedTerminalIds.delete(terminalId);
+    } else {
+      this.selectedTerminalIds.add(terminalId);
+    }
+    this.selectedTerminalIds = new Set(this.selectedTerminalIds);
+  }
+
+  // COR-05: Автоматическая генерация токена
+  private autoGenerateToken(merchantId: string): void {
     const lastFour = Math.random().toString(36).substring(2, 6);
     const token: UserTokenInfo = {
       id: this.generateId(),
@@ -1122,11 +1280,43 @@ export class CometMainScreenComponent implements OnInit {
     const existing = this.userTokens.get(merchantId) || [];
     existing.push(token);
     this.userTokens.set(merchantId, [...existing]);
-    this.showToast('Токен создан', `****${lastFour}`);
+    this.merchantTokenStatusMap.set(merchantId, 'received');
+    this.showToast('Токен получен автоматически', `Мерчант подключён`);
   }
 
-  getMerchantTokens(merchantId: string): UserTokenInfo[] {
-    return this.userTokens.get(merchantId) || [];
+  // Статус токена мерчанта для UI
+  getMerchantTokenStatus(merchantId: string): MerchantTokenStatus {
+    return this.merchantTokenStatusMap.get(merchantId) || 'none';
+  }
+
+  // COR-09: Навигация в настройки ресторана
+  goToSettings(merchant: MerchantInfo): void {
+    this.activeSection = 'integrations';
+    this.showToast('Переход в настройки', merchant.name);
+  }
+
+  // Инициализация статусов токенов при загрузке
+  private initMerchantTokenStatuses(): void {
+    const allMerchants = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
+    allMerchants.forEach(m => {
+      if (m.registration_status === 'active') {
+        // В моке первый мерчант уже активен — считаем что токен получен
+        this.merchantTokenStatusMap.set(m.merchant_id, 'received');
+        // Генерируем мок-токен если нет
+        if (!this.userTokens.has(m.merchant_id)) {
+          const token: UserTokenInfo = {
+            id: this.generateId(),
+            merchant_id: m.merchant_id,
+            partner_id: m.partner_id,
+            last_four: Math.random().toString(36).substring(2, 6),
+            token_format: 'YANDEX_PAY',
+            created_at: m.updated || new Date().toISOString(),
+            token_value: 'ut_' + Math.random().toString(36).substring(2, 18),
+          };
+          this.userTokens.set(m.merchant_id, [token]);
+        }
+      }
+    });
   }
 
   getStatusLabel(status: string): string {
@@ -1158,16 +1348,22 @@ export class CometMainScreenComponent implements OnInit {
     this.newPartnerUrl = '';
     this.newPartnerEmail = '';
     this.newPartnerPhone = '';
+    this.partnerInnError = '';
   }
 
   private resetMerchantForm(): void {
     this.newMerchantName = '';
     this.newMerchantMcc = '';
-    this.newMerchantUrl = '';
-    this.newMerchantPosesCount = 1;
+    this.newMerchantAddress = '';
     this.newMerchantSettlementAccount = '';
     this.newMerchantBik = '';
     this.newMerchantCorrAccount = '';
+    this.newMerchantContactFirstName = '';
+    this.newMerchantContactLastName = '';
+    this.newMerchantContactMiddleName = '';
+    this.newMerchantContactPhone = '';
+    this.newMerchantContactEmail = '';
+    this.selectedTerminalIds = new Set();
   }
 
   private generateId(): string {

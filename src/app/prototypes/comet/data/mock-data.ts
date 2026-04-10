@@ -1,4 +1,4 @@
-import { Organization, Account, YpTerminal, Partner, MerchantInfo, MerchantStatus, UserTokenInfo, MccCode, OAuthState } from '../types';
+import { Organization, Account, YpTerminal, Partner, MerchantInfo, MerchantStatus, UserTokenInfo, MccCode, OAuthState, AvailableTerminal } from '../types';
 
 export const MOCK_ORGANIZATIONS: Organization[] = [
   {
@@ -149,4 +149,11 @@ export const MOCK_MCC_CODES: MccCode[] = [
   { mcc: '5814', name: 'Фастфуд' },
   { mcc: '7230', name: 'Парикмахерские и косметические услуги' },
   { mcc: '7298', name: 'Оздоровительные и спа-услуги' },
+];
+
+export const MOCK_AVAILABLE_TERMINALS: AvailableTerminal[] = [
+  { terminalId: 'avail-t1', terminalName: 'Касса 1 (бар)' },
+  { terminalId: 'avail-t2', terminalName: 'Касса 2 (зал)' },
+  { terminalId: 'avail-t3', terminalName: 'Касса 3 (терраса)' },
+  { terminalId: 'avail-t4', terminalName: 'Касса 4 (самовывоз)' },
 ];

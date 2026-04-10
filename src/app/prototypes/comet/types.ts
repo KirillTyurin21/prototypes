@@ -121,3 +121,10 @@ export interface MccCode {
   mcc: string;
   name: string;
 }
+
+export interface AvailableTerminal {
+  terminalId: string;
+  terminalName: string;
+}
+
+export type MerchantTokenStatus = 'none' | 'pending' | 'received' | 'error' | 'retrying';
