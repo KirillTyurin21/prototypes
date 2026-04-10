@@ -444,18 +444,23 @@ import {
             <button (click)="logoutOAuth()" class="text-sm text-red-600 hover:text-red-800">Выйти</button>
           </div>
 
-          <!-- Flow-индикатор -->
+          <!-- Flow-индикатор (кликабельный) -->
           <div class="flex items-center gap-2 text-xs text-gray-400 mb-6">
             <span class="text-green-600 font-medium">✓ Авторизация</span>
             <span>→</span>
-            <span [class]="oauthSection === 'partners' ? 'text-gray-900 font-medium' : 'text-gray-400'">Организация</span>
+            <span (click)="oauthSection = 'partners'" class="cursor-pointer hover:underline"
+                  [class]="oauthSection === 'partners' ? 'text-gray-900 font-medium cursor-pointer hover:underline' : 'text-gray-400 cursor-pointer hover:underline'">Организация</span>
             <span>→</span>
-            <span [class]="oauthSection === 'merchants' ? 'text-gray-900 font-medium' : 'text-gray-400'">Заявка</span>
+            <span (click)="oauthSection = 'merchants'" class="cursor-pointer hover:underline"
+                  [class]="oauthSection === 'merchants' ? 'text-gray-900 font-medium cursor-pointer hover:underline' : 'text-gray-400 cursor-pointer hover:underline'">Заявка</span>
             <span>→</span>
-            <span class="text-gray-400">Подключение</span>
+            <span (click)="oauthSection = 'connected'" class="cursor-pointer hover:underline"
+                  [ngClass]="oauthSection === 'connected' ? 'text-gray-900 font-medium' : (connectedMerchants.length > 0 ? 'text-green-600 font-medium' : 'text-gray-400')">
+              {{ connectedMerchants.length > 0 ? '✓ Подключение' : 'Подключение' }}
+            </span>
           </div>
 
-          <!-- Вкладки (без Токенов) -->
+          <!-- Вкладки -->
           <div class="flex gap-1 mb-6 border-b border-gray-200">
             <button (click)="oauthSection = 'partners'"
                     [class]="oauthSection === 'partners' ? 'px-4 py-2 text-sm font-medium border-b-2 border-gray-900 text-gray-900' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
@@ -464,6 +469,14 @@ import {
             <button (click)="oauthSection = 'merchants'"
                     [class]="oauthSection === 'merchants' ? 'px-4 py-2 text-sm font-medium border-b-2 border-gray-900 text-gray-900' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
               <span class="flex items-center gap-1.5"><lucide-icon name="file-check" [size]="14"></lucide-icon> Заявки</span>
+            </button>
+            <button (click)="oauthSection = 'connected'"
+                    [class]="oauthSection === 'connected' ? 'px-4 py-2 text-sm font-medium border-b-2 border-gray-900 text-gray-900' : 'px-4 py-2 text-sm text-gray-500 hover:text-gray-700'">
+              <span class="flex items-center gap-1.5">
+                <lucide-icon name="check-circle-2" [size]="14"></lucide-icon>
+                Подключение
+                <span *ngIf="connectedMerchants.length > 0" class="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-green-100 text-green-700">{{ connectedMerchants.length }}</span>
+              </span>
             </button>
           </div>
 
@@ -575,13 +588,6 @@ import {
                           class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">
                     <lucide-icon name="plus" [size]="16"></lucide-icon>
                     Подать заявку
-                  </button>
-                  <!-- Заготовка для будущего batch (P2 #15) -->
-                  <button disabled
-                          title="Массовая подача заявок будет доступна в будущих версиях"
-                          class="inline-flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-400 text-sm rounded-lg cursor-not-allowed">
-                    <lucide-icon name="plus-circle" [size]="16"></lucide-icon>
-                    Пакетная
                   </button>
                 </div>
               </div>
@@ -750,9 +756,100 @@ import {
                 <div class="flex items-start gap-2">
                   <lucide-icon name="info" [size]="16" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
                   <p class="text-sm text-blue-700">
-                    Токен будет получен автоматически после одобрения заявки. Управление токенами происходит без вашего участия.
+                    Токен будет получен автоматически после одобрения заявки. Используйте панель эмуляции ниже для демонстрации каждого этапа.
                   </p>
                 </div>
+              </div>
+
+              <!-- Эмуляция действий Яндекс.Пэй (для демонстрации полного цикла) -->
+              <div *ngIf="emulationMerchants.length > 0" class="mt-4 border-2 border-dashed border-amber-300 bg-amber-50/70 rounded-lg p-4">
+                <div class="flex items-center gap-2 mb-3">
+                  <lucide-icon name="play-circle" [size]="16" class="text-amber-600"></lucide-icon>
+                  <span class="text-sm font-medium text-amber-800">Эмуляция Яндекс.Пэй</span>
+                  <span class="text-xs text-amber-500 ml-1">(действия на стороне Яндекса)</span>
+                </div>
+                <div class="space-y-2">
+                  <div *ngFor="let m of emulationMerchants"
+                       class="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-amber-200">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="text-sm text-gray-900 truncate">{{ m.name }}</span>
+                      <span class="px-1.5 py-0.5 rounded text-xs whitespace-nowrap" [ngClass]="getStatusColor(m.registration_status)">
+                        {{ getStatusLabel(m.registration_status) }}
+                      </span>
+                      <span *ngIf="m.registration_status === 'active'" class="text-xs text-gray-400 whitespace-nowrap">
+                        токен: {{ getMerchantTokenStatusLabel(m.merchant_id) }}
+                      </span>
+                    </div>
+                    <div class="flex gap-1.5 shrink-0">
+                      <button *ngIf="m.registration_status === 'processing'"
+                              (click)="emuApprove(m)"
+                              class="text-xs px-2.5 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">
+                        ✓ Одобрить
+                      </button>
+                      <button *ngIf="m.registration_status === 'processing'"
+                              (click)="emuReject(m)"
+                              class="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors">
+                        ✗ Отклонить
+                      </button>
+                      <button *ngIf="m.registration_status === 'active' && (getMerchantTokenStatus(m.merchant_id) === 'pending' || getMerchantTokenStatus(m.merchant_id) === 'none')"
+                              (click)="emuIssueToken(m)"
+                              class="text-xs px-2.5 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">
+                        ✓ Выдать токен
+                      </button>
+                      <button *ngIf="m.registration_status === 'active' && (getMerchantTokenStatus(m.merchant_id) === 'pending' || getMerchantTokenStatus(m.merchant_id) === 'none')"
+                              (click)="emuTokenError(m)"
+                              class="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors">
+                        ✗ Ошибка
+                      </button>
+                      <button *ngIf="m.registration_status === 'active' && getMerchantTokenStatus(m.merchant_id) === 'retrying'"
+                              (click)="emuIssueToken(m)"
+                              class="text-xs px-2.5 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">
+                        ✓ Выдать токен
+                      </button>
+                      <button *ngIf="m.registration_status === 'active' && getMerchantTokenStatus(m.merchant_id) === 'retrying'"
+                              (click)="emuTokenError(m)"
+                              class="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors">
+                        ✗ Ошибка
+                      </button>
+                      <button *ngIf="m.registration_status === 'active' && getMerchantTokenStatus(m.merchant_id) === 'error'"
+                              (click)="emuRetryToken(m)"
+                              class="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors">
+                        ↻ Повторить
+                      </button>
+                      <button *ngIf="m.registration_status === 'failed'"
+                              (click)="emuReconsider(m)"
+                              class="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
+                        ↻ Пересмотреть
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Вкладка: Подключение -->
+          <div *ngIf="oauthSection === 'connected'">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Подключённые торговые точки</h3>
+
+            <div *ngIf="connectedMerchants.length === 0" class="text-center text-gray-400 py-12">
+              <lucide-icon name="plug" [size]="48" class="mx-auto mb-3 text-gray-300"></lucide-icon>
+              <p>Нет подключённых торговых точек</p>
+              <p class="text-xs mt-1">Подайте заявку на вкладке «Заявки» и дождитесь подключения</p>
+            </div>
+
+            <div class="space-y-3">
+              <div *ngFor="let m of connectedMerchants" class="bg-white border border-green-200 rounded-lg p-4 animate-fade-in">
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="font-medium text-gray-900">{{ m.name }}</h4>
+                  <span class="px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-50">✓ Подключено</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-3">Токен получен, торговая точка готова к приёму платежей через Яндекс.Пэй</p>
+                <button (click)="goToSettings(m)"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">
+                  <lucide-icon name="settings" [size]="16"></lucide-icon>
+                  Перейти в настройки
+                </button>
               </div>
             </div>
           </div>
@@ -812,7 +909,7 @@ export class CometMainScreenComponent implements OnInit {
   selectedTerminalIds: Set<string> = new Set();
   showPartnerForm = false;
   showMerchantForm = false;
-  oauthSection: 'partners' | 'merchants' = 'partners';
+  oauthSection: 'partners' | 'merchants' | 'connected' = 'partners';
   partnerInnError = '';
 
   // Поля формы партнера
@@ -1210,31 +1307,7 @@ export class CometMainScreenComponent implements OnInit {
     this.merchants = allMerchants.filter(m => m.partner_id === this.selectedPartner!.partner_id);
     this.showMerchantForm = false;
     this.resetMerchantForm();
-    this.showToast('Заявка подана', merchant.name);
-
-    // Автоматическое одобрение через 10 секунд + автополучение токена
-    const partnerId = this.selectedPartner!.partner_id;
-    const merchantId = merchant.merchant_id;
-    setTimeout(() => {
-      const all = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
-      const idx = all.findIndex(m => m.merchant_id === merchantId);
-      if (idx !== -1 && all[idx].registration_status === 'processing') {
-        all[idx].registration_status = 'active';
-        all[idx].updated = new Date().toISOString();
-        this.storage.save('comet', 'merchants', all);
-        if (this.selectedPartner?.partner_id === partnerId) {
-          this.merchants = all.filter(m => m.partner_id === partnerId);
-        }
-        this.showToast('Заявка одобрена', merchant.name);
-
-        // COR-05: Автоматическое получение токена
-        this.merchantTokenStatusMap.set(merchantId, 'pending');
-        // Симуляция автополучения токена через 3 секунды
-        setTimeout(() => {
-          this.autoGenerateToken(merchantId);
-        }, 3000);
-      }
-    }, 10000);
+    this.showToast('Заявка подана', merchant.name + ' — используйте панель эмуляции для одобрения');
   }
 
   // Валидация формы мерчанта (COR-02, COR-04, COR-10, COR-12)
@@ -1322,6 +1395,89 @@ export class CometMainScreenComponent implements OnInit {
         }
       }
     });
+  }
+
+  // --- Эмуляция действий Яндекс.Пэй ---
+
+  /** Мерчанты, требующие действия со стороны Яндекса */
+  get emulationMerchants(): MerchantInfo[] {
+    return this.merchants.filter(m => {
+      if (m.registration_status === 'processing') return true;
+      if (m.registration_status === 'failed') return true;
+      if (m.registration_status === 'active') {
+        const ts = this.getMerchantTokenStatus(m.merchant_id);
+        return ts !== 'received';
+      }
+      return false;
+    });
+  }
+
+  /** Мерчанты с полученным токеном */
+  get connectedMerchants(): MerchantInfo[] {
+    const allMerchants = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
+    return allMerchants.filter(m =>
+      m.registration_status === 'active' && this.getMerchantTokenStatus(m.merchant_id) === 'received'
+    );
+  }
+
+  /** Яндекс одобряет заявку */
+  emuApprove(merchant: MerchantInfo): void {
+    this.updateMerchantStatus(merchant.merchant_id, 'active');
+    this.merchantTokenStatusMap.set(merchant.merchant_id, 'pending');
+    this.showToast('Яндекс: заявка одобрена', merchant.name);
+  }
+
+  /** Яндекс отклоняет заявку */
+  emuReject(merchant: MerchantInfo): void {
+    this.updateMerchantStatus(merchant.merchant_id, 'failed');
+    this.showToast('Яндекс: заявка отклонена', merchant.name);
+  }
+
+  /** Яндекс выдаёт токен */
+  emuIssueToken(merchant: MerchantInfo): void {
+    this.autoGenerateToken(merchant.merchant_id);
+    this.showToast('Яндекс: токен выдан', merchant.name + ' — подключено!');
+  }
+
+  /** Яндекс: ошибка выдачи токена */
+  emuTokenError(merchant: MerchantInfo): void {
+    this.merchantTokenStatusMap.set(merchant.merchant_id, 'error');
+    this.showToast('Яндекс: ошибка токена', merchant.name);
+  }
+
+  /** Яндекс: повторная попытка получения токена */
+  emuRetryToken(merchant: MerchantInfo): void {
+    this.merchantTokenStatusMap.set(merchant.merchant_id, 'retrying');
+    this.showToast('Повторная попытка...', merchant.name);
+  }
+
+  /** Яндекс пересматривает отклонённую заявку */
+  emuReconsider(merchant: MerchantInfo): void {
+    this.updateMerchantStatus(merchant.merchant_id, 'processing');
+    this.merchantTokenStatusMap.delete(merchant.merchant_id);
+    this.showToast('Яндекс: заявка на пересмотре', merchant.name);
+  }
+
+  /** Обновить статус мерчанта в хранилище и UI */
+  private updateMerchantStatus(merchantId: string, status: 'processing' | 'active' | 'failed'): void {
+    const all = this.storage.load<MerchantInfo[]>('comet', 'merchants', MOCK_MERCHANTS);
+    const idx = all.findIndex(m => m.merchant_id === merchantId);
+    if (idx !== -1) {
+      all[idx].registration_status = status;
+      all[idx].updated = new Date().toISOString();
+      this.storage.save('comet', 'merchants', all);
+      if (this.selectedPartner) {
+        this.merchants = all.filter(m => m.partner_id === this.selectedPartner!.partner_id);
+      }
+    }
+  }
+
+  /** Метка статуса токена для отображения в панели эмуляции */
+  getMerchantTokenStatusLabel(merchantId: string): string {
+    const labels: Record<string, string> = {
+      none: 'ожидание', pending: '⏳ ожидание', received: '✓ получен', error: '✗ ошибка', retrying: '↻ повтор',
+    };
+    return labels[this.getMerchantTokenStatus(merchantId)] || 'нет';
   }
 
   getStatusLabel(status: string): string {
