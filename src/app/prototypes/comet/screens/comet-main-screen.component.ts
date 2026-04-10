@@ -494,8 +494,8 @@ import {
             <span (click)="oauthSection = 'merchants'" class="cursor-pointer hover:underline"
                   [class]="oauthSection === 'merchants' ? 'text-gray-900 font-medium cursor-pointer hover:underline' : 'text-gray-400 cursor-pointer hover:underline'">Заявка</span>
             <span>→</span>
-            <span (click)="oauthSection = 'connected'" class="cursor-pointer hover:underline"
-                  [ngClass]="oauthSection === 'connected' ? 'text-gray-900 font-medium' : (connectedMerchants.length > 0 ? 'text-green-600 font-medium' : 'text-gray-400')">
+            <span (click)="oauthSection = 'connected'"
+                  [class]="oauthSection === 'connected' ? 'text-gray-900 font-medium cursor-pointer hover:underline' : (connectedMerchants.length > 0 ? 'text-green-600 font-medium cursor-pointer hover:underline' : 'text-gray-400 cursor-pointer hover:underline')">
               {{ connectedMerchants.length > 0 ? '✓ Подключение' : 'Подключение' }}
             </span>
           </div>
@@ -1169,11 +1169,9 @@ export class CometMainScreenComponent implements OnInit {
     this.updateStoreInOrgs(this.selectedStore.storeId, { terminalsConfigured: newStatus });
     this.selectedStore = { ...this.selectedStore, terminalsConfigured: newStatus };
 
-    // Сохранить ручные изменения в авто-настроенных терминалах
-    if (this.autoConfiguredTerminals.has(this.selectedStore.storeId)) {
-      this.autoConfiguredTerminals.set(this.selectedStore.storeId, [...this.terminals]);
-      this.storage.save('comet', 'autoTerminals', Object.fromEntries(this.autoConfiguredTerminals));
-    }
+    // Сохранить изменения привязок терминалов в localStorage
+    this.autoConfiguredTerminals.set(this.selectedStore.storeId, [...this.terminals]);
+    this.storage.save('comet', 'autoTerminals', Object.fromEntries(this.autoConfiguredTerminals));
 
     this.showToast(toastMsg);
     this.persistOrganizations();
@@ -1625,35 +1623,45 @@ export class CometMainScreenComponent implements OnInit {
     // Автоматическое подключение QR-табличек к терминалам в Интеграциях
     if (merchant.storeId) {
       this.autoConfigureStore(merchant);
+      this.showToast('Яндекс: токен выдан', merchant.name + ' — терминалы подключены!');
+    } else {
+      this.showToast('Яндекс: токен выдан', merchant.name);
     }
-    this.showToast('Яндекс: токен выдан', merchant.name + ' — подключено!');
   }
 
   /** Автоматическое подключение QR-табличек при выдаче токена */
   private autoConfigureStore(merchant: MerchantInfo): void {
+    const storeId = merchant.storeId;
+    if (!storeId) return;
+
     // 1. Установить ключ Яндекс.Пэй на магазине
-    this.updateStoreInOrgs(merchant.storeId!, { hasYandexPayKey: true });
+    this.updateStoreInOrgs(storeId, { hasYandexPayKey: true });
 
     // 2. Сформировать терминалы с автоназначенными QR-табличками
-    const storeData = MOCK_STORE_TERMINALS.find(s => s.storeId === merchant.storeId);
-    if (storeData && merchant.terminalIds?.length) {
+    const storeData = MOCK_STORE_TERMINALS.find(s => s.storeId === storeId);
+    if (storeData && merchant.terminalIds?.length && MOCK_ACCOUNTS.length > 0) {
       const selectedTerminals = storeData.terminals
         .filter(t => merchant.terminalIds!.includes(t.terminalId));
 
-      const autoTerminals: YpTerminal[] = selectedTerminals.map((t, i) => ({
-        terminalId: t.terminalId,
-        terminalName: t.terminalName,
-        accountKey: i < MOCK_ACCOUNTS.length ? MOCK_ACCOUNTS[i].key : null,
-        accountName: i < MOCK_ACCOUNTS.length ? MOCK_ACCOUNTS[i].name : null,
-      }));
+      const autoTerminals: YpTerminal[] = selectedTerminals.map((t, i) => {
+        const acct = MOCK_ACCOUNTS[i % MOCK_ACCOUNTS.length];
+        return {
+          terminalId: t.terminalId,
+          terminalName: t.terminalName,
+          accountKey: acct.key,
+          accountName: acct.name,
+        };
+      });
 
-      this.autoConfiguredTerminals.set(merchant.storeId!, autoTerminals);
+      this.autoConfiguredTerminals.set(storeId, autoTerminals);
       this.storage.save('comet', 'autoTerminals', Object.fromEntries(this.autoConfiguredTerminals));
 
       // Обновить статус привязки терминалов
       const assignedCount = autoTerminals.filter(t => t.accountKey !== null).length;
       const status = assignedCount === autoTerminals.length ? 'full' : assignedCount > 0 ? 'partial' : 'none';
-      this.updateStoreInOrgs(merchant.storeId!, { terminalsConfigured: status });
+      this.updateStoreInOrgs(storeId, { terminalsConfigured: status });
+    } else {
+      this.updateStoreInOrgs(storeId, { terminalsConfigured: 'none' });
     }
 
     this.persistOrganizations();
