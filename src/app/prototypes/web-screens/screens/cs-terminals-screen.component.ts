@@ -335,9 +335,13 @@ import { IconsModule } from '@/shared/icons.module';
   `,
   styles: [`
     /* ── Page ── */
+    :host {
+      display: block;
+      min-height: 100%;
+    }
     .cs-page {
-      padding: 24px;
-      background: #fafafa;
+      padding: 0;
+      background: transparent;
       min-height: 100%;
       font-family: 'Roboto', sans-serif;
     }

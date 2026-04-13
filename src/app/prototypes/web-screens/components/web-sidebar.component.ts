@@ -55,15 +55,10 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
   `,
   styles: [`
     .web-sidebar {
-      position: fixed;
-      top: 64px;
-      left: 0;
-      height: calc(100% - 64px);
       width: 256px;
+      flex-shrink: 0;
       background-color: #f7f8fc;
-      box-shadow: 0 1px 1px rgba(158,158,158,.14),
-                  0 2px 1px rgba(158,158,158,.12),
-                  0 1px 3px rgba(158,158,158,.2);
+      box-shadow: 1px 0 1px rgba(158,158,158,.14);
       z-index: 101;
       display: flex;
       flex-direction: column;

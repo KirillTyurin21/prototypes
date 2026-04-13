@@ -22,49 +22,45 @@ import { filter } from 'rxjs/operators';
         (menuToggle)="toggleSidebar()"
       ></app-web-header>
 
-      <!-- Sidebar -->
-      <app-web-sidebar
-        [collapsed]="sidebarCollapsed"
-        [activeRoute]="activeRoute"
-        (navigate)="onNavigate($event)"
-      ></app-web-sidebar>
+      <!-- Body: sidebar + content -->
+      <div class="web-body">
+        <!-- Sidebar -->
+        <app-web-sidebar
+          [collapsed]="sidebarCollapsed"
+          [activeRoute]="activeRoute"
+          (navigate)="onNavigate($event)"
+        ></app-web-sidebar>
 
-      <!-- Content -->
-      <main
-        class="web-content"
-        [class.sidebar-collapsed]="sidebarCollapsed"
-      >
-        <router-outlet></router-outlet>
-      </main>
+        <!-- Content -->
+        <main class="web-content">
+          <router-outlet></router-outlet>
+        </main>
+      </div>
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      margin: -24px; /* компенсируем p-6 от main-layout */
+    }
     .web-shell {
-      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 64px); /* высота без top-bar основного layout */
       background-color: #ffffff;
       font-family: Roboto, sans-serif;
     }
+    .web-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
     .web-content {
-      margin-top: 64px;
-      margin-left: 256px;
-      min-height: calc(100vh - 64px);
-      padding: 20px 30px;
-      background-color: #ffffff;
-      transition: margin-left 0.4s cubic-bezier(.25,.8,.25,1);
-    }
-    .web-content.sidebar-collapsed {
-      margin-left: 72px;
-    }
-    @media (max-width: 1023px) {
-      .web-content {
-        margin-left: 72px;
-      }
-    }
-    @media (max-width: 767px) {
-      .web-content {
-        margin-left: 0;
-        padding: 16px;
-      }
+      flex: 1;
+      min-width: 0;
+      padding: 20px 24px;
+      background-color: #fafafa;
+      overflow-y: auto;
     }
   `],
 })
