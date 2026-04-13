@@ -2,6 +2,7 @@ import {
   CSControl, ControlElement, CSTheme, ThemeElement, HintAreaSettings,
   Hint, CSTerminal, Campaign, HintAssignment, Discount, ProductNode,
   CSTerminalV2, CSRestaurant, ThemeOption, CampaignOption, HintOption,
+  TerminalGroupOption,
 } from '../cs-types';
 
 // ═══════════════════════════════════════════════
@@ -298,6 +299,14 @@ export const HINT_OPTIONS: HintOption[] = [
   { id: 5, name: 'Детское меню' },
 ];
 
+export const TERMINAL_GROUP_OPTIONS: TerminalGroupOption[] = [
+  { id: 1, name: 'Зал' },
+  { id: 2, name: 'Бар' },
+  { id: 3, name: 'Кухня' },
+  { id: 4, name: 'Доставка' },
+  { id: 5, name: 'Терраса' },
+];
+
 export const CS_RESTAURANTS: CSRestaurant[] = [
   {
     id: 1,
@@ -309,7 +318,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 101, name: 'Касса 1 (Зал)', ip: '192.168.1.10',
         lastActivity: '2026-03-11T14:30:26',
         lastActivityTimezone: '+3',
-        themeId: 1, campaignIds: [1, 2], hintIds: [1, 2, 4],
+        themeId: 1, campaignIds: [1, 2], hintIds: [1, 2, 4], terminalGroupIds: [1, 3],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: false,
       },
@@ -317,7 +326,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 102, name: 'Касса 2 (Терраса)', ip: '192.168.1.11',
         lastActivity: '2026-03-11T14:28:12',
         lastActivityTimezone: '+3',
-        themeId: 1, campaignIds: [1], hintIds: [1, 3],
+        themeId: 1, campaignIds: [1], hintIds: [1, 3], terminalGroupIds: [1, 5],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: true,
       },
@@ -325,7 +334,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 103, name: 'Касса 3 (Бар)', ip: '192.168.1.12',
         lastActivity: '2026-03-10T18:05:44',
         lastActivityTimezone: '+3',
-        themeId: 3, campaignIds: [], hintIds: [],
+        themeId: 3, campaignIds: [], hintIds: [], terminalGroupIds: [2],
         isOnline: false, pluginVersion: '1.8.0', supportsScreenshot: false,
         hasUnsavedChanges: false,
       },
@@ -341,7 +350,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 201, name: 'Терминал 1 (Основной)', ip: '85.140.93.34',
         lastActivity: '2026-03-11T23:30:26',
         lastActivityTimezone: '+10',
-        themeId: 4, campaignIds: [1, 2], hintIds: [1, 2, 3],
+        themeId: 4, campaignIds: [1, 2], hintIds: [1, 2, 3], terminalGroupIds: [1],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: false,
       },
@@ -349,7 +358,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 202, name: 'Терминал 2 (Доставка)', ip: '85.140.93.35',
         lastActivity: '2026-03-11T23:15:08',
         lastActivityTimezone: '+10',
-        themeId: 2, campaignIds: [3], hintIds: [4, 5],
+        themeId: 2, campaignIds: [3], hintIds: [4, 5], terminalGroupIds: [4],
         isOnline: true, pluginVersion: '2.2.0', supportsScreenshot: true,
         hasUnsavedChanges: true,
       },
@@ -365,7 +374,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 301, name: 'Касса 1 (Зал)', ip: '10.0.0.50',
         lastActivity: '2026-03-11T17:45:33',
         lastActivityTimezone: '+7',
-        themeId: 2, campaignIds: [2, 3], hintIds: [1, 2, 3, 4, 5],
+        themeId: 2, campaignIds: [2, 3], hintIds: [1, 2, 3, 4, 5], terminalGroupIds: [1, 2, 3],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: false,
       },
@@ -373,7 +382,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         id: 302, name: 'Касса 2 (Веранда)', ip: '10.0.0.51',
         lastActivity: '2026-03-09T12:10:00',
         lastActivityTimezone: '+7',
-        themeId: 3, campaignIds: [], hintIds: [],
+        themeId: 3, campaignIds: [], hintIds: [], terminalGroupIds: [],
         isOnline: false, pluginVersion: '2.1.0', supportsScreenshot: true,
         hasUnsavedChanges: false,
       },

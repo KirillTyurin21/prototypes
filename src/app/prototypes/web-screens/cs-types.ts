@@ -161,6 +161,18 @@ export interface HintAssignment {
   name: string;
 }
 
+// ─── Терминальные группы (DS-862) ────────────
+
+export interface TerminalGroup {
+  id: number;
+  name: string;
+}
+
+export interface TerminalGroupOption {
+  id: number;
+  name: string;
+}
+
 // ─── Терминалы V2 (расширенные — для экрана настроек дисплея) ───
 
 export interface CSTerminalV2 {
@@ -172,6 +184,7 @@ export interface CSTerminalV2 {
   themeId: number | null;
   campaignIds: number[];
   hintIds: number[];
+  terminalGroupIds: number[];
   isOnline: boolean;
   pluginVersion: string;
   supportsScreenshot: boolean;

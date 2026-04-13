@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, ThemeOption, CampaignOption, HintOption } from './cs-types';
-import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS, CS_RESTAURANTS, THEME_OPTIONS, CAMPAIGN_OPTIONS, HINT_OPTIONS } from './data/cs-mock-data';
+import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, ThemeOption, CampaignOption, HintOption, TerminalGroupOption } from './cs-types';
+import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS, CS_RESTAURANTS, THEME_OPTIONS, CAMPAIGN_OPTIONS, HINT_OPTIONS, TERMINAL_GROUP_OPTIONS } from './data/cs-mock-data';
 import { StorageService } from '@/shared/storage.service';
 
 /**
@@ -22,6 +22,7 @@ export class CsDataService {
   themeOptions: ThemeOption[] = [];
   campaignOptions: CampaignOption[] = [];
   hintOptions: HintOption[] = [];
+  terminalGroupOptions: TerminalGroupOption[] = [];
 
   private nextControlId = 7;
   private nextThemeId = 4;
@@ -54,6 +55,7 @@ export class CsDataService {
     this.themeOptions = THEME_OPTIONS;
     this.campaignOptions = CAMPAIGN_OPTIONS;
     this.hintOptions = HINT_OPTIONS;
+    this.terminalGroupOptions = TERMINAL_GROUP_OPTIONS;
   }
 
   private persist(): void {

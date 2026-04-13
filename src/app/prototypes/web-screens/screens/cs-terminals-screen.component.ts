@@ -101,6 +101,7 @@ import { IconsModule } from '@/shared/icons.module';
                   </th>
                   <th class="cs-th cs-th-terminal">Кассовый аппарат</th>
                   <th class="cs-th cs-th-theme">Тема</th>
+                  <th class="cs-th cs-th-multi">Терминальные группы</th>
                   <th class="cs-th cs-th-multi">Кампании</th>
                   <th class="cs-th cs-th-multi">Настройки</th>
                   <th class="cs-th cs-th-actions"></th>
@@ -157,6 +158,56 @@ import { IconsModule } from '@/shared/icons.module';
                         >
                           <lucide-icon name="x" [size]="14"></lucide-icon>
                         </button>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Campaigns multi-select -->
+                  <td class="cs-td cs-td-multi">
+                    <div class="cs-field-cell" (click)="$event.stopPropagation()">
+                      <span class="cs-field-label">Выбрать</span>
+                      <div class="cs-field-dropdown">
+                        <button
+                          class="cs-multiselect-trigger"
+                          (click)="toggleDropdown(terminal.id, 'terminalGroups')"
+                          type="button"
+                        >
+                          <span class="cs-multiselect-text">
+                            {{ getTerminalGroupsSummary(terminal) }}
+                          </span>
+                          <lucide-icon
+                            [name]="isDropdownOpen(terminal.id, 'terminalGroups') ? 'chevron-up' : 'chevron-down'"
+                            [size]="14"
+                            class="cs-multiselect-chevron"
+                          ></lucide-icon>
+                        </button>
+                        <button
+                          class="cs-clear-btn"
+                          *ngIf="terminal.terminalGroupIds.length > 0"
+                          (click)="clearTerminalGroups(restaurant.id, terminal); $event.stopPropagation()"
+                        >
+                          <lucide-icon name="x" [size]="14"></lucide-icon>
+                        </button>
+                        <div
+                          class="cs-multiselect-dropdown"
+                          *ngIf="isDropdownOpen(terminal.id, 'terminalGroups')"
+                        >
+                          <label
+                            class="cs-multiselect-option"
+                            *ngFor="let opt of dataService.terminalGroupOptions"
+                          >
+                            <input
+                              type="checkbox"
+                              class="cs-checkbox cs-checkbox--small"
+                              [checked]="terminal.terminalGroupIds.includes(opt.id)"
+                              (change)="toggleTerminalGroup(restaurant.id, terminal, opt.id)"
+                            />
+                            <span>{{ opt.name }}</span>
+                          </label>
+                          <div *ngIf="dataService.terminalGroupOptions.length === 0" class="cs-multiselect-empty">
+                            Нет доступных групп
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -288,7 +339,7 @@ import { IconsModule } from '@/shared/icons.module';
 
                 <!-- Empty state -->
                 <tr *ngIf="getFilteredTerminals(restaurant).length === 0">
-                  <td colspan="6" class="cs-td-empty">
+                  <td colspan="7" class="cs-td-empty">
                     <div class="cs-empty-state">
                       <lucide-icon name="monitor" [size]="32" class="text-gray-300"></lucide-icon>
                       <span>Нет терминалов, соответствующих фильтру</span>
@@ -308,6 +359,17 @@ import { IconsModule } from '@/shared/icons.module';
                 <div class="cs-field-dropdown">
                   <select class="cs-select cs-select-sm">
                     <option>{{ getDefaultThemeName(restaurant) }}</option>
+                  </select>
+                  <button class="cs-clear-btn">
+                    <lucide-icon name="x" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="cs-field-cell">
+                <span class="cs-field-label">Выбрать</span>
+                <div class="cs-field-dropdown">
+                  <select class="cs-select cs-select-sm">
+                    <option>{{ getDefaultTerminalGroupsSummary(restaurant) }}</option>
                   </select>
                   <button class="cs-clear-btn">
                     <lucide-icon name="x" [size]="14"></lucide-icon>
@@ -567,7 +629,7 @@ import { IconsModule } from '@/shared/icons.module';
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
-      min-width: 900px;
+      min-width: 1060px;
     }
     .cs-th {
       padding: 10px 12px;
@@ -580,9 +642,9 @@ import { IconsModule } from '@/shared/icons.module';
       white-space: nowrap;
     }
     .cs-th-checkbox { width: 44px; }
-    .cs-th-terminal { width: 280px; }
-    .cs-th-theme { width: 220px; }
-    .cs-th-multi { width: 200px; }
+    .cs-th-terminal { width: 220px; }
+    .cs-th-theme { width: 180px; }
+    .cs-th-multi { width: 180px; }
     .cs-th-actions { width: 56px; text-align: center; }
 
     .cs-td {
@@ -1002,7 +1064,7 @@ export class CsTerminalsScreenComponent {
   showToast = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
-  openDropdown: { terminalId: number; column: 'campaigns' | 'hints' } | null = null;
+  openDropdown: { terminalId: number; column: 'campaigns' | 'hints' | 'terminalGroups' } | null = null;
   isSending = false;
   screenshotLoadingId: number | null = null;
   screenshotModal: TerminalScreenshot | null = null;
@@ -1119,6 +1181,32 @@ export class CsTerminalsScreenComponent {
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
 
+  // ─── Terminal Groups ────────────────────────
+
+  toggleTerminalGroup(restaurantId: number, terminal: CSTerminalV2, groupId: number): void {
+    const idx = terminal.terminalGroupIds.indexOf(groupId);
+    if (idx >= 0) {
+      terminal.terminalGroupIds.splice(idx, 1);
+    } else {
+      terminal.terminalGroupIds.push(groupId);
+    }
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  clearTerminalGroups(restaurantId: number, terminal: CSTerminalV2): void {
+    terminal.terminalGroupIds = [];
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  getTerminalGroupsSummary(terminal: CSTerminalV2): string {
+    if (terminal.terminalGroupIds.length === 0) return '— Все группы —';
+    if (terminal.terminalGroupIds.length === 1) {
+      const opt = this.dataService.terminalGroupOptions.find(g => g.id === terminal.terminalGroupIds[0]);
+      return opt?.name ?? '1 выбрано';
+    }
+    return terminal.terminalGroupIds.length + ' выбрано';
+  }
+
   // ─── Theme ──────────────────────────────────
 
   onThemeChange(restaurantId: number, terminal: CSTerminalV2, themeId: number | null): void {
@@ -1128,7 +1216,7 @@ export class CsTerminalsScreenComponent {
 
   // ─── Multi-select dropdowns ─────────────────
 
-  toggleDropdown(terminalId: number, column: 'campaigns' | 'hints'): void {
+  toggleDropdown(terminalId: number, column: 'campaigns' | 'hints' | 'terminalGroups'): void {
     if (this.openDropdown?.terminalId === terminalId && this.openDropdown?.column === column) {
       this.openDropdown = null;
     } else {
@@ -1136,7 +1224,7 @@ export class CsTerminalsScreenComponent {
     }
   }
 
-  isDropdownOpen(terminalId: number, column: 'campaigns' | 'hints'): boolean {
+  isDropdownOpen(terminalId: number, column: 'campaigns' | 'hints' | 'terminalGroups'): boolean {
     return this.openDropdown?.terminalId === terminalId && this.openDropdown?.column === column;
   }
 
@@ -1227,6 +1315,18 @@ export class CsTerminalsScreenComponent {
       .map(id => this.dataService.hintOptions.find(h => h.id === id)?.name)
       .filter(Boolean);
     return names.length <= 2 ? names.join(', ') : names.length + ' подсказок';
+  }
+
+  getDefaultTerminalGroupsSummary(restaurant: CSRestaurant): string {
+    const allIds = new Set<number>();
+    for (const t of restaurant.terminals) {
+      for (const id of t.terminalGroupIds) allIds.add(id);
+    }
+    if (allIds.size === 0) return 'Все группы';
+    const names = Array.from(allIds)
+      .map(id => this.dataService.terminalGroupOptions.find(g => g.id === id)?.name)
+      .filter(Boolean);
+    return names.length <= 2 ? names.join(', ') : names.length + ' групп';
   }
 
   // ─── Actions ────────────────────────────────
