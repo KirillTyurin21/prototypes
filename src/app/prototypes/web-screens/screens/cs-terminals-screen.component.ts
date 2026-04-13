@@ -21,64 +21,66 @@ import { IconsModule } from '@/shared/icons.module';
     </div>
 
     <div class="cs-page" (click)="onPageClick($event)">
-      <!-- ── Top toolbar ── -->
+      <!-- ── Toolbar ── -->
       <div class="cs-toolbar">
-        <h2 class="cs-toolbar-title">Настройки дисплея</h2>
+        <h2 class="cs-toolbar-title">Настройки экрана</h2>
         <div class="cs-toolbar-actions">
-          <button class="cs-btn cs-btn-outline" (click)="toggleSelectAll()">
-            <lucide-icon name="check" [size]="16"></lucide-icon>
-            {{ isAllSelected() ? 'Снять выделение' : 'Отметить все' }}
-          </button>
+          <button class="cs-btn cs-btn-primary" (click)="save()">СОХРАНИТЬ</button>
           <button
             class="cs-btn cs-btn-outline"
-            [class.cs-btn-outline--active]="showInactive"
-            (click)="showInactive = !showInactive"
-          >
-            <lucide-icon name="eye" [size]="16"></lucide-icon>
-            Показать неактивные
-          </button>
-          <button
-            class="cs-btn cs-btn-primary"
             [disabled]="selectedTerminals.size === 0 || isSending"
             (click)="sendSettings()"
           >
-            <lucide-icon [name]="isSending ? 'loader-2' : 'upload'" [size]="16" [class.cs-spin]="isSending"></lucide-icon>
-            {{ isSending ? 'Отправка...' : 'Отправить настройки' + (selectedTerminals.size > 0 ? ' (' + selectedTerminals.size + ')' : '') }}
-          </button>
-          <button class="cs-btn cs-btn-outline" (click)="save()">
-            <lucide-icon name="save" [size]="16"></lucide-icon>
-            Сохранить
+            <lucide-icon [name]="isSending ? 'loader-2' : 'settings'" [size]="16" [class.cs-spin]="isSending"></lucide-icon>
+            {{ isSending ? 'ОТПРАВКА...' : 'ОТПРАВИТЬ НАСТРОЙКИ' + (selectedTerminals.size > 0 ? ' (' + selectedTerminals.size + ')' : '') }}
           </button>
         </div>
       </div>
 
+      <!-- ── Search row ── -->
+      <div class="cs-search-row">
+        <input
+          type="text"
+          class="cs-search-input"
+          placeholder="Поиск по ресторану"
+          [(ngModel)]="searchRestaurant"
+        />
+        <input
+          type="text"
+          class="cs-search-input"
+          placeholder="Поиск по терминалу"
+          [(ngModel)]="searchTerminal"
+        />
+      </div>
+
+      <!-- ── System settings button ── -->
+      <div class="cs-system-row">
+        <button class="cs-btn cs-btn-green" (click)="showSystemSettingsModal = true">
+          СИСТЕМНЫЕ НАСТРОЙКИ
+        </button>
+      </div>
+
       <!-- ── Accordion of restaurants ── -->
-      <div class="cs-accordion" *ngFor="let restaurant of dataService.restaurants">
+      <div class="cs-accordion" *ngFor="let restaurant of getFilteredRestaurants()">
         <!-- Accordion header -->
         <div
           class="cs-accordion-header"
           (click)="toggleRestaurant(restaurant.id)"
         >
-          <div class="cs-accordion-header-left">
-            <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
-              <input
-                type="checkbox"
-                class="cs-checkbox"
-                [checked]="isRestaurantSelected(restaurant)"
-                (change)="toggleSelectRestaurant(restaurant)"
-              />
-            </label>
-            <span class="cs-accordion-name">{{ restaurant.name }}</span>
-            <span class="cs-accordion-badge">
-              {{ getVisibleTerminals(restaurant).length }}
-              {{ getTerminalWord(getVisibleTerminals(restaurant).length) }}
+          <span class="cs-accordion-name">
+            Торг. предприятие ({{ getFilteredTerminals(restaurant).length }})
+          </span>
+          <div class="cs-accordion-right">
+            <span class="cs-accordion-count">
+              {{ getFilteredTerminals(restaurant).length }}
+              {{ getTerminalWord(getFilteredTerminals(restaurant).length) }}
             </span>
+            <lucide-icon
+              [name]="expandedRestaurants.has(restaurant.id) ? 'chevron-up' : 'chevron-down'"
+              [size]="20"
+              class="cs-accordion-chevron"
+            ></lucide-icon>
           </div>
-          <lucide-icon
-            [name]="expandedRestaurants.has(restaurant.id) ? 'chevron-up' : 'chevron-down'"
-            [size]="20"
-            class="cs-accordion-chevron"
-          ></lucide-icon>
         </div>
 
         <!-- Accordion content -->
@@ -87,19 +89,27 @@ import { IconsModule } from '@/shared/icons.module';
             <table class="cs-table">
               <thead>
                 <tr>
-                  <th class="cs-th cs-th-checkbox"></th>
-                  <th class="cs-th cs-th-terminal">Терминал</th>
+                  <th class="cs-th cs-th-checkbox">
+                    <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
+                      <input
+                        type="checkbox"
+                        class="cs-checkbox"
+                        [checked]="isRestaurantSelected(restaurant)"
+                        (change)="toggleSelectRestaurant(restaurant)"
+                      />
+                    </label>
+                  </th>
+                  <th class="cs-th cs-th-terminal">Кассовый аппарат</th>
                   <th class="cs-th cs-th-theme">Тема</th>
                   <th class="cs-th cs-th-multi">Кампании</th>
-                  <th class="cs-th cs-th-multi">Подсказки</th>
-                  <th class="cs-th cs-th-actions">Действия</th>
+                  <th class="cs-th cs-th-multi">Настройки</th>
+                  <th class="cs-th cs-th-actions"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  *ngFor="let terminal of getVisibleTerminals(restaurant)"
+                  *ngFor="let terminal of getFilteredTerminals(restaurant)"
                   class="cs-row"
-                  [class.cs-row--offline]="!terminal.isOnline"
                 >
                   <!-- Checkbox -->
                   <td class="cs-td cs-td-checkbox">
@@ -115,117 +125,137 @@ import { IconsModule } from '@/shared/icons.module';
 
                   <!-- Terminal info -->
                   <td class="cs-td cs-td-terminal">
-                    <div class="cs-terminal-name-row">
-                      <span
-                        class="cs-status-dot"
-                        [class.cs-status-dot--online]="terminal.isOnline"
-                        [class.cs-status-dot--offline]="!terminal.isOnline"
-                      ></span>
+                    <div class="cs-terminal-row">
+                      <lucide-icon name="monitor" [size]="18" class="cs-terminal-icon"></lucide-icon>
                       <span class="cs-terminal-name">{{ terminal.name }}</span>
-                      <span
-                        *ngIf="terminal.hasUnsavedChanges"
-                        class="cs-badge-changed"
-                      >
-                        Изменено
-                      </span>
-                    </div>
-                    <div class="cs-terminal-ip">{{ terminal.ip }}</div>
-                    <div class="cs-terminal-activity">
-                      <lucide-icon name="clock" [size]="12" class="cs-activity-icon"></lucide-icon>
-                      Последняя активность: {{ formatLastActivity(terminal) }}
+                      <button class="cs-edit-name-btn" title="Переименовать" (click)="$event.stopPropagation()">
+                        <lucide-icon name="pencil" [size]="14"></lucide-icon>
+                      </button>
                     </div>
                   </td>
 
                   <!-- Theme select -->
                   <td class="cs-td cs-td-theme">
-                    <select
-                      class="cs-select"
-                      [ngModel]="terminal.themeId"
-                      (ngModelChange)="onThemeChange(restaurant.id, terminal, $event)"
-                    >
-                      <option [ngValue]="null">— Не выбрана —</option>
-                      <option
-                        *ngFor="let theme of dataService.themeOptions"
-                        [ngValue]="theme.id"
-                      >{{ theme.name }}</option>
-                    </select>
+                    <div class="cs-field-cell" (click)="$event.stopPropagation()">
+                      <span class="cs-field-label">Выбрать</span>
+                      <div class="cs-field-dropdown">
+                        <select
+                          class="cs-select"
+                          [ngModel]="terminal.themeId"
+                          (ngModelChange)="onThemeChange(restaurant.id, terminal, $event)"
+                        >
+                          <option [ngValue]="null">Выбрать</option>
+                          <option
+                            *ngFor="let theme of dataService.themeOptions"
+                            [ngValue]="theme.id"
+                          >{{ theme.name }}</option>
+                        </select>
+                        <button
+                          class="cs-clear-btn"
+                          *ngIf="terminal.themeId !== null"
+                          (click)="onThemeChange(restaurant.id, terminal, null); $event.stopPropagation()"
+                        >
+                          <lucide-icon name="x" [size]="14"></lucide-icon>
+                        </button>
+                      </div>
+                    </div>
                   </td>
 
                   <!-- Campaigns multi-select -->
                   <td class="cs-td cs-td-multi">
-                    <div class="cs-multiselect" (click)="$event.stopPropagation()">
-                      <button
-                        class="cs-multiselect-trigger"
-                        (click)="toggleDropdown(terminal.id, 'campaigns')"
-                        type="button"
-                      >
-                        <span class="cs-multiselect-text">
-                          {{ getCampaignsSummary(terminal) }}
-                        </span>
-                        <lucide-icon
-                          [name]="isDropdownOpen(terminal.id, 'campaigns') ? 'chevron-up' : 'chevron-down'"
-                          [size]="14"
-                          class="cs-multiselect-chevron"
-                        ></lucide-icon>
-                      </button>
-                      <div
-                        class="cs-multiselect-dropdown"
-                        *ngIf="isDropdownOpen(terminal.id, 'campaigns')"
-                      >
-                        <label
-                          class="cs-multiselect-option"
-                          *ngFor="let opt of dataService.campaignOptions"
+                    <div class="cs-field-cell" (click)="$event.stopPropagation()">
+                      <span class="cs-field-label">Выбрать</span>
+                      <div class="cs-field-dropdown">
+                        <button
+                          class="cs-multiselect-trigger"
+                          (click)="toggleDropdown(terminal.id, 'campaigns')"
+                          type="button"
                         >
-                          <input
-                            type="checkbox"
-                            class="cs-checkbox cs-checkbox--small"
-                            [checked]="terminal.campaignIds.includes(opt.id)"
-                            (change)="toggleCampaign(restaurant.id, terminal, opt.id)"
-                          />
-                          <span>{{ opt.name }}</span>
-                        </label>
-                        <div *ngIf="dataService.campaignOptions.length === 0" class="cs-multiselect-empty">
-                          Нет доступных кампаний
+                          <span class="cs-multiselect-text">
+                            {{ getCampaignsSummary(terminal) }}
+                          </span>
+                          <lucide-icon
+                            [name]="isDropdownOpen(terminal.id, 'campaigns') ? 'chevron-up' : 'chevron-down'"
+                            [size]="14"
+                            class="cs-multiselect-chevron"
+                          ></lucide-icon>
+                        </button>
+                        <button
+                          class="cs-clear-btn"
+                          *ngIf="terminal.campaignIds.length > 0"
+                          (click)="clearCampaigns(restaurant.id, terminal); $event.stopPropagation()"
+                        >
+                          <lucide-icon name="x" [size]="14"></lucide-icon>
+                        </button>
+                        <div
+                          class="cs-multiselect-dropdown"
+                          *ngIf="isDropdownOpen(terminal.id, 'campaigns')"
+                        >
+                          <label
+                            class="cs-multiselect-option"
+                            *ngFor="let opt of dataService.campaignOptions"
+                          >
+                            <input
+                              type="checkbox"
+                              class="cs-checkbox cs-checkbox--small"
+                              [checked]="terminal.campaignIds.includes(opt.id)"
+                              (change)="toggleCampaign(restaurant.id, terminal, opt.id)"
+                            />
+                            <span>{{ opt.name }}</span>
+                          </label>
+                          <div *ngIf="dataService.campaignOptions.length === 0" class="cs-multiselect-empty">
+                            Нет доступных кампаний
+                          </div>
                         </div>
                       </div>
                     </div>
                   </td>
 
-                  <!-- Hints multi-select -->
+                  <!-- Settings (hints) multi-select -->
                   <td class="cs-td cs-td-multi">
-                    <div class="cs-multiselect" (click)="$event.stopPropagation()">
-                      <button
-                        class="cs-multiselect-trigger"
-                        (click)="toggleDropdown(terminal.id, 'hints')"
-                        type="button"
-                      >
-                        <span class="cs-multiselect-text">
-                          {{ getHintsSummary(terminal) }}
-                        </span>
-                        <lucide-icon
-                          [name]="isDropdownOpen(terminal.id, 'hints') ? 'chevron-up' : 'chevron-down'"
-                          [size]="14"
-                          class="cs-multiselect-chevron"
-                        ></lucide-icon>
-                      </button>
-                      <div
-                        class="cs-multiselect-dropdown"
-                        *ngIf="isDropdownOpen(terminal.id, 'hints')"
-                      >
-                        <label
-                          class="cs-multiselect-option"
-                          *ngFor="let opt of dataService.hintOptions"
+                    <div class="cs-field-cell" (click)="$event.stopPropagation()">
+                      <span class="cs-field-label">Выбрать</span>
+                      <div class="cs-field-dropdown">
+                        <button
+                          class="cs-multiselect-trigger"
+                          (click)="toggleDropdown(terminal.id, 'hints')"
+                          type="button"
                         >
-                          <input
-                            type="checkbox"
-                            class="cs-checkbox cs-checkbox--small"
-                            [checked]="terminal.hintIds.includes(opt.id)"
-                            (change)="toggleHint(restaurant.id, terminal, opt.id)"
-                          />
-                          <span>{{ opt.name }}</span>
-                        </label>
-                        <div *ngIf="dataService.hintOptions.length === 0" class="cs-multiselect-empty">
-                          Нет доступных подсказок
+                          <span class="cs-multiselect-text">
+                            {{ getHintsSummary(terminal) }}
+                          </span>
+                          <lucide-icon
+                            [name]="isDropdownOpen(terminal.id, 'hints') ? 'chevron-up' : 'chevron-down'"
+                            [size]="14"
+                            class="cs-multiselect-chevron"
+                          ></lucide-icon>
+                        </button>
+                        <button
+                          class="cs-clear-btn"
+                          *ngIf="terminal.hintIds.length > 0"
+                          (click)="clearHints(restaurant.id, terminal); $event.stopPropagation()"
+                        >
+                          <lucide-icon name="x" [size]="14"></lucide-icon>
+                        </button>
+                        <div
+                          class="cs-multiselect-dropdown"
+                          *ngIf="isDropdownOpen(terminal.id, 'hints')"
+                        >
+                          <label
+                            class="cs-multiselect-option"
+                            *ngFor="let opt of dataService.hintOptions"
+                          >
+                            <input
+                              type="checkbox"
+                              class="cs-checkbox cs-checkbox--small"
+                              [checked]="terminal.hintIds.includes(opt.id)"
+                              (change)="toggleHint(restaurant.id, terminal, opt.id)"
+                            />
+                            <span>{{ opt.name }}</span>
+                          </label>
+                          <div *ngIf="dataService.hintOptions.length === 0" class="cs-multiselect-empty">
+                            Нет доступных настроек
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -235,34 +265,33 @@ import { IconsModule } from '@/shared/icons.module';
                   <td class="cs-td cs-td-actions">
                     <button
                       class="cs-icon-btn"
-                      [class.cs-icon-btn--disabled]="!terminal.supportsScreenshot"
-                      [disabled]="!terminal.supportsScreenshot || screenshotLoadingId === terminal.id"
-                      [title]="!terminal.supportsScreenshot ? 'Версия плагина не поддерживает скриншоты' : 'Получить скриншот'"
+                      *ngIf="terminal.supportsScreenshot && terminal.isOnline"
+                      [disabled]="screenshotLoadingId === terminal.id"
+                      title="Получить скриншот"
                       (click)="requestScreenshot(terminal, restaurant)"
                     >
                       <lucide-icon
                         [name]="screenshotLoadingId === terminal.id ? 'loader-2' : 'camera'"
-                        [size]="16"
+                        [size]="18"
                         [class.cs-spin]="screenshotLoadingId === terminal.id"
                       ></lucide-icon>
                     </button>
                     <button
-                      class="cs-icon-btn cs-icon-btn--danger"
-                      title="Удалить терминал"
-                      (click)="deleteTerminal(restaurant, terminal)"
+                      class="cs-icon-btn cs-icon-btn--add"
+                      *ngIf="!terminal.supportsScreenshot || !terminal.isOnline"
+                      title="Добавить"
                     >
-                      <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+                      <lucide-icon name="plus-circle" [size]="18"></lucide-icon>
                     </button>
                   </td>
                 </tr>
 
                 <!-- Empty state -->
-                <tr *ngIf="getVisibleTerminals(restaurant).length === 0">
+                <tr *ngIf="getFilteredTerminals(restaurant).length === 0">
                   <td colspan="6" class="cs-td-empty">
                     <div class="cs-empty-state">
                       <lucide-icon name="monitor" [size]="32" class="text-gray-300"></lucide-icon>
-                      <span *ngIf="!showInactive">Нет активных терминалов. Включите «Показать неактивные» для отображения всех.</span>
-                      <span *ngIf="showInactive">Нет терминалов в этом ресторане.</span>
+                      <span>Нет терминалов, соответствующих фильтру</span>
                     </div>
                   </td>
                 </tr>
@@ -273,25 +302,51 @@ import { IconsModule } from '@/shared/icons.module';
           <!-- Footer: default bindings -->
           <div class="cs-default-row">
             <span class="cs-default-label">Привязка по умолчанию:</span>
-            <span class="cs-default-value">
-              Тема: {{ getDefaultThemeName(restaurant) }}
-            </span>
-            <span class="cs-default-sep">&bull;</span>
-            <span class="cs-default-value">
-              Кампании: {{ getDefaultCampaignsSummary(restaurant) }}
-            </span>
-            <span class="cs-default-sep">&bull;</span>
-            <span class="cs-default-value">
-              Подсказки: {{ getDefaultHintsSummary(restaurant) }}
-            </span>
+            <div class="cs-default-fields">
+              <div class="cs-field-cell">
+                <span class="cs-field-label">Выбрать</span>
+                <div class="cs-field-dropdown">
+                  <select class="cs-select cs-select-sm">
+                    <option>{{ getDefaultThemeName(restaurant) }}</option>
+                  </select>
+                  <button class="cs-clear-btn">
+                    <lucide-icon name="x" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="cs-field-cell">
+                <span class="cs-field-label">Выбрать</span>
+                <div class="cs-field-dropdown">
+                  <select class="cs-select cs-select-sm">
+                    <option>{{ getDefaultCampaignsSummary(restaurant) }}</option>
+                  </select>
+                  <button class="cs-clear-btn">
+                    <lucide-icon name="x" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="cs-field-cell">
+                <span class="cs-field-label">Выбрать</span>
+                <div class="cs-field-dropdown">
+                  <select class="cs-select cs-select-sm">
+                    <option>{{ getDefaultHintsSummary(restaurant) }}</option>
+                  </select>
+                  <button class="cs-clear-btn">
+                    <lucide-icon name="x" [size]="14"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- No restaurants -->
-      <div *ngIf="dataService.restaurants.length === 0" class="cs-no-data">
+      <div *ngIf="getFilteredRestaurants().length === 0" class="cs-no-data">
         <lucide-icon name="monitor" [size]="48" class="text-gray-300"></lucide-icon>
-        <p class="text-gray-500 mt-2">Нет подключённых ресторанов</p>
+        <p class="text-gray-500 mt-2">
+          {{ searchRestaurant || searchTerminal ? 'Ничего не найдено' : 'Нет подключённых ресторанов' }}
+        </p>
       </div>
     </div>
 
@@ -332,6 +387,24 @@ import { IconsModule } from '@/shared/icons.module';
         </div>
       </div>
     </div>
+
+    <!-- System Settings Modal -->
+    <div class="cs-modal-overlay" *ngIf="showSystemSettingsModal" (click)="showSystemSettingsModal = false">
+      <div class="cs-modal" (click)="$event.stopPropagation()">
+        <div class="cs-modal-header">
+          <h3 class="cs-modal-title">Системные настройки</h3>
+          <button class="cs-icon-btn" (click)="showSystemSettingsModal = false">
+            <lucide-icon name="x" [size]="20"></lucide-icon>
+          </button>
+        </div>
+        <div class="cs-modal-body">
+          <p style="color: #757575; font-size: 14px;">Настройки системного уровня будут доступны в следующей версии.</p>
+        </div>
+        <div class="cs-modal-footer">
+          <button class="cs-btn cs-btn-outline" (click)="showSystemSettingsModal = false">Закрыть</button>
+        </div>
+      </div>
+    </div>
   `,
   styles: [`
     /* ── Page ── */
@@ -357,7 +430,7 @@ import { IconsModule } from '@/shared/icons.module';
     }
     .cs-toolbar-title {
       font-size: 20px;
-      font-weight: 500;
+      font-weight: 400;
       color: rgba(0,0,0,.87);
       margin: 0;
     }
@@ -368,12 +441,43 @@ import { IconsModule } from '@/shared/icons.module';
       flex-wrap: wrap;
     }
 
+    /* ── Search row ── */
+    .cs-search-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .cs-search-input {
+      padding: 8px 14px;
+      font-size: 14px;
+      font-family: 'Roboto', sans-serif;
+      border: 1px solid rgba(0,0,0,.23);
+      border-radius: 4px;
+      background: #fff;
+      color: rgba(0,0,0,.87);
+      width: 220px;
+      transition: border-color .15s;
+    }
+    .cs-search-input::placeholder {
+      color: #9e9e9e;
+    }
+    .cs-search-input:focus {
+      border-color: #1976d2;
+      outline: none;
+      box-shadow: 0 0 0 1px #1976d2;
+    }
+
+    /* ── System settings row ── */
+    .cs-system-row {
+      margin-bottom: 20px;
+    }
+
     /* ── Buttons ── */
     .cs-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 7px 16px;
+      padding: 8px 20px;
       font-size: 13px;
       font-weight: 500;
       font-family: 'Roboto', sans-serif;
@@ -383,31 +487,35 @@ import { IconsModule } from '@/shared/icons.module';
       white-space: nowrap;
       border: 1px solid transparent;
       line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: .3px;
     }
     .cs-btn-outline {
       background: #fff;
-      color: rgba(0,0,0,.87);
+      color: rgba(0,0,0,.6);
       border-color: rgba(0,0,0,.23);
     }
     .cs-btn-outline:hover {
       background: #f5f5f5;
       border-color: rgba(0,0,0,.4);
     }
-    .cs-btn-outline--active {
-      background: #e3f2fd;
-      color: #1976d2;
-      border-color: #1976d2;
-    }
-    .cs-btn-outline--active:hover {
-      background: #bbdefb;
-    }
     .cs-btn-primary {
       background: #1976d2;
       color: #fff;
       border-color: #1976d2;
+      box-shadow: 0 2px 4px rgba(25,118,210,.3);
     }
     .cs-btn-primary:hover {
       background: #1565c0;
+    }
+    .cs-btn-green {
+      background: #4caf50;
+      color: #fff;
+      border-color: #4caf50;
+      box-shadow: 0 2px 4px rgba(76,175,80,.3);
+    }
+    .cs-btn-green:hover {
+      background: #43a047;
     }
 
     /* ── Accordion ── */
@@ -416,13 +524,13 @@ import { IconsModule } from '@/shared/icons.module';
       border: 1px solid rgba(0,0,0,.12);
       border-radius: 4px;
       margin-bottom: 8px;
-      overflow: hidden;
+      overflow: visible;
     }
     .cs-accordion-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 14px 16px;
       cursor: pointer;
       user-select: none;
       transition: background .15s;
@@ -430,23 +538,19 @@ import { IconsModule } from '@/shared/icons.module';
     .cs-accordion-header:hover {
       background: #fafafa;
     }
-    .cs-accordion-header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
     .cs-accordion-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
       color: rgba(0,0,0,.87);
     }
-    .cs-accordion-badge {
-      font-size: 12px;
-      color: #616161;
-      background: #f5f5f5;
-      border-radius: 10px;
-      padding: 2px 10px;
-      font-weight: 400;
+    .cs-accordion-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .cs-accordion-count {
+      font-size: 13px;
+      color: #757575;
     }
     .cs-accordion-chevron {
       color: #9e9e9e;
@@ -470,23 +574,21 @@ import { IconsModule } from '@/shared/icons.module';
       font-size: 12px;
       font-weight: 500;
       color: #616161;
-      text-transform: uppercase;
-      letter-spacing: .03em;
       text-align: left;
-      background: #f5f5f5;
+      background: #fafafa;
       border-bottom: 1px solid rgba(0,0,0,.12);
       white-space: nowrap;
     }
     .cs-th-checkbox { width: 44px; }
-    .cs-th-terminal { width: 260px; }
-    .cs-th-theme { width: 200px; }
+    .cs-th-terminal { width: 280px; }
+    .cs-th-theme { width: 220px; }
     .cs-th-multi { width: 200px; }
-    .cs-th-actions { width: 80px; text-align: center; }
+    .cs-th-actions { width: 56px; text-align: center; }
 
     .cs-td {
       padding: 10px 12px;
-      border-bottom: 1px solid rgba(0,0,0,.08);
-      vertical-align: top;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      vertical-align: middle;
       font-size: 14px;
       color: rgba(0,0,0,.87);
     }
@@ -497,7 +599,6 @@ import { IconsModule } from '@/shared/icons.module';
 
     .cs-row { transition: background .1s; }
     .cs-row:hover { background: #f8fbff; }
-    .cs-row--offline { opacity: .65; }
 
     .cs-td-empty {
       padding: 40px 16px;
@@ -513,48 +614,72 @@ import { IconsModule } from '@/shared/icons.module';
     }
 
     /* ── Terminal cell ── */
-    .cs-terminal-name-row {
+    .cs-terminal-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 2px;
+    }
+    .cs-terminal-icon {
+      color: #9e9e9e;
+      flex-shrink: 0;
     }
     .cs-terminal-name {
-      font-weight: 500;
+      font-weight: 400;
       font-size: 14px;
       color: rgba(0,0,0,.87);
     }
-    .cs-terminal-ip {
-      font-size: 12px;
-      color: #9e9e9e;
-      margin-bottom: 2px;
+    .cs-edit-name-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #bdbdbd;
+      border-radius: 50%;
+      transition: all .15s;
     }
-    .cs-terminal-activity {
+    .cs-edit-name-btn:hover {
+      background: #f5f5f5;
+      color: #757575;
+    }
+
+    /* ── Field cell (Выбрать + dropdown + clear) ── */
+    .cs-field-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cs-field-label {
+      font-size: 11px;
+      color: #9e9e9e;
+      line-height: 1;
+    }
+    .cs-field-dropdown {
       display: flex;
       align-items: center;
       gap: 4px;
-      font-size: 11px;
-      color: #9e9e9e;
+      position: relative;
     }
-    .cs-activity-icon {
+    .cs-clear-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
       color: #bdbdbd;
-    }
-    .cs-status-dot {
-      width: 8px;
-      height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
+      transition: all .15s;
     }
-    .cs-status-dot--online { background: #4caf50; }
-    .cs-status-dot--offline { background: #ef5350; }
-
-    .cs-badge-changed {
-      font-size: 11px;
-      padding: 1px 7px;
-      border-radius: 3px;
-      background: #fff3e0;
-      color: #e65100;
-      font-weight: 500;
+    .cs-clear-btn:hover {
+      background: #f5f5f5;
+      color: #757575;
     }
 
     /* ── Checkbox ── */
@@ -607,13 +732,14 @@ import { IconsModule } from '@/shared/icons.module';
 
     /* ── Native select (theme) ── */
     .cs-select {
-      width: 100%;
-      padding: 7px 28px 7px 10px;
+      flex: 1;
+      min-width: 0;
+      padding: 6px 28px 6px 10px;
       font-size: 13px;
       font-family: 'Roboto', sans-serif;
-      border: 1px solid rgba(0,0,0,.23);
+      border: 1px solid rgba(0,0,0,.2);
       border-radius: 4px;
-      background: #f5f5f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23757575'/%3E%3C/svg%3E") no-repeat right 10px center;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23757575'/%3E%3C/svg%3E") no-repeat right 10px center;
       appearance: none;
       -webkit-appearance: none;
       cursor: pointer;
@@ -621,29 +747,31 @@ import { IconsModule } from '@/shared/icons.module';
       transition: border-color .15s;
     }
     .cs-select:hover {
-      border-color: rgba(0,0,0,.6);
+      border-color: rgba(0,0,0,.4);
     }
     .cs-select:focus {
       border-color: #1976d2;
       outline: none;
       box-shadow: 0 0 0 1px #1976d2;
     }
+    .cs-select-sm {
+      padding: 5px 28px 5px 8px;
+      font-size: 12px;
+    }
 
     /* ── Multi-select ── */
-    .cs-multiselect {
-      position: relative;
-    }
     .cs-multiselect-trigger {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      width: 100%;
-      padding: 7px 10px;
+      flex: 1;
+      min-width: 0;
+      padding: 6px 10px;
       font-size: 13px;
       font-family: 'Roboto', sans-serif;
-      border: 1px solid rgba(0,0,0,.23);
+      border: 1px solid rgba(0,0,0,.2);
       border-radius: 4px;
-      background: #f5f5f5;
+      background: #fff;
       cursor: pointer;
       color: rgba(0,0,0,.87);
       text-align: left;
@@ -651,7 +779,7 @@ import { IconsModule } from '@/shared/icons.module';
       gap: 4px;
     }
     .cs-multiselect-trigger:hover {
-      border-color: rgba(0,0,0,.6);
+      border-color: rgba(0,0,0,.4);
     }
     .cs-multiselect-trigger:focus {
       border-color: #1976d2;
@@ -714,9 +842,9 @@ import { IconsModule } from '@/shared/icons.module';
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 4px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       border: none;
       background: transparent;
       cursor: pointer;
@@ -724,30 +852,30 @@ import { IconsModule } from '@/shared/icons.module';
       color: #757575;
     }
     .cs-icon-btn:hover { background: #f5f5f5; }
-    .cs-icon-btn--danger { color: #e53935; }
-    .cs-icon-btn--danger:hover { background: #fce4ec; }
+    .cs-icon-btn--add { color: #9e9e9e; }
+    .cs-icon-btn--add:hover { color: #616161; }
 
     /* ── Footer default row ── */
     .cs-default-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
+      gap: 16px;
+      padding: 12px 16px;
       background: #fafafa;
       border-top: 1px solid rgba(0,0,0,.06);
-      font-size: 12px;
-      color: #9e9e9e;
+      font-size: 13px;
+      color: #757575;
       flex-wrap: wrap;
     }
     .cs-default-label {
       font-weight: 500;
-      color: #757575;
+      color: rgba(0,0,0,.6);
+      white-space: nowrap;
     }
-    .cs-default-value {
-      color: #9e9e9e;
-    }
-    .cs-default-sep {
-      color: #e0e0e0;
+    .cs-default-fields {
+      display: flex;
+      gap: 16px;
+      flex: 1;
     }
 
     /* ── No data ── */
@@ -765,12 +893,9 @@ import { IconsModule } from '@/shared/icons.module';
       border-color: #90caf9;
       cursor: not-allowed;
     }
-    .cs-icon-btn--disabled {
-      color: #ccc;
+    .cs-btn-outline:disabled {
+      opacity: .5;
       cursor: not-allowed;
-    }
-    .cs-icon-btn--disabled:hover {
-      background: transparent;
     }
 
     /* ── Spinner ── */
@@ -874,7 +999,6 @@ export class CsTerminalsScreenComponent {
 
   expandedRestaurants = new Set<number>();
   selectedTerminals = new Set<number>();
-  showInactive = true;
   showToast = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
@@ -882,12 +1006,40 @@ export class CsTerminalsScreenComponent {
   isSending = false;
   screenshotLoadingId: number | null = null;
   screenshotModal: TerminalScreenshot | null = null;
+  showSystemSettingsModal = false;
+
+  // Search filters
+  searchRestaurant = '';
+  searchTerminal = '';
 
   constructor() {
     const restaurants = this.dataService.restaurants;
     if (restaurants.length > 0) {
       this.expandedRestaurants.add(restaurants[0].id);
     }
+  }
+
+  // ─── Filtering ──────────────────────────────
+
+  getFilteredRestaurants(): CSRestaurant[] {
+    let list = this.dataService.restaurants;
+    if (this.searchRestaurant) {
+      const q = this.searchRestaurant.toLowerCase();
+      list = list.filter(r => r.name.toLowerCase().includes(q));
+    }
+    if (this.searchTerminal) {
+      const q = this.searchTerminal.toLowerCase();
+      list = list.filter(r =>
+        r.terminals.some(t => t.name.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }
+
+  getFilteredTerminals(restaurant: CSRestaurant): CSTerminalV2[] {
+    if (!this.searchTerminal) return restaurant.terminals;
+    const q = this.searchTerminal.toLowerCase();
+    return restaurant.terminals.filter(t => t.name.toLowerCase().includes(q));
   }
 
   // ─── Accordion ──────────────────────────────
@@ -952,8 +1104,19 @@ export class CsTerminalsScreenComponent {
   // ─── Terminals filter ───────────────────────
 
   getVisibleTerminals(restaurant: CSRestaurant): CSTerminalV2[] {
-    if (this.showInactive) return restaurant.terminals;
-    return restaurant.terminals.filter(t => t.isOnline);
+    return restaurant.terminals;
+  }
+
+  // ─── Clear helpers ──────────────────────────
+
+  clearCampaigns(restaurantId: number, terminal: CSTerminalV2): void {
+    terminal.campaignIds = [];
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  clearHints(restaurantId: number, terminal: CSTerminalV2): void {
+    terminal.hintIds = [];
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
 
   // ─── Theme ──────────────────────────────────

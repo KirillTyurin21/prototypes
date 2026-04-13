@@ -7,6 +7,8 @@ export interface SidebarMenuItem {
 
 export interface SidebarSection {
   title: string;
+  icon?: string;
+  route?: string;
   items: SidebarMenuItem[];
 }
 

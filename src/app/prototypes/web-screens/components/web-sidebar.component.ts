@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
 import { SidebarSection } from '../types';
@@ -13,29 +13,55 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
       class="web-sidebar"
       [class.collapsed]="collapsed"
     >
+      <!-- Sidebar title -->
+      <div class="sidebar-title" *ngIf="!collapsed">
+        <span class="sidebar-title-text">Экраны и звуки</span>
+        <button class="sidebar-back-btn">
+          <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
       <div class="sidebar-scroll">
-        <!-- Menu sections -->
-        <div *ngFor="let section of sections; let last = last" class="section">
-          <div class="section-header" *ngIf="!collapsed">
-            {{ section.title }}
-          </div>
-          <div
-            *ngFor="let item of section.items"
-            class="menu-item"
-            [class.active]="activeRoute === item.route"
-            (click)="onNavigate(item.route)"
-          >
-            <div class="active-indicator" *ngIf="activeRoute === item.route"></div>
-            <div class="item-icon">
-              <lucide-icon [name]="item.icon" [size]="20"></lucide-icon>
+        <div *ngFor="let section of sections" class="section">
+          <!-- Collapsible parent section (has items) -->
+          <ng-container *ngIf="section.items.length > 0">
+            <div
+              class="parent-item"
+              [class.parent-active]="isSectionActive(section)"
+              (click)="toggleSection(section.title)"
+            >
+              <div class="parent-icon" *ngIf="section.icon">
+                <lucide-icon [name]="section.icon" [size]="20"></lucide-icon>
+              </div>
+              <span class="parent-label" *ngIf="!collapsed">{{ section.title }}</span>
             </div>
-            <span class="item-label" *ngIf="!collapsed">{{ item.label }}</span>
-            <span
-              class="item-badge"
-              *ngIf="item.badge && !collapsed"
-            >{{ item.badge }}</span>
-          </div>
-          <div class="section-divider" *ngIf="!last"></div>
+            <div class="child-items" *ngIf="expandedSections.has(section.title) && !collapsed">
+              <div
+                *ngFor="let item of section.items"
+                class="child-item"
+                [class.active]="activeRoute === item.route"
+                (click)="onNavigate(item.route)"
+              >
+                <div class="active-indicator" *ngIf="activeRoute === item.route"></div>
+                <span class="child-label">{{ item.label }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Standalone item (no children, has route) -->
+          <ng-container *ngIf="section.items.length === 0 && section.route">
+            <div
+              class="standalone-item"
+              [class.active]="activeRoute === section.route"
+              (click)="onNavigate(section.route!)"
+            >
+              <div class="active-indicator" *ngIf="activeRoute === section.route"></div>
+              <div class="parent-icon" *ngIf="section.icon">
+                <lucide-icon [name]="section.icon" [size]="20"></lucide-icon>
+              </div>
+              <span class="parent-label" *ngIf="!collapsed">{{ section.title }}</span>
+            </div>
+          </ng-container>
         </div>
       </div>
 
@@ -69,6 +95,40 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
     .web-sidebar.collapsed {
       width: 72px;
     }
+
+    /* Sidebar title */
+    .sidebar-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #424242;
+    }
+    .sidebar-title-text {
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .sidebar-back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: none;
+      border-radius: 50%;
+      cursor: pointer;
+      color: #757575;
+      transition: background-color 0.2s;
+    }
+    .sidebar-back-btn:hover {
+      background-color: rgba(0,0,0,0.04);
+    }
+
     .sidebar-scroll {
       flex: 1;
       overflow-y: auto;
@@ -78,16 +138,72 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
     .section {
       margin-bottom: 0;
     }
-    .section-header {
-      padding: 16px 24px 8px;
-      font-size: 11px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #9e9e9e;
+
+    /* Parent item (collapsible section header) */
+    .parent-item {
+      display: flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 24px;
+      cursor: pointer;
+      user-select: none;
+      color: #424242;
+      font-size: 14px;
+      font-weight: 400;
+      transition: background-color 0.15s;
       white-space: nowrap;
+      overflow: hidden;
     }
-    .menu-item {
+    .parent-item:hover {
+      background-color: rgba(0,0,0,0.04);
+    }
+    .parent-item.parent-active {
+      color: #1976d2;
+      font-weight: 500;
+    }
+    .parent-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      margin-right: 16px;
+    }
+    .parent-label {
+      line-height: 20px;
+    }
+
+    /* Child items (under expanded section) */
+    .child-items {
+      padding-left: 0;
+    }
+    .child-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 24px 0 60px;
+      cursor: pointer;
+      user-select: none;
+      color: #616161;
+      font-size: 13px;
+      font-weight: 400;
+      transition: background-color 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .child-item:hover {
+      background-color: rgba(0,0,0,0.04);
+    }
+    .child-item.active {
+      background-color: #e8f1ff;
+      color: #1976d2;
+      font-weight: 500;
+    }
+
+    /* Standalone item */
+    .standalone-item {
       position: relative;
       display: flex;
       align-items: center;
@@ -102,18 +218,16 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
       white-space: nowrap;
       overflow: hidden;
     }
-    .web-sidebar.collapsed .menu-item {
-      padding: 0;
-      justify-content: center;
-    }
-    .menu-item:hover {
+    .standalone-item:hover {
       background-color: rgba(0,0,0,0.04);
     }
-    .menu-item.active {
+    .standalone-item.active {
       background-color: #e8f1ff;
       color: #1976d2;
       font-weight: 500;
     }
+
+    /* Active indicator (blue left bar) */
     .active-indicator {
       position: absolute;
       left: 0;
@@ -123,37 +237,7 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
       border-radius: 0 4px 4px 0;
       background-color: #448aff;
     }
-    .item-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      flex-shrink: 0;
-    }
-    .item-label {
-      margin-left: 16px;
-      line-height: 20px;
-    }
-    .item-badge {
-      margin-left: auto;
-      background: #448aff;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 500;
-      padding: 2px 8px;
-      border-radius: 12px;
-      min-width: 20px;
-      text-align: center;
-    }
-    .section-divider {
-      height: 1px;
-      background-color: #e0e0e0;
-      margin: 8px 24px;
-    }
-    .web-sidebar.collapsed .section-divider {
-      margin: 8px 16px;
-    }
+
     .sidebar-footer {
       padding: 16px 24px;
       border-top: 1px solid #e0e0e0;
@@ -189,14 +273,43 @@ import { SIDEBAR_SECTIONS } from '../data/mock-data';
     }
   `],
 })
-export class WebSidebarComponent {
+export class WebSidebarComponent implements OnInit, OnChanges {
   @Input() collapsed = false;
   @Input() activeRoute = '';
   @Output() navigate = new EventEmitter<string>();
 
   sections: SidebarSection[] = SIDEBAR_SECTIONS;
+  expandedSections = new Set<string>();
+
+  ngOnInit(): void {
+    this.expandSectionForRoute(this.activeRoute);
+  }
+
+  ngOnChanges(): void {
+    this.expandSectionForRoute(this.activeRoute);
+  }
+
+  toggleSection(title: string): void {
+    if (this.expandedSections.has(title)) {
+      this.expandedSections.delete(title);
+    } else {
+      this.expandedSections.add(title);
+    }
+  }
+
+  isSectionActive(section: SidebarSection): boolean {
+    return section.items.some(item => item.route === this.activeRoute);
+  }
 
   onNavigate(route: string): void {
     this.navigate.emit(route);
+  }
+
+  private expandSectionForRoute(route: string): void {
+    for (const section of this.sections) {
+      if (section.items.some(item => item.route === route)) {
+        this.expandedSections.add(section.title);
+      }
+    }
   }
 }

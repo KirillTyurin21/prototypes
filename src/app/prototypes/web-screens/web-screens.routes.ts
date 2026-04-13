@@ -69,6 +69,41 @@ export const WEB_SCREENS_ROUTES: Routes = [
             m => m.ThemeEditorScreenComponent
           ),
       },
+      {
+        path: 'arrivals-controls',
+        loadComponent: () =>
+          import('./screens/stub-screen.component').then(
+            m => m.StubScreenComponent
+          ),
+      },
+      {
+        path: 'sounds',
+        loadComponent: () =>
+          import('./screens/stub-screen.component').then(
+            m => m.StubScreenComponent
+          ),
+      },
+      {
+        path: 'global-hints',
+        loadComponent: () =>
+          import('./screens/stub-screen.component').then(
+            m => m.StubScreenComponent
+          ),
+      },
+      {
+        path: 'gallery',
+        loadComponent: () =>
+          import('./screens/stub-screen.component').then(
+            m => m.StubScreenComponent
+          ),
+      },
+      {
+        path: 'campaigns',
+        loadComponent: () =>
+          import('./screens/stub-screen.component').then(
+            m => m.StubScreenComponent
+          ),
+      },
     ],
   },
 ];

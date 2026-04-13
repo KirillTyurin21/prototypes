@@ -116,6 +116,10 @@ import {
   Rows,
   // Hints button variants
   ShoppingCart,
+  // Web screens sidebar v2
+  Volume2,
+  LayoutList,
+  PlusCircle,
 } from 'lucide-angular';
 
 /**
@@ -240,6 +244,10 @@ const icons = {
   Rows,
   // Hints button variants
   ShoppingCart,
+  // Web screens sidebar v2
+  Volume2,
+  LayoutList,
+  PlusCircle,
 };
 
 @NgModule({

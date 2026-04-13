@@ -9,21 +9,47 @@ import {
 /** Секции бокового меню Web */
 export const SIDEBAR_SECTIONS: SidebarSection[] = [
   {
-    title: 'Дисплей покупателя',
+    title: 'Экран покупателя',
+    icon: 'monitor',
     items: [
-      { icon: 'monitor', label: 'Дисплеи', route: 'displays' },
-      { icon: 'lightbulb', label: 'Подсказки', route: 'hints' },
-      { icon: 'sliders', label: 'Контролы', route: 'controls' },
-      { icon: 'palette', label: 'Темы', route: 'themes-cs' },
-      { icon: 'settings', label: 'Настройки терминалов', route: 'cs-terminals' },
+      { icon: '', label: 'Дисплеи', route: 'displays' },
+      { icon: '', label: 'Подсказки', route: 'hints' },
+      { icon: '', label: 'Контролы', route: 'controls' },
+      { icon: '', label: 'Темы', route: 'themes-cs' },
     ],
   },
   {
-    title: 'Табло прибытия',
+    title: 'Электронная очередь',
+    icon: 'layout-list',
     items: [
-      { icon: 'monitor-smartphone', label: 'Терминалы', route: 'terminals' },
-      { icon: 'palette', label: 'Темы', route: 'themes-arrivals' },
+      { icon: '', label: 'Контролы', route: 'arrivals-controls' },
+      { icon: '', label: 'Темы', route: 'themes-arrivals' },
+      { icon: '', label: 'Настройка терминалов', route: 'cs-terminals' },
     ],
+  },
+  {
+    title: 'Звуки',
+    icon: 'volume-2',
+    route: 'sounds',
+    items: [],
+  },
+  {
+    title: 'Подсказки',
+    icon: 'wand-2',
+    route: 'global-hints',
+    items: [],
+  },
+  {
+    title: 'Галерея',
+    icon: 'image',
+    route: 'gallery',
+    items: [],
+  },
+  {
+    title: 'Кампании',
+    icon: 'megaphone',
+    route: 'campaigns',
+    items: [],
   },
 ];
 
