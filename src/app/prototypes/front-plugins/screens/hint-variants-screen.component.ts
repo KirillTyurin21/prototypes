@@ -429,13 +429,13 @@ type DataVariant = '1' | '2' | '3' | '4' | '5' | '6';
                 <!-- Кнопки: два квадрата, только текст, белый цвет -->
                 <div class="border-t border-white/10">
                   <div class="flex">
-                    <button class="flex-1 py-7 flex items-center justify-center
+                    <button class="flex-1 aspect-square flex items-center justify-center
                                    bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
                                    border-r border-white/10"
                             style="border-radius: 0;">
                       <span class="text-white font-bold text-base">Отказаться</span>
                     </button>
-                    <button class="flex-1 py-7 flex items-center justify-center transition-colors"
+                    <button class="flex-1 aspect-square flex items-center justify-center transition-colors"
                             [ngClass]="sv.accentAdd ? 'bg-[#c9a84c] hover:bg-[#b89a3c] active:bg-[#a88f35]' : 'bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222]'"
                             style="border-radius: 0;">
                       <span class="text-white font-bold text-base">Добавить</span>
