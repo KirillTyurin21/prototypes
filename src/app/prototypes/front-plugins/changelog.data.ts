@@ -2,6 +2,23 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.4',
+    date: '2026-04-14',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Подсказки — Сравнение вариантов',
+        pageRoute: '/prototype/front-plugins/hints/variants',
+        items: [
+          'Добавлен блок «Вариации Два квадрата» с 5 суб-вариантами выбранного дизайна',
+          'Суб-варианты: увеличенная картинка (150px), крупная (180px), hero-баннер, акцентная кнопка, компактный баланс (140px)',
+          'Реальные фото продуктов вместо emoji-заглушек',
+          'Кнопки «Отказаться» и «Добавить» — только текст белого цвета, без иконок',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.3',
     date: '2026-04-09',
     status: 'released',

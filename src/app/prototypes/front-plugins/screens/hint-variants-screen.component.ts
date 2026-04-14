@@ -330,6 +330,129 @@ type DataVariant = '1' | '2' | '3' | '4' | '5' | '6';
         </div>
       </div>
 
+      <!-- ====== Вариации «Два квадрата» ====== -->
+      <div class="mt-10 mb-8">
+        <div class="mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#2d2d2d] flex items-center justify-center">
+              <lucide-icon name="layout-grid" [size]="20" class="text-[#c9a84c]"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-text-primary">Вариации «Два квадрата»</h2>
+              <p class="text-sm text-text-secondary mt-1">
+                Лучший вариант с доработками: увеличенная картинка, реальное фото продукта, текстовые кнопки белого цвета
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div *ngFor="let sv of subVariants"
+               class="bg-surface rounded-xl border border-border overflow-hidden">
+            <!-- Заголовок суб-варианта -->
+            <div class="px-4 py-3 bg-surface-secondary border-b border-border flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-text-primary">{{ sv.label }}</h3>
+              <ui-badge variant="info">{{ sv.badge }}</ui-badge>
+            </div>
+
+            <!-- Превью карточки -->
+            <div class="p-5 flex justify-center" style="background: #1a1a1a;">
+              <div class="bg-[#3a3a3a] text-white w-full max-w-[420px] shadow-xl border border-white/10"
+                   style="border-radius: 0;">
+
+                <!-- Hero image (4C) -->
+                <div *ngIf="sv.heroImage"
+                     class="w-full h-[200px] overflow-hidden bg-[#2d2d2d] border-b border-white/10">
+                  <img [src]="realPhotoHeroUrl" alt="Фото продукта"
+                       class="w-full h-full object-cover"
+                       (error)="onSubImageError($event)">
+                </div>
+
+                <!-- Метка ПОДСКАЗКА -->
+                <div class="px-5 pt-4 pb-1">
+                  <span class="text-[11px] font-medium uppercase tracking-widest text-white/40">Подсказка</span>
+                </div>
+
+                <!-- Заголовок -->
+                <div class="px-5 pb-3">
+                  <h2 class="text-center text-lg font-bold text-white">{{ activeHint.title }}</h2>
+                </div>
+
+                <!-- Слоган -->
+                <div class="px-5 pb-4">
+                  <p class="text-[#c9a84c] text-sm leading-snug">{{ activeHint.slogan }}</p>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="border-t border-white/10 mx-5"></div>
+
+                <!-- Контент: картинка + информация -->
+                <div class="px-5 py-4">
+                  <div class="flex gap-4 items-start">
+                    <!-- Картинка (не hero) -->
+                    <div *ngIf="!sv.heroImage" class="flex-shrink-0">
+                      <div class="overflow-hidden bg-[#2d2d2d] border border-white/10"
+                           [style.width.px]="sv.imageSize"
+                           [style.height.px]="sv.imageSize"
+                           style="border-radius: 0;">
+                        <img [src]="realPhotoUrl" alt="Фото продукта"
+                             class="w-full h-full object-cover"
+                             (error)="onSubImageError($event)">
+                      </div>
+                    </div>
+
+                    <!-- Информация о блюде -->
+                    <div class="flex-1 min-w-0">
+                      <h3 class="text-white font-semibold text-lg mb-2">{{ activeHint.recommendation.name }}</h3>
+                      <div class="flex items-baseline gap-2">
+                        <span *ngIf="activeHint.recommendation.discountedPrice !== null"
+                              class="text-2xl font-bold text-[#c9a84c]">
+                          {{ activeHint.recommendation.discountedPrice }} ₽
+                        </span>
+                        <span *ngIf="activeHint.recommendation.discountedPrice === null"
+                              class="text-2xl font-bold text-white">
+                          {{ activeHint.recommendation.price }} ₽
+                        </span>
+                        <span *ngIf="activeHint.recommendation.oldPrice !== null && activeHint.recommendation.discountedPrice !== null"
+                              class="text-sm text-white/40 line-through">
+                          {{ activeHint.recommendation.oldPrice }} ₽
+                        </span>
+                        <span *ngIf="activeHint.recommendation.discountAmount !== null"
+                              class="text-xs text-[#c9a84c] font-medium ml-1">
+                          –{{ activeHint.recommendation.discountAmount }} ₽
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Кнопки: два квадрата, только текст, белый цвет -->
+                <div class="border-t border-white/10">
+                  <div class="flex">
+                    <button class="flex-1 py-7 flex items-center justify-center
+                                   bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
+                                   border-r border-white/10"
+                            style="border-radius: 0;">
+                      <span class="text-white font-bold text-base">Отказаться</span>
+                    </button>
+                    <button class="flex-1 py-7 flex items-center justify-center transition-colors"
+                            [ngClass]="sv.accentAdd ? 'bg-[#c9a84c] hover:bg-[#b89a3c] active:bg-[#a88f35]' : 'bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222]'"
+                            style="border-radius: 0;">
+                      <span class="text-white font-bold text-base">Добавить</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Описание -->
+            <div class="px-4 py-3 border-t border-border">
+              <p class="text-xs text-text-secondary leading-relaxed">{{ sv.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Модалки (открываются по кнопке из панели анатомии) -->
       <hint-card-dialog
         [open]="activeModal === 'card-add-first'"
@@ -404,6 +527,57 @@ export class HintVariantsScreenComponent {
     { label: 'Компактность', addFirst: '⭐⭐⭐', vertical: '⭐⭐', iconRight: '⭐⭐', twoSquares: '⭐⭐', pos: '⭐⭐⭐' },
   ];
 
+  subVariants = [
+    {
+      id: '4a',
+      label: '4A: Увеличенная картинка',
+      imageSize: 150,
+      heroImage: false,
+      accentAdd: false,
+      badge: '150×150',
+      description: 'Картинка увеличена со 110 до 150px для лучшей читаемости. Кнопки — только текст белого цвета, без иконок.',
+    },
+    {
+      id: '4b',
+      label: '4B: Крупная картинка',
+      imageSize: 180,
+      heroImage: false,
+      accentAdd: false,
+      badge: '180×180',
+      description: 'Картинка 180×180px — максимальный размер при сохранении горизонтальной компоновки с текстом.',
+    },
+    {
+      id: '4c',
+      label: '4C: Картинка на всю ширину',
+      imageSize: 0,
+      heroImage: true,
+      accentAdd: false,
+      badge: 'Hero',
+      description: 'Картинка занимает всю ширину карточки сверху (hero-баннер). Максимально наглядное фото продукта.',
+    },
+    {
+      id: '4d',
+      label: '4D: Акцентная кнопка «Добавить»',
+      imageSize: 150,
+      heroImage: false,
+      accentAdd: true,
+      badge: 'Акцент',
+      description: 'Картинка 150×150px. Кнопка «Добавить» с жёлтым фоном для визуального выделения действия.',
+    },
+    {
+      id: '4e',
+      label: '4E: Компактный баланс',
+      imageSize: 140,
+      heroImage: false,
+      accentAdd: false,
+      badge: '140×140',
+      description: 'Картинка 140×140px — золотая середина между читаемостью и компактностью карточки.',
+    },
+  ];
+
+  readonly realPhotoUrl = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop';
+  readonly realPhotoHeroUrl = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=400&fit=crop';
+
   private hintMap: Record<DataVariant, HintData> = {
     '1': HINT_FULL_DISCOUNT,
     '2': HINT_FULL_NO_DISCOUNT,
@@ -443,5 +617,9 @@ export class HintVariantsScreenComponent {
 
   closeModal(): void {
     this.activeModal = null;
+  }
+
+  onSubImageError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
   }
 }
