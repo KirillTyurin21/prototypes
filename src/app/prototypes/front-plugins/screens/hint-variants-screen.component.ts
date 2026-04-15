@@ -369,18 +369,30 @@ type DataVariant = '1' | '2' | '3' | '4' | '5' | '6';
                 </div>
 
                 <!-- Метка: ПОДСКАЗКА для блюда «триггер» -->
-                <div class="px-5 pt-4 pb-2">
+                <div class="px-5 pt-4 pb-3">
                   <span class="text-[11px] font-medium uppercase tracking-widest text-white/40">Подсказка для блюда</span>
                   <span *ngIf="triggerDishName" class="text-[13px] font-medium text-[#c9a84c] ml-1">«{{ triggerDishName }}»</span>
                 </div>
 
-                <!-- Инструкция кассиру -->
-                <div class="px-5 pb-3">
-                  <p class="text-white/70 text-sm">Предложите клиенту:</p>
+                <!-- Блок акции: название + слоган -->
+                <div class="mx-5 mb-4 bg-white/5 border border-white/10 px-4 py-3" style="border-radius: 0;">
+                  <div class="mb-2">
+                    <span class="text-[10px] font-medium uppercase tracking-widest text-white/30">Название акции</span>
+                    <h2 class="text-white font-bold text-base mt-0.5">{{ activeHint.title }}</h2>
+                  </div>
+                  <div *ngIf="activeHint.slogan">
+                    <span class="text-[10px] font-medium uppercase tracking-widest text-white/30">Слоган</span>
+                    <p class="text-[#c9a84c] text-sm leading-snug mt-0.5 italic">{{ activeHint.slogan }}</p>
+                  </div>
                 </div>
 
                 <!-- Разделитель -->
                 <div class="border-t border-white/10 mx-5"></div>
+
+                <!-- Инструкция кассиру -->
+                <div class="px-5 pt-4 pb-2">
+                  <p class="text-white text-base font-semibold">Предложите клиенту:</p>
+                </div>
 
                 <!-- Контент: картинка + информация -->
                 <div class="px-5 py-4">
