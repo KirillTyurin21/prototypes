@@ -368,19 +368,15 @@ type DataVariant = '1' | '2' | '3' | '4' | '5' | '6';
                        (error)="onSubImageError($event)">
                 </div>
 
-                <!-- Метка ПОДСКАЗКА -->
-                <div class="px-5 pt-4 pb-1">
-                  <span class="text-[11px] font-medium uppercase tracking-widest text-white/40">Подсказка</span>
+                <!-- Метка: ПОДСКАЗКА для блюда «триггер» -->
+                <div class="px-5 pt-4 pb-2">
+                  <span class="text-[11px] font-medium uppercase tracking-widest text-white/40">Подсказка для блюда</span>
+                  <span *ngIf="triggerDishName" class="text-[13px] font-medium text-[#c9a84c] ml-1">«{{ triggerDishName }}»</span>
                 </div>
 
-                <!-- Заголовок -->
+                <!-- Инструкция кассиру -->
                 <div class="px-5 pb-3">
-                  <h2 class="text-center text-lg font-bold text-white">{{ activeHint.title }}</h2>
-                </div>
-
-                <!-- Слоган -->
-                <div class="px-5 pb-4">
-                  <p class="text-[#c9a84c] text-sm leading-snug">{{ activeHint.slogan }}</p>
+                  <p class="text-white/70 text-sm">Предложите клиенту:</p>
                 </div>
 
                 <!-- Разделитель -->
@@ -426,16 +422,16 @@ type DataVariant = '1' | '2' | '3' | '4' | '5' | '6';
                   </div>
                 </div>
 
-                <!-- Кнопки: два квадрата, только текст, белый цвет -->
+                <!-- Кнопки: два квадрата, пропорциональные, только текст, белый цвет -->
                 <div class="border-t border-white/10">
                   <div class="flex">
-                    <button class="flex-1 aspect-square flex items-center justify-center
+                    <button class="flex-1 h-[90px] flex items-center justify-center
                                    bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222] transition-colors
                                    border-r border-white/10"
                             style="border-radius: 0;">
                       <span class="text-white font-bold text-base">Отказаться</span>
                     </button>
-                    <button class="flex-1 aspect-square flex items-center justify-center transition-colors"
+                    <button class="flex-1 h-[90px] flex items-center justify-center transition-colors"
                             [ngClass]="sv.accentAdd ? 'bg-[#c9a84c] hover:bg-[#b89a3c] active:bg-[#a88f35]' : 'bg-[#2a2a2a] hover:bg-[#333] active:bg-[#222]'"
                             style="border-radius: 0;">
                       <span class="text-white font-bold text-base">Добавить</span>
@@ -589,6 +585,14 @@ export class HintVariantsScreenComponent {
 
   get activeHint(): HintData {
     return this.hintMap[this.selectedData];
+  }
+
+  /** Извлекает имя триггер-блюда из description ("Вы добавили Бургер Классик. ...") */
+  get triggerDishName(): string {
+    const desc = this.activeHint.description;
+    if (!desc) return '';
+    const match = desc.match(/Вы добавили\s+(.+?)\./i);
+    return match ? match[1] : '';
   }
 
   get currentDataDescription(): string {
