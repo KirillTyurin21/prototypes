@@ -7,7 +7,7 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 import { ChangelogModalComponent } from './changelog-modal.component';
 
 /**
- * Кнопка Changelog — показывает версию и дату обновления текущего прототипа.
+ * Кнопка Changelog — показывает версию текущего прототипа.
  *
  * Размещается в top-bar, между Reset и бейджем «Прототип».
  * Показывается только на страницах прототипов (не на главной).
@@ -29,8 +29,6 @@ import { ChangelogModalComponent } from './changelog-modal.component';
       title="Показать историю изменений"
     >
       <span class="font-semibold text-text-primary">v{{ currentVersion }}</span>
-      <span class="text-text-disabled">·</span>
-      <span>{{ formattedDate }}</span>
       <lucide-icon name="scroll-text" [size]="13" class="ml-0.5 opacity-60"></lucide-icon>
     </button>
 
@@ -69,16 +67,8 @@ export class ChangelogButtonComponent {
     return this._preloadedVersion;
   }
 
-  /** Форматированная дата последнего обновления */
-  get formattedDate(): string {
-    const release = this.releases[0];
-    if (!release) return this._preloadedDate || '';
-    return this.formatShortDate(release.date);
-  }
-
   // Предзагруженные значения (до полной загрузки changelog)
   private _preloadedVersion: string | null = null;
-  private _preloadedDate: string | null = null;
   private _lastSlug: string | null = null;
 
   /** При каждой проверке — если slug изменился, подгрузить данные */
@@ -89,14 +79,12 @@ export class ChangelogButtonComponent {
       this.releases = [];
       this.loaded = false;
       this._preloadedVersion = null;
-      this._preloadedDate = null;
       this.loadChangelog(slug);
     }
     if (!slug) {
       this._lastSlug = null;
       this.releases = [];
       this._preloadedVersion = null;
-      this._preloadedDate = null;
     }
   }
 
@@ -142,9 +130,4 @@ export class ChangelogButtonComponent {
     }
   }
 
-  /** Форматирует дату коротко: 17.02.2026 */
-  private formatShortDate(dateStr: string): string {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}.${month}.${year}`;
-  }
 }

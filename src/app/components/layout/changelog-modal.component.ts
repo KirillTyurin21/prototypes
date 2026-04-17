@@ -32,7 +32,6 @@ import { ChangelogRelease, ChangeGroup } from '@/shared/changelog.types';
                 class="text-text-secondary shrink-0"
               ></lucide-icon>
               <span class="font-medium text-text-primary">v{{ release.version }}</span>
-              <span class="text-sm text-text-secondary">— {{ formatDate(release.date) }}</span>
             </div>
             <ui-badge [variant]="release.status === 'released' ? 'success' : 'warning'">
               {{ release.status === 'released' ? '✅ Master' : '🔶 В разработке' }}
@@ -104,15 +103,6 @@ export class ChangelogModalComponent {
     if (success) {
       this.onClose();
     }
-  }
-
-  formatDate(dateStr: string): string {
-    const months = [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря',
-    ];
-    const [year, month, day] = dateStr.split('-').map(Number);
-    return `${day} ${months[month - 1]} ${year}`;
   }
 
   onClose(): void {
