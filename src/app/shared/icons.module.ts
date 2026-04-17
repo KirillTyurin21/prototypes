@@ -120,6 +120,10 @@ import {
   Volume2,
   LayoutList,
   PlusCircle,
+  // Arrivals theme editor
+  Folder,
+  File,
+  Home,
 } from 'lucide-angular';
 
 /**
@@ -248,6 +252,10 @@ const icons = {
   Volume2,
   LayoutList,
   PlusCircle,
+  // Arrivals theme editor
+  Folder,
+  File,
+  Home,
 };
 
 @NgModule({

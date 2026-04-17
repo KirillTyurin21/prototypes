@@ -48,3 +48,60 @@ export interface ArrivalTerminal {
   ip: string;
   lastSync: string;
 }
+
+/* ── Arrivals Theme Editor ── */
+
+export interface ArrivalsThemeListItem {
+  id: number;
+  name: string;
+  itemType: 'folder' | 'theme';
+  resolution?: string;
+  createdBy?: string;
+}
+
+export type ArrivalsElementType =
+  | 'area'
+  | 'ad-block'
+  | 'text'
+  | 'image'
+  | 'rectangle'
+  | 'popup'
+  | 'current-time'
+  | 'counter';
+
+export interface ArrivalsThemeElement {
+  id: string;
+  type: ArrivalsElementType;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  borderWidth: number;
+  borderColor: string;
+  borderRadius: number;
+  // Text
+  text?: string;
+  fontFamily?: string;
+  fontSize?: number;
+  fontBold?: boolean;
+  fontItalic?: boolean;
+  textAlign?: 'left' | 'center' | 'right';
+  // Counter (REST data source)
+  dataSourceUrl?: string;
+  httpMethod?: string;
+  headers?: string;
+  timeout?: number;
+  authType?: string;
+  pollInterval?: number;
+  // Image
+  imageUrl?: string;
+}
+
+export interface ArrivalsTheme {
+  id: number;
+  name: string;
+  resolution: string;
+  screenMode: string;
+  elements: ArrivalsThemeElement[];
+}

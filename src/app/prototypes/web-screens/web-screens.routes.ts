@@ -63,6 +63,13 @@ export const WEB_SCREENS_ROUTES: Routes = [
           ),
       },
       {
+        path: 'arrivals-theme-editor/:id',
+        loadComponent: () =>
+          import('./screens/arrivals-theme-editor-screen.component').then(
+            m => m.ArrivalsThemeEditorScreenComponent
+          ),
+      },
+      {
         path: 'theme-editor/:id',
         loadComponent: () =>
           import('./screens/theme-editor-screen.component').then(

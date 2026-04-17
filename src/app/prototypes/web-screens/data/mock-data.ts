@@ -4,6 +4,8 @@ import {
   ScreenControl,
   ArrivalTerminal,
   SidebarSection,
+  ArrivalsThemeListItem,
+  ArrivalsTheme,
 } from '../types';
 
 /** Секции бокового меню Web */
@@ -251,6 +253,26 @@ export const MOCK_CONTROLS: ScreenControl[] = [
     type: 'clock',
     description: 'Текущее время и дата в настраиваемом формате',
   },
+];
+
+/* ── Arrivals theme list (folders + themes) ── */
+
+export const MOCK_ARRIVALS_LIST: ArrivalsThemeListItem[] = [
+  { id: 201, name: 'Системные темы', itemType: 'folder' },
+  { id: 202, name: 'Архив', itemType: 'folder' },
+  { id: 101, name: 'Стандартная (поступления)', itemType: 'theme', resolution: '1024x768', createdBy: 'Моя' },
+  { id: 102, name: 'Компактный список', itemType: 'theme', resolution: '1024x768', createdBy: 'Моя' },
+  { id: 103, name: 'Крупный шрифт', itemType: 'theme', resolution: '1024x768', createdBy: 'Моя' },
+  { id: 104, name: 'Тёмный режим', itemType: 'theme', resolution: '1366x768', createdBy: 'Моя' },
+  { id: 105, name: 'Доставка (от 25-10-09)', itemType: 'theme', resolution: '1024x768', createdBy: 'Моя' },
+];
+
+export const MOCK_ARRIVALS_THEMES: ArrivalsTheme[] = [
+  { id: 101, name: 'Стандартная (поступления)', resolution: '1024x768', screenMode: 'order-screen', elements: [] },
+  { id: 102, name: 'Компактный список', resolution: '1024x768', screenMode: 'order-screen', elements: [] },
+  { id: 103, name: 'Крупный шрифт', resolution: '1024x768', screenMode: 'order-screen', elements: [] },
+  { id: 104, name: 'Тёмный режим', resolution: '1366x768', screenMode: 'order-screen', elements: [] },
+  { id: 105, name: 'Доставка (от 25-10-09)', resolution: '1024x768', screenMode: 'order-screen', elements: [] },
 ];
 
 export const MOCK_TERMINALS: ArrivalTerminal[] = [
