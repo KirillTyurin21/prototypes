@@ -85,7 +85,11 @@ export type ArrivalsElementType =
   | 'cancel-comment'
   | 'cancel-time'
   | 'external-data'
-  | 'order-items';
+  | 'order-items'
+  | 'order-items-zones'
+  | 'order-items-progress'
+  | 'order-items-checklist'
+  | 'order-items-cards';
 
 export interface ArrivalsThemeElement {
   id: string;

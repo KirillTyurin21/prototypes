@@ -44,6 +44,7 @@ const BALANCER_STATUSES = [
   template: `
     <div class="editor-layout">
       <!-- ═══════ CANVAS AREA ═══════ -->
+      <div class="canvas-with-emulation">
       <div class="canvas-area">
         <div class="canvas-scroll">
           <div
@@ -79,7 +80,7 @@ const BALANCER_STATUSES = [
               <span *ngIf="el.type === 'image'" class="el-placeholder">
                 <lucide-icon name="image" [size]="24"></lucide-icon>
               </span>
-              <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'order-items'"
+              <span *ngIf="el.type !== 'text' && el.type !== 'image' && !isOrderVariant(el.type)"
                 class="el-placeholder-label">{{ el.name }}</span>
 
               <!-- Order items table preview -->
@@ -131,6 +132,100 @@ const BALANCER_STATUSES = [
                 </div>
               </div>
 
+              <!-- ═══ B: Two zones ═══ -->
+              <div *ngIf="el.type === 'order-items-zones'" class="el-order-zones">
+                <div class="zones-section zones-ready">
+                  <div class="zones-section-header zones-ready-header">
+                    <span class="zones-icon">✔</span> МОЖНО ЗАБРАТЬ
+                  </div>
+                  <div *ngFor="let item of getReadyItems()" class="zones-row zones-row-ready">
+                    <span class="zones-check">✔</span>
+                    <span class="zones-name">{{ item.name }}</span>
+                    <span class="zones-qty">×{{ item.qty }}</span>
+                  </div>
+                  <div *ngIf="getReadyItems().length === 0" class="zones-empty">Нет готовых блюд</div>
+                </div>
+                <div class="zones-section zones-pending" *ngIf="getPendingItems().length > 0">
+                  <div class="zones-section-header zones-pending-header">
+                    <span class="zones-icon">⏳</span> ГОТОВИТСЯ
+                  </div>
+                  <div *ngFor="let item of getPendingItems()" class="zones-row zones-row-pending">
+                    <span class="zones-name">{{ item.name }}</span>
+                    <span class="zones-qty">×{{ item.qty }}</span>
+                  </div>
+                </div>
+                <div *ngIf="getPendingItems().length === 0 && getReadyItems().length > 0" class="zones-all-ready">
+                  <span class="zones-all-ready-icon">✔</span>
+                  <span>Заказ полностью готов</span>
+                </div>
+              </div>
+
+              <!-- ═══ C: Progress bar ═══ -->
+              <div *ngIf="el.type === 'order-items-progress'" class="el-order-progress">
+                <div class="progress-hero">
+                  <div class="progress-circle">
+                    <svg viewBox="0 0 80 80" class="progress-svg">
+                      <circle cx="40" cy="40" r="34" class="progress-track"></circle>
+                      <circle cx="40" cy="40" r="34" class="progress-fill"
+                        [style.stroke-dasharray]="getProgressDash()"
+                        [style.stroke-dashoffset]="getProgressOffset()">
+                      </circle>
+                    </svg>
+                    <div class="progress-text">
+                      <span class="progress-pct">{{ getReadyPercent() }}%</span>
+                      <span class="progress-count">{{ getReadyItems().length }}/{{ orderMockItems.length }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="progress-list">
+                  <div *ngFor="let item of orderMockItems" class="progress-item" [class.ready]="item.ready">
+                    <span class="progress-marker" [class.ready]="item.ready">{{ item.ready ? '✔' : '○' }}</span>
+                    <span class="progress-name">{{ item.name }}</span>
+                    <span class="progress-qty">×{{ item.qty }}</span>
+                    <span class="progress-status" [class.ready]="item.ready">{{ item.status }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ═══ D: Checklist ═══ -->
+              <div *ngIf="el.type === 'order-items-checklist'" class="el-order-checklist">
+                <div class="checklist-header">
+                  <span>Состав заказа</span>
+                  <span class="checklist-counter">{{ getReadyItems().length }}/{{ orderMockItems.length }} ✔</span>
+                </div>
+                <div class="checklist-items">
+                  <div *ngFor="let item of orderMockItems" class="checklist-row" [class.ready]="item.ready">
+                    <span class="checklist-marker" [class.ready]="item.ready">
+                      {{ item.ready ? '✔' : '○' }}
+                    </span>
+                    <span class="checklist-name" [class.ready]="item.ready">{{ item.name }}</span>
+                    <span class="checklist-qty">×{{ item.qty }}</span>
+                  </div>
+                </div>
+                <div *ngIf="getReadyItems().length === orderMockItems.length" class="checklist-done">
+                  ✔ Заказ полностью готов
+                </div>
+              </div>
+
+              <!-- ═══ E: Cards ═══ -->
+              <div *ngIf="el.type === 'order-items-cards'" class="el-order-cards">
+                <div class="cards-header">
+                  <span>Состав заказа</span>
+                  <span class="cards-counter">{{ getReadyItems().length }}/{{ orderMockItems.length }}</span>
+                </div>
+                <div class="cards-grid">
+                  <div *ngFor="let item of orderMockItems" class="card-tile" [class.ready]="item.ready">
+                    <div class="card-status-bar" [class.ready]="item.ready">
+                      {{ item.ready ? '✔ ГОТОВО' : '⏳ ' + item.status }}
+                    </div>
+                    <div class="card-body">
+                      <span class="card-name">{{ item.name }}</span>
+                      <span class="card-qty">×{{ item.qty }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Selection handles -->
               <ng-container *ngIf="selectedElementId === el.id">
                 <div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div>
@@ -145,6 +240,56 @@ const BALANCER_STATUSES = [
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- ═══════ EMULATION PANEL ═══════ -->
+      <div class="emulation-panel" [class.collapsed]="!emulationOpen">
+        <div class="emulation-header" (click)="emulationOpen = !emulationOpen">
+          <span>🍳 Эмуляция кухни</span>
+          <span class="emulation-badge">{{ getReadyItems().length }}/{{ orderMockItems.length }}</span>
+          <lucide-icon [name]="emulationOpen ? 'chevron-down' : 'chevron-up'" [size]="16" style="color:#fff; margin-left:auto"></lucide-icon>
+        </div>
+        <div *ngIf="emulationOpen" class="emulation-body">
+          <div class="emulation-order-info">
+            Заказ #1247 &nbsp;•&nbsp; Стол 5 &nbsp;•&nbsp; {{ orderMockItems.length }} позиций &nbsp;•&nbsp;
+            Готовность: <strong>{{ getReadyItems().length }}/{{ orderMockItems.length }}</strong>
+          </div>
+          <table class="emulation-table">
+            <thead>
+              <tr>
+                <th class="emu-th-name">Блюдо</th>
+                <th class="emu-th-qty">Кол.</th>
+                <th class="emu-th-status">Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of orderMockItems; let i = index" [class.emu-ready]="item.ready">
+                <td class="emu-td-name">{{ item.name }}</td>
+                <td class="emu-td-qty">{{ item.qty }}</td>
+                <td class="emu-td-status">
+                  <select class="emu-select" [ngModel]="item.status" (ngModelChange)="onEmulationStatusChange(i, $event)"
+                    [class.emu-s-ready]="item.status === 'Готово'"
+                    [class.emu-s-cooking]="item.status === 'Готовится'"
+                    [class.emu-s-waiting]="item.status === 'Ожидает'">
+                    <option value="Ожидает">⚪ Ожидает</option>
+                    <option value="Готовится">🟡 Готовится</option>
+                    <option value="Готово">🟢 Готово</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="emulation-actions">
+            <button class="emu-btn" (click)="runScenario()" title="Пошаговый сценарий">
+              {{ scenarioRunning ? '⏸ Стоп' : '▶ Сценарий' }}
+            </button>
+            <button class="emu-btn" (click)="setAllReady()" title="Все позиции — Готово">⏩ Всё готово</button>
+            <button class="emu-btn" (click)="resetEmulation()" title="Сбросить в исходное">🔄 Сброс</button>
+            <button class="emu-btn" (click)="addDish()" [disabled]="orderMockItems.length >= 12" title="Добавить блюдо">+ Блюдо</button>
+            <button class="emu-btn" (click)="removeDish()" [disabled]="orderMockItems.length <= 1" title="Удалить последнее">− Блюдо</button>
+          </div>
+        </div>
+      </div>
       </div>
 
       <!-- ═══════ RIGHT PANEL ═══════ -->
@@ -1089,6 +1234,179 @@ const BALANCER_STATUSES = [
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       width: 100%; height: 100%; gap: 8px; font-size: 18px; font-weight: 600; color: #4caf50;
     }
+
+    /* ═══ canvas-with-emulation wrapper ═══ */
+    .canvas-with-emulation {
+      flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+    }
+
+    /* ═══ B: Two Zones ═══ */
+    .el-order-zones {
+      display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; font-family: Roboto, sans-serif;
+    }
+    .zones-section { display: flex; flex-direction: column; }
+    .zones-section-header {
+      padding: 4px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .zones-ready-header { background: #e8f5e9; color: #2e7d32; }
+    .zones-pending-header { background: #fff3e0; color: #e65100; }
+    .zones-icon { margin-right: 4px; }
+    .zones-row {
+      display: flex; align-items: center; padding: 2px 6px; font-size: 12px; border-bottom: 1px solid #eee;
+    }
+    .zones-row-ready { background: #f1f8e9; }
+    .zones-row-pending { background: #fff8e1; }
+    .zones-check { color: #4caf50; margin-right: 4px; font-weight: 600; }
+    .zones-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .zones-qty { color: #757575; font-size: 11px; margin-left: 4px; }
+    .zones-empty { padding: 6px; font-size: 11px; color: #9e9e9e; text-align: center; }
+    .zones-all-ready {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px; font-size: 14px; font-weight: 600; color: #4caf50; background: #e8f5e9;
+    }
+    .zones-all-ready-icon { font-size: 18px; }
+
+    /* ═══ C: Progress ═══ */
+    .el-order-progress {
+      display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; font-family: Roboto, sans-serif;
+    }
+    .progress-hero { display: flex; align-items: center; justify-content: center; padding: 6px 0; flex-shrink: 0; }
+    .progress-circle { position: relative; width: 64px; height: 64px; }
+    .progress-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .progress-track { fill: none; stroke: #e0e0e0; stroke-width: 6; }
+    .progress-fill { fill: none; stroke: #4caf50; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+    .progress-text {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .progress-pct { font-size: 14px; font-weight: 700; color: #333; }
+    .progress-count { font-size: 9px; color: #9e9e9e; }
+    .progress-list { flex: 1; overflow: hidden; }
+    .progress-item {
+      display: flex; align-items: center; gap: 4px; padding: 2px 6px; font-size: 12px; border-bottom: 1px solid #f0f0f0;
+    }
+    .progress-item.ready { background: #f1f8e9; }
+    .progress-marker { width: 14px; text-align: center; font-size: 11px; color: #bdbdbd; }
+    .progress-marker.ready { color: #4caf50; }
+    .progress-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .progress-qty { color: #757575; font-size: 11px; }
+    .progress-status { font-size: 10px; font-weight: 500; color: #c62828; min-width: 50px; text-align: right; }
+    .progress-status.ready { color: #2e7d32; }
+
+    /* ═══ D: Checklist ═══ */
+    .el-order-checklist {
+      display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; font-family: Roboto, sans-serif;
+    }
+    .checklist-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 6px; font-size: 12px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e0e0;
+    }
+    .checklist-counter { font-size: 11px; color: #4caf50; }
+    .checklist-items { flex: 1; overflow: hidden; }
+    .checklist-row {
+      display: flex; align-items: center; gap: 4px; padding: 3px 6px; font-size: 12px; border-bottom: 1px solid #f0f0f0;
+    }
+    .checklist-row.ready { background: #f1f8e9; }
+    .checklist-marker { width: 16px; text-align: center; font-size: 12px; color: #bdbdbd; }
+    .checklist-marker.ready { color: #4caf50; }
+    .checklist-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .checklist-name.ready { text-decoration: line-through; color: #9e9e9e; }
+    .checklist-qty { color: #757575; font-size: 11px; }
+    .checklist-done {
+      display: flex; align-items: center; justify-content: center; padding: 8px;
+      font-size: 13px; font-weight: 600; color: #4caf50; background: #e8f5e9;
+    }
+
+    /* ═══ E: Cards/Tiles ═══ */
+    .el-order-cards {
+      display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; font-family: Roboto, sans-serif;
+    }
+    .cards-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 6px; font-size: 12px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e0e0;
+    }
+    .cards-counter { font-size: 11px; color: #757575; }
+    .cards-grid {
+      flex: 1; display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; overflow: hidden;
+      align-content: flex-start;
+    }
+    .card-tile {
+      width: calc(50% - 2px); border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .card-tile.ready { border-color: #4caf50; }
+    .card-status-bar {
+      padding: 2px 4px; font-size: 9px; font-weight: 700; text-align: center;
+      background: #fff3e0; color: #e65100; letter-spacing: 0.3px;
+    }
+    .card-status-bar.ready { background: #e8f5e9; color: #2e7d32; }
+    .card-body {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 3px 4px; font-size: 11px;
+    }
+    .card-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-qty { color: #757575; font-size: 10px; margin-left: 4px; }
+
+    /* ═══ Emulation Panel ═══ */
+    .emulation-panel {
+      border-top: 2px solid #ff6d00; background: #263238; flex-shrink: 0;
+      transition: max-height 0.3s ease;
+    }
+    .emulation-panel.collapsed { }
+    .emulation-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; font-size: 14px; font-weight: 600; color: #fff;
+      cursor: pointer; user-select: none;
+    }
+    .emulation-header:hover { background: rgba(255,255,255,0.05); }
+    .emulation-badge {
+      background: #ff6d00; color: #fff; font-size: 11px; padding: 1px 8px;
+      border-radius: 10px; font-weight: 600;
+    }
+    .emulation-body { padding: 10px 14px 14px; }
+    .emulation-order-info {
+      font-size: 12px; color: #90a4ae; margin-bottom: 8px;
+    }
+    .emulation-order-info strong { color: #ff6d00; }
+    .emulation-table {
+      width: 100%; border-collapse: collapse; font-size: 13px; color: #eceff1; margin-bottom: 10px;
+    }
+    .emulation-table thead th {
+      text-align: left; padding: 4px 8px; font-weight: 600; font-size: 11px;
+      color: #90a4ae; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid #37474f;
+    }
+    .emu-th-name { width: 45%; }
+    .emu-th-qty { width: 15%; text-align: center; }
+    .emu-th-status { width: 40%; }
+    .emulation-table tbody tr {
+      border-bottom: 1px solid #37474f; transition: background 0.15s;
+    }
+    .emulation-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .emulation-table tbody tr.emu-ready { background: rgba(76,175,80,0.1); }
+    .emu-td-name { padding: 5px 8px; }
+    .emu-td-qty { padding: 5px 8px; text-align: center; }
+    .emu-td-status { padding: 5px 8px; }
+    .emu-select {
+      width: 100%; height: 28px; padding: 0 6px; border: 1px solid #455a64;
+      border-radius: 4px; background: #37474f; color: #eceff1;
+      font-size: 12px; font-family: Roboto, sans-serif; cursor: pointer;
+    }
+    .emu-select:focus { outline: none; border-color: #ff6d00; }
+    .emu-s-ready { border-color: #4caf50; }
+    .emu-s-cooking { border-color: #ff9800; }
+    .emu-s-waiting { border-color: #455a64; }
+    .emulation-actions {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .emu-btn {
+      height: 30px; padding: 0 12px; border: 1px solid #455a64; border-radius: 4px;
+      background: #37474f; color: #eceff1; font-size: 12px; font-weight: 500;
+      font-family: Roboto, sans-serif; cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .emu-btn:hover { background: #455a64; border-color: #ff6d00; }
+    .emu-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   `],
 })
 export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
@@ -1169,7 +1487,11 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
     { type: 'cancel-comment', label: 'Комментарий к отмене заказа' },
     { type: 'cancel-time', label: 'Время отмены заказа' },
     { type: 'external-data', label: 'Внешние данные' },
-    { type: 'order-items', label: 'Состав заказа' },
+    { type: 'order-items', label: 'A. Состав заказа — Таблица' },
+    { type: 'order-items-zones', label: 'B. Состав заказа — Две зоны' },
+    { type: 'order-items-progress', label: 'C. Состав заказа — Прогресс' },
+    { type: 'order-items-checklist', label: 'D. Состав заказа — Чеклист' },
+    { type: 'order-items-cards', label: 'E. Состав заказа — Карточки' },
   ];
 
   orderMockItems = [
@@ -1213,6 +1535,7 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     document.removeEventListener('mousemove', this.boundMouseMove);
     document.removeEventListener('mouseup', this.boundMouseUp);
+    this.stopScenario();
   }
 
   onStatusTypeChange(value: ArrivalsControlStatusType): void {
@@ -1433,6 +1756,12 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
       el.orderStatusFontColor = '#333333';
     }
 
+    if (type === 'order-items-zones' || type === 'order-items-progress' ||
+        type === 'order-items-checklist' || type === 'order-items-cards') {
+      el.width = 400;
+      el.height = 260;
+    }
+
     this.control.elements.push(el);
     this.selectedElementId = el.id;
     this.panelView = 'element';
@@ -1466,7 +1795,124 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   isGenericElement(type: ArrivalsElementType): boolean {
-    return !['text', 'image', 'order-items'].includes(type);
+    return !['text', 'image', 'order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(type);
+  }
+
+  // ═══ Emulation panel state ═══
+  emulationOpen = false;
+  scenarioRunning = false;
+  private scenarioTimer: any = null;
+
+  private readonly extraDishes = [
+    'Том ям', 'Маргарита', 'Борщ', 'Филе лосося', 'Паста Карбонара',
+    'Греческий салат', 'Куриные крылья', 'Тирамису',
+  ];
+
+  isOrderVariant(type: ArrivalsElementType): boolean {
+    return ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(type);
+  }
+
+  getReadyItems(): { name: string; qty: number; status: string; ready: boolean }[] {
+    return this.orderMockItems.filter(i => i.ready);
+  }
+
+  getPendingItems(): { name: string; qty: number; status: string; ready: boolean }[] {
+    return this.orderMockItems.filter(i => !i.ready);
+  }
+
+  getReadyPercent(): number {
+    if (this.orderMockItems.length === 0) return 0;
+    return Math.round((this.getReadyItems().length / this.orderMockItems.length) * 100);
+  }
+
+  getProgressDash(): string {
+    const r = 34;
+    const c = 2 * Math.PI * r;
+    return `${c}`;
+  }
+
+  getProgressOffset(): string {
+    const r = 34;
+    const c = 2 * Math.PI * r;
+    const pct = this.getReadyPercent() / 100;
+    return `${c * (1 - pct)}`;
+  }
+
+  onEmulationStatusChange(index: number, newStatus: string): void {
+    this.orderMockItems[index].status = newStatus;
+    this.orderMockItems[index].ready = newStatus === 'Готово';
+  }
+
+  setAllReady(): void {
+    this.orderMockItems.forEach(item => {
+      item.status = 'Готово';
+      item.ready = true;
+    });
+  }
+
+  resetEmulation(): void {
+    this.stopScenario();
+    this.orderMockItems = [
+      { name: 'Шашлык из свинины', qty: 2, status: 'Готово', ready: true },
+      { name: 'Салат Цезарь', qty: 1, status: 'Готово', ready: true },
+      { name: 'Стейк Рибай', qty: 1, status: 'Готовится', ready: false },
+      { name: 'Картофель фри', qty: 3, status: 'Ожидает', ready: false },
+    ];
+  }
+
+  addDish(): void {
+    const available = this.extraDishes.filter(d => !this.orderMockItems.find(i => i.name === d));
+    const name = available.length > 0 ? available[0] : `Блюдо #${this.orderMockItems.length + 1}`;
+    this.orderMockItems.push({ name, qty: 1, status: 'Ожидает', ready: false });
+  }
+
+  removeDish(): void {
+    if (this.orderMockItems.length > 1) {
+      this.orderMockItems.pop();
+    }
+  }
+
+  runScenario(): void {
+    if (this.scenarioRunning) {
+      this.stopScenario();
+      return;
+    }
+    // Reset all to "Ожидает" first
+    this.orderMockItems.forEach(item => {
+      item.status = 'Ожидает';
+      item.ready = false;
+    });
+    this.scenarioRunning = true;
+    let step = 0;
+    const totalSteps = this.orderMockItems.length * 2; // each item: waiting → cooking → ready
+    const tick = () => {
+      if (step >= totalSteps || !this.scenarioRunning) {
+        this.scenarioRunning = false;
+        return;
+      }
+      const itemIdx = Math.floor(step / 2);
+      const phase = step % 2;
+      if (itemIdx < this.orderMockItems.length) {
+        if (phase === 0) {
+          this.orderMockItems[itemIdx].status = 'Готовится';
+          this.orderMockItems[itemIdx].ready = false;
+        } else {
+          this.orderMockItems[itemIdx].status = 'Готово';
+          this.orderMockItems[itemIdx].ready = true;
+        }
+      }
+      step++;
+      this.scenarioTimer = setTimeout(tick, 1200);
+    };
+    this.scenarioTimer = setTimeout(tick, 800);
+  }
+
+  private stopScenario(): void {
+    this.scenarioRunning = false;
+    if (this.scenarioTimer) {
+      clearTimeout(this.scenarioTimer);
+      this.scenarioTimer = null;
+    }
   }
 
   save(): void {

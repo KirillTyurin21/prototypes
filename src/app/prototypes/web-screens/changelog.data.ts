@@ -2,6 +2,24 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.8',
+    date: '2026-04-25',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Редактор контролов (Электронная очередь)',
+        pageRoute: '/prototype/web-screens/arrivals-control-editor/new',
+        items: [
+          'Добавлены 4 новых варианта элемента «Состав заказа»: B. Две зоны, C. Прогресс, D. Чеклист, E. Карточки',
+          'Исходный вариант A (Таблица) сохранён как референс',
+          'Панель эмуляции кухни: управление статусами блюд в реальном времени',
+          'Эмуляция: автосценарий пошагового приготовления, сброс, добавление/удаление блюд',
+          'Все варианты B-E отображаются на canvas и реагируют на изменения в панели эмуляции',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.7',
     date: '2026-04-25',
     status: 'unreleased',
