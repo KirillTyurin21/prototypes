@@ -3,8 +3,8 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.8',
-    date: '2026-04-25',
-    status: 'unreleased',
+    date: '2026-04-24',
+    status: 'released',
     changes: [
       {
         page: 'Редактор контролов (Электронная очередь)',
@@ -23,8 +23,8 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.7',
-    date: '2026-04-25',
-    status: 'unreleased',
+    date: '2026-04-24',
+    status: 'released',
     changes: [
       {
         page: 'Редактор контролов (Электронная очередь)',
