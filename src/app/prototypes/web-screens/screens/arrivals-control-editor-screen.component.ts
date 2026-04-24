@@ -135,10 +135,14 @@ const BALANCER_STATUSES = [
               <!-- ═══ B: Two zones ═══ -->
               <div *ngIf="el.type === 'order-items-zones'" class="el-order-zones">
                 <div class="zones-section zones-ready">
-                  <div class="zones-section-header zones-ready-header">
-                    <span class="zones-icon">✔</span> МОЖНО ЗАБРАТЬ
+                  <div class="zones-section-header zones-ready-header"
+                    [style.background]="el.zonesReadyBg || '#e8f5e9'"
+                    [style.font-size.px]="el.zonesHeaderFontSize || 11">
+                    <span class="zones-icon">✔</span> {{ el.zonesReadyHeaderText || 'МОЖНО ЗАБРАТЬ' }}
                   </div>
-                  <div *ngFor="let item of getReadyItems()" class="zones-row zones-row-ready">
+                  <div *ngFor="let item of getReadyItems()" class="zones-row zones-row-ready"
+                    [style.background]="el.zonesReadyBg || '#f1f8e9'"
+                    [style.font-size.px]="el.zonesItemFontSize || 12">
                     <span class="zones-check">✔</span>
                     <span class="zones-name">{{ item.name }}</span>
                     <span class="zones-qty">×{{ item.qty }}</span>
@@ -146,15 +150,19 @@ const BALANCER_STATUSES = [
                   <div *ngIf="getReadyItems().length === 0" class="zones-empty">Нет готовых блюд</div>
                 </div>
                 <div class="zones-section zones-pending" *ngIf="getPendingItems().length > 0">
-                  <div class="zones-section-header zones-pending-header">
-                    <span class="zones-icon">⏳</span> ГОТОВИТСЯ
+                  <div class="zones-section-header zones-pending-header"
+                    [style.background]="el.zonesPendingBg || '#fff3e0'"
+                    [style.font-size.px]="el.zonesHeaderFontSize || 11">
+                    <span class="zones-icon">⏳</span> {{ el.zonesPendingHeaderText || 'ГОТОВИТСЯ' }}
                   </div>
-                  <div *ngFor="let item of getPendingItems()" class="zones-row zones-row-pending">
+                  <div *ngFor="let item of getPendingItems()" class="zones-row zones-row-pending"
+                    [style.background]="el.zonesPendingBg || '#fff8e1'"
+                    [style.font-size.px]="el.zonesItemFontSize || 12">
                     <span class="zones-name">{{ item.name }}</span>
                     <span class="zones-qty">×{{ item.qty }}</span>
                   </div>
                 </div>
-                <div *ngIf="getPendingItems().length === 0 && getReadyItems().length > 0" class="zones-all-ready">
+                <div *ngIf="el.zonesShowAllReadyMsg !== false && getPendingItems().length === 0 && getReadyItems().length > 0" class="zones-all-ready">
                   <span class="zones-all-ready-icon">✔</span>
                   <span>Заказ полностью готов</span>
                 </div>
@@ -163,22 +171,27 @@ const BALANCER_STATUSES = [
               <!-- ═══ C: Progress bar ═══ -->
               <div *ngIf="el.type === 'order-items-progress'" class="el-order-progress">
                 <div class="progress-hero">
-                  <div class="progress-circle">
+                  <div class="progress-circle"
+                    [style.width.px]="el.progressCircleSize || 64"
+                    [style.height.px]="el.progressCircleSize || 64">
                     <svg viewBox="0 0 80 80" class="progress-svg">
-                      <circle cx="40" cy="40" r="34" class="progress-track"></circle>
+                      <circle cx="40" cy="40" r="34" class="progress-track"
+                        [style.stroke]="el.progressTrackColor || '#e0e0e0'"></circle>
                       <circle cx="40" cy="40" r="34" class="progress-fill"
+                        [style.stroke]="el.progressCircleColor || '#4caf50'"
                         [style.stroke-dasharray]="getProgressDash()"
                         [style.stroke-dashoffset]="getProgressOffset()">
                       </circle>
                     </svg>
                     <div class="progress-text">
-                      <span class="progress-pct">{{ getReadyPercent() }}%</span>
-                      <span class="progress-count">{{ getReadyItems().length }}/{{ orderMockItems.length }}</span>
+                      <span *ngIf="el.progressShowPercent !== false" class="progress-pct">{{ getReadyPercent() }}%</span>
+                      <span *ngIf="el.progressShowCount !== false" class="progress-count">{{ getReadyItems().length }}/{{ orderMockItems.length }}</span>
                     </div>
                   </div>
                 </div>
                 <div class="progress-list">
-                  <div *ngFor="let item of orderMockItems" class="progress-item" [class.ready]="item.ready">
+                  <div *ngFor="let item of orderMockItems" class="progress-item" [class.ready]="item.ready"
+                    [style.font-size.px]="el.progressItemFontSize || 12">
                     <span class="progress-marker" [class.ready]="item.ready">{{ item.ready ? '✔' : '○' }}</span>
                     <span class="progress-name">{{ item.name }}</span>
                     <span class="progress-qty">×{{ item.qty }}</span>
@@ -191,19 +204,22 @@ const BALANCER_STATUSES = [
               <div *ngIf="el.type === 'order-items-checklist'" class="el-order-checklist">
                 <div class="checklist-header">
                   <span>Состав заказа</span>
-                  <span class="checklist-counter">{{ getReadyItems().length }}/{{ orderMockItems.length }} ✔</span>
+                  <span *ngIf="el.checklistShowCounter !== false" class="checklist-counter">{{ getReadyItems().length }}/{{ orderMockItems.length }} ✔</span>
                 </div>
                 <div class="checklist-items">
-                  <div *ngFor="let item of orderMockItems" class="checklist-row" [class.ready]="item.ready">
+                  <div *ngFor="let item of orderMockItems" class="checklist-row" [class.ready]="item.ready"
+                    [style.background]="item.ready ? (el.checklistReadyBg || '#f1f8e9') : 'transparent'"
+                    [style.font-size.px]="el.checklistItemFontSize || 12">
                     <span class="checklist-marker" [class.ready]="item.ready">
                       {{ item.ready ? '✔' : '○' }}
                     </span>
-                    <span class="checklist-name" [class.ready]="item.ready">{{ item.name }}</span>
+                    <span class="checklist-name"
+                      [class.ready]="item.ready && el.checklistStrikethrough !== false">{{ item.name }}</span>
                     <span class="checklist-qty">×{{ item.qty }}</span>
                   </div>
                 </div>
                 <div *ngIf="getReadyItems().length === orderMockItems.length" class="checklist-done">
-                  ✔ Заказ полностью готов
+                  ✔ {{ el.checklistDoneText || 'Заказ полностью готов' }}
                 </div>
               </div>
 
@@ -213,12 +229,17 @@ const BALANCER_STATUSES = [
                   <span>Состав заказа</span>
                   <span class="cards-counter">{{ getReadyItems().length }}/{{ orderMockItems.length }}</span>
                 </div>
-                <div class="cards-grid">
-                  <div *ngFor="let item of orderMockItems" class="card-tile" [class.ready]="item.ready">
-                    <div class="card-status-bar" [class.ready]="item.ready">
+                <div class="cards-grid" [style.gap.px]="el.cardsGap || 4">
+                  <div *ngFor="let item of orderMockItems" class="card-tile"
+                    [class.ready]="item.ready"
+                    [style.width]="'calc(' + (100 / (el.cardsPerRow || 2)) + '% - ' + (el.cardsGap || 4) + 'px)'"
+                    [style.border-color]="item.ready ? (el.cardsReadyBorderColor || '#4caf50') : '#e0e0e0'">
+                    <div class="card-status-bar" [class.ready]="item.ready"
+                      [style.background]="item.ready ? (el.cardsReadyBg || '#e8f5e9') : (el.cardsPendingBg || '#fff3e0')"
+                      [style.color]="item.ready ? '#2e7d32' : '#e65100'">
                       {{ item.ready ? '✔ ГОТОВО' : '⏳ ' + item.status }}
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" [style.font-size.px]="el.cardsItemFontSize || 11">
                       <span class="card-name">{{ item.name }}</span>
                       <span class="card-qty">×{{ item.qty }}</span>
                     </div>
@@ -832,6 +853,363 @@ const BALANCER_STATUSES = [
                       <option value="Times New Roman">Times New Roman</option>
                       <option value="Courier New">Courier New</option>
                     </select>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- ── B: Two Zones element ── -->
+            <ng-container *ngIf="selectedElement.type === 'order-items-zones'">
+              <!-- Зоны -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('zones-settings')">
+                  <span>Настройки зон</span>
+                  <lucide-icon [name]="isSectionOpen('zones-settings') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('zones-settings')" class="section-content">
+                  <div class="field-group">
+                    <label class="field-label">Заголовок «Готово»</label>
+                    <input class="field-input" [(ngModel)]="selectedElement.zonesReadyHeaderText" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Заголовок «Готовится»</label>
+                    <input class="field-input" [(ngModel)]="selectedElement.zonesPendingHeaderText" />
+                  </div>
+                  <label class="field-check" style="margin-top: 8px;">
+                    <input type="checkbox" [(ngModel)]="selectedElement.zonesShowAllReadyMsg" />
+                    Показывать сообщение «Заказ полностью готов»
+                  </label>
+                </div>
+              </div>
+
+              <!-- Цвета -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('zones-colors')">
+                  <span>Цвета зон</span>
+                  <lucide-icon [name]="isSectionOpen('zones-colors') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('zones-colors')" class="section-content">
+                  <div class="field-group">
+                    <label class="field-label">Фон зоны «Готово»</label>
+                    <input type="color" [(ngModel)]="selectedElement.zonesReadyBg" class="field-color" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Фон зоны «Готовится»</label>
+                    <input type="color" [(ngModel)]="selectedElement.zonesPendingBg" class="field-color" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Шрифт -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('zones-font')">
+                  <span>Шрифт</span>
+                  <lucide-icon [name]="isSectionOpen('zones-font') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('zones-font')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Заголовок</label><input type="number" [(ngModel)]="selectedElement.zonesHeaderFontSize" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Элемент</label><input type="number" [(ngModel)]="selectedElement.zonesItemFontSize" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Макет -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('layout')">
+                  <span>Макет</span>
+                  <lucide-icon [name]="isSectionOpen('layout') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('layout')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>X</label><input type="number" [(ngModel)]="selectedElement.x" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Y</label><input type="number" [(ngModel)]="selectedElement.y" class="field-input-sm" /></div>
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Ширина</label><input type="number" [(ngModel)]="selectedElement.width" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Высота</label><input type="number" [(ngModel)]="selectedElement.height" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Граница -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('border')">
+                  <span>Граница</span>
+                  <lucide-icon [name]="isSectionOpen('border') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('border')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Толщина</label><input type="number" [(ngModel)]="selectedElement.borderWidth" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Радиус</label><input type="number" [(ngModel)]="selectedElement.borderRadius" class="field-input-sm" /></div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Цвет</label>
+                    <input type="color" [(ngModel)]="selectedElement.borderColor" class="field-color" />
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- ── C: Progress element ── -->
+            <ng-container *ngIf="selectedElement.type === 'order-items-progress'">
+              <!-- Прогресс-круг -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('progress-circle')">
+                  <span>Прогресс-круг</span>
+                  <lucide-icon [name]="isSectionOpen('progress-circle') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('progress-circle')" class="section-content">
+                  <div class="field-group">
+                    <label class="field-label">Цвет прогресса</label>
+                    <input type="color" [(ngModel)]="selectedElement.progressCircleColor" class="field-color" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Цвет трека</label>
+                    <input type="color" [(ngModel)]="selectedElement.progressTrackColor" class="field-color" />
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Размер (px)</label><input type="number" [(ngModel)]="selectedElement.progressCircleSize" class="field-input-sm" /></div>
+                  </div>
+                  <label class="field-check" style="margin-top: 8px;">
+                    <input type="checkbox" [(ngModel)]="selectedElement.progressShowPercent" />
+                    Показывать процент
+                  </label>
+                  <label class="field-check" style="margin-top: 4px;">
+                    <input type="checkbox" [(ngModel)]="selectedElement.progressShowCount" />
+                    Показывать счётчик (2/4)
+                  </label>
+                </div>
+              </div>
+
+              <!-- Шрифт -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('progress-font')">
+                  <span>Шрифт списка</span>
+                  <lucide-icon [name]="isSectionOpen('progress-font') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('progress-font')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Размер</label><input type="number" [(ngModel)]="selectedElement.progressItemFontSize" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Макет -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('layout')">
+                  <span>Макет</span>
+                  <lucide-icon [name]="isSectionOpen('layout') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('layout')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>X</label><input type="number" [(ngModel)]="selectedElement.x" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Y</label><input type="number" [(ngModel)]="selectedElement.y" class="field-input-sm" /></div>
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Ширина</label><input type="number" [(ngModel)]="selectedElement.width" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Высота</label><input type="number" [(ngModel)]="selectedElement.height" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Граница -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('border')">
+                  <span>Граница</span>
+                  <lucide-icon [name]="isSectionOpen('border') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('border')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Толщина</label><input type="number" [(ngModel)]="selectedElement.borderWidth" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Радиус</label><input type="number" [(ngModel)]="selectedElement.borderRadius" class="field-input-sm" /></div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Цвет</label>
+                    <input type="color" [(ngModel)]="selectedElement.borderColor" class="field-color" />
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- ── D: Checklist element ── -->
+            <ng-container *ngIf="selectedElement.type === 'order-items-checklist'">
+              <!-- Настройки чеклиста -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('checklist-settings')">
+                  <span>Настройки чеклиста</span>
+                  <lucide-icon [name]="isSectionOpen('checklist-settings') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('checklist-settings')" class="section-content">
+                  <label class="field-check" style="margin-bottom: 6px;">
+                    <input type="checkbox" [(ngModel)]="selectedElement.checklistStrikethrough" />
+                    Зачёркивать готовые
+                  </label>
+                  <label class="field-check" style="margin-bottom: 6px;">
+                    <input type="checkbox" [(ngModel)]="selectedElement.checklistShowCounter" />
+                    Показывать счётчик
+                  </label>
+                  <div class="field-group" style="margin-top: 8px;">
+                    <label class="field-label">Текст завершения</label>
+                    <input class="field-input" [(ngModel)]="selectedElement.checklistDoneText" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Цвета -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('checklist-colors')">
+                  <span>Цвета</span>
+                  <lucide-icon [name]="isSectionOpen('checklist-colors') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('checklist-colors')" class="section-content">
+                  <div class="field-group">
+                    <label class="field-label">Фон готовых</label>
+                    <input type="color" [(ngModel)]="selectedElement.checklistReadyBg" class="field-color" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Шрифт -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('checklist-font')">
+                  <span>Шрифт</span>
+                  <lucide-icon [name]="isSectionOpen('checklist-font') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('checklist-font')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Размер</label><input type="number" [(ngModel)]="selectedElement.checklistItemFontSize" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Макет -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('layout')">
+                  <span>Макет</span>
+                  <lucide-icon [name]="isSectionOpen('layout') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('layout')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>X</label><input type="number" [(ngModel)]="selectedElement.x" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Y</label><input type="number" [(ngModel)]="selectedElement.y" class="field-input-sm" /></div>
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Ширина</label><input type="number" [(ngModel)]="selectedElement.width" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Высота</label><input type="number" [(ngModel)]="selectedElement.height" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Граница -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('border')">
+                  <span>Граница</span>
+                  <lucide-icon [name]="isSectionOpen('border') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('border')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Толщина</label><input type="number" [(ngModel)]="selectedElement.borderWidth" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Радиус</label><input type="number" [(ngModel)]="selectedElement.borderRadius" class="field-input-sm" /></div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Цвет</label>
+                    <input type="color" [(ngModel)]="selectedElement.borderColor" class="field-color" />
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- ── E: Cards element ── -->
+            <ng-container *ngIf="selectedElement.type === 'order-items-cards'">
+              <!-- Сетка карточек -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('cards-grid')">
+                  <span>Сетка карточек</span>
+                  <lucide-icon [name]="isSectionOpen('cards-grid') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('cards-grid')" class="section-content">
+                  <div class="field-group">
+                    <label class="field-label">Карточек в строке</label>
+                    <select class="field-select" [(ngModel)]="selectedElement.cardsPerRow">
+                      <option [ngValue]="2">2</option>
+                      <option [ngValue]="3">3</option>
+                      <option [ngValue]="4">4</option>
+                    </select>
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Отступ (px)</label><input type="number" [(ngModel)]="selectedElement.cardsGap" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Цвета -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('cards-colors')">
+                  <span>Цвета</span>
+                  <lucide-icon [name]="isSectionOpen('cards-colors') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('cards-colors')" class="section-content">
+                  <div class="field-group">
+                    <label class="field-label">Рамка готовой карточки</label>
+                    <input type="color" [(ngModel)]="selectedElement.cardsReadyBorderColor" class="field-color" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Фон статус-бара «Готово»</label>
+                    <input type="color" [(ngModel)]="selectedElement.cardsReadyBg" class="field-color" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Фон статус-бара «Готовится»</label>
+                    <input type="color" [(ngModel)]="selectedElement.cardsPendingBg" class="field-color" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Шрифт -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('cards-font')">
+                  <span>Шрифт</span>
+                  <lucide-icon [name]="isSectionOpen('cards-font') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('cards-font')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Размер</label><input type="number" [(ngModel)]="selectedElement.cardsItemFontSize" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Макет -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('layout')">
+                  <span>Макет</span>
+                  <lucide-icon [name]="isSectionOpen('layout') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('layout')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>X</label><input type="number" [(ngModel)]="selectedElement.x" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Y</label><input type="number" [(ngModel)]="selectedElement.y" class="field-input-sm" /></div>
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Ширина</label><input type="number" [(ngModel)]="selectedElement.width" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Высота</label><input type="number" [(ngModel)]="selectedElement.height" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Граница -->
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('border')">
+                  <span>Граница</span>
+                  <lucide-icon [name]="isSectionOpen('border') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('border')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Толщина</label><input type="number" [(ngModel)]="selectedElement.borderWidth" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Радиус</label><input type="number" [(ngModel)]="selectedElement.borderRadius" class="field-input-sm" /></div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Цвет</label>
+                    <input type="color" [(ngModel)]="selectedElement.borderColor" class="field-color" />
                   </div>
                 </div>
               </div>
@@ -1760,6 +2138,42 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
         type === 'order-items-checklist' || type === 'order-items-cards') {
       el.width = 400;
       el.height = 260;
+    }
+
+    if (type === 'order-items-zones') {
+      el.zonesReadyBg = '#e8f5e9';
+      el.zonesPendingBg = '#fff3e0';
+      el.zonesReadyHeaderText = 'МОЖНО ЗАБРАТЬ';
+      el.zonesPendingHeaderText = 'ГОТОВИТСЯ';
+      el.zonesShowAllReadyMsg = true;
+      el.zonesItemFontSize = 12;
+      el.zonesHeaderFontSize = 11;
+    }
+
+    if (type === 'order-items-progress') {
+      el.progressCircleColor = '#4caf50';
+      el.progressTrackColor = '#e0e0e0';
+      el.progressShowPercent = true;
+      el.progressShowCount = true;
+      el.progressCircleSize = 64;
+      el.progressItemFontSize = 12;
+    }
+
+    if (type === 'order-items-checklist') {
+      el.checklistStrikethrough = true;
+      el.checklistShowCounter = true;
+      el.checklistReadyBg = '#f1f8e9';
+      el.checklistDoneText = 'Заказ полностью готов';
+      el.checklistItemFontSize = 12;
+    }
+
+    if (type === 'order-items-cards') {
+      el.cardsPerRow = 2;
+      el.cardsReadyBorderColor = '#4caf50';
+      el.cardsReadyBg = '#e8f5e9';
+      el.cardsPendingBg = '#fff3e0';
+      el.cardsGap = 4;
+      el.cardsItemFontSize = 11;
     }
 
     this.control.elements.push(el);

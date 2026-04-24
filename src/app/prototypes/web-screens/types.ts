@@ -157,6 +157,34 @@ export interface ArrivalsThemeElement {
   orderStatusFontSize?: number;
   orderStatusFontFamily?: string;
   orderStatusFontColor?: string;
+  // B: Two Zones
+  zonesReadyBg?: string;
+  zonesPendingBg?: string;
+  zonesReadyHeaderText?: string;
+  zonesPendingHeaderText?: string;
+  zonesShowAllReadyMsg?: boolean;
+  zonesItemFontSize?: number;
+  zonesHeaderFontSize?: number;
+  // C: Progress
+  progressCircleColor?: string;
+  progressTrackColor?: string;
+  progressShowPercent?: boolean;
+  progressShowCount?: boolean;
+  progressCircleSize?: number;
+  progressItemFontSize?: number;
+  // D: Checklist
+  checklistStrikethrough?: boolean;
+  checklistShowCounter?: boolean;
+  checklistReadyBg?: string;
+  checklistDoneText?: string;
+  checklistItemFontSize?: number;
+  // E: Cards
+  cardsPerRow?: number;
+  cardsReadyBorderColor?: string;
+  cardsReadyBg?: string;
+  cardsPendingBg?: string;
+  cardsGap?: number;
+  cardsItemFontSize?: number;
 }
 
 /* ── Product Catalog (for Price element navigator) ── */
