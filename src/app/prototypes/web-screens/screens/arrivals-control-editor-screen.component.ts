@@ -84,38 +84,50 @@ const BALANCER_STATUSES = [
 
               <!-- Order items table preview -->
               <div *ngIf="el.type === 'order-items'" class="el-order-table">
-                <div class="order-table-header" *ngIf="el.orderShowHeader !== false"
-                  [style.background]="el.orderHeaderBg || '#333333'"
-                  [style.height.px]="el.orderHeaderHeight || 36">
-                  <span *ngIf="el.orderShowName !== false" class="order-col-name"
-                    [style.color]="el.orderHeaderFontColor || '#fff'"
-                    [style.font-size.px]="el.orderHeaderFontSize || 14"
-                    [style.font-family]="el.orderHeaderFontFamily || 'Roboto'">{{ el.orderNameLabel || 'Наименование' }}</span>
-                  <span *ngIf="el.orderShowQty !== false" class="order-col-qty"
-                    [style.color]="el.orderHeaderFontColor || '#fff'"
-                    [style.font-size.px]="el.orderHeaderFontSize || 14"
-                    [style.font-family]="el.orderHeaderFontFamily || 'Roboto'">{{ el.orderQtyLabel || 'Кол-во' }}</span>
-                  <span *ngIf="el.orderShowStatus !== false" class="order-col-status"
-                    [style.color]="el.orderHeaderFontColor || '#fff'"
-                    [style.font-size.px]="el.orderHeaderFontSize || 14"
-                    [style.font-family]="el.orderHeaderFontFamily || 'Roboto'">{{ el.orderStatusLabel || 'Статус' }}</span>
-                </div>
-                <div *ngFor="let item of orderMockItems" class="order-table-row"
-                  [style.background]="item.ready ? (el.orderReadyColor || '#e8f5e9') : (el.orderNotReadyColor || 'transparent')"
-                  [style.height.px]="el.orderRowHeight || 32">
-                  <span *ngIf="el.orderShowName !== false" class="order-col-name"
-                    [style.color]="el.orderNameFontColor || '#333'"
-                    [style.font-size.px]="el.orderNameFontSize || 14"
-                    [style.font-family]="el.orderNameFontFamily || 'Roboto'">{{ item.name }}</span>
-                  <span *ngIf="el.orderShowQty !== false" class="order-col-qty"
-                    [style.color]="el.orderQtyFontColor || '#333'"
-                    [style.font-size.px]="el.orderQtyFontSize || 14"
-                    [style.font-family]="el.orderQtyFontFamily || 'Roboto'">{{ item.qty }}</span>
-                  <span *ngIf="el.orderShowStatus !== false" class="order-col-status"
-                    [style.color]="el.orderStatusFontColor || (item.ready ? '#2e7d32' : '#c62828')"
-                    [style.font-size.px]="el.orderStatusFontSize || 14"
-                    [style.font-family]="el.orderStatusFontFamily || 'Roboto'"
-                    [style.font-weight]="item.ready ? '600' : '400'">{{ item.status }}</span>
+                <ng-container *ngIf="!el.orderHideOnComplete || !allOrderItemsReady(el)">
+                  <div class="order-table-header" *ngIf="el.orderShowHeader !== false"
+                    [style.background]="el.orderHeaderBg || '#333333'"
+                    [style.height.px]="el.orderHeaderHeight || 36">
+                    <span *ngIf="el.orderShowName !== false" class="order-col-name"
+                      [style.color]="el.orderHeaderFontColor || '#fff'"
+                      [style.font-size.px]="el.orderHeaderFontSize || 14"
+                      [style.font-family]="el.orderHeaderFontFamily || 'Roboto'"
+                      [style.width.px]="el.orderNameColWidth || null">{{ el.orderShowNameLabel !== false ? (el.orderNameLabel || 'Наименование') : '' }}</span>
+                    <span *ngIf="el.orderShowQty !== false" class="order-col-qty"
+                      [style.color]="el.orderHeaderFontColor || '#fff'"
+                      [style.font-size.px]="el.orderHeaderFontSize || 14"
+                      [style.font-family]="el.orderHeaderFontFamily || 'Roboto'"
+                      [style.width.px]="el.orderQtyColWidth || null">{{ el.orderShowQtyLabel !== false ? (el.orderQtyLabel || 'Кол-во') : '' }}</span>
+                    <span *ngIf="el.orderShowStatus !== false" class="order-col-status"
+                      [style.color]="el.orderHeaderFontColor || '#fff'"
+                      [style.font-size.px]="el.orderHeaderFontSize || 14"
+                      [style.font-family]="el.orderHeaderFontFamily || 'Roboto'"
+                      [style.width.px]="el.orderStatusColWidth || null">{{ el.orderShowStatusLabel !== false ? (el.orderStatusLabel || 'Статус') : '' }}</span>
+                  </div>
+                  <div *ngFor="let item of getFilteredOrderItems(el)" class="order-table-row"
+                    [style.background]="item.ready ? (el.orderReadyColor || '#e8f5e9') : (el.orderNotReadyColor || '#ffffff')"
+                    [style.height.px]="el.orderRowHeight || 32">
+                    <span *ngIf="el.orderShowName !== false" class="order-col-name"
+                      [style.color]="el.orderNameFontColor || '#333'"
+                      [style.font-size.px]="el.orderNameFontSize || 14"
+                      [style.font-family]="el.orderNameFontFamily || 'Roboto'"
+                      [style.width.px]="el.orderNameColWidth || null">{{ item.name }}</span>
+                    <span *ngIf="el.orderShowQty !== false" class="order-col-qty"
+                      [style.color]="el.orderQtyFontColor || '#333'"
+                      [style.font-size.px]="el.orderQtyFontSize || 14"
+                      [style.font-family]="el.orderQtyFontFamily || 'Roboto'"
+                      [style.width.px]="el.orderQtyColWidth || null">{{ item.qty }}</span>
+                    <span *ngIf="el.orderShowStatus !== false" class="order-col-status"
+                      [style.color]="getStatusColor(el, item)"
+                      [style.font-size.px]="el.orderStatusFontSize || 14"
+                      [style.font-family]="el.orderStatusFontFamily || 'Roboto'"
+                      [style.font-weight]="item.ready ? '600' : '400'"
+                      [style.width.px]="el.orderStatusColWidth || null">{{ item.status }}</span>
+                  </div>
+                </ng-container>
+                <div *ngIf="el.orderHideOnComplete && allOrderItemsReady(el)" class="order-complete-msg">
+                  <lucide-icon name="check-circle" [size]="28" style="color: #4caf50"></lucide-icon>
+                  <span>Заказ готов</span>
                 </div>
               </div>
 
@@ -210,7 +222,7 @@ const BALANCER_STATUSES = [
             <div *ngFor="let el of control.elements; let i = index" class="element-list-item"
               [class.active]="selectedElementId === el.id"
               (click)="selectElementFromList(el.id)">
-              <span class="el-list-name">{{ el.name }}</span>
+              <span class="el-list-name">{{ el.name || getElementTypeLabel(el.type) }}</span>
               <div class="el-list-actions">
                 <button class="el-list-btn" title="Видимость">
                   <lucide-icon name="eye" [size]="14"></lucide-icon>
@@ -532,14 +544,23 @@ const BALANCER_STATUSES = [
                   </div>
                   <div class="section-divider-bold">Заголовки колонок</div>
                   <div class="field-group">
+                    <label class="field-check" style="margin-bottom: 4px;">
+                      <input type="checkbox" [(ngModel)]="selectedElement.orderShowNameLabel" /> Показывать
+                    </label>
                     <label class="field-label">Колонка названия</label>
                     <input class="field-input" [(ngModel)]="selectedElement.orderNameLabel" />
                   </div>
                   <div class="field-group">
+                    <label class="field-check" style="margin-bottom: 4px;">
+                      <input type="checkbox" [(ngModel)]="selectedElement.orderShowQtyLabel" /> Показывать
+                    </label>
                     <label class="field-label">Колонка кол-ва</label>
                     <input class="field-input" [(ngModel)]="selectedElement.orderQtyLabel" />
                   </div>
                   <div class="field-group">
+                    <label class="field-check" style="margin-bottom: 4px;">
+                      <input type="checkbox" [(ngModel)]="selectedElement.orderShowStatusLabel" /> Показывать
+                    </label>
                     <label class="field-label">Колонка статуса</label>
                     <input class="field-input" [(ngModel)]="selectedElement.orderStatusLabel" />
                   </div>
@@ -1060,9 +1081,14 @@ const BALANCER_STATUSES = [
       padding: 0 4px;
       border-bottom: 1px solid #e0e0e0;
     }
-    .order-col-name { flex: 3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+    .order-col-name { flex: 3; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
     .order-col-qty { flex: 1; text-align: center; padding: 0 2px; }
     .order-col-status { flex: 2; text-align: center; padding: 0 2px; }
+    .order-col-name[style*="width"], .order-col-qty[style*="width"], .order-col-status[style*="width"] { flex: none; }
+    .order-complete-msg {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; height: 100%; gap: 8px; font-size: 18px; font-weight: 600; color: #4caf50;
+    }
   `],
 })
 export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
@@ -1196,6 +1222,29 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  getElementTypeLabel(type: string): string {
+    return this.elementTypes.find(et => et.type === type)?.label ?? type;
+  }
+
+  getFilteredOrderItems(el: ArrivalsThemeElement): { name: string; qty: number; status: string; ready: boolean }[] {
+    if (el.orderDisplayMode === 'ready-only') {
+      return this.orderMockItems.filter(i => i.ready);
+    }
+    return this.orderMockItems;
+  }
+
+  allOrderItemsReady(el: ArrivalsThemeElement): boolean {
+    const items = this.getFilteredOrderItems(el);
+    return items.length > 0 && items.every(i => i.ready);
+  }
+
+  getStatusColor(el: ArrivalsThemeElement, item: { ready: boolean }): string {
+    if (el.orderStatusFontColor && el.orderStatusFontColor !== '#333333') {
+      return el.orderStatusFontColor;
+    }
+    return item.ready ? '#2e7d32' : '#c62828';
   }
 
   toggleStatusHighlight(status: string): void {
@@ -1361,6 +1410,9 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
       el.orderShowHeader = true;
       el.orderHeaderBg = '#333333';
       el.orderHeaderHeight = 36;
+      el.orderShowNameLabel = true;
+      el.orderShowQtyLabel = true;
+      el.orderShowStatusLabel = true;
       el.orderNameLabel = 'Наименование';
       el.orderQtyLabel = 'Кол-во';
       el.orderStatusLabel = 'Статус';

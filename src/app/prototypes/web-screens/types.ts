@@ -132,6 +132,9 @@ export interface ArrivalsThemeElement {
   orderShowHeader?: boolean;
   orderHeaderBg?: string;
   orderHeaderHeight?: number;
+  orderShowNameLabel?: boolean;
+  orderShowQtyLabel?: boolean;
+  orderShowStatusLabel?: boolean;
   orderNameLabel?: string;
   orderQtyLabel?: string;
   orderStatusLabel?: string;
