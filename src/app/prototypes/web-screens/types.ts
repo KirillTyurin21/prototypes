@@ -126,3 +126,22 @@ export interface ArrivalsTheme {
   screenMode: string;
   elements: ArrivalsThemeElement[];
 }
+
+/* ── Arrivals Controls Editor ── */
+
+export type ArrivalsControlStatusType = 'kitchen' | 'delivery' | 'balancer';
+
+export interface ArrivalsControlListItem {
+  id: number;
+  name: string;
+  itemType: 'folder' | 'control';
+  resolution?: string;
+  createdBy?: string;
+}
+
+export interface ArrivalsControl {
+  id: number;
+  name: string;
+  statusType: ArrivalsControlStatusType;
+  elements: ArrivalsThemeElement[];
+}

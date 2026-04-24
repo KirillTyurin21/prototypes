@@ -6,6 +6,8 @@ import {
   SidebarSection,
   ArrivalsThemeListItem,
   ArrivalsTheme,
+  ArrivalsControlListItem,
+  ArrivalsControl,
   ProductCatalogItem,
 } from '../types';
 
@@ -380,4 +382,23 @@ export const MOCK_TERMINALS: ArrivalTerminal[] = [
     ip: '192.168.1.105',
     lastSync: '2026-02-10T09:42:15',
   },
+];
+
+/* ── Arrivals Controls list (folders + controls) ── */
+
+export const MOCK_ARRIVALS_CONTROLS_LIST: ArrivalsControlListItem[] = [
+  { id: 301, name: 'Контролы', itemType: 'folder' },
+  { id: 302, name: 'Доставка (для Курьеров) (от 25-10-09)', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
+  { id: 303, name: 'Аня тест1', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
+  { id: 304, name: 'ВИТ', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
+  { id: 305, name: 'Контрол с анимацией', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
+  { id: 306, name: 'Стандартный контрол', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
+];
+
+export const MOCK_ARRIVALS_CONTROLS: ArrivalsControl[] = [
+  { id: 302, name: 'Доставка (для Курьеров) (от 25-10-09)', statusType: 'delivery', elements: [] },
+  { id: 303, name: 'Аня тест1', statusType: 'kitchen', elements: [] },
+  { id: 304, name: 'ВИТ', statusType: 'kitchen', elements: [] },
+  { id: 305, name: 'Контрол с анимацией', statusType: 'kitchen', elements: [] },
+  { id: 306, name: 'Стандартный контрол', statusType: 'balancer', elements: [] },
 ];

@@ -79,8 +79,15 @@ export const WEB_SCREENS_ROUTES: Routes = [
       {
         path: 'arrivals-controls',
         loadComponent: () =>
-          import('./screens/stub-screen.component').then(
-            m => m.StubScreenComponent
+          import('./screens/arrivals-controls-screen.component').then(
+            m => m.ArrivalsControlsScreenComponent
+          ),
+      },
+      {
+        path: 'arrivals-control-editor/:id',
+        loadComponent: () =>
+          import('./screens/arrivals-control-editor-screen.component').then(
+            m => m.ArrivalsControlEditorScreenComponent
           ),
       },
       {
