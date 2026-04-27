@@ -160,23 +160,25 @@ import { PosDialogFrameComponent } from '../components/pos-dialog-frame.componen
       *ngIf="showQrDialog"
       title="Настройка WB Pay"
       [okDisabled]="!qrInput.trim()"
+      okText="ОК"
+      cancelText="Отмена"
       (ok)="onQrScan()"
       (cancel)="showQrDialog = false"
     >
-      <p style="margin-bottom: 16px;">
+      <p class="text-center mb-4">
         Отсканируйте QR-код настройки,<br>сгенерированный в Web-панели
       </p>
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-size: 12px; color: #888; margin-bottom: 4px;">QR-данные:</label>
+      <div class="mb-3">
+        <label class="block text-xs text-gray-400 mb-1">QR-данные:</label>
         <input
           type="text"
           [(ngModel)]="qrInput"
           [placeholder]="state.lastGeneratedQrData || 'base64-encoded-config...'"
-          style="width: 100%; padding: 10px 12px; background: #3a3a3a; border: 1px solid #555; border-radius: 6px; color: #e0e0e0; font-family: monospace; font-size: 13px; outline: none;"
+          class="w-full h-12 px-4 bg-white text-black rounded text-sm outline-none font-mono"
         />
       </div>
-      <p style="font-size: 11px; color: #888;">
-        Совет: сначала сгенерируйте QR в <strong style="color: #b8c959;">Панель Web</strong>
+      <p class="text-xs text-gray-400 text-center">
+        Совет: сначала сгенерируйте QR в <strong class="text-[#b8c959]">Панель Web</strong>
       </p>
     </app-pos-dialog-frame>
   `,

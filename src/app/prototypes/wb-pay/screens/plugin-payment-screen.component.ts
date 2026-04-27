@@ -153,19 +153,10 @@ interface ApiLogEntry {
 
             <!-- Step: wait-confirmation -->
             <div *ngIf="currentStep === 'wait-confirmation'" class="text-center">
-              <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
-                <lucide-icon name="smartphone" [size]="32" class="text-app-primary"></lucide-icon>
+              <div class="flex items-center justify-center gap-2 text-sm text-text-secondary">
+                <div class="w-4 h-4 border-2 border-app-primary border-t-transparent rounded-full animate-spin"></div>
+                Ожидание подтверждения гостем в приложении WB...
               </div>
-              <p class="text-sm font-medium text-text-primary mb-1">
-                Гость подтверждает оплату в приложении WB
-              </p>
-              <p class="text-xs text-text-secondary mb-3">
-                Сумма: {{ amount }} ₽
-              </p>
-              <ui-button
-                variant="primary"
-                (click)="confirmPayment()"
-              >Гость подтвердил</ui-button>
             </div>
 
             <!-- Step: polling -->
@@ -178,24 +169,18 @@ interface ApiLogEntry {
 
             <!-- Step: succeeded -->
             <div *ngIf="currentStep === 'succeeded'" class="text-center">
-              <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-                <lucide-icon name="check-circle" [size]="32" class="text-green-500"></lucide-icon>
+              <div class="flex items-center justify-center gap-2 text-sm text-green-600">
+                <lucide-icon name="check-circle" [size]="18" class="text-green-500"></lucide-icon>
+                Оплата прошла успешно (order_id: {{ currentOrderId }}, сумма: {{ amount }} ₽)
               </div>
-              <p class="text-sm font-medium text-green-700 mb-1">Оплата прошла успешно</p>
-              <p class="text-xs text-text-secondary">order_id: {{ currentOrderId }}</p>
-              <p class="text-xs text-text-secondary">Сумма: {{ amount }} ₽</p>
-              <ui-button variant="outline" class="mt-3" (click)="reset()">Новая оплата</ui-button>
             </div>
 
             <!-- Step: failed -->
             <div *ngIf="currentStep === 'failed'" class="text-center">
-              <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
-                <lucide-icon name="x-circle" [size]="32" class="text-red-500"></lucide-icon>
+              <div class="flex items-center justify-center gap-2 text-sm text-red-600">
+                <lucide-icon name="x-circle" [size]="18" class="text-red-500"></lucide-icon>
+                Ошибка: {{ failReasonText }} (код: {{ selectedErrorCode }})
               </div>
-              <p class="text-sm font-medium text-red-700 mb-1">Оплата отклонена</p>
-              <p class="text-xs text-red-600 mb-1">{{ failReasonText }}</p>
-              <p class="text-xs text-text-secondary">Код: {{ selectedErrorCode }}</p>
-              <ui-button variant="outline" class="mt-3" (click)="reset()">Повторить</ui-button>
             </div>
           </div>
         </ui-card-content>
@@ -234,24 +219,107 @@ interface ApiLogEntry {
       *ngIf="showQrDialog"
       title="Оплата WB-кошельком"
       [okDisabled]="!qrInput.trim()"
+      okText="ОК"
+      cancelText="Отмена"
       (ok)="onQrScanned()"
       (cancel)="onQrCancel()"
     >
-      <p style="margin-bottom: 16px;">
+      <p class="text-center mb-4">
         Отсканируйте QR-код из приложения<br>Wildberries
       </p>
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-size: 12px; color: #888; margin-bottom: 4px;">QR-код:</label>
+      <div class="mb-3">
+        <label class="block text-xs text-gray-400 mb-1">QR-код:</label>
         <input
           type="text"
           [(ngModel)]="qrInput"
           placeholder="wb_pay_qr_12345678"
-          style="width: 100%; padding: 10px 12px; background: #3a3a3a; border: 1px solid #555; border-radius: 6px; color: #e0e0e0; font-family: monospace; font-size: 14px; outline: none;"
+          class="w-full h-12 px-4 bg-white text-black rounded text-sm outline-none font-mono"
         />
       </div>
-      <p style="font-size: 11px; color: #888;">
-        Сумма к оплате: <strong style="color: #b8c959;">{{ amount }} ₽</strong>
+      <p class="text-xs text-gray-400 text-center">
+        Сумма к оплате: <span class="font-semibold text-[#b8c959]">{{ amount }} ₽</span>
       </p>
+    </app-pos-dialog-frame>
+
+    <!-- Wait Confirmation Dialog (POS style — loading bar) -->
+    <app-pos-dialog-frame
+      *ngIf="currentStep === 'wait-confirmation'"
+      title="Оплата WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="false"
+      size="sm"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <lucide-icon name="loader-2" [size]="48" class="text-[#b8c959] animate-spin mb-4"></lucide-icon>
+        <p class="text-white text-base font-medium mb-2">Ожидание подтверждения</p>
+        <p class="text-gray-400 text-sm mb-4">
+          Гость подтверждает оплату<br>в приложении Wildberries
+        </p>
+        <p class="text-[#b8c959] text-lg font-bold mb-4">{{ amount }} ₽</p>
+        <!-- Progress bar -->
+        <div class="w-full bg-[#2d2d2d] rounded-full h-1.5 overflow-hidden">
+          <div class="bg-[#b8c959] h-full rounded-full animate-progress-bar"></div>
+        </div>
+      </div>
+      <div class="border-t border-white/10 -mx-6 -mb-4 mt-4">
+        <button
+          class="w-full py-4 text-center text-white font-bold text-base bg-[#2d2d2d] hover:bg-[#333] transition-colors"
+          (click)="confirmPayment()"
+        >Гость подтвердил ✓</button>
+      </div>
+    </app-pos-dialog-frame>
+
+    <!-- Success Dialog (POS style) -->
+    <app-pos-dialog-frame
+      *ngIf="currentStep === 'succeeded'"
+      title="Оплата WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="true"
+      okText="ОК"
+      size="sm"
+      (ok)="reset()"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <div class="rounded-full bg-[#b8c959]/20 p-4 mb-4">
+          <lucide-icon name="check-circle-2" [size]="48" class="text-[#b8c959]"></lucide-icon>
+        </div>
+        <p class="text-white text-base font-medium mb-3">Оплата прошла успешно</p>
+        <div class="bg-[#2d2d2d] rounded p-3 w-full text-sm">
+          <div class="flex justify-between mb-1">
+            <span class="text-gray-400">Сумма</span>
+            <span class="text-[#b8c959] font-semibold">{{ amount }} ₽</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">ID заказа</span>
+            <span class="text-gray-300 font-mono text-xs">{{ currentOrderId }}</span>
+          </div>
+        </div>
+      </div>
+    </app-pos-dialog-frame>
+
+    <!-- Error Dialog (POS style) -->
+    <app-pos-dialog-frame
+      *ngIf="currentStep === 'failed'"
+      title="Оплата WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="true"
+      okText="Повторить"
+      size="sm"
+      (ok)="reset()"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <div class="rounded-full bg-red-500/20 p-4 mb-4">
+          <lucide-icon name="x-circle" [size]="48" class="text-red-400"></lucide-icon>
+        </div>
+        <p class="text-white text-base font-medium mb-2">Оплата отклонена</p>
+        <p class="text-red-400 text-sm mb-3">{{ failReasonText }}</p>
+        <div class="bg-[#2d2d2d] rounded p-3 w-full text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-400">Код ошибки</span>
+            <span class="text-red-400 font-mono text-xs">{{ selectedErrorCode }}</span>
+          </div>
+        </div>
+      </div>
     </app-pos-dialog-frame>
   `,
 })

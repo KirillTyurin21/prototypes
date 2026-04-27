@@ -2,6 +2,47 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.2',
+    date: '2026-06-05',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Плагин Front — Оплата',
+        pageRoute: '/prototype/wb-pay/plugin/payment',
+        items: [
+          'Все диалоговые окна плагина адаптированы под стилистику окон Front',
+          'Добавлен POS-диалог ожидания оплаты с прогресс-баром и спиннером',
+          'Добавлен POS-диалог успешной оплаты с иконкой подтверждения',
+          'Добавлен POS-диалог ошибки оплаты с возможностью повторной попытки',
+          'QR-диалог переоформлен в стиле Front-плагина',
+        ],
+      },
+      {
+        page: 'Плагин Front — Фискальная ошибка',
+        pageRoute: '/prototype/wb-pay/plugin/fiscal-error',
+        items: [
+          'Добавлен POS-диалог ошибки фискального регистратора с индикатором прогресса',
+          'Добавлен POS-диалог «Повторите оплату» — сообщение кассиру при завершении возврата',
+        ],
+      },
+      {
+        page: 'Плагин Front — Возврат',
+        pageRoute: '/prototype/wb-pay/plugin/refund',
+        items: [
+          'Добавлен POS-диалог успешного возврата с информацией о сумме',
+          'Добавлен POS-диалог ошибки возврата',
+        ],
+      },
+      {
+        page: 'Плагин Front — Настройка',
+        pageRoute: '/prototype/wb-pay/plugin/setup',
+        items: [
+          'QR-диалог сканирования переоформлен в стиле Front-плагина',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.1',
     date: '2026-04-27',
     status: 'unreleased',

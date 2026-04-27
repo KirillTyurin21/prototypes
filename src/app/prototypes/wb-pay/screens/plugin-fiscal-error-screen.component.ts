@@ -11,6 +11,7 @@ import {
 } from '@/components/ui';
 import { WbPayStateService } from '../wb-pay-state.service';
 import { PaymentStepIndicatorComponent } from '../components/payment-step-indicator.component';
+import { PosDialogFrameComponent } from '../components/pos-dialog-frame.component';
 
 interface StepItem {
   label: string;
@@ -31,6 +32,7 @@ type FiscalStep = 'idle' | 'payment' | 'fiscal-error' | 'emergency-cancel' | 're
     UiButtonComponent,
     UiAlertComponent,
     PaymentStepIndicatorComponent,
+    PosDialogFrameComponent,
   ],
   template: `
     <div class="max-w-4xl mx-auto animate-fade-in">
@@ -94,11 +96,10 @@ type FiscalStep = 'idle' | 'payment' | 'fiscal-error' | 'emergency-cancel' | 're
 
               <!-- Fiscal error -->
               <div *ngIf="currentFiscalStep === 'fiscal-error'" class="text-center">
-                <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
-                  <lucide-icon name="printer" [size]="32" class="text-red-500"></lucide-icon>
+                <div class="flex items-center justify-center gap-2 text-sm text-red-600">
+                  <lucide-icon name="printer" [size]="18" class="text-red-500"></lucide-icon>
+                  Ошибка фискального регистратора! Запуск экстренного возврата...
                 </div>
-                <p class="text-sm font-medium text-red-700 mb-1">Ошибка фискального регистратора!</p>
-                <p class="text-xs text-red-600">Чек не напечатан. Запуск экстренного возврата...</p>
               </div>
 
               <!-- Emergency cancel -->
@@ -119,18 +120,11 @@ type FiscalStep = 'idle' | 'payment' | 'fiscal-error' | 'emergency-cancel' | 're
 
               <!-- Done -->
               <div *ngIf="currentFiscalStep === 'done'" class="text-center">
-                <div class="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-3">
-                  <lucide-icon name="alert-triangle" [size]="32" class="text-amber-500"></lucide-icon>
+                <div class="flex items-center justify-center gap-2 text-sm text-amber-600">
+                  <lucide-icon name="alert-triangle" [size]="18" class="text-amber-500"></lucide-icon>
+                  Возврат выполнен. Средства возвращены в WB-кошелёк гостя.
                 </div>
-                <p class="text-sm font-medium text-amber-700 mb-1">Возврат выполнен</p>
-                <p class="text-xs text-text-secondary mb-3">
-                  Оплата отменена. Средства возвращены в WB-кошелёк гостя.
-                </p>
-                <div class="p-3 bg-blue-50 rounded-lg border border-blue-100 mb-3">
-                  <p class="text-sm text-blue-800 font-medium">💬 Сообщение кассиру:</p>
-                  <p class="text-sm text-blue-700 mt-1">«Повторите оплату»</p>
-                </div>
-                <ui-button variant="outline" (click)="resetSimulation()">Сбросить</ui-button>
+                <ui-button variant="outline" class="mt-3" (click)="resetSimulation()">Сбросить</ui-button>
               </div>
             </div>
           </div>
@@ -160,6 +154,48 @@ type FiscalStep = 'idle' | 'payment' | 'fiscal-error' | 'emergency-cancel' | 're
         </ui-card-content>
       </ui-card>
     </div>
+
+    <!-- POS Dialog: Fiscal Error -->
+    <app-pos-dialog-frame
+      *ngIf="currentFiscalStep === 'fiscal-error'"
+      title="WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="false"
+      size="sm"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <div class="rounded-full bg-red-500/20 p-4 mb-4">
+          <lucide-icon name="printer" [size]="48" class="text-red-400"></lucide-icon>
+        </div>
+        <p class="text-white text-base font-medium mb-2">Ошибка фискального регистратора</p>
+        <p class="text-gray-400 text-sm">Чек не напечатан.<br>Запуск экстренного возврата...</p>
+        <div class="w-full bg-[#2d2d2d] rounded-full h-1.5 overflow-hidden mt-4">
+          <div class="bg-red-400 h-full rounded-full animate-progress-bar"></div>
+        </div>
+      </div>
+    </app-pos-dialog-frame>
+
+    <!-- POS Dialog: Done / Message to cashier -->
+    <app-pos-dialog-frame
+      *ngIf="currentFiscalStep === 'done'"
+      title="WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="true"
+      okText="Понятно"
+      size="sm"
+      (ok)="resetSimulation()"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <div class="rounded-full bg-amber-500/20 p-4 mb-4">
+          <lucide-icon name="alert-triangle" [size]="48" class="text-amber-400"></lucide-icon>
+        </div>
+        <p class="text-white text-base font-medium mb-2">Возврат выполнен</p>
+        <p class="text-gray-400 text-sm mb-4">Оплата отменена. Средства возвращены<br>в WB-кошелёк гостя.</p>
+        <div class="bg-[#2d2d2d] rounded p-3 w-full">
+          <p class="text-[#b8c959] font-semibold text-sm">Повторите оплату</p>
+        </div>
+      </div>
+    </app-pos-dialog-frame>
   `,
 })
 export class PluginFiscalErrorScreenComponent {

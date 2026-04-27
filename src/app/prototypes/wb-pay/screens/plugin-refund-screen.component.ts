@@ -13,6 +13,7 @@ import {
 } from '@/components/ui';
 import { WbPayStateService } from '../wb-pay-state.service';
 import { PaymentStepIndicatorComponent } from '../components/payment-step-indicator.component';
+import { PosDialogFrameComponent } from '../components/pos-dialog-frame.component';
 import { PaymentRecord } from '../types';
 
 interface StepItem {
@@ -44,6 +45,7 @@ interface ApiLogEntry {
     UiAlertComponent,
     UiEmptyStateComponent,
     PaymentStepIndicatorComponent,
+    PosDialogFrameComponent,
   ],
   template: `
     <div class="max-w-4xl mx-auto animate-fade-in">
@@ -80,7 +82,7 @@ interface ApiLogEntry {
             >
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded bg-green-50 flex items-center justify-center">
-                  <lucide-icon name="check-circle" [size]="16" class="text-green-500"></lucide-icon>
+                  <lucide-icon name="check-circle-2" [size]="16" class="text-green-500"></lucide-icon>
                 </div>
                 <div>
                   <p class="text-sm font-medium text-text-primary">{{ payment.orderId }}</p>
@@ -145,22 +147,18 @@ interface ApiLogEntry {
 
             <!-- succeeded -->
             <div *ngIf="currentRefundStep === 'succeeded'" class="text-center">
-              <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-                <lucide-icon name="check-circle" [size]="32" class="text-green-500"></lucide-icon>
+              <div class="flex items-center justify-center gap-2 text-sm text-green-600">
+                <lucide-icon name="check-circle-2" [size]="18" class="text-green-500"></lucide-icon>
+                Возврат выполнен (refund_id: {{ refundId }}, сумма: {{ selectedPayment?.amount }} ₽)
               </div>
-              <p class="text-sm font-medium text-green-700 mb-1">Возврат выполнен успешно</p>
-              <p class="text-xs text-text-secondary">refund_id: {{ refundId }}</p>
-              <p class="text-xs text-text-secondary">Сумма: {{ selectedPayment?.amount }} ₽</p>
-              <ui-button variant="outline" class="mt-3" (click)="resetRefund()">OK</ui-button>
             </div>
 
             <!-- failed -->
             <div *ngIf="currentRefundStep === 'failed'" class="text-center">
-              <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
-                <lucide-icon name="x-circle" [size]="32" class="text-red-500"></lucide-icon>
+              <div class="flex items-center justify-center gap-2 text-sm text-red-600">
+                <lucide-icon name="x-circle" [size]="18" class="text-red-500"></lucide-icon>
+                Ошибка возврата
               </div>
-              <p class="text-sm font-medium text-red-700 mb-1">Ошибка возврата</p>
-              <ui-button variant="outline" class="mt-3" (click)="resetRefund()">OK</ui-button>
             </div>
           </div>
         </ui-card-content>
@@ -193,6 +191,47 @@ interface ApiLogEntry {
         </ui-card-content>
       </ui-card>
     </div>
+
+    <!-- POS Dialog: Refund Succeeded -->
+    <app-pos-dialog-frame
+      *ngIf="currentRefundStep === 'succeeded'"
+      title="WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="true"
+      okText="Готово"
+      size="sm"
+      (ok)="resetRefund()"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <div class="rounded-full bg-[#b8c959]/20 p-4 mb-4">
+          <lucide-icon name="check-circle-2" [size]="48" class="text-[#b8c959]"></lucide-icon>
+        </div>
+        <p class="text-white text-base font-medium mb-2">Возврат выполнен</p>
+        <div class="text-gray-400 text-sm space-y-1">
+          <p>Сумма: <span class="text-white">{{ selectedPayment?.amount }} ₽</span></p>
+          <p class="text-xs text-gray-500 font-mono">refund_id: {{ refundId }}</p>
+        </div>
+      </div>
+    </app-pos-dialog-frame>
+
+    <!-- POS Dialog: Refund Failed -->
+    <app-pos-dialog-frame
+      *ngIf="currentRefundStep === 'failed'"
+      title="WB Pay"
+      [showButtons]="false"
+      [showSingleOk]="true"
+      okText="ОК"
+      size="sm"
+      (ok)="resetRefund()"
+    >
+      <div class="flex flex-col items-center text-center py-4">
+        <div class="rounded-full bg-red-500/20 p-4 mb-4">
+          <lucide-icon name="x-circle" [size]="48" class="text-red-400"></lucide-icon>
+        </div>
+        <p class="text-white text-base font-medium mb-2">Ошибка возврата</p>
+        <p class="text-gray-400 text-sm">Не удалось выполнить возврат.<br>Попробуйте позже.</p>
+      </div>
+    </app-pos-dialog-frame>
   `,
 })
 export class PluginRefundScreenComponent {
