@@ -1,4 +1,4 @@
-import { Organization, WbPayCredentials, PaymentRecord } from '../types';
+import { Organization, AuroraCredentials, PaymentRecord } from '../types';
 
 export const MOCK_ORGANIZATIONS: Organization[] = [
   {
@@ -69,7 +69,7 @@ export const MOCK_ORGANIZATIONS: Organization[] = [
   },
 ];
 
-export const MOCK_CREDENTIALS: WbPayCredentials[] = [
+export const MOCK_CREDENTIALS: AuroraCredentials[] = [
   {
     id: 'cred-1',
     storeId: 'store-1',

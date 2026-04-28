@@ -2,7 +2,7 @@ import { Component, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
 import { UiBadgeComponent } from '@/components/ui';
-import { WbPayStateService } from '../wb-pay-state.service';
+import { AuroraStateService } from '../aurora-state.service';
 
 @Component({
   selector: 'app-plugin-status-bar',
@@ -39,5 +39,5 @@ import { WbPayStateService } from '../wb-pay-state.service';
   `,
 })
 export class PluginStatusBarComponent {
-  state = inject(WbPayStateService);
+  state = inject(AuroraStateService);
 }

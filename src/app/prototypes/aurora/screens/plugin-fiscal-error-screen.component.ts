@@ -9,7 +9,7 @@ import {
   UiButtonComponent,
   UiAlertComponent,
 } from '@/components/ui';
-import { WbPayStateService } from '../wb-pay-state.service';
+import { AuroraStateService } from '../aurora-state.service';
 import { PaymentStepIndicatorComponent } from '../components/payment-step-indicator.component';
 import { PosDialogFrameComponent } from '../components/pos-dialog-frame.component';
 
@@ -201,11 +201,11 @@ type FiscalStep = 'idle' | 'payment' | 'fiscal-error' | 'emergency-cancel' | 're
 })
 export class PluginFiscalErrorScreenComponent {
   private router = inject(Router);
-  state = inject(WbPayStateService);
+  state = inject(AuroraStateService);
 
   breadcrumbs = [
-    { label: 'WB Pay', onClick: () => this.router.navigate(['/prototype/wb-pay']) },
-    { label: 'Плагин', onClick: () => this.router.navigate(['/prototype/wb-pay']) },
+    { label: 'WB Pay', onClick: () => this.router.navigate(['/prototype/aurora']) },
+    { label: 'Плагин', onClick: () => this.router.navigate(['/prototype/aurora']) },
     { label: 'FISCAL_ERROR' },
   ];
 

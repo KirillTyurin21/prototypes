@@ -1,4 +1,4 @@
-export interface WbPayCredentials {
+export interface AuroraCredentials {
   id: string;
   storeId: string;
   storeName: string;

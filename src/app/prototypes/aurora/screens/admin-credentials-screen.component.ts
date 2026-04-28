@@ -4,10 +4,10 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 import { UiConfirmDialogComponent } from '@/components/ui';
-import { WbPayStateService } from '../wb-pay-state.service';
+import { AuroraStateService } from '../aurora-state.service';
 import { OrgTreeComponent, TreeSelection, TreeNodeType } from '../components/org-tree.component';
 import { QrModalComponent } from '../components/qr-modal.component';
-import { CredentialInput, WbPayCredentials } from '../types';
+import { CredentialInput, AuroraCredentials } from '../types';
 
 @Component({
   selector: 'app-admin-credentials-screen',
@@ -27,7 +27,7 @@ import { CredentialInput, WbPayCredentials } from '../types';
         <div class="flex items-center gap-2">
           <button
             class="h-8 w-8 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            (click)="router.navigate(['/prototype/wb-pay'])"
+            (click)="router.navigate(['/prototype/aurora'])"
           >
             <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
           </button>
@@ -258,7 +258,7 @@ import { CredentialInput, WbPayCredentials } from '../types';
 })
 export class AdminCredentialsScreenComponent {
   router = inject(Router);
-  state = inject(WbPayStateService);
+  state = inject(AuroraStateService);
 
   selectedId = '';
   selectedType: TreeNodeType | '' = '';
@@ -291,7 +291,7 @@ export class AdminCredentialsScreenComponent {
     return null;
   }
 
-  get existingCredentials(): WbPayCredentials | null {
+  get existingCredentials(): AuroraCredentials | null {
     const store = this.selectedStore;
     if (!store) return null;
     return this.state.getCredentialsForStore(store.id) ?? null;

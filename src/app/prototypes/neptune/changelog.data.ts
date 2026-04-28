@@ -27,7 +27,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '2.2',
     date: '2026-04-17',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'POS-панель',
@@ -45,7 +45,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '2.1',
     date: '2026-04-18',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Конфигурация плагина',
@@ -90,7 +90,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '2.0',
     date: '2026-04-17',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Каталог состояний',

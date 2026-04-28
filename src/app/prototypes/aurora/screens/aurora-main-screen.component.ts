@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
 import { UiCardComponent, UiCardContentComponent, UiBadgeComponent } from '@/components/ui';
-import { WbPayStateService } from '../wb-pay-state.service';
+import { AuroraStateService } from '../aurora-state.service';
 
 @Component({
-  selector: 'app-wb-pay-main-screen',
+  selector: 'app-aurora-main-screen',
   standalone: true,
   imports: [
     CommonModule,
@@ -145,9 +145,9 @@ import { WbPayStateService } from '../wb-pay-state.service';
     </div>
   `,
 })
-export class WbPayMainScreenComponent {
+export class AuroraMainScreenComponent {
   private router = inject(Router);
-  state = inject(WbPayStateService);
+  state = inject(AuroraStateService);
 
   pluginScreens = [
     { route: 'plugin/payment', icon: 'credit-card', label: 'Оплата', desc: 'QR-код' },
@@ -157,6 +157,6 @@ export class WbPayMainScreenComponent {
   ];
 
   goTo(route: string): void {
-    this.router.navigate(['/prototype/wb-pay', ...route.split('/')]);
+    this.router.navigate(['/prototype/aurora', ...route.split('/')]);
   }
 }

@@ -3,12 +3,12 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.3',
-    date: '2026-06-05',
-    status: 'unreleased',
+    date: '2026-04-28',
+    status: 'released',
     changes: [
       {
         page: 'Плагин Front — Оплата',
-        pageRoute: '/prototype/wb-pay/plugin/payment',
+        pageRoute: '/prototype/aurora/plugin/payment',
         items: [
           'API-вызовы приведены к спецификации: добавлен префикс /api/v1/',
           'Добавлен шаг SetRollbackData после регистрации оплаты (шаг 7 по спецификации)',
@@ -18,7 +18,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин Front — Возврат',
-        pageRoute: '/prototype/wb-pay/plugin/refund',
+        pageRoute: '/prototype/aurora/plugin/refund',
         items: [
           'GetRollbackData отображается как SDK-вызов (не HTTP-запрос) согласно спецификации',
           'API-вызовы возврата приведены к спецификации: /api/v1/refunds/*',
@@ -26,7 +26,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин Front — Фискальная ошибка',
-        pageRoute: '/prototype/wb-pay/plugin/fiscal-error',
+        pageRoute: '/prototype/aurora/plugin/fiscal-error',
         items: [
           'EmergencyCancelPayment() отображается как SDK-вызов согласно спецификации',
           'Добавлены шаги SetRollbackData и GetRollbackData в API-лог',
@@ -43,12 +43,12 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.2',
-    date: '2026-06-05',
-    status: 'unreleased',
+    date: '2026-04-28',
+    status: 'released',
     changes: [
       {
         page: 'Плагин Front — Оплата',
-        pageRoute: '/prototype/wb-pay/plugin/payment',
+        pageRoute: '/prototype/aurora/plugin/payment',
         items: [
           'Все диалоговые окна плагина адаптированы под стилистику окон Front',
           'Добавлен POS-диалог ожидания оплаты с прогресс-баром и спиннером',
@@ -59,7 +59,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин Front — Фискальная ошибка',
-        pageRoute: '/prototype/wb-pay/plugin/fiscal-error',
+        pageRoute: '/prototype/aurora/plugin/fiscal-error',
         items: [
           'Добавлен POS-диалог ошибки фискального регистратора с индикатором прогресса',
           'Добавлен POS-диалог «Повторите оплату» — сообщение кассиру при завершении возврата',
@@ -67,7 +67,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин Front — Возврат',
-        pageRoute: '/prototype/wb-pay/plugin/refund',
+        pageRoute: '/prototype/aurora/plugin/refund',
         items: [
           'Добавлен POS-диалог успешного возврата с информацией о сумме',
           'Добавлен POS-диалог ошибки возврата',
@@ -75,7 +75,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин Front — Настройка',
-        pageRoute: '/prototype/wb-pay/plugin/setup',
+        pageRoute: '/prototype/aurora/plugin/setup',
         items: [
           'QR-диалог сканирования переоформлен в стиле Front-плагина',
         ],
@@ -85,11 +85,11 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.1',
     date: '2026-04-27',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Панель Web',
-        pageRoute: '/prototype/wb-pay/admin',
+        pageRoute: '/prototype/aurora/admin',
         items: [
           'Стилистика панели администрирования приведена к единому стилю с другими админ-панелями',
           'Заменены UI-карточки на нативный split-panel layout (дерево + детали)',
@@ -102,8 +102,8 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.0',
-    date: '2026-06-05',
-    status: 'unreleased',
+    date: '2026-04-28',
+    status: 'released',
     changes: [
       {
         items: [
@@ -112,7 +112,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Обзор',
-        pageRoute: '/prototype/wb-pay',
+        pageRoute: '/prototype/aurora',
         items: [
           'Дашборд с обзором обеих систем и схемой взаимодействия',
           'Переключатель режимов: Обзор / Плагин Front / Панель Web',
@@ -120,7 +120,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин — Оплата',
-        pageRoute: '/prototype/wb-pay/plugin/payment',
+        pageRoute: '/prototype/aurora/plugin/payment',
         items: [
           'Пошаговая имитация процесса оплаты (7 шагов)',
           'Диалог сканирования QR-кода в стиле POS-терминала',
@@ -130,7 +130,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин — Возврат',
-        pageRoute: '/prototype/wb-pay/plugin/refund',
+        pageRoute: '/prototype/aurora/plugin/refund',
         items: [
           'Список оплаченных заказов для возврата',
           'Пошаговая имитация процесса возврата (5 шагов)',
@@ -138,7 +138,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин — FISCAL_ERROR',
-        pageRoute: '/prototype/wb-pay/plugin/fiscal-error',
+        pageRoute: '/prototype/aurora/plugin/fiscal-error',
         items: [
           'Имитация нештатного сценария: оплата прошла, но ФР не напечатал чек',
           'Автоматический экстренный возврат (EmergencyCancelPayment)',
@@ -146,7 +146,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Плагин — Настройка',
-        pageRoute: '/prototype/wb-pay/plugin/setup',
+        pageRoute: '/prototype/aurora/plugin/setup',
         items: [
           'Три канала настройки: Transport push, QR-проливка, ручная настройка',
           'Связь с Web-панелью: credentials синхронизируются автоматически',
@@ -154,7 +154,7 @@ export const CHANGELOG: ChangelogRelease[] = [
       },
       {
         page: 'Панель Web',
-        pageRoute: '/prototype/wb-pay/admin',
+        pageRoute: '/prototype/aurora/admin',
         items: [
           'Дерево организаций с цветовыми индикаторами статуса',
           'Форма ввода credentials (terminal_id, JWT, PEM) с валидацией',

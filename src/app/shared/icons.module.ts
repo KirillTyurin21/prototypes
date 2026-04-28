@@ -137,7 +137,7 @@ import {
   Timer,
   Code2,
   Coffee,
-  // WB Pay prototype
+  // Aurora prototype
   Smartphone,
   DownloadCloud,
   ArrowLeftRight,
@@ -290,7 +290,7 @@ const icons = {
   Timer,
   Code2,
   Coffee,
-  // WB Pay prototype
+  // Aurora prototype
   Smartphone,
   DownloadCloud,
   ArrowLeftRight,

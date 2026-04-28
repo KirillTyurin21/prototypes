@@ -7,7 +7,7 @@ import {
   UiTextareaComponent,
   UiButtonComponent,
 } from '@/components/ui';
-import { CredentialInput, WbPayCredentials } from '../types';
+import { CredentialInput, AuroraCredentials } from '../types';
 
 @Component({
   selector: 'app-credential-form',
@@ -116,8 +116,8 @@ import { CredentialInput, WbPayCredentials } from '../types';
 })
 export class CredentialFormComponent {
   @Input() storeName = '';
-  @Input() existingCredentials: WbPayCredentials | null = null;
-  @Input() set existingCredentialsInput(cred: WbPayCredentials | null) {
+  @Input() existingCredentials: AuroraCredentials | null = null;
+  @Input() set existingCredentialsInput(cred: AuroraCredentials | null) {
     this.existingCredentials = cred;
     if (cred) {
       this.form = {

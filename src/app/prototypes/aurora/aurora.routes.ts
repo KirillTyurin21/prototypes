@@ -1,18 +1,18 @@
 import { Routes } from '@angular/router';
 
-export const WB_PAY_ROUTES: Routes = [
+export const AURORA_ROUTES: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./wb-pay-prototype.component').then(
-        m => m.WbPayPrototypeComponent
+      import('./aurora-prototype.component').then(
+        m => m.AuroraPrototypeComponent
       ),
     children: [
       {
         path: '',
         loadComponent: () =>
-          import('./screens/wb-pay-main-screen.component').then(
-            m => m.WbPayMainScreenComponent
+          import('./screens/aurora-main-screen.component').then(
+            m => m.AuroraMainScreenComponent
           ),
       },
       {

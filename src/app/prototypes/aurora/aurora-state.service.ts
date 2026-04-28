@@ -3,7 +3,7 @@ import { StorageService } from '@/shared/storage.service';
 import {
   Organization,
   Store,
-  WbPayCredentials,
+  AuroraCredentials,
   TerminalInfo,
   PluginState,
   PaymentRecord,
@@ -17,11 +17,11 @@ import {
 } from './data/mock-data';
 
 @Injectable({ providedIn: 'root' })
-export class WbPayStateService {
+export class AuroraStateService {
   private storage = inject(StorageService);
 
   organizations: Organization[] = [];
-  credentials: WbPayCredentials[] = [];
+  credentials: AuroraCredentials[] = [];
   paymentHistory: PaymentRecord[] = [];
   pluginState: PluginState = 'not-configured';
   activeTerminalId = 'term-1';
@@ -33,34 +33,34 @@ export class WbPayStateService {
 
   private loadFromStorage(): void {
     this.organizations = this.storage.load(
-      'wb-pay',
+      'aurora',
       'organizations',
       JSON.parse(JSON.stringify(MOCK_ORGANIZATIONS))
     );
     this.credentials = this.storage.load(
-      'wb-pay',
+      'aurora',
       'credentials',
       JSON.parse(JSON.stringify(MOCK_CREDENTIALS))
     );
     this.paymentHistory = this.storage.load(
-      'wb-pay',
+      'aurora',
       'paymentHistory',
       JSON.parse(JSON.stringify(MOCK_PAYMENT_HISTORY))
     );
-    this.pluginState = this.storage.load('wb-pay', 'pluginState', 'not-configured');
-    this.activeTerminalId = this.storage.load('wb-pay', 'activeTerminalId', 'term-1');
-    this.lastGeneratedQrData = this.storage.load('wb-pay', 'lastQr', '');
+    this.pluginState = this.storage.load('aurora', 'pluginState', 'not-configured');
+    this.activeTerminalId = this.storage.load('aurora', 'activeTerminalId', 'term-1');
+    this.lastGeneratedQrData = this.storage.load('aurora', 'lastQr', '');
 
     this.syncPluginState();
   }
 
   private persist(): void {
-    this.storage.save('wb-pay', 'organizations', this.organizations);
-    this.storage.save('wb-pay', 'credentials', this.credentials);
-    this.storage.save('wb-pay', 'paymentHistory', this.paymentHistory);
-    this.storage.save('wb-pay', 'pluginState', this.pluginState);
-    this.storage.save('wb-pay', 'activeTerminalId', this.activeTerminalId);
-    this.storage.save('wb-pay', 'lastQr', this.lastGeneratedQrData);
+    this.storage.save('aurora', 'organizations', this.organizations);
+    this.storage.save('aurora', 'credentials', this.credentials);
+    this.storage.save('aurora', 'paymentHistory', this.paymentHistory);
+    this.storage.save('aurora', 'pluginState', this.pluginState);
+    this.storage.save('aurora', 'activeTerminalId', this.activeTerminalId);
+    this.storage.save('aurora', 'lastQr', this.lastGeneratedQrData);
   }
 
   private syncPluginState(): void {
@@ -115,7 +115,7 @@ export class WbPayStateService {
     return undefined;
   }
 
-  getCredentialsForStore(storeId: string): WbPayCredentials | undefined {
+  getCredentialsForStore(storeId: string): AuroraCredentials | undefined {
     return this.credentials.find(c => c.storeId === storeId);
   }
 
@@ -136,7 +136,7 @@ export class WbPayStateService {
     const now = new Date().toISOString();
     const existingIdx = this.credentials.findIndex(c => c.storeId === storeId);
 
-    const cred: WbPayCredentials = {
+    const cred: AuroraCredentials = {
       id: existingIdx >= 0 ? this.credentials[existingIdx].id : 'cred-' + Date.now(),
       storeId,
       storeName: store.name,
@@ -215,7 +215,7 @@ export class WbPayStateService {
     return this.pluginState === 'configured' || this.pluginState === 'active';
   }
 
-  getActiveCredentials(): WbPayCredentials | null {
+  getActiveCredentials(): AuroraCredentials | null {
     const store = this.findStoreByTerminalId(this.activeTerminalId);
     if (!store) return null;
     return this.getCredentialsForStore(store.id) ?? null;

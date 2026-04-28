@@ -76,10 +76,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'prototype/wb-pay',
+        path: 'prototype/aurora',
         loadChildren: () =>
-          import('./prototypes/wb-pay/wb-pay.routes').then(
-            m => m.WB_PAY_ROUTES
+          import('./prototypes/aurora/aurora.routes').then(
+            m => m.AURORA_ROUTES
           ),
       },
       // Добавляй новые прототипы здесь

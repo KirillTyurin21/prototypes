@@ -11,7 +11,7 @@ import {
   UiBadgeComponent,
   UiAlertComponent,
 } from '@/components/ui';
-import { WbPayStateService } from '../wb-pay-state.service';
+import { AuroraStateService } from '../aurora-state.service';
 import { PluginStatusBarComponent } from '../components/plugin-status-bar.component';
 import { PosDialogFrameComponent } from '../components/pos-dialog-frame.component';
 
@@ -185,11 +185,11 @@ import { PosDialogFrameComponent } from '../components/pos-dialog-frame.componen
 })
 export class PluginSetupScreenComponent {
   private router = inject(Router);
-  state = inject(WbPayStateService);
+  state = inject(AuroraStateService);
 
   breadcrumbs = [
-    { label: 'WB Pay', onClick: () => this.router.navigate(['/prototype/wb-pay']) },
-    { label: 'Плагин', onClick: () => this.router.navigate(['/prototype/wb-pay']) },
+    { label: 'WB Pay', onClick: () => this.router.navigate(['/prototype/aurora']) },
+    { label: 'Плагин', onClick: () => this.router.navigate(['/prototype/aurora']) },
     { label: 'Настройка' },
   ];
 
@@ -237,7 +237,7 @@ export class PluginSetupScreenComponent {
   }
 
   goToPayment(): void {
-    this.router.navigate(['/prototype/wb-pay/plugin/payment']);
+    this.router.navigate(['/prototype/aurora/plugin/payment']);
   }
 
   private clearMessages(): void {

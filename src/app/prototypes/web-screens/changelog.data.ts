@@ -91,7 +91,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.6',
     date: '2026-04-24',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Контролы — Электронная очередь',
@@ -153,7 +153,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.4',
     date: '2026-04-17',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Темы — Электронная очередь',

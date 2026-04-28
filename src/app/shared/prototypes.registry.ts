@@ -59,10 +59,10 @@ export const PROTOTYPES: PrototypeEntry[] = [
     description: 'Панель управления QR-табличками и ключами платёжной системы',
   },
   {
-    path: '/prototype/wb-pay',
-    label: 'WB Pay — Оплата кошельком',
+    path: '/prototype/aurora',
+    label: 'Aurora — Оплата кошельком',
     icon: 'wallet',
-    description: 'Плагин оплаты WB-кошельком (Front) + панель управления credentials (Web)',
+    description: 'Плагин оплаты кошельком (Front) + панель управления credentials (Web)',
   },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];

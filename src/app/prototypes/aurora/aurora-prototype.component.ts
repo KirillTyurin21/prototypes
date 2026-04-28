@@ -5,33 +5,33 @@ import { filter } from 'rxjs/operators';
 import { ModeSwitcherComponent } from './components/mode-switcher.component';
 
 @Component({
-  selector: 'app-wb-pay-prototype',
+  selector: 'app-aurora-prototype',
   standalone: true,
   imports: [CommonModule, RouterOutlet, ModeSwitcherComponent],
   template: `
-    <div class="wb-pay-shell">
+    <div class="aurora-shell">
       <app-mode-switcher
         [activeMode]="activeMode"
         (modeChange)="onModeChange($event)"
       ></app-mode-switcher>
-      <div class="wb-pay-content">
+      <div class="aurora-content">
         <router-outlet></router-outlet>
       </div>
     </div>
   `,
   styles: [`
-    .wb-pay-shell {
+    .aurora-shell {
       display: flex;
       flex-direction: column;
       min-height: calc(100vh - 64px);
     }
-    .wb-pay-content {
+    .aurora-content {
       flex: 1;
       padding: 24px;
     }
   `],
 })
-export class WbPayPrototypeComponent {
+export class AuroraPrototypeComponent {
   private router = inject(Router);
 
   activeMode: 'main' | 'plugin' | 'admin' = 'main';
@@ -45,11 +45,11 @@ export class WbPayPrototypeComponent {
 
   onModeChange(mode: 'main' | 'plugin' | 'admin'): void {
     if (mode === 'main') {
-      this.router.navigate(['/prototype/wb-pay']);
+      this.router.navigate(['/prototype/aurora']);
     } else if (mode === 'plugin') {
-      this.router.navigate(['/prototype/wb-pay/plugin/payment']);
+      this.router.navigate(['/prototype/aurora/plugin/payment']);
     } else {
-      this.router.navigate(['/prototype/wb-pay/admin']);
+      this.router.navigate(['/prototype/aurora/admin']);
     }
   }
 
