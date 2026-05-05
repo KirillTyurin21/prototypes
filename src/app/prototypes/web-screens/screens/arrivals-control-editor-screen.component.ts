@@ -85,6 +85,7 @@ const BALANCER_STATUSES = [
 
               <!-- Order items table preview -->
               <div *ngIf="el.type === 'order-items'" class="el-order-table">
+                <ng-container *ngIf="isTriggerStatusReached(el); else triggerWaiting">
                 <ng-container *ngIf="!el.orderHideOnComplete || !allOrderItemsReady(el)">
                   <div class="order-table-header" *ngIf="el.orderShowHeader !== false"
                     [style.background]="el.orderHeaderBg || '#333333'"
@@ -132,6 +133,13 @@ const BALANCER_STATUSES = [
                   <lucide-icon name="check-circle" [size]="28" style="color: #4caf50"></lucide-icon>
                   <span>Заказ готов</span>
                 </div>
+                </ng-container>
+                <ng-template #triggerWaiting>
+                  <div class="trigger-waiting">
+                    <lucide-icon name="clock" [size]="20"></lucide-icon>
+                    <span>Ожидание: {{ el.orderTriggerStatus }}</span>
+                  </div>
+                </ng-template>
               </div>
 
               <!-- ═══ B: Two zones ═══ -->
@@ -622,8 +630,8 @@ const BALANCER_STATUSES = [
                   <div class="field-group">
                     <label class="field-label">Триггерный статус</label>
                     <select class="field-select" [(ngModel)]="selectedElement.orderTriggerStatus">
-                      <option value="">— Выберите статус —</option>
-                      <option *ngFor="let s of currentStatuses" [value]="s">{{ s }}</option>
+                      <option value="">— Не задан (всегда виден) —</option>
+                      <option *ngFor="let s of emuItemStatuses" [value]="s">{{ s }}</option>
                     </select>
                   </div>
                   <label class="field-check" style="margin-top: 8px;">
@@ -1628,6 +1636,11 @@ const BALANCER_STATUSES = [
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       width: 100%; height: 100%; gap: 8px; font-size: 18px; font-weight: 600; color: #4caf50;
     }
+    .trigger-waiting {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; height: 100%; gap: 6px; font-size: 11px; color: #9e9e9e;
+      border: 1.5px dashed #bdbdbd; border-radius: 4px; background: rgba(250,250,250,0.85);
+    }
 
     /* ═══ canvas-with-emulation wrapper ═══ */
     .canvas-with-emulation {
@@ -1967,6 +1980,21 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
     return items.length > 0 && items.every(i => i.ready);
   }
 
+  /**
+   * Возвращает true, если триггерный статус достигнут:
+   * хотя бы одно блюдо находится в выбранном статусе или выше по иерархии.
+   * Если триггер не задан — всегда true (таблица видна).
+   */
+  isTriggerStatusReached(el: ArrivalsThemeElement): boolean {
+    if (!el.orderTriggerStatus) return true;
+    const triggerIdx = this.emuItemStatuses.indexOf(el.orderTriggerStatus);
+    if (triggerIdx === -1) return true;
+    return this.orderMockItems.some(item => {
+      const itemIdx = this.emuItemStatuses.indexOf(item.status);
+      return itemIdx >= triggerIdx;
+    });
+  }
+
   getReadyNotDeliveredItems(): { name: string; qty: number; status: string; ready: boolean; delivered: boolean }[] {
     return this.orderMockItems.filter(i => i.ready && !i.delivered);
   }
@@ -2248,6 +2276,9 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   // ═══ Emulation panel state ═══
   emulationOpen = false;
   scenarioRunning = false;
+
+  // Статусы блюд в эмуляции — единый источник для дропдауна «Триггерный статус»
+  readonly emuItemStatuses = ['Ожидает', 'Готовится', 'Готово', 'Выдача', 'Подан'];
   private scenarioTimer: any = null;
 
   private readonly extraDishes = [
