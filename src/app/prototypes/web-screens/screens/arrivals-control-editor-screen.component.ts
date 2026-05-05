@@ -620,7 +620,7 @@ const BALANCER_STATUSES = [
                     </select>
                   </div>
                   <div class="field-group">
-                    <label class="field-label">Триггерный статус</label>
+                    <label class="field-label">Статус готовности</label>
                     <select class="field-select" [(ngModel)]="selectedElement.orderTriggerStatus">
                       <option value="">— По умолчанию (Готово) —</option>
                       <option *ngFor="let s of emuItemStatuses" [value]="s">{{ s }}</option>
@@ -628,7 +628,7 @@ const BALANCER_STATUSES = [
                   </div>
                   <label class="field-check" style="margin-top: 8px;">
                     <input type="checkbox" [(ngModel)]="selectedElement.orderHideOnComplete" />
-                    Скрывать при полной готовности
+                    Скрывать, когда все блюда достигли статуса
                   </label>
                   <label class="field-check" style="margin-top: 4px;">
                     <input type="checkbox" [(ngModel)]="selectedElement.orderHidePendingStatusText" />
@@ -1970,8 +1970,8 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Определяет, считается ли блюдо «готовым» по триггерному статусу элемента.
-   * Триггерный статус задаёт порог: блюдо готово, когда его статус >= триггер.
+   * Определяет, считается ли блюдо «готовым» по настройке «Статус готовности».
+   * Задаёт порог: блюдо готово, когда его статус >= выбранного.
    * По умолчанию (триггер не задан) — порог = «Готово».
    */
   isItemReady(el: ArrivalsThemeElement, item: { status: string }): boolean {
@@ -2264,7 +2264,7 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   emulationOpen = false;
   scenarioRunning = false;
 
-  // Статусы блюд в эмуляции — единый источник для дропдауна «Триггерный статус»
+  // Статусы блюд в эмуляции — единый источник для дропдауна «Статус готовности»
   readonly emuItemStatuses = ['Ожидает', 'Готовится', 'Готово', 'Выдача', 'Подан'];
   private scenarioTimer: any = null;
 

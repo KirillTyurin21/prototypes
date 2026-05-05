@@ -2,6 +2,21 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.12',
+    date: '2026-05-05',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Редактор контролов (Электронная очередь)',
+        pageRoute: '/prototype/web-screens/arrivals-control-editor/new',
+        items: [
+          'Настройка «Триггерный статус» переименована в «Статус готовности»',
+          'Чекбокс «Скрывать при полной готовности» переименован в «Скрывать, когда все блюда достигли статуса» — работает по выбранному статусу готовности',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.11',
     date: '2026-05-05',
     status: 'released',
