@@ -85,7 +85,6 @@ const BALANCER_STATUSES = [
 
               <!-- Order items table preview -->
               <div *ngIf="el.type === 'order-items'" class="el-order-table">
-                <ng-container *ngIf="isTriggerStatusReached(el); else triggerWaiting">
                 <ng-container *ngIf="!el.orderHideOnComplete || !allOrderItemsReady(el)">
                   <div class="order-table-header" *ngIf="el.orderShowHeader !== false"
                     [style.background]="el.orderHeaderBg || '#333333'"
@@ -133,13 +132,6 @@ const BALANCER_STATUSES = [
                   <lucide-icon name="check-circle" [size]="28" style="color: #4caf50"></lucide-icon>
                   <span>Заказ готов</span>
                 </div>
-                </ng-container>
-                <ng-template #triggerWaiting>
-                  <div class="trigger-waiting">
-                    <lucide-icon name="clock" [size]="20"></lucide-icon>
-                    <span>Ожидание: {{ el.orderTriggerStatus }}</span>
-                  </div>
-                </ng-template>
               </div>
 
               <!-- ═══ B: Two zones ═══ -->
@@ -630,7 +622,7 @@ const BALANCER_STATUSES = [
                   <div class="field-group">
                     <label class="field-label">Триггерный статус</label>
                     <select class="field-select" [(ngModel)]="selectedElement.orderTriggerStatus">
-                      <option value="">— Не задан (всегда виден) —</option>
+                      <option value="">— По умолчанию (Готово) —</option>
                       <option *ngFor="let s of emuItemStatuses" [value]="s">{{ s }}</option>
                     </select>
                   </div>
@@ -1636,12 +1628,6 @@ const BALANCER_STATUSES = [
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       width: 100%; height: 100%; gap: 8px; font-size: 18px; font-weight: 600; color: #4caf50;
     }
-    .trigger-waiting {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      width: 100%; height: 100%; gap: 6px; font-size: 11px; color: #9e9e9e;
-      border: 1.5px dashed #bdbdbd; border-radius: 4px; background: rgba(250,250,250,0.85);
-    }
-
     /* ═══ canvas-with-emulation wrapper ═══ */
     .canvas-with-emulation {
       flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
@@ -1962,7 +1948,10 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   getFilteredOrderItems(el: ArrivalsThemeElement): { name: string; qty: number; status: string; ready: boolean; delivered: boolean }[] {
-    let items = [...this.orderMockItems];
+    let items = this.orderMockItems.map(item => ({
+      ...item,
+      ready: this.isItemReady(el, item),
+    }));
     if (el.orderHideDeliveredItems) {
       items = items.filter(i => !i.delivered);
     }
@@ -1977,22 +1966,20 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
 
   allOrderItemsReady(el: ArrivalsThemeElement): boolean {
     const items = this.orderMockItems.filter(i => !i.delivered);
-    return items.length > 0 && items.every(i => i.ready);
+    return items.length > 0 && items.every(i => this.isItemReady(el, i));
   }
 
   /**
-   * Возвращает true, если триггерный статус достигнут:
-   * хотя бы одно блюдо находится в выбранном статусе или выше по иерархии.
-   * Если триггер не задан — всегда true (таблица видна).
+   * Определяет, считается ли блюдо «готовым» по триггерному статусу элемента.
+   * Триггерный статус задаёт порог: блюдо готово, когда его статус >= триггер.
+   * По умолчанию (триггер не задан) — порог = «Готово».
    */
-  isTriggerStatusReached(el: ArrivalsThemeElement): boolean {
-    if (!el.orderTriggerStatus) return true;
-    const triggerIdx = this.emuItemStatuses.indexOf(el.orderTriggerStatus);
-    if (triggerIdx === -1) return true;
-    return this.orderMockItems.some(item => {
-      const itemIdx = this.emuItemStatuses.indexOf(item.status);
-      return itemIdx >= triggerIdx;
-    });
+  isItemReady(el: ArrivalsThemeElement, item: { status: string }): boolean {
+    const triggerStatus = el.orderTriggerStatus || 'Готово';
+    const triggerIdx = this.emuItemStatuses.indexOf(triggerStatus);
+    if (triggerIdx === -1) return false;
+    const itemIdx = this.emuItemStatuses.indexOf(item.status);
+    return itemIdx >= triggerIdx;
   }
 
   getReadyNotDeliveredItems(): { name: string; qty: number; status: string; ready: boolean; delivered: boolean }[] {
