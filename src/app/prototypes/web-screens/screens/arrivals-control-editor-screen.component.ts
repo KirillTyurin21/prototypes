@@ -628,7 +628,7 @@ const BALANCER_STATUSES = [
                   </div>
                   <label class="field-check" style="margin-top: 8px;">
                     <input type="checkbox" [(ngModel)]="selectedElement.orderHideOnComplete" />
-                    Скрывать, когда все блюда достигли статуса
+                    Скрывать при полной готовности
                   </label>
                   <label class="field-check" style="margin-top: 4px;">
                     <input type="checkbox" [(ngModel)]="selectedElement.orderHidePendingStatusText" />
@@ -1970,8 +1970,8 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Определяет, считается ли блюдо «готовым» по настройке «Статус готовности».
-   * Задаёт порог: блюдо готово, когда его статус >= выбранного.
+   * Определяет, считается ли блюдо «готовым» по триггерному статусу элемента.
+   * Триггерный статус задаёт порог: блюдо готово, когда его статус >= триггер.
    * По умолчанию (триггер не задан) — порог = «Готово».
    */
   isItemReady(el: ArrivalsThemeElement, item: { status: string }): boolean {
