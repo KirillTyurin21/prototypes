@@ -2,6 +2,22 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.15',
+    date: '2026-05-06',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Обработчики событий (Звуки)',
+        pageRoute: '/prototype/web-screens/sounds-event-handlers',
+        items: [
+          'В форме обработчика добавлен выпадающий список готовых фраз из Справочника звуков',
+          'При выборе готовой фразы поле ввода текста блокируется — фраза не добавляется в очередь генерации',
+          'При выборе «Новая фраза» поле ввода разблокируется и фраза добавляется в очередь',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.14',
     date: '2026-05-06',
     status: 'released',

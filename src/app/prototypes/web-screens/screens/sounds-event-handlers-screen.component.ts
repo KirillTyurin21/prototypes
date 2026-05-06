@@ -108,12 +108,24 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
             </div>
           </div>
 
+          <div class="form-section" *ngIf="getExistingPhrases().length > 0">
+            <label class="form-label">Готовая фраза из справочника</label>
+            <select class="form-input" [(ngModel)]="selectedExistingPhrase" (ngModelChange)="onExistingPhraseSelected($event)">
+              <option value="">— Новая фраза (ввести вручную) —</option>
+              <option *ngFor="let p of getExistingPhrases()" [value]="p">{{ p }}</option>
+            </select>
+            <span class="form-hint">Выберите готовую фразу или введите новую ниже</span>
+          </div>
+
           <div class="form-section">
             <label class="form-label">Текст фразы</label>
             <textarea class="form-textarea" rows="3"
                       [(ngModel)]="newHandler.phraseText"
+                      [disabled]="!!selectedExistingPhrase"
+                      [class.opacity-50]="!!selectedExistingPhrase"
                       placeholder="Например: Заказ номер {номер} готов к выдаче"></textarea>
-            <span class="form-hint">Используйте <code>{{'{'}}номер{{'}'}}</code> для подстановки номера заказа</span>
+            <span class="form-hint" *ngIf="!selectedExistingPhrase">Используйте <code>{{'{'}}номер{{'}'}}</code> для подстановки номера заказа</span>
+            <span class="form-hint" *ngIf="selectedExistingPhrase">Используется готовая фраза из справочника. Выберите «Новая фраза» чтобы ввести свою</span>
           </div>
         </ng-container>
 
@@ -905,6 +917,7 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
   availableVoices = AVAILABLE_VOICES;
   generationQueue: GenerationQueueItem[] = [];
   showQueuePanel = false;
+  selectedExistingPhrase = '';
   private queueTimers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
@@ -1013,6 +1026,7 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
     this.syncAllToggles();
     this.showCollectionDropdown = false;
     this.showEventsDropdown = false;
+    this.selectedExistingPhrase = '';
     this.showCreateHandler = true;
   }
 
@@ -1031,6 +1045,7 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
     this.syncAllToggles();
     this.showCollectionDropdown = false;
     this.showEventsDropdown = false;
+    this.selectedExistingPhrase = '';
     this.showCreateHandler = true;
   }
 
@@ -1077,8 +1092,8 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
       this.handlers = [...this.handlers, handler];
     }
 
-    // Add to generation queue if generation type
-    if (isGeneration && this.newHandler.voiceName && this.newHandler.phraseText) {
+    // Add to generation queue only for new phrases (not existing ones from catalog)
+    if (isGeneration && this.newHandler.voiceName && this.newHandler.phraseText && !this.selectedExistingPhrase) {
       const handlerId = this.editingHandler
         ? this.editingHandler.id
         : this.handlers[this.handlers.length - 1].id;
@@ -1192,6 +1207,27 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
 
   previewVoice(): void {
     alert('▶ Воспроизведение образца голоса: ' + this.newHandler.voiceName);
+  }
+
+  // ── Existing phrases from catalog ───────────────────
+
+  getExistingPhrases(): string[] {
+    if (!this.newHandler.voiceName) return [];
+    const folders: SoundFolder[] = this.storage.load('web-screens', 'sound-folders',
+      MOCK_SOUND_FOLDERS.map(f => ({ ...f, files: [...f.files] })));
+    const phraseFolder = folders.find(f => f.voiceName === this.newHandler.voiceName && f.category === 'phrases');
+    if (!phraseFolder || phraseFolder.files.length === 0) return [];
+    return phraseFolder.files.map(f =>
+      f.name.replace(/\.wav$/, '').replace(/_/g, ' ').replace(/\{nomer\}/g, '{номер}')
+    );
+  }
+
+  onExistingPhraseSelected(phrase: string): void {
+    if (phrase) {
+      this.newHandler.phraseText = phrase;
+    } else {
+      this.newHandler.phraseText = '';
+    }
   }
 
   // ── Generation Queue ────────────────────────────────
