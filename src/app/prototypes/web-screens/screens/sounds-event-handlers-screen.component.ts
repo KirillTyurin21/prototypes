@@ -316,11 +316,6 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
               </span>
             </div>
           </div>
-          <div class="queue-item-progress" *ngIf="qi.status === 'generating'">
-            <div class="progress-bar-mini">
-              <div class="progress-fill-mini" [style.width.%]="qi.progress || 0"></div>
-            </div>
-          </div>
           <div class="queue-item-actions">
             <button class="action-icon" title="Прослушать" *ngIf="qi.status === 'done'" (click)="previewQueueItem(qi)">
               <lucide-icon name="play" [size]="14"></lucide-icon>
