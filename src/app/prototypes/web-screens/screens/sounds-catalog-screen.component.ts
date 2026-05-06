@@ -83,9 +83,6 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
 
           <!-- Files table -->
           <div class="table-wrap" *ngIf="selectedFolder.files.length > 0">
-            <div class="showing-hint" *ngIf="selectedFolder.files.length < selectedFolder.generatedCount && selectedFolder.category === 'numbers'">
-              (показаны первые {{ selectedFolder.files.length }} из {{ selectedFolder.generatedCount | number }})
-            </div>
             <table class="data-table">
               <thead>
                 <tr>

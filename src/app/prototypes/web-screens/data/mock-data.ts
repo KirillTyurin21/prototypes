@@ -508,16 +508,46 @@ export const AVAILABLE_VOICES: string[] = ['Ксения', 'Ирина', 'Вас
 
 /* ── Sound Catalog (Справочник звуков) ── */
 
+/**
+ * Числа генерируются как компоненты: цифры (1–9), десятки (10–90), сотни (100–900).
+ * Итого 27 файлов на голос — достаточно для озвучки любого числа до 9999
+ * (четырёхзначные озвучиваются как "1" + "999").
+ */
 export const MOCK_SOUND_FOLDERS: SoundFolder[] = [
   {
     id: 1, voiceName: 'Ксения', category: 'numbers', label: 'Числа',
-    totalCount: 10000, generatedCount: 10000,
+    totalCount: 27, generatedCount: 27,
     files: [
+      // Цифры 1–9
       { id: 101, name: '1.wav', duration: '0:01', createdAt: '2026-04-10' },
       { id: 102, name: '2.wav', duration: '0:01', createdAt: '2026-04-10' },
       { id: 103, name: '3.wav', duration: '0:01', createdAt: '2026-04-10' },
-      { id: 104, name: '100.wav', duration: '0:02', createdAt: '2026-04-10' },
-      { id: 105, name: '9999.wav', duration: '0:03', createdAt: '2026-04-10' },
+      { id: 104, name: '4.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 105, name: '5.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 106, name: '6.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 107, name: '7.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 108, name: '8.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 109, name: '9.wav', duration: '0:01', createdAt: '2026-04-10' },
+      // Десятки 10–90
+      { id: 110, name: '10.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 111, name: '20.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 112, name: '30.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 113, name: '40.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 114, name: '50.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 115, name: '60.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 116, name: '70.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 117, name: '80.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 118, name: '90.wav', duration: '0:01', createdAt: '2026-04-10' },
+      // Сотни 100–900
+      { id: 119, name: '100.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 120, name: '200.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 121, name: '300.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 122, name: '400.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 123, name: '500.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 124, name: '600.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 125, name: '700.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 126, name: '800.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 127, name: '900.wav', duration: '0:02', createdAt: '2026-04-10' },
     ],
   },
   {
@@ -530,11 +560,29 @@ export const MOCK_SOUND_FOLDERS: SoundFolder[] = [
   },
   {
     id: 3, voiceName: 'Ирина', category: 'numbers', label: 'Числа',
-    totalCount: 10000, generatedCount: 4500,
+    totalCount: 27, generatedCount: 18,
     files: [
+      // Цифры 1–9
       { id: 301, name: '1.wav', duration: '0:01', createdAt: '2026-04-12' },
       { id: 302, name: '2.wav', duration: '0:01', createdAt: '2026-04-12' },
       { id: 303, name: '3.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 304, name: '4.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 305, name: '5.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 306, name: '6.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 307, name: '7.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 308, name: '8.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 309, name: '9.wav', duration: '0:01', createdAt: '2026-04-12' },
+      // Десятки 10–90
+      { id: 310, name: '10.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 311, name: '20.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 312, name: '30.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 313, name: '40.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 314, name: '50.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 315, name: '60.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 316, name: '70.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 317, name: '80.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 318, name: '90.wav', duration: '0:01', createdAt: '2026-04-12' },
+      // Сотни — ещё не сгенерированы
     ],
   },
   {
@@ -544,10 +592,38 @@ export const MOCK_SOUND_FOLDERS: SoundFolder[] = [
   },
   {
     id: 5, voiceName: 'Василий', category: 'numbers', label: 'Числа',
-    totalCount: 10000, generatedCount: 10000,
+    totalCount: 27, generatedCount: 27,
     files: [
+      // Цифры 1–9
       { id: 501, name: '1.wav', duration: '0:01', createdAt: '2026-04-15' },
       { id: 502, name: '2.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 503, name: '3.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 504, name: '4.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 505, name: '5.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 506, name: '6.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 507, name: '7.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 508, name: '8.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 509, name: '9.wav', duration: '0:01', createdAt: '2026-04-15' },
+      // Десятки 10–90
+      { id: 510, name: '10.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 511, name: '20.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 512, name: '30.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 513, name: '40.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 514, name: '50.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 515, name: '60.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 516, name: '70.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 517, name: '80.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 518, name: '90.wav', duration: '0:01', createdAt: '2026-04-15' },
+      // Сотни 100–900
+      { id: 519, name: '100.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 520, name: '200.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 521, name: '300.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 522, name: '400.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 523, name: '500.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 524, name: '600.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 525, name: '700.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 526, name: '800.wav', duration: '0:02', createdAt: '2026-04-15' },
+      { id: 527, name: '900.wav', duration: '0:02', createdAt: '2026-04-15' },
     ],
   },
   {

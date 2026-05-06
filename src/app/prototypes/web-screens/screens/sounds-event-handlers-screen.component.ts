@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
-import { SoundCollection, SoundEventHandler, GenerationQueueItem } from '../types';
-import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAILABLE_VOICES } from '../data/mock-data';
+import { SoundCollection, SoundEventHandler, GenerationQueueItem, SoundFolder } from '../types';
+import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAILABLE_VOICES, MOCK_SOUND_FOLDERS } from '../data/mock-data';
 
 @Component({
   selector: 'app-sounds-event-handlers-screen',
@@ -133,11 +133,11 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
           <div class="header-actions">
             <!-- Generation queue button -->
             <div class="queue-btn-wrap" *ngIf="generationQueue.length > 0">
-              <button class="app-btn queue-btn" (click)="toggleQueuePanel($event)">
-                <div class="queue-progress-bar">
-                  <div class="queue-progress-fill" [class.queue-animating]="hasActiveGeneration()"></div>
+              <button class="app-btn queue-btn" [class.queue-btn-done]="!hasActiveGeneration()" (click)="toggleQueuePanel($event)">
+                <div class="queue-progress-bar" *ngIf="hasActiveGeneration()">
+                  <div class="queue-progress-fill queue-animating"></div>
                 </div>
-                <lucide-icon name="loader-2" [size]="16" [class.spin-icon]="hasActiveGeneration()"></lucide-icon>
+                <lucide-icon [name]="hasActiveGeneration() ? 'loader-2' : 'check-circle-2'" [size]="16" [class.spin-icon]="hasActiveGeneration()" [class.queue-done-icon]="!hasActiveGeneration()"></lucide-icon>
                 <span>Очередь ({{ generationQueue.length }})</span>
               </button>
             </div>
@@ -751,6 +751,8 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
       overflow: hidden;
     }
     .queue-btn:hover { background: #f5f5f5; }
+    .queue-btn-done { border-color: #4caf50; }
+    .queue-done-icon { color: #4caf50; }
     .queue-progress-bar {
       position: absolute;
       bottom: 0;
@@ -1271,6 +1273,8 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
             // Update handler status
             const h = this.handlers.find(hh => hh.id === item.handlerId);
             if (h) { h.generationStatus = 'done'; this.persistAll(); }
+            // Add generated file to catalog
+            this.addFileToCatalog(item.voiceName, item.phraseText);
           }
           this.persistQueue();
         }, (i + 1) * 1000);
@@ -1282,6 +1286,41 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
 
   private persistQueue(): void {
     this.storage.save('web-screens', 'sound-generation-queue', this.generationQueue);
+  }
+
+  private addFileToCatalog(voiceName: string, phraseText: string): void {
+    const folders: SoundFolder[] = this.storage.load('web-screens', 'sound-folders',
+      MOCK_SOUND_FOLDERS.map(f => ({ ...f, files: [...f.files] })));
+
+    let folder = folders.find(f => f.voiceName === voiceName && f.category === 'phrases');
+    if (!folder) {
+      const maxId = folders.reduce((m, f) => Math.max(m, f.id), 0);
+      folder = { id: maxId + 1, voiceName, category: 'phrases', label: 'Фразы', totalCount: 0, generatedCount: 0, files: [] };
+      folders.push(folder);
+    }
+
+    const fileName = this.phraseToFileName(phraseText);
+    if (!folder.files.some(f => f.name === fileName)) {
+      const maxFileId = folders.flatMap(f => f.files).reduce((m, f) => Math.max(m, f.id), 0);
+      folder.files.push({ id: maxFileId + 1, name: fileName, duration: '0:03', createdAt: new Date().toISOString().split('T')[0] });
+      folder.totalCount = folder.files.length;
+      folder.generatedCount = folder.files.length;
+    }
+
+    this.storage.save('web-screens', 'sound-folders', folders);
+  }
+
+  private phraseToFileName(phrase: string): string {
+    const tr: Record<string, string> = {
+      'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'j',
+      'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
+      'х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+    };
+    return phrase.toLowerCase().split('').map(c => tr[c] ?? c).join('')
+      .replace(/\{[^}]*\}/g, '{nomer}')
+      .replace(/[^a-z0-9{}_]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '') + '.wav';
   }
 
   // ── Private ─────────────────────────────────────────
