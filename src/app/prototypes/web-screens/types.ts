@@ -240,9 +240,13 @@ export interface SoundEventHandler {
   id: number;
   name: string;
   collectionId: number | null;
-  voiceType: string;
+  voiceType: 'file' | 'generation';
   events: string[];
   fileName?: string;
+  // Generation-specific fields
+  voiceName?: string;          // 'Ксения' | 'Ирина' | 'Василий'
+  phraseText?: string;         // e.g. "Заказ номер {номер} готов"
+  generationStatus?: 'pending' | 'generating' | 'done' | 'error';
 }
 
 export interface SoundCollection {
@@ -265,4 +269,36 @@ export interface SoundTerminal {
   lastActivity: string;
   handlerIds: number[];
   audioDevice: string;
+}
+
+/* ── Generation Queue ── */
+
+export interface GenerationQueueItem {
+  id: number;
+  handlerId: number;
+  handlerName: string;
+  phraseText: string;
+  voiceName: string;
+  status: 'waiting' | 'generating' | 'done' | 'error';
+  createdAt: number;      // timestamp
+  progress?: number;      // 0-100
+}
+
+/* ── Sound Catalog ── */
+
+export interface SoundFile {
+  id: number;
+  name: string;
+  duration: string;       // e.g. "0:02"
+  createdAt: string;
+}
+
+export interface SoundFolder {
+  id: number;
+  voiceName: string;      // 'Ксения' | 'Ирина' | 'Василий'
+  category: 'numbers' | 'phrases';
+  label: string;          // display label
+  files: SoundFile[];
+  totalCount: number;     // for numbers: 10000
+  generatedCount: number; // how many generated so far
 }

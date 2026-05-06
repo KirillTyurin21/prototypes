@@ -12,6 +12,9 @@ import {
   SoundCollection,
   SoundEventHandler,
   SoundTerminalGroup,
+  SoundFolder,
+  SoundFile,
+  GenerationQueueItem,
 } from '../types';
 
 /** Секции бокового меню Web */
@@ -40,6 +43,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     icon: 'volume-2',
     items: [
       { icon: '', label: 'Обработчики событий', route: 'sounds-event-handlers' },
+      { icon: '', label: 'Справочник звуков', route: 'sounds-catalog' },
       { icon: '', label: 'Настройка терминалов', route: 'sounds-terminals' },
     ],
   },
@@ -435,27 +439,30 @@ export const MOCK_SOUND_COLLECTIONS: SoundCollection[] = [
 
 export const MOCK_SOUND_EVENT_HANDLERS: SoundEventHandler[] = [
   // Системные обработчики событий (collection 1)
-  { id: 1, collectionId: 1, name: 'Бронь: банкет завершен', voiceType: 'Файл', events: ['Бронь: банкет завершен'], fileName: 'banket_end.mp3' },
-  { id: 2, collectionId: 1, name: 'Бронь: банкет начат', voiceType: 'Файл', events: ['Бронь: банкет начат'], fileName: 'banket_start.mp3' },
-  { id: 3, collectionId: 1, name: 'Бронь: банкет начат (универсально)', voiceType: 'Файл', events: ['Бронь: банкет начат (универсально)'], fileName: 'banket_start_uni.mp3' },
-  { id: 4, collectionId: 1, name: 'Бронь: банкет отменен (no-show)', voiceType: 'Файл', events: ['Бронь: банкет отменен (no-show)'], fileName: 'banket_cancel.mp3' },
-  { id: 5, collectionId: 1, name: 'Бронь: включено напоминание', voiceType: 'Файл', events: ['Бронь: включено напоминание о подготовке'], fileName: 'reminder.mp3' },
-  { id: 6, collectionId: 1, name: 'Бронь: гость пришел', voiceType: 'Файл', events: ['Бронь: гость пришел (резерв закрыт)'], fileName: 'guest_arrived.mp3' },
-  { id: 7, collectionId: 1, name: 'Бронь: создан банкет', voiceType: 'Файл', events: ['Бронь: создан банкет'], fileName: 'banket_created.mp3' },
-  { id: 8, collectionId: 1, name: 'Бронь: создан резерв', voiceType: 'Файл', events: ['Бронь: создан резерв'], fileName: 'reserve_created.mp3' },
-  { id: 9, collectionId: 1, name: 'Доставка: доставлено', voiceType: 'Файл', events: ['Доставка: доставлено'], fileName: 'delivered.mp3' },
-  { id: 10, collectionId: 1, name: 'Доставка: закрыто', voiceType: 'Файл', events: ['Доставка: закрыто'], fileName: 'closed.mp3' },
-  { id: 11, collectionId: 1, name: 'Доставка: назначен курьер', voiceType: 'Файл', events: ['Доставка: назначен курьер'], fileName: 'courier.mp3' },
-  { id: 12, collectionId: 1, name: 'Доставка: новый заказ', voiceType: 'Файл', events: ['Доставка: новый заказ'], fileName: 'new_order.mp3' },
+  { id: 1, collectionId: 1, name: 'Бронь: банкет завершен', voiceType: 'file', events: ['Бронь: банкет завершен'], fileName: 'banket_end.mp3' },
+  { id: 2, collectionId: 1, name: 'Бронь: банкет начат', voiceType: 'file', events: ['Бронь: банкет начат'], fileName: 'banket_start.mp3' },
+  { id: 3, collectionId: 1, name: 'Бронь: банкет начат (универсально)', voiceType: 'file', events: ['Бронь: банкет начат (универсально)'], fileName: 'banket_start_uni.mp3' },
+  { id: 4, collectionId: 1, name: 'Бронь: банкет отменен (no-show)', voiceType: 'file', events: ['Бронь: банкет отменен (no-show)'], fileName: 'banket_cancel.mp3' },
+  { id: 5, collectionId: 1, name: 'Бронь: включено напоминание', voiceType: 'file', events: ['Бронь: включено напоминание о подготовке'], fileName: 'reminder.mp3' },
+  { id: 6, collectionId: 1, name: 'Бронь: гость пришел', voiceType: 'file', events: ['Бронь: гость пришел (резерв закрыт)'], fileName: 'guest_arrived.mp3' },
+  { id: 7, collectionId: 1, name: 'Бронь: создан банкет', voiceType: 'file', events: ['Бронь: создан банкет'], fileName: 'banket_created.mp3' },
+  { id: 8, collectionId: 1, name: 'Бронь: создан резерв', voiceType: 'file', events: ['Бронь: создан резерв'], fileName: 'reserve_created.mp3' },
+  { id: 9, collectionId: 1, name: 'Доставка: доставлено', voiceType: 'file', events: ['Доставка: доставлено'], fileName: 'delivered.mp3' },
+  { id: 10, collectionId: 1, name: 'Доставка: закрыто', voiceType: 'file', events: ['Доставка: закрыто'], fileName: 'closed.mp3' },
+  { id: 11, collectionId: 1, name: 'Доставка: назначен курьер', voiceType: 'file', events: ['Доставка: назначен курьер'], fileName: 'courier.mp3' },
+  { id: 12, collectionId: 1, name: 'Доставка: новый заказ', voiceType: 'file', events: ['Доставка: новый заказ'], fileName: 'new_order.mp3' },
   // Звуки (collection 2)
-  { id: 13, collectionId: 2, name: 'Звук уведомления', voiceType: 'Файл', events: ['Доставка: новый заказ'], fileName: 'notification.mp3' },
+  { id: 13, collectionId: 2, name: 'Звук уведомления', voiceType: 'file', events: ['Доставка: новый заказ'], fileName: 'notification.mp3' },
   // 11 (collection 3)
-  { id: 14, collectionId: 3, name: 'Тестовый обработчик', voiceType: 'Файл', events: ['Кухня: заказ приготовлен (Processed)'], fileName: 'test.mp3' },
+  { id: 14, collectionId: 3, name: 'Тестовый обработчик', voiceType: 'file', events: ['Кухня: заказ приготовлен (Processed)'], fileName: 'test.mp3' },
   // Без коллекции
-  { id: 15, collectionId: null, name: 'Доставка: отменено', voiceType: 'Файл', events: ['Доставка: отменено'], fileName: 'cancelled.mp3' },
-  { id: 16, collectionId: null, name: 'Кухня: заказ приготовлен', voiceType: 'Файл', events: ['Кухня: заказ приготовлен (Processed)'], fileName: 'cooked.mp3' },
-  { id: 17, collectionId: null, name: 'Уведомление бронь', voiceType: 'Файл', events: ['Бронь: создан резерв'], fileName: 'reserve_notify.mp3' },
-  { id: 18, collectionId: null, name: 'Общий звук', voiceType: 'Файл', events: ['Доставка: новый заказ', 'Доставка: доставлено'], fileName: 'general.mp3' },
+  { id: 15, collectionId: null, name: 'Доставка: отменено', voiceType: 'file', events: ['Доставка: отменено'], fileName: 'cancelled.mp3' },
+  { id: 16, collectionId: null, name: 'Кухня: заказ приготовлен', voiceType: 'file', events: ['Кухня: заказ приготовлен (Processed)'], fileName: 'cooked.mp3' },
+  { id: 17, collectionId: null, name: 'Уведомление бронь', voiceType: 'file', events: ['Бронь: создан резерв'], fileName: 'reserve_notify.mp3' },
+  { id: 18, collectionId: null, name: 'Общий звук', voiceType: 'file', events: ['Доставка: новый заказ', 'Доставка: доставлено'], fileName: 'general.mp3' },
+  // Генерация голоса (примеры)
+  { id: 19, collectionId: 1, name: 'Голос: новый заказ доставки', voiceType: 'generation', events: ['Доставка: новый заказ'], voiceName: 'Ксения', phraseText: 'Внимание, поступил новый заказ на доставку номер {номер}', generationStatus: 'done' },
+  { id: 20, collectionId: 2, name: 'Голос: заказ приготовлен', voiceType: 'generation', events: ['Кухня: заказ приготовлен (Processed)'], voiceName: 'Василий', phraseText: 'Заказ номер {номер} готов к выдаче', generationStatus: 'done' },
 ];
 
 export const AUDIO_DEVICES: string[] = [
@@ -491,6 +498,63 @@ export const MOCK_SOUND_TERMINAL_GROUPS: SoundTerminalGroup[] = [
     terminalCount: 1,
     terminals: [
       { id: 301, name: '172.16.0.1', lastActivity: '2026-05-03 22:10:55', handlerIds: [15, 16], audioDevice: 'Динамики (High Definition Audio Device)' },
+    ],
+  },
+];
+
+/* ── Available Voices ── */
+
+export const AVAILABLE_VOICES: string[] = ['Ксения', 'Ирина', 'Василий'];
+
+/* ── Sound Catalog (Справочник звуков) ── */
+
+export const MOCK_SOUND_FOLDERS: SoundFolder[] = [
+  {
+    id: 1, voiceName: 'Ксения', category: 'numbers', label: 'Числа',
+    totalCount: 10000, generatedCount: 10000,
+    files: [
+      { id: 101, name: '1.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 102, name: '2.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 103, name: '3.wav', duration: '0:01', createdAt: '2026-04-10' },
+      { id: 104, name: '100.wav', duration: '0:02', createdAt: '2026-04-10' },
+      { id: 105, name: '9999.wav', duration: '0:03', createdAt: '2026-04-10' },
+    ],
+  },
+  {
+    id: 2, voiceName: 'Ксения', category: 'phrases', label: 'Фразы',
+    totalCount: 2, generatedCount: 2,
+    files: [
+      { id: 201, name: 'novyj_zakaz_dostavki_{nomer}.wav', duration: '0:04', createdAt: '2026-05-01' },
+      { id: 202, name: 'zakaz_{nomer}_gotov.wav', duration: '0:03', createdAt: '2026-05-02' },
+    ],
+  },
+  {
+    id: 3, voiceName: 'Ирина', category: 'numbers', label: 'Числа',
+    totalCount: 10000, generatedCount: 4500,
+    files: [
+      { id: 301, name: '1.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 302, name: '2.wav', duration: '0:01', createdAt: '2026-04-12' },
+      { id: 303, name: '3.wav', duration: '0:01', createdAt: '2026-04-12' },
+    ],
+  },
+  {
+    id: 4, voiceName: 'Ирина', category: 'phrases', label: 'Фразы',
+    totalCount: 0, generatedCount: 0,
+    files: [],
+  },
+  {
+    id: 5, voiceName: 'Василий', category: 'numbers', label: 'Числа',
+    totalCount: 10000, generatedCount: 10000,
+    files: [
+      { id: 501, name: '1.wav', duration: '0:01', createdAt: '2026-04-15' },
+      { id: 502, name: '2.wav', duration: '0:01', createdAt: '2026-04-15' },
+    ],
+  },
+  {
+    id: 6, voiceName: 'Василий', category: 'phrases', label: 'Фразы',
+    totalCount: 1, generatedCount: 1,
+    files: [
+      { id: 601, name: 'zakaz_{nomer}_gotov_k_vydache.wav', duration: '0:04', createdAt: '2026-05-03' },
     ],
   },
 ];

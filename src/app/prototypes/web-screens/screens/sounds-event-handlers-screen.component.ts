@@ -1,10 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
-import { SoundCollection, SoundEventHandler } from '../types';
-import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from '../data/mock-data';
+import { SoundCollection, SoundEventHandler, GenerationQueueItem } from '../types';
+import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAILABLE_VOICES } from '../data/mock-data';
 
 @Component({
   selector: 'app-sounds-event-handlers-screen',
@@ -23,44 +23,64 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
 
         <div class="form-section">
           <label class="form-label">Коллекции</label>
-          <div class="multi-select-box">
-            <label class="checkbox-row">
-              <input type="checkbox" [checked]="allCollectionsSelected" (change)="toggleAllCollections()" />
-              <span>Все</span>
-            </label>
-            <label class="checkbox-row" *ngFor="let col of collections">
-              <input type="checkbox" [checked]="isCollectionSelected(col.id)" (change)="toggleCollectionSelection(col.id)" />
-              <span>{{ col.name }}</span>
-            </label>
+          <div class="form-dropdown-wrap">
+            <div class="form-dropdown-trigger" (click)="showCollectionDropdown = !showCollectionDropdown">
+              <span class="form-dropdown-text">{{ getSelectedCollectionsText() }}</span>
+              <lucide-icon name="chevron-down" [size]="16" class="dropdown-chevron" [class.dropdown-chevron-open]="showCollectionDropdown"></lucide-icon>
+            </div>
+            <div class="form-dropdown-content" *ngIf="showCollectionDropdown">
+              <label class="checkbox-row">
+                <input type="checkbox" [checked]="allCollectionsSelected" (change)="toggleAllCollections()" />
+                <span>Все</span>
+              </label>
+              <label class="checkbox-row" *ngFor="let col of collections">
+                <input type="checkbox" [checked]="isCollectionSelected(col.id)" (change)="toggleCollectionSelection(col.id)" />
+                <span>{{ col.name }}</span>
+              </label>
+            </div>
           </div>
         </div>
 
         <div class="form-section">
           <label class="form-label">Выберите события</label>
-          <div class="multi-select-box">
-            <div class="search-box">
-              <lucide-icon name="search" [size]="16"></lucide-icon>
-              <input class="search-input" type="text" [(ngModel)]="eventSearch" placeholder="Поиск..." />
+          <div class="form-dropdown-wrap">
+            <div class="form-dropdown-trigger" (click)="showEventsDropdown = !showEventsDropdown">
+              <span class="form-dropdown-text">{{ getSelectedEventsText() }}</span>
+              <lucide-icon name="chevron-down" [size]="16" class="dropdown-chevron" [class.dropdown-chevron-open]="showEventsDropdown"></lucide-icon>
             </div>
-            <label class="checkbox-row">
-              <input type="checkbox" [checked]="allEventsSelected" (change)="toggleAllEvents()" />
-              <span>Все</span>
-            </label>
-            <label class="checkbox-row" *ngFor="let ev of filteredEvents">
-              <input type="checkbox" [checked]="isEventSelected(ev)" (change)="toggleEvent(ev)" />
-              <span>{{ ev }}</span>
-            </label>
+            <div class="form-dropdown-content" *ngIf="showEventsDropdown">
+              <div class="search-box">
+                <lucide-icon name="search" [size]="16"></lucide-icon>
+                <input class="search-input" type="text" [(ngModel)]="eventSearch" placeholder="Поиск..." />
+              </div>
+              <label class="checkbox-row">
+                <input type="checkbox" [checked]="allEventsSelected" (change)="toggleAllEvents()" />
+                <span>Все</span>
+              </label>
+              <label class="checkbox-row" *ngFor="let ev of filteredEvents">
+                <input type="checkbox" [checked]="isEventSelected(ev)" (change)="toggleEvent(ev)" />
+                <span>{{ ev }}</span>
+              </label>
+            </div>
           </div>
         </div>
 
         <div class="form-section">
           <label class="form-label">Тип озвучки</label>
-          <select class="form-input" [(ngModel)]="newHandler.voiceType">
-            <option value="Файл">Файл</option>
-          </select>
+          <div class="voice-type-toggle">
+            <button class="toggle-btn" [class.toggle-active]="newHandler.voiceType === 'file'" (click)="newHandler.voiceType = 'file'">
+              <lucide-icon name="file-audio" [size]="16"></lucide-icon>
+              Стандартный звук
+            </button>
+            <button class="toggle-btn" [class.toggle-active]="newHandler.voiceType === 'generation'" (click)="newHandler.voiceType = 'generation'">
+              <lucide-icon name="mic" [size]="16"></lucide-icon>
+              Генерация голоса
+            </button>
+          </div>
         </div>
 
-        <div class="form-section">
+        <!-- File upload (standard) -->
+        <div class="form-section" *ngIf="newHandler.voiceType === 'file'">
           <label class="form-label">Файл</label>
           <div class="file-row">
             <button class="app-btn app-btn-primary" (click)="pickFile()">
@@ -70,6 +90,32 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
             <span class="file-name" *ngIf="newHandler.fileName">{{ newHandler.fileName }}</span>
           </div>
         </div>
+
+        <!-- Voice generation fields -->
+        <ng-container *ngIf="newHandler.voiceType === 'generation'">
+          <div class="form-section">
+            <label class="form-label">Голос</label>
+            <div class="voice-select-row">
+              <select class="form-input voice-select" [(ngModel)]="newHandler.voiceName">
+                <option value="">Выберите голос</option>
+                <option *ngFor="let v of availableVoices" [value]="v">{{ v }}</option>
+              </select>
+              <button class="app-btn app-btn-ghost play-btn" (click)="previewVoice()" title="Прослушать образец голоса"
+                      [disabled]="!newHandler.voiceName">
+                <lucide-icon name="play" [size]="16"></lucide-icon>
+                Прослушать
+              </button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <label class="form-label">Текст фразы</label>
+            <textarea class="form-textarea" rows="3"
+                      [(ngModel)]="newHandler.phraseText"
+                      placeholder="Например: Заказ номер {номер} готов к выдаче"></textarea>
+            <span class="form-hint">Используйте <code>{{'{'}}номер{{'}'}}</code> для подстановки номера заказа</span>
+          </div>
+        </ng-container>
 
         <div class="form-actions">
           <button class="app-btn app-btn-primary" (click)="saveHandler()">СОХРАНИТЬ</button>
@@ -85,6 +131,16 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
         <div class="page-title-row">
           <h1 class="page-title">Обработчики событий</h1>
           <div class="header-actions">
+            <!-- Generation queue button -->
+            <div class="queue-btn-wrap" *ngIf="generationQueue.length > 0">
+              <button class="app-btn queue-btn" (click)="toggleQueuePanel($event)">
+                <div class="queue-progress-bar">
+                  <div class="queue-progress-fill" [class.queue-animating]="hasActiveGeneration()"></div>
+                </div>
+                <lucide-icon name="loader-2" [size]="16" [class.spin-icon]="hasActiveGeneration()"></lucide-icon>
+                <span>Очередь ({{ generationQueue.length }})</span>
+              </button>
+            </div>
             <button class="app-btn app-btn-danger" (click)="openCreateCollection()">
               СОЗДАТЬ КОЛЛЕКЦИЮ
             </button>
@@ -148,7 +204,7 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
                       <span>{{ h.name }}</span>
                     </div>
                   </td>
-                  <td>{{ h.voiceType }}</td>
+                  <td>{{ getVoiceTypeLabel(h) }}</td>
                   <td>
                     <div class="cell-with-actions">
                       <span>{{ h.events.length }}</span>
@@ -187,7 +243,7 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
                     <span>{{ h.name }}</span>
                   </div>
                 </td>
-                <td>{{ h.voiceType }}</td>
+                <td>{{ getVoiceTypeLabel(h) }}</td>
                 <td>
                   <div class="cell-with-actions">
                     <span>{{ h.events.length }}</span>
@@ -227,6 +283,56 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
       <div class="panel-footer">
         <button class="app-btn app-btn-ghost" (click)="closeCreateCollection()">ОТМЕНА</button>
         <button class="app-btn app-btn-primary" [disabled]="!newCollectionName.trim()" (click)="saveCollection()">СОХРАНИТЬ</button>
+      </div>
+    </div>
+
+    <!-- ═══ GENERATION QUEUE PANEL ═══ -->
+    <div class="queue-backdrop" *ngIf="showQueuePanel" (click)="showQueuePanel = false"></div>
+    <div class="queue-panel" *ngIf="showQueuePanel">
+      <div class="queue-panel-header">
+        <h3 class="queue-panel-title">Очередь генерации</h3>
+        <button class="icon-btn" (click)="showQueuePanel = false">
+          <lucide-icon name="x" [size]="18"></lucide-icon>
+        </button>
+      </div>
+      <div class="queue-panel-body">
+        <div class="queue-empty" *ngIf="generationQueue.length === 0">
+          <lucide-icon name="check-circle-2" [size]="32" class="queue-empty-icon"></lucide-icon>
+          <span>Очередь пуста</span>
+        </div>
+        <div class="queue-item" *ngFor="let qi of generationQueue">
+          <div class="queue-item-top">
+            <div class="queue-item-info">
+              <span class="queue-item-phrase">{{ qi.phraseText }}</span>
+              <span class="queue-item-voice">Голос: {{ qi.voiceName }}</span>
+            </div>
+            <div class="queue-item-status">
+              <span class="queue-status-badge"
+                    [class.status-waiting]="qi.status === 'waiting'"
+                    [class.status-generating]="qi.status === 'generating'"
+                    [class.status-done]="qi.status === 'done'"
+                    [class.status-error]="qi.status === 'error'">
+                {{ getQueueStatusText(qi.status) }}
+              </span>
+            </div>
+          </div>
+          <div class="queue-item-progress" *ngIf="qi.status === 'generating'">
+            <div class="progress-bar-mini">
+              <div class="progress-fill-mini" [style.width.%]="qi.progress || 0"></div>
+            </div>
+          </div>
+          <div class="queue-item-actions">
+            <button class="action-icon" title="Прослушать" *ngIf="qi.status === 'done'" (click)="previewQueueItem(qi)">
+              <lucide-icon name="play" [size]="14"></lucide-icon>
+            </button>
+            <button class="action-icon" title="Повторить" *ngIf="qi.status === 'error'" (click)="retryQueueItem(qi)">
+              <lucide-icon name="refresh-cw" [size]="14"></lucide-icon>
+            </button>
+            <button class="action-icon action-icon-danger" title="Удалить" (click)="removeQueueItem(qi.id)">
+              <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -475,13 +581,46 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
       border-color: #448aff;
     }
 
-    /* Multi-select box */
-    .multi-select-box {
+    /* Form dropdown */
+    .form-dropdown-wrap {
+      position: relative;
+    }
+    .form-dropdown-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
       border: 1px solid #bdbdbd;
       border-radius: 4px;
+      min-height: 40px;
+      background: #fff;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    .form-dropdown-trigger:hover { border-color: #9e9e9e; }
+    .form-dropdown-text {
+      font-size: 14px;
+      color: #424242;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      font-family: Roboto, sans-serif;
+    }
+    .form-dropdown-content {
+      border: 1px solid #bdbdbd;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
       max-height: 220px;
       overflow-y: auto;
       background: #fff;
+    }
+    .dropdown-chevron {
+      color: #757575;
+      transition: transform 0.2s;
+    }
+    .dropdown-chevron-open {
+      transform: rotate(180deg);
     }
     .checkbox-row {
       display: flex;
@@ -529,6 +668,215 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
       color: #424242;
     }
 
+    /* Voice type toggle */
+    .voice-type-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid #bdbdbd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      background: #fff;
+      color: #757575;
+      font-size: 14px;
+      font-family: Roboto, sans-serif;
+      cursor: pointer;
+      flex: 1;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .toggle-btn:first-child { border-right: 1px solid #bdbdbd; }
+    .toggle-btn:hover { background: #f5f5f5; }
+    .toggle-active {
+      background: #448aff !important;
+      color: #fff !important;
+    }
+
+    /* Voice select row */
+    .voice-select-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .voice-select { flex: 1; }
+    .play-btn {
+      color: #448aff !important;
+      white-space: nowrap;
+    }
+    .play-btn:disabled { color: #bdbdbd !important; }
+
+    /* Textarea */
+    .form-textarea {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #bdbdbd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: Roboto, sans-serif;
+      color: #212121;
+      background: #fff;
+      box-sizing: border-box;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-textarea:focus { outline: none; border-color: #448aff; }
+    .form-hint {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #9e9e9e;
+      font-family: Roboto, sans-serif;
+    }
+    .form-hint code {
+      background: #f5f5f5;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    /* Queue button */
+    .queue-btn-wrap { position: relative; }
+    .queue-btn {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      color: #424242;
+      position: relative;
+      overflow: hidden;
+    }
+    .queue-btn:hover { background: #f5f5f5; }
+    .queue-progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #e0e0e0;
+    }
+    .queue-progress-fill {
+      height: 100%;
+      background: #448aff;
+      width: 30%;
+    }
+    .queue-animating {
+      animation: progressSlide 1.5s ease-in-out infinite;
+    }
+    @keyframes progressSlide {
+      0% { width: 10%; margin-left: 0; }
+      50% { width: 40%; margin-left: 30%; }
+      100% { width: 10%; margin-left: 90%; }
+    }
+    .spin-icon { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Queue panel */
+    .queue-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 998;
+    }
+    .queue-panel {
+      position: fixed;
+      top: 60px;
+      right: 80px;
+      width: 440px;
+      max-height: 500px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      font-family: Roboto, sans-serif;
+    }
+    .queue-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .queue-panel-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #212121;
+      margin: 0;
+    }
+    .queue-panel-body {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 400px;
+    }
+    .queue-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 32px;
+      color: #9e9e9e;
+      font-size: 14px;
+    }
+    .queue-empty-icon { color: #4caf50; }
+    .queue-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .queue-item-info { flex: 1; }
+    .queue-item-phrase {
+      display: block;
+      font-size: 14px;
+      color: #212121;
+      margin-bottom: 2px;
+    }
+    .queue-item-voice {
+      font-size: 12px;
+      color: #9e9e9e;
+    }
+    .queue-status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-waiting { background: #fff3e0; color: #e65100; }
+    .status-generating { background: #e3f2fd; color: #1565c0; }
+    .status-done { background: #e8f5e9; color: #2e7d32; }
+    .status-error { background: #ffebee; color: #c62828; }
+    .queue-item-progress { margin-top: 8px; }
+    .progress-bar-mini {
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill-mini {
+      height: 100%;
+      background: #448aff;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    .queue-item-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
     /* Form actions */
     .form-actions {
       display: flex;
@@ -537,7 +885,7 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS } from
     }
   `],
 })
-export class SoundsEventHandlersScreenComponent {
+export class SoundsEventHandlersScreenComponent implements OnDestroy {
   private storage = inject(StorageService);
 
   collections: SoundCollection[] = [];
@@ -556,10 +904,23 @@ export class SoundsEventHandlersScreenComponent {
   eventSearch = '';
   allCollectionsSelected = false;
   allEventsSelected = false;
+  showCollectionDropdown = false;
+  showEventsDropdown = false;
+
+  // Voice generation
+  availableVoices = AVAILABLE_VOICES;
+  generationQueue: GenerationQueueItem[] = [];
+  showQueuePanel = false;
+  private queueTimers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
     this.collections = this.storage.load('web-screens', 'sound-collections', [...MOCK_SOUND_COLLECTIONS]);
     this.handlers = this.storage.load('web-screens', 'sound-handlers', [...MOCK_SOUND_EVENT_HANDLERS]);
+    this.generationQueue = this.storage.load('web-screens', 'sound-generation-queue', []);
+  }
+
+  ngOnDestroy(): void {
+    this.queueTimers.forEach(t => clearTimeout(t));
   }
 
   // ── Helpers ─────────────────────────────────────────
@@ -656,6 +1017,8 @@ export class SoundsEventHandlersScreenComponent {
     this.newHandler = this.emptyHandler();
     this.eventSearch = '';
     this.syncAllToggles();
+    this.showCollectionDropdown = false;
+    this.showEventsDropdown = false;
     this.showCreateHandler = true;
   }
 
@@ -667,9 +1030,13 @@ export class SoundsEventHandlersScreenComponent {
       events: [...h.events],
       voiceType: h.voiceType,
       fileName: h.fileName || '',
+      voiceName: h.voiceName || '',
+      phraseText: h.phraseText || '',
     };
     this.eventSearch = '';
     this.syncAllToggles();
+    this.showCollectionDropdown = false;
+    this.showEventsDropdown = false;
     this.showCreateHandler = true;
   }
 
@@ -683,6 +1050,7 @@ export class SoundsEventHandlersScreenComponent {
     if (!name) return;
 
     const collectionId = this.newHandler.collectionIds.length > 0 ? this.newHandler.collectionIds[0] : null;
+    const isGeneration = this.newHandler.voiceType === 'generation';
 
     if (this.editingHandler) {
       const idx = this.handlers.findIndex(h => h.id === this.editingHandler!.id);
@@ -691,9 +1059,12 @@ export class SoundsEventHandlersScreenComponent {
           ...this.handlers[idx],
           name,
           collectionId,
-          voiceType: this.newHandler.voiceType,
+          voiceType: this.newHandler.voiceType as 'file' | 'generation',
           events: [...this.newHandler.events],
-          fileName: this.newHandler.fileName || undefined,
+          fileName: isGeneration ? undefined : (this.newHandler.fileName || undefined),
+          voiceName: isGeneration ? this.newHandler.voiceName : undefined,
+          phraseText: isGeneration ? this.newHandler.phraseText : undefined,
+          generationStatus: isGeneration ? 'pending' : undefined,
         };
       }
     } else {
@@ -702,11 +1073,22 @@ export class SoundsEventHandlersScreenComponent {
         id: maxId + 1,
         name,
         collectionId,
-        voiceType: this.newHandler.voiceType,
+        voiceType: this.newHandler.voiceType as 'file' | 'generation',
         events: [...this.newHandler.events],
-        fileName: this.newHandler.fileName || undefined,
+        fileName: isGeneration ? undefined : (this.newHandler.fileName || undefined),
+        voiceName: isGeneration ? this.newHandler.voiceName : undefined,
+        phraseText: isGeneration ? this.newHandler.phraseText : undefined,
+        generationStatus: isGeneration ? 'pending' : undefined,
       };
       this.handlers = [...this.handlers, handler];
+    }
+
+    // Add to generation queue if generation type
+    if (isGeneration && this.newHandler.voiceName && this.newHandler.phraseText) {
+      const handlerId = this.editingHandler
+        ? this.editingHandler.id
+        : this.handlers[this.handlers.length - 1].id;
+      this.addToQueue(handlerId, name, this.newHandler.phraseText, this.newHandler.voiceName);
     }
 
     this.persistAll();
@@ -782,10 +1164,124 @@ export class SoundsEventHandlersScreenComponent {
     return this.newHandler.collectionIds.includes(id);
   }
 
+  getSelectedCollectionsText(): string {
+    if (this.newHandler.collectionIds.length === 0) return 'Выберите коллекции';
+    if (this.allCollectionsSelected) return 'Все';
+    const names = this.newHandler.collectionIds
+      .map((id: number) => this.collections.find(c => c.id === id))
+      .filter(Boolean)
+      .map((c: any) => c!.name);
+    return names.join(', ');
+  }
+
+  getSelectedEventsText(): string {
+    if (this.newHandler.events.length === 0) return 'Выберите события';
+    if (this.allEventsSelected) return 'Все';
+    if (this.newHandler.events.length <= 2) return this.newHandler.events.join(', ');
+    return `Выбрано: ${this.newHandler.events.length}`;
+  }
+
   // ── File pick mock ──────────────────────────────────
 
   pickFile(): void {
     this.newHandler.fileName = 'sound_' + Date.now() + '.mp3';
+  }
+
+  // ── Voice type label ────────────────────────────────
+
+  getVoiceTypeLabel(h: SoundEventHandler): string {
+    if (h.voiceType === 'generation') return 'Генерация';
+    return 'Файл';
+  }
+
+  // ── Voice preview ───────────────────────────────────
+
+  previewVoice(): void {
+    alert('▶ Воспроизведение образца голоса: ' + this.newHandler.voiceName);
+  }
+
+  // ── Generation Queue ────────────────────────────────
+
+  toggleQueuePanel(event: Event): void {
+    event.stopPropagation();
+    this.showQueuePanel = !this.showQueuePanel;
+  }
+
+  hasActiveGeneration(): boolean {
+    return this.generationQueue.some(q => q.status === 'waiting' || q.status === 'generating');
+  }
+
+  getQueueStatusText(status: string): string {
+    switch (status) {
+      case 'waiting': return '⏳ Ожидает';
+      case 'generating': return '🔄 Генерируется';
+      case 'done': return '✅ Готово';
+      case 'error': return '❌ Ошибка';
+      default: return status;
+    }
+  }
+
+  previewQueueItem(qi: GenerationQueueItem): void {
+    alert('▶ Воспроизведение: ' + qi.phraseText);
+  }
+
+  retryQueueItem(qi: GenerationQueueItem): void {
+    qi.status = 'waiting';
+    qi.progress = 0;
+    this.simulateGeneration(qi);
+    this.persistQueue();
+  }
+
+  removeQueueItem(id: number): void {
+    this.generationQueue = this.generationQueue.filter(q => q.id !== id);
+    this.persistQueue();
+  }
+
+  private addToQueue(handlerId: number, handlerName: string, phraseText: string, voiceName: string): void {
+    const maxId = this.generationQueue.reduce((m, q) => Math.max(m, q.id), 0);
+    const item: GenerationQueueItem = {
+      id: maxId + 1,
+      handlerId,
+      handlerName,
+      phraseText,
+      voiceName,
+      status: 'waiting',
+      createdAt: Date.now(),
+      progress: 0,
+    };
+    this.generationQueue = [item, ...this.generationQueue];
+    this.persistQueue();
+    this.simulateGeneration(item);
+  }
+
+  private simulateGeneration(item: GenerationQueueItem): void {
+    // After 3s → generating
+    const t1 = setTimeout(() => {
+      item.status = 'generating';
+      item.progress = 0;
+      this.persistQueue();
+
+      // Progress updates
+      const steps = [20, 45, 70, 90, 100];
+      steps.forEach((pct, i) => {
+        const t = setTimeout(() => {
+          item.progress = pct;
+          if (pct === 100) {
+            item.status = 'done';
+            // Update handler status
+            const h = this.handlers.find(hh => hh.id === item.handlerId);
+            if (h) { h.generationStatus = 'done'; this.persistAll(); }
+          }
+          this.persistQueue();
+        }, (i + 1) * 1000);
+        this.queueTimers.push(t);
+      });
+    }, 3000);
+    this.queueTimers.push(t1);
+  }
+
+  private persistQueue(): void {
+    this.storage.save('web-screens', 'sound-generation-queue', this.generationQueue);
   }
 
   // ── Private ─────────────────────────────────────────
@@ -796,7 +1292,15 @@ export class SoundsEventHandlersScreenComponent {
   }
 
   private emptyHandler() {
-    return { name: '', collectionIds: [] as number[], events: [] as string[], voiceType: 'Файл', fileName: '' };
+    return {
+      name: '',
+      collectionIds: [] as number[],
+      events: [] as string[],
+      voiceType: 'file' as 'file' | 'generation',
+      fileName: '',
+      voiceName: '',
+      phraseText: '',
+    };
   }
 
   private syncAllToggles(): void {

@@ -98,6 +98,13 @@ export const WEB_SCREENS_ROUTES: Routes = [
           ),
       },
       {
+        path: 'sounds-catalog',
+        loadComponent: () =>
+          import('./screens/sounds-catalog-screen.component').then(
+            m => m.SoundsCatalogScreenComponent
+          ),
+      },
+      {
         path: 'sounds-terminals',
         loadComponent: () =>
           import('./screens/sounds-terminals-screen.component').then(

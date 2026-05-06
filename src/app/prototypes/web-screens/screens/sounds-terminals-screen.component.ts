@@ -92,12 +92,24 @@ import { SoundEventHandler } from '../types';
                   <td class="col-handlers">
                     <div class="dropdown-wrap" (click)="openHandlerDropdown(t.id, $event)">
                       <div class="dropdown-display">
-                        <span class="dropdown-text">{{ getHandlerNames(t.handlerIds) }}</span>
+                        <div class="dropdown-text-with-badges">
+                          <ng-container *ngFor="let hId of t.handlerIds; let last = last">
+                            <span class="handler-tag">
+                              <span class="handler-tag-dot" [ngClass]="getHandlerDotClass(hId)"></span>
+                              {{ getHandlerName(hId) }}
+                            </span>
+                            <span *ngIf="!last">, </span>
+                          </ng-container>
+                          <span *ngIf="t.handlerIds.length === 0" class="dropdown-text">Не выбрано</span>
+                        </div>
                         <lucide-icon name="chevron-down" [size]="16"></lucide-icon>
                       </div>
                     </div>
                     <!-- Handler dropdown -->
-                    <div class="dropdown-panel" *ngIf="activeHandlerDropdown === t.id">
+                    <div class="dropdown-panel" *ngIf="activeHandlerDropdown === t.id"
+                         [style.top.px]="dropdownTop"
+                         [style.left.px]="dropdownLeft"
+                         [style.width.px]="dropdownWidth">
                       <div class="dropdown-search">
                         <lucide-icon name="search" [size]="14"></lucide-icon>
                         <input
@@ -119,6 +131,7 @@ import { SoundEventHandler } from '../types';
                           (change)="toggleTerminalHandler(t, h.id)"
                         />
                         <span>{{ h.name }}</span>
+                        <span class="handler-badge" [ngClass]="getHandlerBadgeClass(h)">{{ getHandlerBadgeText(h) }}</span>
                       </label>
                     </div>
                   </td>
@@ -241,7 +254,6 @@ import { SoundEventHandler } from '../types';
       background: #fff;
       border-radius: 4px;
       border: 1px solid #e0e0e0;
-      overflow: hidden;
     }
     .group-header {
       display: flex;
@@ -295,8 +307,8 @@ import { SoundEventHandler } from '../types';
       vertical-align: top;
     }
     .col-terminal { width: 35%; }
-    .col-handlers { width: 35%; position: relative; }
-    .col-audio { width: 30%; }
+    .col-handlers { width: 32.5%; position: relative; }
+    .col-audio { width: 32.5%; }
 
     .terminal-info {
       display: flex;
@@ -336,15 +348,12 @@ import { SoundEventHandler } from '../types';
     }
 
     .dropdown-panel {
-      position: absolute;
-      top: 100%;
-      left: 16px;
-      right: 16px;
+      position: fixed;
       background: #fff;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      z-index: 100;
+      z-index: 1000;
       max-height: 240px;
       overflow-y: auto;
     }
@@ -396,6 +405,40 @@ import { SoundEventHandler } from '../types';
       cursor: pointer;
     }
     .audio-select:focus { border-color: #448aff; }
+
+    /* Handler badges */
+    .handler-badge {
+      margin-left: auto;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-voice { background: #e8f5e9; color: #2e7d32; }
+    .badge-fallback { background: #fff3e0; color: #e65100; }
+    .badge-standard { background: #f5f5f5; color: #757575; }
+
+    .dropdown-text-with-badges {
+      font-size: 13px;
+      color: #424242;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .handler-tag { white-space: nowrap; }
+    .handler-tag-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .dot-voice { background: #4caf50; }
+    .dot-fallback { background: #ff9800; }
+    .dot-standard { background: #bdbdbd; }
   `],
 })
 export class SoundsTerminalsScreenComponent implements OnInit {
@@ -411,6 +454,9 @@ export class SoundsTerminalsScreenComponent implements OnInit {
 
   activeHandlerDropdown: number | null = null;
   handlerDropdownSearch = '';
+  dropdownTop = 0;
+  dropdownLeft = 0;
+  dropdownWidth = 300;
 
   private clickListener = (e: Event) => {
     this.activeHandlerDropdown = null;
@@ -471,7 +517,16 @@ export class SoundsTerminalsScreenComponent implements OnInit {
 
   openHandlerDropdown(terminalId: number, event: Event): void {
     event.stopPropagation();
-    this.activeHandlerDropdown = this.activeHandlerDropdown === terminalId ? null : terminalId;
+    if (this.activeHandlerDropdown === terminalId) {
+      this.activeHandlerDropdown = null;
+      return;
+    }
+    const trigger = event.currentTarget as HTMLElement;
+    const rect = trigger.getBoundingClientRect();
+    this.dropdownTop = rect.bottom + 2;
+    this.dropdownLeft = rect.left;
+    this.dropdownWidth = rect.width;
+    this.activeHandlerDropdown = terminalId;
     this.handlerDropdownSearch = '';
   }
 
@@ -497,6 +552,29 @@ export class SoundsTerminalsScreenComponent implements OnInit {
       .filter(Boolean)
       .map(h => h!.name);
     return names.join(', ') || 'Не выбрано';
+  }
+
+  getHandlerName(id: number): string {
+    return this.allHandlers.find(h => h.id === id)?.name || '—';
+  }
+
+  getHandlerBadgeClass(h: SoundEventHandler): string {
+    if (h.voiceType !== 'generation') return 'badge-standard';
+    if (h.generationStatus === 'done') return 'badge-voice';
+    return 'badge-fallback';
+  }
+
+  getHandlerBadgeText(h: SoundEventHandler): string {
+    if (h.voiceType !== 'generation') return 'Стандарт';
+    if (h.generationStatus === 'done') return 'Голос';
+    return 'Делень';
+  }
+
+  getHandlerDotClass(handlerId: number): string {
+    const h = this.allHandlers.find(hh => hh.id === handlerId);
+    if (!h || h.voiceType !== 'generation') return 'dot-standard';
+    if (h.generationStatus === 'done') return 'dot-voice';
+    return 'dot-fallback';
   }
 
   // ── Save ──

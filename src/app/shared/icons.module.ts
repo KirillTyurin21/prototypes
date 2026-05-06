@@ -145,6 +145,9 @@ import {
   Store,
   Play,
   Download,
+  // Sound generation
+  Mic,
+  FileAudio,
 } from 'lucide-angular';
 
 /**
@@ -298,6 +301,9 @@ const icons = {
   Store,
   Play,
   Download,
+  // Sound generation
+  Mic,
+  FileAudio,
 };
 
 @NgModule({
