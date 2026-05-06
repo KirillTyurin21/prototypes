@@ -9,6 +9,9 @@ import {
   ArrivalsControlListItem,
   ArrivalsControl,
   ProductCatalogItem,
+  SoundCollection,
+  SoundEventHandler,
+  SoundTerminalGroup,
 } from '../types';
 
 /** Секции бокового меню Web */
@@ -35,8 +38,10 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   {
     title: 'Звуки',
     icon: 'volume-2',
-    route: 'sounds',
-    items: [],
+    items: [
+      { icon: '', label: 'Обработчики событий', route: 'sounds-event-handlers' },
+      { icon: '', label: 'Настройка терминалов', route: 'sounds-terminals' },
+    ],
   },
   {
     title: 'Подсказки',
@@ -401,4 +406,91 @@ export const MOCK_ARRIVALS_CONTROLS: ArrivalsControl[] = [
   { id: 304, name: 'ВИТ', statusType: 'kitchen', elements: [] },
   { id: 305, name: 'Контрол с анимацией', statusType: 'kitchen', elements: [] },
   { id: 306, name: 'Стандартный контрол', statusType: 'balancer', elements: [] },
+];
+
+/* ── Sounds (Digital Voice) ── */
+
+export const SYSTEM_EVENTS: string[] = [
+  'Бронь: банкет завершен',
+  'Бронь: банкет начат',
+  'Бронь: банкет начат (универсально)',
+  'Бронь: банкет отменен (no-show)',
+  'Бронь: включено напоминание о подготовке',
+  'Бронь: гость пришел (резерв закрыт)',
+  'Бронь: создан банкет',
+  'Бронь: создан резерв',
+  'Доставка: доставлено',
+  'Доставка: закрыто',
+  'Доставка: назначен курьер',
+  'Доставка: новый заказ',
+  'Доставка: отменено',
+  'Кухня: заказ приготовлен (Processed)',
+];
+
+export const MOCK_SOUND_COLLECTIONS: SoundCollection[] = [
+  { id: 1, name: 'Системные обработчики событий' },
+  { id: 2, name: 'Звуки' },
+  { id: 3, name: '11' },
+];
+
+export const MOCK_SOUND_EVENT_HANDLERS: SoundEventHandler[] = [
+  // Системные обработчики событий (collection 1)
+  { id: 1, collectionId: 1, name: 'Бронь: банкет завершен', voiceType: 'Файл', events: ['Бронь: банкет завершен'], fileName: 'banket_end.mp3' },
+  { id: 2, collectionId: 1, name: 'Бронь: банкет начат', voiceType: 'Файл', events: ['Бронь: банкет начат'], fileName: 'banket_start.mp3' },
+  { id: 3, collectionId: 1, name: 'Бронь: банкет начат (универсально)', voiceType: 'Файл', events: ['Бронь: банкет начат (универсально)'], fileName: 'banket_start_uni.mp3' },
+  { id: 4, collectionId: 1, name: 'Бронь: банкет отменен (no-show)', voiceType: 'Файл', events: ['Бронь: банкет отменен (no-show)'], fileName: 'banket_cancel.mp3' },
+  { id: 5, collectionId: 1, name: 'Бронь: включено напоминание', voiceType: 'Файл', events: ['Бронь: включено напоминание о подготовке'], fileName: 'reminder.mp3' },
+  { id: 6, collectionId: 1, name: 'Бронь: гость пришел', voiceType: 'Файл', events: ['Бронь: гость пришел (резерв закрыт)'], fileName: 'guest_arrived.mp3' },
+  { id: 7, collectionId: 1, name: 'Бронь: создан банкет', voiceType: 'Файл', events: ['Бронь: создан банкет'], fileName: 'banket_created.mp3' },
+  { id: 8, collectionId: 1, name: 'Бронь: создан резерв', voiceType: 'Файл', events: ['Бронь: создан резерв'], fileName: 'reserve_created.mp3' },
+  { id: 9, collectionId: 1, name: 'Доставка: доставлено', voiceType: 'Файл', events: ['Доставка: доставлено'], fileName: 'delivered.mp3' },
+  { id: 10, collectionId: 1, name: 'Доставка: закрыто', voiceType: 'Файл', events: ['Доставка: закрыто'], fileName: 'closed.mp3' },
+  { id: 11, collectionId: 1, name: 'Доставка: назначен курьер', voiceType: 'Файл', events: ['Доставка: назначен курьер'], fileName: 'courier.mp3' },
+  { id: 12, collectionId: 1, name: 'Доставка: новый заказ', voiceType: 'Файл', events: ['Доставка: новый заказ'], fileName: 'new_order.mp3' },
+  // Звуки (collection 2)
+  { id: 13, collectionId: 2, name: 'Звук уведомления', voiceType: 'Файл', events: ['Доставка: новый заказ'], fileName: 'notification.mp3' },
+  // 11 (collection 3)
+  { id: 14, collectionId: 3, name: 'Тестовый обработчик', voiceType: 'Файл', events: ['Кухня: заказ приготовлен (Processed)'], fileName: 'test.mp3' },
+  // Без коллекции
+  { id: 15, collectionId: null, name: 'Доставка: отменено', voiceType: 'Файл', events: ['Доставка: отменено'], fileName: 'cancelled.mp3' },
+  { id: 16, collectionId: null, name: 'Кухня: заказ приготовлен', voiceType: 'Файл', events: ['Кухня: заказ приготовлен (Processed)'], fileName: 'cooked.mp3' },
+  { id: 17, collectionId: null, name: 'Уведомление бронь', voiceType: 'Файл', events: ['Бронь: создан резерв'], fileName: 'reserve_notify.mp3' },
+  { id: 18, collectionId: null, name: 'Общий звук', voiceType: 'Файл', events: ['Доставка: новый заказ', 'Доставка: доставлено'], fileName: 'general.mp3' },
+];
+
+export const AUDIO_DEVICES: string[] = [
+  'Не выбрано',
+  'Динамики (High Definition Audio Device)',
+  'Device 1',
+  'Device 2',
+];
+
+export const MOCK_SOUND_TERMINAL_GROUPS: SoundTerminalGroup[] = [
+  {
+    id: 1,
+    name: 'Торг. предприятие',
+    terminalCount: 2,
+    terminals: [
+      { id: 101, name: '127.0.0.1', lastActivity: '2026-05-06 07:12:06', handlerIds: [1, 2, 3], audioDevice: 'Динамики (High Definition Audio Device)' },
+      { id: 102, name: '192.168.1.10', lastActivity: '2026-05-05 18:30:22', handlerIds: [1], audioDevice: 'Не выбрано' },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Ресторан «Центральный»',
+    terminalCount: 3,
+    terminals: [
+      { id: 201, name: '10.0.0.5', lastActivity: '2026-05-06 09:45:11', handlerIds: [1, 9, 10, 11, 12], audioDevice: 'Device 1' },
+      { id: 202, name: '10.0.0.6', lastActivity: '2026-05-04 14:20:00', handlerIds: [], audioDevice: 'Не выбрано' },
+      { id: 203, name: '10.0.0.7', lastActivity: '2026-05-06 10:00:00', handlerIds: [13], audioDevice: 'Device 2' },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Кафе «Утренняя звезда»',
+    terminalCount: 1,
+    terminals: [
+      { id: 301, name: '172.16.0.1', lastActivity: '2026-05-03 22:10:55', handlerIds: [15, 16], audioDevice: 'Динамики (High Definition Audio Device)' },
+    ],
+  },
 ];

@@ -91,10 +91,17 @@ export const WEB_SCREENS_ROUTES: Routes = [
           ),
       },
       {
-        path: 'sounds',
+        path: 'sounds-event-handlers',
         loadComponent: () =>
-          import('./screens/stub-screen.component').then(
-            m => m.StubScreenComponent
+          import('./screens/sounds-event-handlers-screen.component').then(
+            m => m.SoundsEventHandlersScreenComponent
+          ),
+      },
+      {
+        path: 'sounds-terminals',
+        loadComponent: () =>
+          import('./screens/sounds-terminals-screen.component').then(
+            m => m.SoundsTerminalsScreenComponent
           ),
       },
       {

@@ -233,3 +233,36 @@ export interface ArrivalsControl {
   statusType: ArrivalsControlStatusType;
   elements: ArrivalsThemeElement[];
 }
+
+/* ── Sounds (Digital Voice) ── */
+
+export interface SoundEventHandler {
+  id: number;
+  name: string;
+  collectionId: number | null;
+  voiceType: string;
+  events: string[];
+  fileName?: string;
+}
+
+export interface SoundCollection {
+  id: number;
+  name: string;
+  expanded?: boolean;
+}
+
+export interface SoundTerminalGroup {
+  id: number;
+  name: string;
+  terminalCount: number;
+  expanded?: boolean;
+  terminals: SoundTerminal[];
+}
+
+export interface SoundTerminal {
+  id: number;
+  name: string;
+  lastActivity: string;
+  handlerIds: number[];
+  audioDevice: string;
+}
