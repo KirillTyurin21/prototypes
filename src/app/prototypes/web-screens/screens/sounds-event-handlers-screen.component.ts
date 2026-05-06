@@ -134,9 +134,6 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
             <!-- Generation queue button -->
             <div class="queue-btn-wrap" *ngIf="generationQueue.length > 0">
               <button class="app-btn queue-btn" [class.queue-btn-done]="!hasActiveGeneration()" (click)="toggleQueuePanel($event)">
-                <div class="queue-progress-bar" *ngIf="hasActiveGeneration()">
-                  <div class="queue-progress-fill queue-animating"></div>
-                </div>
                 <lucide-icon [name]="hasActiveGeneration() ? 'loader-2' : 'check-circle-2'" [size]="16" [class.spin-icon]="hasActiveGeneration()" [class.queue-done-icon]="!hasActiveGeneration()"></lucide-icon>
                 <span>Очередь ({{ generationQueue.length }})</span>
               </button>
