@@ -246,7 +246,8 @@ export interface SoundEventHandler {
   // Generation-specific fields
   voiceName?: string;          // 'Ксения' | 'Ирина' | 'Василий'
   phraseText?: string;         // e.g. "Заказ номер {номер} готов"
-  generationStatus?: 'pending' | 'generating' | 'done' | 'error';
+  generationStatus?: 'pending' | 'generating' | 'done';
+  fileSize?: number;            // size in KB
 }
 
 export interface SoundCollection {
@@ -279,7 +280,7 @@ export interface GenerationQueueItem {
   handlerName: string;
   phraseText: string;
   voiceName: string;
-  status: 'waiting' | 'generating' | 'done' | 'error';
+  status: 'waiting' | 'generating' | 'done';
   createdAt: number;      // timestamp
   progress?: number;      // 0-100
 }

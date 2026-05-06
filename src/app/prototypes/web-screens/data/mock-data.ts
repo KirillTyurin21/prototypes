@@ -43,7 +43,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     icon: 'volume-2',
     items: [
       { icon: '', label: 'Обработчики событий', route: 'sounds-event-handlers' },
-      { icon: '', label: 'Справочник звуков', route: 'sounds-catalog' },
       { icon: '', label: 'Настройка терминалов', route: 'sounds-terminals' },
     ],
   },
@@ -461,8 +460,8 @@ export const MOCK_SOUND_EVENT_HANDLERS: SoundEventHandler[] = [
   { id: 17, collectionId: null, name: 'Уведомление бронь', voiceType: 'file', events: ['Бронь: создан резерв'], fileName: 'reserve_notify.mp3' },
   { id: 18, collectionId: null, name: 'Общий звук', voiceType: 'file', events: ['Доставка: новый заказ', 'Доставка: доставлено'], fileName: 'general.mp3' },
   // Генерация голоса (примеры)
-  { id: 19, collectionId: 1, name: 'Голос: новый заказ доставки', voiceType: 'generation', events: ['Доставка: новый заказ'], voiceName: 'Ксения', phraseText: 'Внимание, поступил новый заказ на доставку номер {номер}', generationStatus: 'done' },
-  { id: 20, collectionId: 2, name: 'Голос: заказ приготовлен', voiceType: 'generation', events: ['Кухня: заказ приготовлен (Processed)'], voiceName: 'Василий', phraseText: 'Заказ номер {номер} готов к выдаче', generationStatus: 'done' },
+  { id: 19, collectionId: 1, name: 'Голос: новый заказ доставки', voiceType: 'generation', events: ['Доставка: новый заказ'], voiceName: 'Ксения', phraseText: 'Внимание, поступил новый заказ на доставку номер [order_number]', generationStatus: 'done', fileSize: 48 },
+  { id: 20, collectionId: 2, name: 'Голос: заказ приготовлен', voiceType: 'generation', events: ['Кухня: заказ приготовлен (Processed)'], voiceName: 'Василий', phraseText: 'Заказ [order_number] готов к выдаче', generationStatus: 'done', fileSize: 36 },
 ];
 
 export const AUDIO_DEVICES: string[] = [

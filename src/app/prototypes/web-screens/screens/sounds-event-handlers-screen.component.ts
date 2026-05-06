@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
-import { SoundCollection, SoundEventHandler, GenerationQueueItem, SoundFolder } from '../types';
-import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAILABLE_VOICES, MOCK_SOUND_FOLDERS } from '../data/mock-data';
+import { SoundCollection, SoundEventHandler, GenerationQueueItem } from '../types';
+import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAILABLE_VOICES } from '../data/mock-data';
 
 @Component({
   selector: 'app-sounds-event-handlers-screen',
@@ -108,24 +108,34 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
             </div>
           </div>
 
-          <div class="form-section" *ngIf="getExistingPhrases().length > 0">
-            <label class="form-label">Готовая фраза из справочника</label>
-            <select class="form-input" [(ngModel)]="selectedExistingPhrase" (ngModelChange)="onExistingPhraseSelected($event)">
-              <option value="">— Новая фраза (ввести вручную) —</option>
-              <option *ngFor="let p of getExistingPhrases()" [value]="p">{{ p }}</option>
-            </select>
-            <span class="form-hint">Выберите готовую фразу или введите новую ниже</span>
-          </div>
-
           <div class="form-section">
             <label class="form-label">Текст фразы</label>
-            <textarea class="form-textarea" rows="3"
+            <textarea class="form-textarea" rows="3" #phraseInput
                       [(ngModel)]="newHandler.phraseText"
-                      [disabled]="!!selectedExistingPhrase"
-                      [class.opacity-50]="!!selectedExistingPhrase"
-                      placeholder="Например: Заказ номер {номер} готов к выдаче"></textarea>
-            <span class="form-hint" *ngIf="!selectedExistingPhrase">Используйте <code>{{'{'}}номер{{'}'}}</code> для подстановки номера заказа</span>
-            <span class="form-hint" *ngIf="selectedExistingPhrase">Используется готовая фраза из справочника. Выберите «Новая фраза» чтобы ввести свою</span>
+                      placeholder="Например: Заказ [order_number] готов к выдаче"></textarea>
+            <div class="variable-chips">
+              <span class="variable-chip-label">Переменные:</span>
+              <button class="variable-chip" (click)="insertVariable('[order_number]', phraseInput)" title="Номер заказа">[order_number]</button>
+              <button class="variable-chip" (click)="insertVariable('[name]', phraseInput)" title="Имя гостя">[name]</button>
+            </div>
+            <span class="form-hint">Используйте переменные для подстановки данных заказа</span>
+          </div>
+
+          <!-- Generation status (when editing existing handler) -->
+          <div class="form-section" *ngIf="editingHandler && editingHandler.generationStatus">
+            <label class="form-label">Статус генерации</label>
+            <div class="generation-status-row">
+              <span class="queue-status-badge"
+                    [class.status-waiting]="editingHandler.generationStatus === 'pending'"
+                    [class.status-generating]="editingHandler.generationStatus === 'generating'"
+                    [class.status-done]="editingHandler.generationStatus === 'done'">
+                {{ getGenerationStatusText(editingHandler.generationStatus) }}
+              </span>
+              <button class="app-btn app-btn-ghost play-btn" *ngIf="editingHandler.generationStatus === 'done'"
+                      (click)="playHandler(editingHandler)">
+                <lucide-icon name="play" [size]="16"></lucide-icon> Проиграть
+              </button>
+            </div>
           </div>
         </ng-container>
 
@@ -170,7 +180,11 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
             <tr>
               <th class="col-name">Название</th>
               <th class="col-voice">Тип озвучки</th>
-              <th class="col-events">Количество событий</th>
+              <th class="col-events">Кол-во событий</th>
+              <th class="col-status">Статус</th>
+              <th class="col-play">Проиграть</th>
+              <th class="col-size">Размер</th>
+              <th class="col-actions"></th>
             </tr>
           </thead>
           <tbody>
@@ -189,6 +203,10 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
                     <span class="handler-count">({{ getHandlersForCollection(col.id).length }})</span>
                   </div>
                 </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
                 <td></td>
                 <td>
                   <div class="row-actions">
@@ -214,20 +232,36 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
                     </div>
                   </td>
                   <td>{{ getVoiceTypeLabel(h) }}</td>
+                  <td>{{ h.events.length }}</td>
                   <td>
-                    <div class="cell-with-actions">
-                      <span>{{ h.events.length }}</span>
-                      <div class="row-actions">
-                        <button class="action-icon" title="Редактировать" (click)="editHandler(h)">
-                          <lucide-icon name="pencil" [size]="16"></lucide-icon>
-                        </button>
-                        <button class="action-icon" title="Копировать" (click)="copyHandler(h)">
-                          <lucide-icon name="copy" [size]="16"></lucide-icon>
-                        </button>
-                        <button class="action-icon action-icon-danger" title="Удалить" (click)="deleteHandler(h.id)">
-                          <lucide-icon name="trash-2" [size]="16"></lucide-icon>
-                        </button>
-                      </div>
+                    <span class="queue-status-badge"
+                          *ngIf="h.voiceType === 'generation'"
+                          [class.status-waiting]="h.generationStatus === 'pending'"
+                          [class.status-generating]="h.generationStatus === 'generating'"
+                          [class.status-done]="h.generationStatus === 'done'">
+                      {{ getGenerationStatusText(h.generationStatus) }}
+                    </span>
+                    <span *ngIf="h.voiceType !== 'generation'" class="text-muted">—</span>
+                  </td>
+                  <td>
+                    <button class="action-icon play-action" *ngIf="h.voiceType === 'generation' && h.generationStatus === 'done'"
+                            title="Проиграть" (click)="playHandler(h)">
+                      <lucide-icon name="play" [size]="16"></lucide-icon>
+                    </button>
+                    <span *ngIf="!(h.voiceType === 'generation' && h.generationStatus === 'done')" class="text-muted">—</span>
+                  </td>
+                  <td>{{ getFileSizeLabel(h) }}</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="action-icon" title="Редактировать" (click)="editHandler(h)">
+                        <lucide-icon name="pencil" [size]="16"></lucide-icon>
+                      </button>
+                      <button class="action-icon" title="Копировать" (click)="copyHandler(h)">
+                        <lucide-icon name="copy" [size]="16"></lucide-icon>
+                      </button>
+                      <button class="action-icon action-icon-danger" title="Удалить" (click)="deleteHandler(h.id)">
+                        <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -245,6 +279,10 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
                 </td>
                 <td></td>
                 <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
               </tr>
               <tr class="handler-row" *ngFor="let h of getOrphanHandlers()">
                 <td class="col-name">
@@ -253,25 +291,48 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
                   </div>
                 </td>
                 <td>{{ getVoiceTypeLabel(h) }}</td>
+                <td>{{ h.events.length }}</td>
                 <td>
-                  <div class="cell-with-actions">
-                    <span>{{ h.events.length }}</span>
-                    <div class="row-actions">
-                      <button class="action-icon" title="Редактировать" (click)="editHandler(h)">
-                        <lucide-icon name="pencil" [size]="16"></lucide-icon>
-                      </button>
-                      <button class="action-icon" title="Копировать" (click)="copyHandler(h)">
-                        <lucide-icon name="copy" [size]="16"></lucide-icon>
-                      </button>
-                      <button class="action-icon action-icon-danger" title="Удалить" (click)="deleteHandler(h.id)">
-                        <lucide-icon name="trash-2" [size]="16"></lucide-icon>
-                      </button>
-                    </div>
+                  <span class="queue-status-badge"
+                        *ngIf="h.voiceType === 'generation'"
+                        [class.status-waiting]="h.generationStatus === 'pending'"
+                        [class.status-generating]="h.generationStatus === 'generating'"
+                        [class.status-done]="h.generationStatus === 'done'">
+                    {{ getGenerationStatusText(h.generationStatus) }}
+                  </span>
+                  <span *ngIf="h.voiceType !== 'generation'" class="text-muted">—</span>
+                </td>
+                <td>
+                  <button class="action-icon play-action" *ngIf="h.voiceType === 'generation' && h.generationStatus === 'done'"
+                          title="Проиграть" (click)="playHandler(h)">
+                    <lucide-icon name="play" [size]="16"></lucide-icon>
+                  </button>
+                  <span *ngIf="!(h.voiceType === 'generation' && h.generationStatus === 'done')" class="text-muted">—</span>
+                </td>
+                <td>{{ getFileSizeLabel(h) }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button class="action-icon" title="Редактировать" (click)="editHandler(h)">
+                      <lucide-icon name="pencil" [size]="16"></lucide-icon>
+                    </button>
+                    <button class="action-icon" title="Копировать" (click)="copyHandler(h)">
+                      <lucide-icon name="copy" [size]="16"></lucide-icon>
+                    </button>
+                    <button class="action-icon action-icon-danger" title="Удалить" (click)="deleteHandler(h.id)">
+                      <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+                    </button>
                   </div>
                 </td>
               </tr>
             </ng-container>
           </tbody>
+          <tfoot>
+            <tr class="totals-row">
+              <td colspan="5" class="totals-label">Итого</td>
+              <td class="totals-value">{{ getTotalSize() }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
@@ -309,9 +370,10 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
           <lucide-icon name="check-circle-2" [size]="32" class="queue-empty-icon"></lucide-icon>
           <span>Очередь пуста</span>
         </div>
-        <div class="queue-item" *ngFor="let qi of generationQueue">
+        <div class="queue-item" *ngFor="let qi of generationQueue" (click)="openHandlerFromQueue(qi)" style="cursor: pointer;">
           <div class="queue-item-top">
             <div class="queue-item-info">
+              <span class="queue-item-handler">{{ qi.handlerName }}</span>
               <span class="queue-item-phrase">{{ qi.phraseText }}</span>
               <span class="queue-item-voice">Голос: {{ qi.voiceName }}</span>
             </div>
@@ -319,22 +381,10 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
               <span class="queue-status-badge"
                     [class.status-waiting]="qi.status === 'waiting'"
                     [class.status-generating]="qi.status === 'generating'"
-                    [class.status-done]="qi.status === 'done'"
-                    [class.status-error]="qi.status === 'error'">
+                    [class.status-done]="qi.status === 'done'">
                 {{ getQueueStatusText(qi.status) }}
               </span>
             </div>
-          </div>
-          <div class="queue-item-actions">
-            <button class="action-icon" title="Прослушать" *ngIf="qi.status === 'done'" (click)="previewQueueItem(qi)">
-              <lucide-icon name="play" [size]="14"></lucide-icon>
-            </button>
-            <button class="action-icon" title="Повторить" *ngIf="qi.status === 'error'" (click)="retryQueueItem(qi)">
-              <lucide-icon name="refresh-cw" [size]="14"></lucide-icon>
-            </button>
-            <button class="action-icon action-icon-danger" title="Удалить" (click)="removeQueueItem(qi.id)">
-              <lucide-icon name="trash-2" [size]="14"></lucide-icon>
-            </button>
           </div>
         </div>
       </div>
@@ -434,9 +484,13 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
       border-bottom: 1px solid #e0e0e0;
       background: #fafafa;
     }
-    .col-name   { width: 50%; }
-    .col-voice  { width: 25%; }
-    .col-events { width: 25%; }
+    .col-name   { width: 30%; }
+    .col-voice  { width: 14%; }
+    .col-events { width: 12%; }
+    .col-status { width: 12%; }
+    .col-play   { width: 8%; text-align: center; }
+    .col-size   { width: 10%; }
+    .col-actions { width: 14%; }
 
     /* Collection row */
     .collection-row {
@@ -863,7 +917,14 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
     .status-waiting { background: #fff3e0; color: #e65100; }
     .status-generating { background: #e3f2fd; color: #1565c0; }
     .status-done { background: #e8f5e9; color: #2e7d32; }
-    .status-error { background: #ffebee; color: #c62828; }
+    .text-muted { color: #9e9e9e; }
+    .play-action { color: #448aff; }
+    .play-action:hover { color: #1565c0; }
+    .totals-row { font-weight: 600; background: #fafafa; border-top: 2px solid #e0e0e0; }
+    .totals-label { text-align: right; padding-right: 16px !important; }
+    .totals-value { color: #424242; }
+    .queue-item:hover { background: #e8eaf6; }
+    .queue-item-handler { font-weight: 500; color: #1976d2; font-size: 13px; }
     .queue-item-progress { margin-top: 8px; }
     .progress-bar-mini {
       height: 4px;
@@ -881,6 +942,41 @@ import { MOCK_SOUND_COLLECTIONS, MOCK_SOUND_EVENT_HANDLERS, SYSTEM_EVENTS, AVAIL
       display: flex;
       gap: 4px;
       margin-top: 6px;
+    }
+
+    /* Variable chips */
+    .variable-chips {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .variable-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-size: 12px;
+      color: #616161;
+      transition: all 0.15s;
+    }
+    .variable-chip:hover { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+    .variable-chip-label { font-size: 11px; color: #9e9e9e; }
+
+    /* Generation status in form */
+    .generation-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      font-size: 13px;
     }
 
     /* Form actions */
@@ -917,7 +1013,6 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
   availableVoices = AVAILABLE_VOICES;
   generationQueue: GenerationQueueItem[] = [];
   showQueuePanel = false;
-  selectedExistingPhrase = '';
   private queueTimers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
@@ -1026,7 +1121,6 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
     this.syncAllToggles();
     this.showCollectionDropdown = false;
     this.showEventsDropdown = false;
-    this.selectedExistingPhrase = '';
     this.showCreateHandler = true;
   }
 
@@ -1045,7 +1139,6 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
     this.syncAllToggles();
     this.showCollectionDropdown = false;
     this.showEventsDropdown = false;
-    this.selectedExistingPhrase = '';
     this.showCreateHandler = true;
   }
 
@@ -1093,7 +1186,7 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
     }
 
     // Add to generation queue only for new phrases (not existing ones from catalog)
-    if (isGeneration && this.newHandler.voiceName && this.newHandler.phraseText && !this.selectedExistingPhrase) {
+    if (isGeneration && this.newHandler.voiceName && this.newHandler.phraseText) {
       const handlerId = this.editingHandler
         ? this.editingHandler.id
         : this.handlers[this.handlers.length - 1].id;
@@ -1209,27 +1302,6 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
     alert('▶ Воспроизведение образца голоса: ' + this.newHandler.voiceName);
   }
 
-  // ── Existing phrases from catalog ───────────────────
-
-  getExistingPhrases(): string[] {
-    if (!this.newHandler.voiceName) return [];
-    const folders: SoundFolder[] = this.storage.load('web-screens', 'sound-folders',
-      MOCK_SOUND_FOLDERS.map(f => ({ ...f, files: [...f.files] })));
-    const phraseFolder = folders.find(f => f.voiceName === this.newHandler.voiceName && f.category === 'phrases');
-    if (!phraseFolder || phraseFolder.files.length === 0) return [];
-    return phraseFolder.files.map(f =>
-      f.name.replace(/\.wav$/, '').replace(/_/g, ' ').replace(/\{nomer\}/g, '{номер}')
-    );
-  }
-
-  onExistingPhraseSelected(phrase: string): void {
-    if (phrase) {
-      this.newHandler.phraseText = phrase;
-    } else {
-      this.newHandler.phraseText = '';
-    }
-  }
-
   // ── Generation Queue ────────────────────────────────
 
   toggleQueuePanel(event: Event): void {
@@ -1246,25 +1318,55 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
       case 'waiting': return '⏳ Ожидает';
       case 'generating': return '🔄 Генерируется';
       case 'done': return '✅ Готово';
-      case 'error': return '❌ Ошибка';
       default: return status;
     }
   }
 
-  previewQueueItem(qi: GenerationQueueItem): void {
-    alert('▶ Воспроизведение: ' + qi.phraseText);
+  openHandlerFromQueue(qi: GenerationQueueItem): void {
+    const handler = this.handlers.find(h => h.id === qi.handlerId);
+    if (handler) {
+      this.editHandler(handler);
+    }
   }
 
-  retryQueueItem(qi: GenerationQueueItem): void {
-    qi.status = 'waiting';
-    qi.progress = 0;
-    this.simulateGeneration(qi);
-    this.persistQueue();
+  // ── New table methods ───────────────────────────────
+
+  getGenerationStatusText(status: string | undefined): string {
+    switch (status) {
+      case 'pending': return 'Ожидает';
+      case 'generating': return 'Генерируется';
+      case 'done': return 'Готово';
+      default: return '—';
+    }
   }
 
-  removeQueueItem(id: number): void {
-    this.generationQueue = this.generationQueue.filter(q => q.id !== id);
-    this.persistQueue();
+  playHandler(h: SoundEventHandler): void {
+    alert('▶ Воспроизведение: ' + h.name + ' — ' + h.phraseText);
+  }
+
+  getFileSizeLabel(h: SoundEventHandler): string {
+    if (h.fileSize) return h.fileSize + ' КБ';
+    if (h.voiceType === 'file' && h.fileName) return '—';
+    return '—';
+  }
+
+  getTotalSize(): string {
+    const total = this.handlers.reduce((sum, h) => sum + (h.fileSize || 0), 0);
+    if (total === 0) return '—';
+    if (total >= 1024) return (total / 1024).toFixed(1) + ' МБ';
+    return total + ' КБ';
+  }
+
+  insertVariable(variable: string, textarea: HTMLTextAreaElement): void {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = this.newHandler.phraseText;
+    this.newHandler.phraseText = text.substring(0, start) + variable + text.substring(end);
+    setTimeout(() => {
+      const pos = start + variable.length;
+      textarea.focus();
+      textarea.setSelectionRange(pos, pos);
+    });
   }
 
   private addToQueue(handlerId: number, handlerName: string, phraseText: string, voiceName: string): void {
@@ -1298,11 +1400,13 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
           item.progress = pct;
           if (pct === 100) {
             item.status = 'done';
-            // Update handler status
+            // Update handler status and set file size
             const h = this.handlers.find(hh => hh.id === item.handlerId);
-            if (h) { h.generationStatus = 'done'; this.persistAll(); }
-            // Add generated file to catalog
-            this.addFileToCatalog(item.voiceName, item.phraseText);
+            if (h) {
+              h.generationStatus = 'done';
+              h.fileSize = Math.floor(Math.random() * 60) + 20; // 20-80 KB
+              this.persistAll();
+            }
           }
           this.persistQueue();
         }, (i + 1) * 1000);
@@ -1314,41 +1418,6 @@ export class SoundsEventHandlersScreenComponent implements OnDestroy {
 
   private persistQueue(): void {
     this.storage.save('web-screens', 'sound-generation-queue', this.generationQueue);
-  }
-
-  private addFileToCatalog(voiceName: string, phraseText: string): void {
-    const folders: SoundFolder[] = this.storage.load('web-screens', 'sound-folders',
-      MOCK_SOUND_FOLDERS.map(f => ({ ...f, files: [...f.files] })));
-
-    let folder = folders.find(f => f.voiceName === voiceName && f.category === 'phrases');
-    if (!folder) {
-      const maxId = folders.reduce((m, f) => Math.max(m, f.id), 0);
-      folder = { id: maxId + 1, voiceName, category: 'phrases', label: 'Фразы', totalCount: 0, generatedCount: 0, files: [] };
-      folders.push(folder);
-    }
-
-    const fileName = this.phraseToFileName(phraseText);
-    if (!folder.files.some(f => f.name === fileName)) {
-      const maxFileId = folders.flatMap(f => f.files).reduce((m, f) => Math.max(m, f.id), 0);
-      folder.files.push({ id: maxFileId + 1, name: fileName, duration: '0:03', createdAt: new Date().toISOString().split('T')[0] });
-      folder.totalCount = folder.files.length;
-      folder.generatedCount = folder.files.length;
-    }
-
-    this.storage.save('web-screens', 'sound-folders', folders);
-  }
-
-  private phraseToFileName(phrase: string): string {
-    const tr: Record<string, string> = {
-      'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'j',
-      'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
-      'х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
-    };
-    return phrase.toLowerCase().split('').map(c => tr[c] ?? c).join('')
-      .replace(/\{[^}]*\}/g, '{nomer}')
-      .replace(/[^a-z0-9{}_]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '') + '.wav';
   }
 
   // ── Private ─────────────────────────────────────────
