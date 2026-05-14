@@ -106,6 +106,13 @@ export const WEB_SCREENS_ROUTES: Routes = [
           ),
       },
       {
+        path: 'arrivals-multiscreen',
+        loadComponent: () =>
+          import('./screens/arrivals-multiscreen-screen.component').then(
+            m => m.ArrivalsMultiscreenScreenComponent
+          ),
+      },
+      {
         path: 'global-hints',
         loadComponent: () =>
           import('./screens/stub-screen.component').then(

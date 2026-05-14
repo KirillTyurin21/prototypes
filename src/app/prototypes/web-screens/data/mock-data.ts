@@ -36,6 +36,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
       { icon: '', label: 'Контролы', route: 'arrivals-controls' },
       { icon: '', label: 'Темы', route: 'themes-arrivals' },
       { icon: '', label: 'Настройка терминалов', route: 'cs-terminals' },
+      { icon: '', label: 'Мультиэкранность', route: 'arrivals-multiscreen' },
     ],
   },
   {

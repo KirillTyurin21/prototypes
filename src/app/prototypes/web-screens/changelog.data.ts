@@ -2,6 +2,24 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.17',
+    date: '2026-05-14',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Мультиэкранность (Электронная очередь)',
+        pageRoute: '/prototype/web-screens/arrivals-multiscreen',
+        items: [
+          'Добавлен прототип настроечной страницы Arrivals: выбор экрана на устройстве',
+          'Зелёная информационная плашка с разрешением экрана (автоскрытие 5 сек)',
+          'Заголовок «Разрешение экрана данного устройства» и подпись «Выберите экран для подключения»',
+          'Увеличенный шрифт и размер плиток выбора экрана',
+          'Добавлен пункт «Мультиэкранность» в секцию «Электронная очередь» sidebar',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.16',
     date: '2026-05-07',
     status: 'released',
