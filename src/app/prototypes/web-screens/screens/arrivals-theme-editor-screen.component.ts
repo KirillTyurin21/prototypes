@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -52,7 +52,7 @@ interface AreaOrderPosition {
   template: `
     <div class="editor-layout">
       <!-- ═══════ CANVAS AREA ═══════ -->
-      <div class="canvas-area">
+      <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div
             class="canvas-viewport"
@@ -734,8 +734,8 @@ interface AreaOrderPosition {
       background: #e0e0e0;
     }
     .canvas-scroll {
-      display: flex; align-items: flex-start; justify-content: flex-start;
-      min-height: 100%; padding: 0;
+      display: flex; align-items: flex-start; justify-content: center;
+      min-height: 100%; padding: 8px;
     }
     .canvas-viewport {
       position: relative; transform-origin: top left;
@@ -1162,7 +1162,7 @@ interface AreaOrderPosition {
     }
   `],
 })
-export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
+export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private storage = inject(StorageService);
@@ -1180,7 +1180,9 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
   selectedElementId: string | null = null;
   deleteElementTarget: ArrivalsThemeElement | null = null;
   toastMessage = '';
-  canvasScale = 0.65;
+  canvasScale = 1;
+
+  @ViewChild('canvasAreaRef') canvasAreaRef!: ElementRef<HTMLDivElement>;
 
   // Drag & resize state
   dragState: {
@@ -1282,6 +1284,11 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
       this.theme.id = Date.now();
     }
     this.loadAvailableControls();
+    setTimeout(() => this.updateCanvasScale(), 0);
+  }
+
+  ngAfterViewInit(): void {
+    this.updateCanvasScale();
   }
 
   ngOnDestroy(): void {
@@ -1294,6 +1301,22 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
 
   onResolutionChange(): void {
     // Canvas updates reactively via resWidth / resHeight
+    setTimeout(() => this.updateCanvasScale(), 0);
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateCanvasScale();
+  }
+
+  updateCanvasScale(): void {
+    if (!this.canvasAreaRef?.nativeElement) return;
+    const container = this.canvasAreaRef.nativeElement;
+    const availW = container.clientWidth - 16;
+    const availH = container.clientHeight - 16;
+    const scaleW = availW / this.resWidth;
+    const scaleH = availH / this.resHeight;
+    this.canvasScale = Math.min(scaleW, scaleH, 1);
   }
 
   onCanvasClick(): void {
