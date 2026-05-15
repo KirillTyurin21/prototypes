@@ -6,12 +6,13 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiInputComponent, UiSelectComponent, UiTextareaComponent, UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
-import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS } from '../data/mock-data';
+import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS } from '../data/mock-data';
 import {
   ArrivalsTheme,
   ArrivalsThemeElement,
   ArrivalsElementType,
   ArrivalsControl,
+  ArrivalsOrderMock,
 } from '../types';
 
 type PanelView = 'theme' | 'add-element' | 'element';
@@ -19,6 +20,15 @@ type PanelView = 'theme' | 'add-element' | 'element';
 interface ElementTypeOption {
   type: ArrivalsElementType;
   label: string;
+}
+
+interface AreaOrderPosition {
+  order: ArrivalsOrderMock;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isNew?: boolean;
 }
 
 @Component({
@@ -65,20 +75,55 @@ interface ElementTypeOption {
               <!-- Area element -->
               <div *ngIf="el.type === 'area'" class="el-area"
                 [style.background-color]="el.areaBgColor || '#ffffff'">
-                <div class="el-area-header">
-                  <lucide-icon name="layout" [size]="14" class="area-icon"></lucide-icon>
+                <div class="el-area-header" (mousedown)="$event.stopPropagation()">
+                  <lucide-icon name="layout-grid" [size]="14" class="area-icon"></lucide-icon>
                   <span class="area-name">{{ el.name }}</span>
+                  <div class="area-emu-controls" *ngIf="el.areaControlId">
+                    <button class="area-emu-btn" (click)="toggleEmulation(el); $event.stopPropagation()"
+                      [title]="isEmulationRunning(el) ? 'Пауза' : 'Старт'">
+                      <lucide-icon [name]="isEmulationRunning(el) ? 'pause' : 'play'" [size]="10"></lucide-icon>
+                    </button>
+                    <button class="area-emu-btn" (click)="resetEmulation(el); $event.stopPropagation()" title="Сброс">
+                      <lucide-icon name="rotate-ccw" [size]="10"></lucide-icon>
+                    </button>
+                    <button class="area-emu-btn" (click)="fillEmulation(el); $event.stopPropagation()" title="Заполнить">
+                      <lucide-icon name="maximize-2" [size]="10"></lucide-icon>
+                    </button>
+                  </div>
                 </div>
-                <div class="el-area-body">
-                  <span *ngIf="!el.areaControlId" class="area-placeholder">
+                <div class="el-area-body" *ngIf="!el.areaControlId">
+                  <span class="area-placeholder">
                     <lucide-icon name="mouse-pointer-click" [size]="20"></lucide-icon>
                     Выберите контрол
                   </span>
-                  <span *ngIf="el.areaControlId" class="area-control-info">
-                    <lucide-icon name="component" [size]="16"></lucide-icon>
-                    {{ getControlName(el.areaControlId) }}
-                    <span class="area-mode-badge">{{ el.areaMode === 'dynamic' ? 'Динам.' : 'Лист' }}</span>
-                  </span>
+                </div>
+                <div class="el-area-content" *ngIf="el.areaControlId">
+                  <div *ngFor="let pos of getAreaOrderPositions(el)"
+                    class="area-order-card"
+                    [style.left.px]="pos.x"
+                    [style.top.px]="pos.y"
+                    [style.width.px]="pos.width"
+                    [style.height.px]="pos.height">
+                    <div class="order-card-header">
+                      <span class="order-card-num">#{{ pos.order.orderNumber }}</span>
+                      <span class="order-card-name">{{ pos.order.clientName }}</span>
+                    </div>
+                    <div class="order-card-meta">
+                      <span *ngIf="pos.order.tableNumber" class="order-card-table">Стол {{ pos.order.tableNumber }}</span>
+                      <span class="order-card-status"
+                        [class.status-ready]="pos.order.status === 'Готово' || pos.order.status === 'Подан'"
+                        [class.status-cooking]="pos.order.status === 'Готовится'"
+                        [class.status-waiting]="pos.order.status === 'Ожидает'">{{ pos.order.status }}</span>
+                    </div>
+                    <div class="order-card-items">
+                      <div *ngFor="let item of pos.order.items.slice(0, 3)" class="order-card-item">
+                        {{ item.name }} ×{{ item.qty }}
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="getAreaOrderPositions(el).length === 0" class="area-empty-hint">
+                    Нет заказов по фильтру
+                  </div>
                 </div>
               </div>
               <!-- Text element -->
@@ -177,7 +222,7 @@ interface ElementTypeOption {
             <div class="element-type-list">
               <!-- Область (специальный элемент) -->
               <div class="element-type-item element-type-area" (click)="addElement('area')">
-                <lucide-icon name="layout" [size]="16"></lucide-icon>
+                <lucide-icon name="layout-grid" [size]="16"></lucide-icon>
                 Область
               </div>
               <div class="element-type-separator">Элементы</div>
@@ -365,6 +410,134 @@ interface ElementTypeOption {
               </div>
             </ng-container>
 
+            <!-- ── Area element ── -->
+            <ng-container *ngIf="selectedElement.type === 'area'">
+              <div class="field-group">
+                <label class="field-label">Контрол</label>
+                <select class="field-select" [(ngModel)]="selectedElement.areaControlId" (ngModelChange)="onAreaControlChange()">
+                  <option [ngValue]="undefined">\u2014 Выберите контрол \u2014</option>
+                  <option *ngFor="let c of availableControls" [ngValue]="c.id">{{ c.name }}</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Название области</label>
+                <input class="field-input" [(ngModel)]="selectedElement.name" />
+              </div>
+
+              <div class="section-divider">Настройки</div>
+
+              <div class="field-group">
+                <label class="field-label">Режим области</label>
+                <select class="field-select" [(ngModel)]="selectedElement.areaMode">
+                  <option value="list">Лист</option>
+                  <option value="dynamic">Динамически заполняемая область</option>
+                </select>
+              </div>
+
+              <ng-container *ngIf="selectedElement.areaMode === 'list'">
+                <div class="field-group">
+                  <label class="field-label">Расположение контролов</label>
+                  <select class="field-select" [(ngModel)]="selectedElement.areaListDirection">
+                    <option value="top">Новые заказы выше</option>
+                    <option value="bottom">Готовые заказы выше</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Макс. кол-во столбцов</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.areaMaxColumns" min="1" max="4" />
+                </div>
+              </ng-container>
+
+              <div class="field-group">
+                <label class="field-label">Тип статуса заказа</label>
+                <select class="field-select" [(ngModel)]="selectedElement.areaStatusType">
+                  <option value="kitchen">Статусы кухни</option>
+                  <option value="delivery">Доставка</option>
+                  <option value="balancer">Балансер</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Статус заказа</label>
+                <div class="checkbox-group">
+                  <label *ngFor="let s of getAvailableStatuses()" class="field-check">
+                    <input type="checkbox" [checked]="isStatusSelected(s)" (change)="toggleStatus(s)" />
+                    {{ s }}
+                  </label>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Типы заказов</label>
+                <div class="checkbox-group">
+                  <label class="field-check">
+                    <input type="checkbox" [checked]="isOrderTypeSelected('ordinary')" (change)="toggleOrderType('ordinary')" /> Обычные
+                  </label>
+                  <label class="field-check">
+                    <input type="checkbox" [checked]="isOrderTypeSelected('courier')" (change)="toggleOrderType('courier')" /> Доставка курьером
+                  </label>
+                  <label class="field-check">
+                    <input type="checkbox" [checked]="isOrderTypeSelected('pickup')" (change)="toggleOrderType('pickup')" /> Самовывоз
+                  </label>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Сортировка</label>
+                <select class="field-select" [(ngModel)]="selectedElement.areaSortOrder">
+                  <option value="oldest-first">От старых к новым</option>
+                  <option value="newest-first">От новых к старым</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Межстрочный интервал (px)</label>
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.areaInterlineSpacing" min="0" />
+              </div>
+
+              <div class="section-divider">Макет</div>
+
+              <div class="field-group">
+                <label class="field-label">Цвет фона</label>
+                <input type="color" [(ngModel)]="selectedElement.areaBgColor" class="field-color" />
+              </div>
+
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('layout')">
+                  <span>Позиция и размер</span>
+                  <lucide-icon [name]="isSectionOpen('layout') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('layout')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>X</label><input type="number" [(ngModel)]="selectedElement.x" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Y</label><input type="number" [(ngModel)]="selectedElement.y" class="field-input-sm" /></div>
+                  </div>
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Ширина</label><input type="number" [(ngModel)]="selectedElement.width" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Высота</label><input type="number" [(ngModel)]="selectedElement.height" class="field-input-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="collapsible-section">
+                <div class="section-header" (click)="toggleSection('border')">
+                  <span>Граница</span>
+                  <lucide-icon [name]="isSectionOpen('border') ? 'chevron-up' : 'chevron-down'" [size]="16"></lucide-icon>
+                </div>
+                <div *ngIf="isSectionOpen('border')" class="section-content">
+                  <div class="fields-row">
+                    <div class="field-sm"><label>Толщина</label><input type="number" [(ngModel)]="selectedElement.borderWidth" class="field-input-sm" /></div>
+                    <div class="field-sm"><label>Радиус</label><input type="number" [(ngModel)]="selectedElement.borderRadius" class="field-input-sm" /></div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Цвет</label>
+                    <input type="color" [(ngModel)]="selectedElement.borderColor" class="field-color" />
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
           </ng-container>
         </div>
 
@@ -478,6 +651,58 @@ interface ElementTypeOption {
       border: 1px dashed #90CAF9 !important; color: #1976D2 !important;
       background: #E3F2FD !important; font-weight: 500 !important;
     }
+
+    /* Area content — order cards */
+    .el-area-content {
+      position: relative; flex: 1; overflow: hidden;
+    }
+    .area-order-card {
+      position: absolute; background: #fff; border: 1px solid #e0e0e0;
+      border-radius: 4px; overflow: hidden; font-size: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      animation: areaOrderIn 0.4s ease;
+    }
+    @keyframes areaOrderIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .order-card-header {
+      display: flex; align-items: center; gap: 4px;
+      padding: 3px 6px; background: #f5f5f5;
+      border-bottom: 1px solid #eee; font-weight: 500;
+    }
+    .order-card-num { color: #1976D2; font-weight: 600; }
+    .order-card-name { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .order-card-meta {
+      display: flex; align-items: center; gap: 4px;
+      padding: 2px 6px; color: #757575; font-size: 9px;
+    }
+    .order-card-table { margin-right: 2px; }
+    .order-card-status { font-weight: 500; }
+    .order-card-status.status-ready { color: #2e7d32; }
+    .order-card-status.status-cooking { color: #e65100; }
+    .order-card-status.status-waiting { color: #9e9e9e; }
+    .order-card-items { padding: 2px 6px; }
+    .order-card-item { color: #616161; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .area-empty-hint {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: #bdbdbd; font-size: 11px; font-style: italic;
+    }
+
+    /* Emulation controls in area header */
+    .area-emu-controls {
+      display: flex; gap: 2px; margin-left: auto;
+    }
+    .area-emu-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border: none; border-radius: 3px;
+      background: rgba(25,118,210,0.12); color: #1976D2;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .area-emu-btn:hover { background: rgba(25,118,210,0.25); }
+
+    /* Checkbox group in panel */
+    .checkbox-group { display: flex; flex-direction: column; gap: 4px; }
 
     /* Resize handles */
     .handle {
@@ -781,6 +1006,15 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
 
   openSections = new Set<string>();
 
+  // Area / emulation
+  availableControls: ArrivalsControl[] = [];
+  emulationStates = new Map<string, {
+    running: boolean;
+    visibleOrders: ArrivalsOrderMock[];
+    intervalId?: any;
+    orderIndex: number;
+  }>();
+
   resolutionOptions: SelectOption[] = [
     { value: '1024x768', label: '1024px / 768px' },
     { value: '1366x768', label: '1366px / 768px' },
@@ -846,11 +1080,15 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
     } else {
       this.theme.id = Date.now();
     }
+    this.loadAvailableControls();
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('mousemove', this.boundMouseMove);
     document.removeEventListener('mouseup', this.boundMouseUp);
+    this.emulationStates.forEach(state => {
+      if (state.intervalId) clearInterval(state.intervalId);
+    });
   }
 
   onResolutionChange(): void {
@@ -1009,6 +1247,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
       el.borderColor = '#90CAF9';
       el.borderRadius = 4;
       el.areaBgColor = '#ffffff';
+      el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined;
       el.areaMode = 'list';
       el.areaListDirection = 'top';
       el.areaMaxColumns = 1;
@@ -1057,9 +1296,199 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   getControlName(controlId: number): string {
-    const controls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
-    const ctrl = controls.find((c: ArrivalsControl) => c.id === controlId);
+    const ctrl = this.availableControls.find(c => c.id === controlId);
     return ctrl ? ctrl.name : 'Контрол #' + controlId;
+  }
+
+  /* ── Area: load controls ── */
+
+  private loadAvailableControls(): void {
+    this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
+  }
+
+  /* ── Area: filter & sort orders ── */
+
+  filterOrders(area: ArrivalsThemeElement): ArrivalsOrderMock[] {
+    let orders: ArrivalsOrderMock[] = [...MOCK_ARRIVALS_ORDERS];
+
+    if (area.areaStatuses && area.areaStatuses.length > 0) {
+      orders = orders.filter(o => area.areaStatuses!.includes(o.status));
+    }
+    if (area.areaOrderTypes && area.areaOrderTypes.length > 0) {
+      orders = orders.filter(o => area.areaOrderTypes!.includes(o.orderType));
+    }
+    if (area.areaOrderSources && area.areaOrderSources.length > 0) {
+      orders = orders.filter(o => area.areaOrderSources!.includes(o.source));
+    }
+    if (area.areaSortOrder === 'newest-first') {
+      orders.reverse();
+    }
+    return orders;
+  }
+
+  /* ── Area: compute control positions ── */
+
+  computeControlPositions(area: ArrivalsThemeElement, orders: ArrivalsOrderMock[]): AreaOrderPosition[] {
+    const positions: AreaOrderPosition[] = [];
+    const cardHeight = 80;
+    const spacing = area.areaInterlineSpacing || 0;
+    const pad = 4;
+    const headerH = 24;
+    const cols = Math.max(1, Math.min(4, area.areaMaxColumns || 1));
+    const areaW = area.width;
+    const areaH = area.height;
+    const cardW = Math.floor((areaW - pad * 2 - (cols - 1) * pad) / cols);
+
+    if (area.areaMode === 'list') {
+      let col = 0;
+      let row = 0;
+      for (const order of orders) {
+        const x = pad + col * (cardW + pad);
+        let y: number;
+        if (area.areaListDirection === 'bottom') {
+          y = areaH - pad - (row + 1) * cardHeight - row * spacing;
+        } else {
+          y = headerH + pad + row * (cardHeight + spacing);
+        }
+        if (y + cardHeight > areaH || y < headerH) break;
+
+        positions.push({ order, x, y, width: cardW, height: cardHeight });
+        col++;
+        if (col >= cols) { col = 0; row++; }
+      }
+    } else {
+      let posX = pad;
+      let posY = headerH + pad;
+      for (const order of orders) {
+        if (posX + cardW > areaW - pad) {
+          posX = pad;
+          posY += cardHeight + spacing;
+        }
+        if (posY + cardHeight > areaH) break;
+
+        positions.push({ order, x: posX, y: posY, width: cardW, height: cardHeight });
+        posX += cardW + pad;
+      }
+    }
+
+    return positions;
+  }
+
+  getAreaOrderPositions(el: ArrivalsThemeElement): AreaOrderPosition[] {
+    const state = this.emulationStates.get(el.id);
+    const orders = state ? state.visibleOrders : this.filterOrders(el);
+    return this.computeControlPositions(el, orders);
+  }
+
+  /* ── Area: emulation controls ── */
+
+  isEmulationRunning(el: ArrivalsThemeElement): boolean {
+    return this.emulationStates.get(el.id)?.running ?? false;
+  }
+
+  toggleEmulation(el: ArrivalsThemeElement): void {
+    if (this.isEmulationRunning(el)) {
+      this.pauseEmulation(el);
+    } else {
+      this.startEmulation(el);
+    }
+  }
+
+  startEmulation(el: ArrivalsThemeElement): void {
+    let state = this.emulationStates.get(el.id);
+    if (!state) {
+      state = { running: false, visibleOrders: [], orderIndex: 0 };
+      this.emulationStates.set(el.id, state);
+    }
+    state.running = true;
+    const allOrders = this.filterOrders(el);
+
+    const tick = () => {
+      const st = this.emulationStates.get(el.id);
+      if (!st || !st.running) return;
+      if (st.orderIndex < allOrders.length) {
+        const testPositions = this.computeControlPositions(el, [...st.visibleOrders, allOrders[st.orderIndex]]);
+        if (testPositions.length > st.visibleOrders.length) {
+          st.visibleOrders = [...st.visibleOrders, allOrders[st.orderIndex]];
+          st.orderIndex++;
+        } else {
+          this.pauseEmulation(el);
+        }
+      } else {
+        this.pauseEmulation(el);
+      }
+    };
+
+    state.intervalId = setInterval(tick, 2000);
+  }
+
+  pauseEmulation(el: ArrivalsThemeElement): void {
+    const state = this.emulationStates.get(el.id);
+    if (state) {
+      state.running = false;
+      if (state.intervalId) {
+        clearInterval(state.intervalId);
+        state.intervalId = undefined;
+      }
+    }
+  }
+
+  resetEmulation(el: ArrivalsThemeElement): void {
+    this.pauseEmulation(el);
+    this.emulationStates.set(el.id, { running: false, visibleOrders: [], orderIndex: 0 });
+  }
+
+  fillEmulation(el: ArrivalsThemeElement): void {
+    this.pauseEmulation(el);
+    const allOrders = this.filterOrders(el);
+    const visibleOrders: ArrivalsOrderMock[] = [];
+    for (const order of allOrders) {
+      const testPositions = this.computeControlPositions(el, [...visibleOrders, order]);
+      if (testPositions.length > visibleOrders.length) {
+        visibleOrders.push(order);
+      } else {
+        break;
+      }
+    }
+    this.emulationStates.set(el.id, { running: false, visibleOrders, orderIndex: visibleOrders.length });
+  }
+
+  onAreaControlChange(): void {
+    if (this.selectedElement) {
+      this.resetEmulation(this.selectedElement);
+      this.loadAvailableControls();
+    }
+  }
+
+  /* ── Area: panel helpers ── */
+
+  getAvailableStatuses(): string[] {
+    const t = this.selectedElement?.areaStatusType;
+    if (t === 'delivery') return ['Ожидает', 'Готовится', 'Готово', 'Выдача', 'В пути', 'Доставлен'];
+    if (t === 'balancer') return ['Ожидает', 'Готовится', 'Готово'];
+    return ['Ожидает', 'Готовится', 'Готово', 'Подан'];
+  }
+
+  isStatusSelected(status: string): boolean {
+    return this.selectedElement?.areaStatuses?.includes(status) ?? false;
+  }
+
+  toggleStatus(status: string): void {
+    if (!this.selectedElement?.areaStatuses) return;
+    const idx = this.selectedElement.areaStatuses.indexOf(status);
+    if (idx >= 0) { this.selectedElement.areaStatuses.splice(idx, 1); }
+    else { this.selectedElement.areaStatuses.push(status); }
+  }
+
+  isOrderTypeSelected(type: 'ordinary' | 'courier' | 'pickup'): boolean {
+    return this.selectedElement?.areaOrderTypes?.includes(type) ?? false;
+  }
+
+  toggleOrderType(type: 'ordinary' | 'courier' | 'pickup'): void {
+    if (!this.selectedElement?.areaOrderTypes) return;
+    const idx = this.selectedElement.areaOrderTypes.indexOf(type);
+    if (idx >= 0) { this.selectedElement.areaOrderTypes.splice(idx, 1); }
+    else { this.selectedElement.areaOrderTypes.push(type); }
   }
 
   save(): void {

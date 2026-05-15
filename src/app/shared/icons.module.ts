@@ -148,6 +148,8 @@ import {
   // Sound generation
   Mic,
   FileAudio,
+  // Arrivals area emulation
+  Pause,
 } from 'lucide-angular';
 
 /**
@@ -304,6 +306,8 @@ const icons = {
   // Sound generation
   Mic,
   FileAudio,
+  // Arrivals area emulation
+  Pause,
 };
 
 @NgModule({
