@@ -29,6 +29,12 @@ interface AreaOrderPosition {
   width: number;
   height: number;
   isNew?: boolean;
+  controlElements: ArrivalsThemeElement[];
+  bboxX: number;
+  bboxY: number;
+  bboxW: number;
+  bboxH: number;
+  scale: number;
 }
 
 @Component({
@@ -98,31 +104,181 @@ interface AreaOrderPosition {
                   </span>
                 </div>
                 <div class="el-area-content" *ngIf="el.areaControlId">
+                  <!-- Control slots -->
                   <div *ngFor="let pos of getAreaOrderPositions(el)"
-                    class="area-order-card"
+                    class="area-control-slot"
                     [style.left.px]="pos.x"
                     [style.top.px]="pos.y"
                     [style.width.px]="pos.width"
                     [style.height.px]="pos.height">
-                    <div class="order-card-header">
-                      <span class="order-card-num">#{{ pos.order.orderNumber }}</span>
-                      <span class="order-card-name">{{ pos.order.clientName }}</span>
-                    </div>
-                    <div class="order-card-meta">
-                      <span *ngIf="pos.order.tableNumber" class="order-card-table">Стол {{ pos.order.tableNumber }}</span>
-                      <span class="order-card-status"
-                        [class.status-ready]="pos.order.status === 'Готово' || pos.order.status === 'Подан'"
-                        [class.status-cooking]="pos.order.status === 'Готовится'"
-                        [class.status-waiting]="pos.order.status === 'Ожидает'">{{ pos.order.status }}</span>
-                    </div>
-                    <div class="order-card-items">
-                      <div *ngFor="let item of pos.order.items.slice(0, 3)" class="order-card-item">
-                        {{ item.name }} ×{{ item.qty }}
+                    <!-- Scaled control canvas -->
+                    <div class="area-control-canvas"
+                      [style.width.px]="pos.bboxW"
+                      [style.height.px]="pos.bboxH"
+                      [style.transform]="'scale(' + pos.scale + ')'">
+                      <div *ngFor="let ce of pos.controlElements"
+                        class="area-ctrl-el"
+                        [style.left.px]="ce.x - pos.bboxX"
+                        [style.top.px]="ce.y - pos.bboxY"
+                        [style.width.px]="ce.width"
+                        [style.height.px]="ce.height"
+                        [style.border-width.px]="ce.borderWidth"
+                        [style.border-color]="ce.borderColor"
+                        [style.border-radius.px]="ce.borderRadius">
+                        <!-- Text element -->
+                        <span *ngIf="ce.type === 'text'" class="area-ctrl-text"
+                          [style.font-family]="ce.fontFamily"
+                          [style.font-size.px]="ce.fontSize"
+                          [style.font-weight]="ce.fontBold ? 'bold' : 'normal'"
+                          [style.font-style]="ce.fontItalic ? 'italic' : 'normal'"
+                          [style.text-align]="ce.textAlign">{{ ce.text || '' }}</span>
+                        <!-- Image element -->
+                        <span *ngIf="ce.type === 'image'" class="area-ctrl-img">
+                          <lucide-icon name="image" [size]="16"></lucide-icon>
+                        </span>
+                        <!-- Generic data elements (order-number, client-name, etc.) -->
+                        <span *ngIf="ce.type !== 'text' && ce.type !== 'image' && !isOrderVariant(ce.type)"
+                          class="area-ctrl-data"
+                          [style.font-family]="ce.fontFamily || 'Roboto'"
+                          [style.font-size.px]="ce.fontSize || 14"
+                          [style.font-weight]="ce.fontBold ? 'bold' : 'normal'"
+                          [style.font-style]="ce.fontItalic ? 'italic' : 'normal'"
+                          [style.text-align]="ce.textAlign || 'left'">{{ getAreaElementText(ce, pos.order) }}</span>
+                        <!-- A: Order items table -->
+                        <div *ngIf="ce.type === 'order-items'" class="area-ctrl-ot">
+                          <div class="area-ot-header" *ngIf="ce.orderShowHeader !== false"
+                            [style.background]="ce.orderHeaderBg || '#333'"
+                            [style.height.px]="ce.orderHeaderHeight || 36">
+                            <span *ngIf="ce.orderShowName !== false" class="area-ot-col-name"
+                              [style.color]="ce.orderHeaderFontColor || '#fff'"
+                              [style.font-size.px]="ce.orderHeaderFontSize || 14"
+                              [style.font-family]="ce.orderHeaderFontFamily || 'Roboto'">
+                              {{ ce.orderShowNameLabel !== false ? (ce.orderNameLabel || 'Наименование') : '' }}</span>
+                            <span *ngIf="ce.orderShowQty !== false" class="area-ot-col-qty"
+                              [style.color]="ce.orderHeaderFontColor || '#fff'"
+                              [style.font-size.px]="ce.orderHeaderFontSize || 14"
+                              [style.font-family]="ce.orderHeaderFontFamily || 'Roboto'">
+                              {{ ce.orderShowQtyLabel !== false ? (ce.orderQtyLabel || 'Кол-во') : '' }}</span>
+                            <span *ngIf="ce.orderShowStatus !== false" class="area-ot-col-status"
+                              [style.color]="ce.orderHeaderFontColor || '#fff'"
+                              [style.font-size.px]="ce.orderHeaderFontSize || 14"
+                              [style.font-family]="ce.orderHeaderFontFamily || 'Roboto'">
+                              {{ ce.orderShowStatusLabel !== false ? (ce.orderStatusLabel || 'Статус') : '' }}</span>
+                          </div>
+                          <div *ngFor="let item of pos.order.items" class="area-ot-row"
+                            [style.background]="isItemReady(item) ? (ce.orderReadyColor || '#e8f5e9') : (ce.orderNotReadyColor || '#fff')"
+                            [style.height.px]="ce.orderRowHeight || 32">
+                            <span *ngIf="ce.orderShowName !== false" class="area-ot-col-name"
+                              [style.color]="ce.orderNameFontColor || '#333'"
+                              [style.font-size.px]="ce.orderNameFontSize || 14"
+                              [style.font-family]="ce.orderNameFontFamily || 'Roboto'">{{ item.name }}</span>
+                            <span *ngIf="ce.orderShowQty !== false" class="area-ot-col-qty"
+                              [style.color]="ce.orderQtyFontColor || '#333'"
+                              [style.font-size.px]="ce.orderQtyFontSize || 14"
+                              [style.font-family]="ce.orderQtyFontFamily || 'Roboto'">{{ item.qty }}</span>
+                            <span *ngIf="ce.orderShowStatus !== false" class="area-ot-col-status"
+                              [style.color]="isItemReady(item) ? (ce.orderReadyStatusFontColor || '#2e7d32') : (ce.orderPendingStatusFontColor || '#e65100')"
+                              [style.font-size.px]="ce.orderStatusFontSize || 14"
+                              [style.font-family]="ce.orderStatusFontFamily || 'Roboto'"
+                              [style.font-weight]="isItemReady(item) ? '600' : '400'">{{ item.status }}</span>
+                          </div>
+                        </div>
+                        <!-- B: Two zones -->
+                        <div *ngIf="ce.type === 'order-items-zones'" class="area-ctrl-zones">
+                          <div class="area-z-section">
+                            <div class="area-z-header" [style.background]="ce.zonesReadyBg || '#e8f5e9'"
+                              [style.font-size.px]="ce.zonesHeaderFontSize || 11">✔ {{ ce.zonesReadyHeaderText || 'МОЖНО ЗАБРАТЬ' }}</div>
+                            <div *ngFor="let item of getReadyOrderItems(pos.order)" class="area-z-row"
+                              [style.background]="ce.zonesReadyBg || '#f1f8e9'"
+                              [style.font-size.px]="ce.zonesItemFontSize || 12">
+                              <span class="area-z-check">✔</span>
+                              <span class="area-z-name">{{ item.name }}</span>
+                              <span class="area-z-qty">×{{ item.qty }}</span>
+                            </div>
+                          </div>
+                          <div class="area-z-section" *ngIf="getPendingOrderItems(pos.order).length > 0">
+                            <div class="area-z-header" [style.background]="ce.zonesPendingBg || '#fff3e0'"
+                              [style.font-size.px]="ce.zonesHeaderFontSize || 11">⏳ {{ ce.zonesPendingHeaderText || 'ГОТОВИТСЯ' }}</div>
+                            <div *ngFor="let item of getPendingOrderItems(pos.order)" class="area-z-row"
+                              [style.background]="ce.zonesPendingBg || '#fff8e1'"
+                              [style.font-size.px]="ce.zonesItemFontSize || 12">
+                              <span class="area-z-name">{{ item.name }}</span>
+                              <span class="area-z-qty">×{{ item.qty }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- C: Progress circle -->
+                        <div *ngIf="ce.type === 'order-items-progress'" class="area-ctrl-progress">
+                          <div class="area-p-hero">
+                            <div class="area-p-circle"
+                              [style.width.px]="ce.progressCircleSize || 64"
+                              [style.height.px]="ce.progressCircleSize || 64">
+                              <svg viewBox="0 0 80 80" class="area-p-svg">
+                                <circle cx="40" cy="40" r="34" class="area-p-track"
+                                  [style.stroke]="ce.progressTrackColor || '#e0e0e0'"></circle>
+                                <circle cx="40" cy="40" r="34" class="area-p-fill"
+                                  [style.stroke]="ce.progressCircleColor || '#4caf50'"
+                                  [style.stroke-dasharray]="213.6"
+                                  [style.stroke-dashoffset]="213.6 - 213.6 * getOrderReadyPercent(pos.order) / 100"></circle>
+                              </svg>
+                              <div class="area-p-text">
+                                <span *ngIf="ce.progressShowPercent !== false" class="area-p-pct">{{ getOrderReadyPercent(pos.order) }}%</span>
+                                <span *ngIf="ce.progressShowCount !== false" class="area-p-count">
+                                  {{ getReadyOrderItems(pos.order).length }}/{{ pos.order.items.length }}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="area-p-list">
+                            <div *ngFor="let item of pos.order.items" class="area-p-item" [class.ready]="isItemReady(item)"
+                              [style.font-size.px]="ce.progressItemFontSize || 12">
+                              <span class="area-p-marker" [class.ready]="isItemReady(item)">{{ isItemReady(item) ? '✔' : '○' }}</span>
+                              <span class="area-p-name">{{ item.name }}</span>
+                              <span class="area-p-qty">×{{ item.qty }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- D: Checklist -->
+                        <div *ngIf="ce.type === 'order-items-checklist'" class="area-ctrl-checklist">
+                          <div class="area-cl-header">
+                            <span>Состав заказа</span>
+                            <span *ngIf="ce.checklistShowCounter !== false" class="area-cl-counter">
+                              {{ getReadyOrderItems(pos.order).length }}/{{ pos.order.items.length }} ✔
+                            </span>
+                          </div>
+                          <div *ngFor="let item of pos.order.items" class="area-cl-row" [class.ready]="isItemReady(item)"
+                            [style.background]="isItemReady(item) ? (ce.checklistReadyBg || '#f1f8e9') : 'transparent'"
+                            [style.font-size.px]="ce.checklistItemFontSize || 12">
+                            <span class="area-cl-marker" [class.ready]="isItemReady(item)">{{ isItemReady(item) ? '✔' : '○' }}</span>
+                            <span class="area-cl-name" [class.ready]="isItemReady(item)">{{ item.name }}</span>
+                            <span class="area-cl-qty">×{{ item.qty }}</span>
+                          </div>
+                        </div>
+                        <!-- E: Cards -->
+                        <div *ngIf="ce.type === 'order-items-cards'" class="area-ctrl-cards">
+                          <div class="area-cards-grid" [style.gap.px]="ce.cardsGap || 4">
+                            <div *ngFor="let item of pos.order.items" class="area-card-tile"
+                              [class.ready]="isItemReady(item)"
+                              [style.width]="'calc(' + (100 / (ce.cardsPerRow || 2)) + '% - ' + (ce.cardsGap || 4) + 'px)'"
+                              [style.border-color]="isItemReady(item) ? (ce.cardsReadyBorderColor || '#4caf50') : '#e0e0e0'">
+                              <div class="area-card-status" [class.ready]="isItemReady(item)"
+                                [style.background]="isItemReady(item) ? (ce.cardsReadyBg || '#e8f5e9') : (ce.cardsPendingBg || '#fff3e0')"
+                                [style.color]="isItemReady(item) ? '#2e7d32' : '#e65100'">
+                                {{ isItemReady(item) ? '✔ ГОТОВО' : '⏳ ' + item.status }}
+                              </div>
+                              <div class="area-card-body" [style.font-size.px]="ce.cardsItemFontSize || 11">
+                                <span>{{ item.name }}</span>
+                                <span>×{{ item.qty }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <!-- Empty control fallback -->
                   <div *ngIf="getAreaOrderPositions(el).length === 0" class="area-empty-hint">
-                    Нет заказов по фильтру
+                    {{ getControlForArea(el) ? 'Нет заказов по фильтру' : 'Контрол не найден' }}
                   </div>
                 </div>
               </div>
@@ -652,13 +808,14 @@ interface AreaOrderPosition {
       background: #E3F2FD !important; font-weight: 500 !important;
     }
 
-    /* Area content — order cards */
+    /* Area content — control element rendering */
     .el-area-content {
       position: relative; flex: 1; overflow: hidden;
     }
-    .area-order-card {
-      position: absolute; background: #fff; border: 1px solid #e0e0e0;
-      border-radius: 4px; overflow: hidden; font-size: 10px;
+    .area-control-slot {
+      position: absolute; overflow: hidden;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #e0e0e0; border-radius: 3px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       animation: areaOrderIn 0.4s ease;
     }
@@ -666,24 +823,68 @@ interface AreaOrderPosition {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .order-card-header {
-      display: flex; align-items: center; gap: 4px;
-      padding: 3px 6px; background: #f5f5f5;
-      border-bottom: 1px solid #eee; font-weight: 500;
+    .area-control-canvas {
+      position: relative; transform-origin: top left;
     }
-    .order-card-num { color: #1976D2; font-weight: 600; }
-    .order-card-name { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .order-card-meta {
-      display: flex; align-items: center; gap: 4px;
-      padding: 2px 6px; color: #757575; font-size: 9px;
+    .area-ctrl-el {
+      position: absolute; overflow: hidden;
+      border-style: solid; display: flex;
+      align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.5);
     }
-    .order-card-table { margin-right: 2px; }
-    .order-card-status { font-weight: 500; }
-    .order-card-status.status-ready { color: #2e7d32; }
-    .order-card-status.status-cooking { color: #e65100; }
-    .order-card-status.status-waiting { color: #9e9e9e; }
-    .order-card-items { padding: 2px 6px; }
-    .order-card-item { color: #616161; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .area-ctrl-text { display: block; width: 100%; padding: 2px; word-break: break-word; line-height: 1.2; }
+    .area-ctrl-img { color: #9e9e9e; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    .area-ctrl-data { display: block; width: 100%; padding: 2px; word-break: break-word; line-height: 1.2; }
+    /* A: Order table */
+    .area-ctrl-ot { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; font-family: Roboto, sans-serif; }
+    .area-ot-header { display: flex; align-items: center; padding: 0 4px; flex-shrink: 0; font-weight: 600; }
+    .area-ot-row { display: flex; align-items: center; padding: 0 4px; border-bottom: 1px solid #e0e0e0; }
+    .area-ot-col-name { flex: 3; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+    .area-ot-col-qty { flex: 1; text-align: center; padding: 0 2px; }
+    .area-ot-col-status { flex: 2; text-align: center; padding: 0 2px; }
+    /* B: Zones */
+    .area-ctrl-zones { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
+    .area-z-section { display: flex; flex-direction: column; }
+    .area-z-header { padding: 4px 6px; font-weight: 700; text-transform: uppercase; }
+    .area-z-row { display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-bottom: 1px solid #eee; }
+    .area-z-check { color: #4caf50; font-size: 10px; }
+    .area-z-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .area-z-qty { color: #757575; }
+    /* C: Progress */
+    .area-ctrl-progress { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; align-items: center; }
+    .area-p-hero { display: flex; justify-content: center; padding: 4px; }
+    .area-p-circle { position: relative; }
+    .area-p-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .area-p-track { fill: none; stroke-width: 6; }
+    .area-p-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+    .area-p-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-size: 11px; line-height: 1.2; }
+    .area-p-pct { font-weight: 600; display: block; }
+    .area-p-count { font-size: 9px; color: #757575; display: block; }
+    .area-p-list { width: 100%; flex: 1; overflow: hidden; }
+    .area-p-item { display: flex; align-items: center; gap: 4px; padding: 2px 6px; }
+    .area-p-item.ready { color: #4caf50; }
+    .area-p-marker { width: 14px; text-align: center; font-size: 10px; color: #bdbdbd; }
+    .area-p-marker.ready { color: #4caf50; }
+    .area-p-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .area-p-qty { color: #757575; }
+    /* D: Checklist */
+    .area-ctrl-checklist { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
+    .area-cl-header { display: flex; justify-content: space-between; padding: 4px 6px; font-weight: 600; font-size: 12px; border-bottom: 1px solid #eee; }
+    .area-cl-counter { color: #4caf50; }
+    .area-cl-row { display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-bottom: 1px solid #f5f5f5; }
+    .area-cl-marker { width: 14px; text-align: center; font-size: 10px; color: #bdbdbd; }
+    .area-cl-marker.ready { color: #4caf50; }
+    .area-cl-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .area-cl-name.ready { text-decoration: line-through; color: #9e9e9e; }
+    .area-cl-qty { color: #757575; }
+    /* E: Cards */
+    .area-ctrl-cards { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
+    .area-cards-grid { flex: 1; display: flex; flex-wrap: wrap; padding: 4px; overflow: hidden; align-content: flex-start; }
+    .area-card-tile { border: 1px solid #e0e0e0; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
+    .area-card-tile.ready { border-color: #4caf50; }
+    .area-card-status { padding: 2px 4px; font-size: 9px; font-weight: 700; text-align: center; }
+    .area-card-status.ready { background: #e8f5e9; color: #2e7d32; }
+    .area-card-body { padding: 2px 4px; display: flex; justify-content: space-between; }
     .area-empty-hint {
       display: flex; align-items: center; justify-content: center;
       height: 100%; color: #bdbdbd; font-size: 11px; font-style: italic;
@@ -1328,31 +1529,58 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
 
   /* ── Area: compute control positions ── */
 
+  getControlForArea(el: ArrivalsThemeElement): ArrivalsControl | null {
+    if (!el.areaControlId) return null;
+    return this.availableControls.find(c => c.id === el.areaControlId) || null;
+  }
+
+  getControlBBox(control: ArrivalsControl): { x: number; y: number; w: number; h: number } {
+    if (!control.elements.length) return { x: 0, y: 0, w: 200, h: 100 };
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const el of control.elements) {
+      minX = Math.min(minX, el.x);
+      minY = Math.min(minY, el.y);
+      maxX = Math.max(maxX, el.x + el.width);
+      maxY = Math.max(maxY, el.y + el.height);
+    }
+    return { x: minX, y: minY, w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY) };
+  }
+
   computeControlPositions(area: ArrivalsThemeElement, orders: ArrivalsOrderMock[]): AreaOrderPosition[] {
-    const positions: AreaOrderPosition[] = [];
-    const cardHeight = 80;
+    const control = this.getControlForArea(area);
+    if (!control || !control.elements.length) return [];
+
+    const bbox = this.getControlBBox(control);
     const spacing = area.areaInterlineSpacing || 0;
     const pad = 4;
     const headerH = 24;
     const cols = Math.max(1, Math.min(4, area.areaMaxColumns || 1));
     const areaW = area.width;
     const areaH = area.height;
-    const cardW = Math.floor((areaW - pad * 2 - (cols - 1) * pad) / cols);
+    const slotW = Math.floor((areaW - pad * 2 - (cols - 1) * pad) / cols);
+    const scale = bbox.w > 0 ? slotW / bbox.w : 1;
+    const slotH = Math.round(bbox.h * scale);
+
+    const positions: AreaOrderPosition[] = [];
 
     if (area.areaMode === 'list') {
       let col = 0;
       let row = 0;
       for (const order of orders) {
-        const x = pad + col * (cardW + pad);
+        const x = pad + col * (slotW + pad);
         let y: number;
         if (area.areaListDirection === 'bottom') {
-          y = areaH - pad - (row + 1) * cardHeight - row * spacing;
+          y = areaH - pad - (row + 1) * slotH - row * spacing;
         } else {
-          y = headerH + pad + row * (cardHeight + spacing);
+          y = headerH + pad + row * (slotH + spacing);
         }
-        if (y + cardHeight > areaH || y < headerH) break;
+        if (y + slotH > areaH || y < headerH) break;
 
-        positions.push({ order, x, y, width: cardW, height: cardHeight });
+        positions.push({
+          order, x, y, width: slotW, height: slotH,
+          controlElements: control.elements,
+          bboxX: bbox.x, bboxY: bbox.y, bboxW: bbox.w, bboxH: bbox.h, scale,
+        });
         col++;
         if (col >= cols) { col = 0; row++; }
       }
@@ -1360,14 +1588,18 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
       let posX = pad;
       let posY = headerH + pad;
       for (const order of orders) {
-        if (posX + cardW > areaW - pad) {
+        if (posX + slotW > areaW - pad) {
           posX = pad;
-          posY += cardHeight + spacing;
+          posY += slotH + spacing;
         }
-        if (posY + cardHeight > areaH) break;
+        if (posY + slotH > areaH) break;
 
-        positions.push({ order, x: posX, y: posY, width: cardW, height: cardHeight });
-        posX += cardW + pad;
+        positions.push({
+          order, x: posX, y: posY, width: slotW, height: slotH,
+          controlElements: control.elements,
+          bboxX: bbox.x, bboxY: bbox.y, bboxW: bbox.w, bboxH: bbox.h, scale,
+        });
+        posX += slotW + pad;
       }
     }
 
@@ -1489,6 +1721,43 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
     const idx = this.selectedElement.areaOrderTypes.indexOf(type);
     if (idx >= 0) { this.selectedElement.areaOrderTypes.splice(idx, 1); }
     else { this.selectedElement.areaOrderTypes.push(type); }
+  }
+
+  /* ── Area: control element rendering helpers ── */
+
+  isOrderVariant(type: ArrivalsElementType): boolean {
+    return ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(type);
+  }
+
+  getAreaElementText(ctrlEl: ArrivalsThemeElement, order: ArrivalsOrderMock): string {
+    switch (ctrlEl.type) {
+      case 'order-number': return '#' + order.orderNumber;
+      case 'client-name': return order.clientName;
+      case 'table-number': return order.tableNumber ? 'Стол ' + order.tableNumber : '';
+      case 'order-status': return order.status;
+      case 'cooking-start-time': return order.cookingStartTime || '--:--';
+      case 'expected-delivery-time': return order.expectedDeliveryTime || '--:--';
+      case 'courier-name': return order.courierName || '';
+      case 'client-phone': return order.clientPhone || '';
+      default: return ctrlEl.name;
+    }
+  }
+
+  isItemReady(item: { status: string }): boolean {
+    return item.status === 'Готово' || item.status === 'Выдача' || item.status === 'Подан';
+  }
+
+  getReadyOrderItems(order: ArrivalsOrderMock): { name: string; qty: number; status: string }[] {
+    return order.items.filter(i => this.isItemReady(i));
+  }
+
+  getPendingOrderItems(order: ArrivalsOrderMock): { name: string; qty: number; status: string }[] {
+    return order.items.filter(i => !this.isItemReady(i));
+  }
+
+  getOrderReadyPercent(order: ArrivalsOrderMock): number {
+    if (!order.items.length) return 0;
+    return Math.round((this.getReadyOrderItems(order).length / order.items.length) * 100);
   }
 
   save(): void {
