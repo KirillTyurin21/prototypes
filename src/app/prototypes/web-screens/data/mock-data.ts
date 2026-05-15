@@ -8,6 +8,7 @@ import {
   ArrivalsTheme,
   ArrivalsControlListItem,
   ArrivalsControl,
+  ArrivalsOrderMock,
   ProductCatalogItem,
   SoundCollection,
   SoundEventHandler,
@@ -410,6 +411,111 @@ export const MOCK_ARRIVALS_CONTROLS: ArrivalsControl[] = [
   { id: 304, name: 'ВИТ', statusType: 'kitchen', elements: [] },
   { id: 305, name: 'Контрол с анимацией', statusType: 'kitchen', elements: [] },
   { id: 306, name: 'Стандартный контрол', statusType: 'balancer', elements: [] },
+];
+
+/* ── Arrivals mock orders (для эмуляции тем) ── */
+
+export const MOCK_ARRIVALS_ORDERS: ArrivalsOrderMock[] = [
+  {
+    id: 1, orderNumber: '001', clientName: 'Иван Петров', tableNumber: '3',
+    status: 'Готовится', orderType: 'ordinary', source: 'Front',
+    cookingStartTime: '14:20',
+    items: [
+      { name: 'Стейк рибай', qty: 1, status: 'Готовится' },
+      { name: 'Салат Цезарь', qty: 1, status: 'Готово' },
+      { name: 'Лимонад', qty: 2, status: 'Ожидает' },
+    ],
+  },
+  {
+    id: 2, orderNumber: '002', clientName: 'Мария Сидорова', tableNumber: '7',
+    status: 'Готово', orderType: 'ordinary', source: 'Front',
+    cookingStartTime: '14:15',
+    items: [
+      { name: 'Борщ', qty: 1, status: 'Готово' },
+      { name: 'Хлеб', qty: 1, status: 'Готово' },
+    ],
+  },
+  {
+    id: 3, orderNumber: '003', clientName: 'Анна Козлова',
+    status: 'Ожидает', orderType: 'pickup', source: 'Яндекс.Еда',
+    cookingStartTime: '14:25',
+    items: [
+      { name: 'Пицца Маргарита', qty: 1, status: 'Ожидает' },
+      { name: 'Кола', qty: 1, status: 'Ожидает' },
+    ],
+    clientPhone: '+7 (999) 123-45-67',
+  },
+  {
+    id: 4, orderNumber: '004', clientName: 'Пётр Волков', tableNumber: '12',
+    status: 'Готовится', orderType: 'ordinary', source: 'Front',
+    cookingStartTime: '14:28',
+    items: [
+      { name: 'Паста карбонара', qty: 2, status: 'Готовится' },
+      { name: 'Тирамису', qty: 1, status: 'Ожидает' },
+    ],
+  },
+  {
+    id: 5, orderNumber: '005', clientName: 'Олег Смирнов',
+    status: 'Готово', orderType: 'courier', source: 'Delivery Club',
+    cookingStartTime: '14:10',
+    expectedDeliveryTime: '15:00',
+    courierName: 'Алексей К.',
+    items: [
+      { name: 'Бургер классический', qty: 2, status: 'Готово' },
+      { name: 'Картофель фри', qty: 2, status: 'Готово' },
+      { name: 'Морс клюквенный', qty: 2, status: 'Готово' },
+    ],
+    clientPhone: '+7 (916) 555-12-34',
+  },
+  {
+    id: 6, orderNumber: '006', clientName: 'Елена Новикова', tableNumber: '1',
+    status: 'Подан', orderType: 'ordinary', source: 'Front',
+    cookingStartTime: '13:55',
+    items: [
+      { name: 'Солянка', qty: 1, status: 'Подан' },
+      { name: 'Чай чёрный', qty: 1, status: 'Подан' },
+    ],
+  },
+  {
+    id: 7, orderNumber: '007', clientName: 'Дмитрий Орлов',
+    status: 'Готовится', orderType: 'pickup', source: 'Front',
+    cookingStartTime: '14:30',
+    items: [
+      { name: 'Том Ям', qty: 1, status: 'Готовится' },
+      { name: 'Рис', qty: 1, status: 'Готово' },
+    ],
+    clientPhone: '+7 (903) 777-88-99',
+  },
+  {
+    id: 8, orderNumber: '008', clientName: 'Светлана Жукова', tableNumber: '5',
+    status: 'Выдача', orderType: 'ordinary', source: 'Front',
+    cookingStartTime: '14:05',
+    items: [
+      { name: 'Чизкейк', qty: 2, status: 'Готово' },
+      { name: 'Капучино', qty: 2, status: 'Готово' },
+    ],
+  },
+  {
+    id: 9, orderNumber: '009', clientName: 'Артём Белов',
+    status: 'Ожидает', orderType: 'courier', source: 'Яндекс.Еда',
+    expectedDeliveryTime: '15:30',
+    items: [
+      { name: 'Пицца Маргарита', qty: 1, status: 'Ожидает' },
+      { name: 'Греческий салат', qty: 1, status: 'Ожидает' },
+      { name: 'Вода', qty: 2, status: 'Ожидает' },
+    ],
+    clientPhone: '+7 (926) 111-22-33',
+  },
+  {
+    id: 10, orderNumber: '010', clientName: 'Наталья Морозова', tableNumber: '9',
+    status: 'Готовится', orderType: 'ordinary', source: 'Front',
+    cookingStartTime: '14:32',
+    items: [
+      { name: 'Оливье', qty: 1, status: 'Готовится' },
+      { name: 'Стейк рибай', qty: 1, status: 'Ожидает' },
+      { name: 'Мороженое', qty: 3, status: 'Ожидает' },
+    ],
+  },
 ];
 
 /* ── Sounds (Digital Voice) ── */

@@ -6,11 +6,12 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiInputComponent, UiSelectComponent, UiTextareaComponent, UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
-import { MOCK_ARRIVALS_THEMES } from '../data/mock-data';
+import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS } from '../data/mock-data';
 import {
   ArrivalsTheme,
   ArrivalsThemeElement,
   ArrivalsElementType,
+  ArrivalsControl,
 } from '../types';
 
 type PanelView = 'theme' | 'add-element' | 'element';
@@ -50,6 +51,7 @@ interface ElementTypeOption {
               class="canvas-element"
               [class.selected]="selectedElementId === el.id"
               [class.dragging]="dragState?.elementId === el.id"
+              [class.area-element]="el.type === 'area'"
               [style.left.px]="el.x"
               [style.top.px]="el.y"
               [style.width.px]="el.width"
@@ -60,6 +62,26 @@ interface ElementTypeOption {
               (click)="selectElement(el.id, $event)"
               (mousedown)="onElementMouseDown($event, el)"
             >
+              <!-- Area element -->
+              <div *ngIf="el.type === 'area'" class="el-area"
+                [style.background-color]="el.areaBgColor || '#ffffff'">
+                <div class="el-area-header">
+                  <lucide-icon name="layout" [size]="14" class="area-icon"></lucide-icon>
+                  <span class="area-name">{{ el.name }}</span>
+                </div>
+                <div class="el-area-body">
+                  <span *ngIf="!el.areaControlId" class="area-placeholder">
+                    <lucide-icon name="mouse-pointer-click" [size]="20"></lucide-icon>
+                    Выберите контрол
+                  </span>
+                  <span *ngIf="el.areaControlId" class="area-control-info">
+                    <lucide-icon name="component" [size]="16"></lucide-icon>
+                    {{ getControlName(el.areaControlId) }}
+                    <span class="area-mode-badge">{{ el.areaMode === 'dynamic' ? 'Динам.' : 'Лист' }}</span>
+                  </span>
+                </div>
+              </div>
+              <!-- Text element -->
               <span *ngIf="el.type === 'text'" class="el-text"
                 [style.font-family]="el.fontFamily"
                 [style.font-size.px]="el.fontSize"
@@ -70,7 +92,7 @@ interface ElementTypeOption {
               <span *ngIf="el.type === 'image'" class="el-placeholder">
                 <lucide-icon name="image" [size]="24"></lucide-icon>
               </span>
-              <span *ngIf="el.type !== 'text' && el.type !== 'image'"
+              <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'area'"
                 class="el-placeholder-label">{{ el.name }}</span>
 
               <!-- Selection handles -->
@@ -153,6 +175,12 @@ interface ElementTypeOption {
             </div>
 
             <div class="element-type-list">
+              <!-- Область (специальный элемент) -->
+              <div class="element-type-item element-type-area" (click)="addElement('area')">
+                <lucide-icon name="layout" [size]="16"></lucide-icon>
+                Область
+              </div>
+              <div class="element-type-separator">Элементы</div>
               <div
                 *ngFor="let et of elementTypes"
                 class="element-type-item"
@@ -413,6 +441,43 @@ interface ElementTypeOption {
     .el-time { font-size: 16px; }
     .el-placeholder { color: #9e9e9e; }
     .el-placeholder-label { color: #9e9e9e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Area element */
+    .canvas-element.area-element { border-style: dashed !important; }
+    .el-area { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
+    .el-area-header {
+      display: flex; align-items: center; gap: 4px; padding: 4px 6px;
+      background: rgba(25,118,210,0.08); border-bottom: 1px solid rgba(25,118,210,0.15);
+      font-size: 11px; font-weight: 500; color: #1976D2;
+    }
+    .area-icon { flex-shrink: 0; color: #1976D2; }
+    .area-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .el-area-body {
+      flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px;
+    }
+    .area-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      color: #bdbdbd; font-size: 12px;
+    }
+    .area-control-info {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #616161; font-size: 12px; text-align: center;
+    }
+    .area-mode-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      background: #E3F2FD; color: #1976D2; font-size: 10px; font-weight: 500;
+    }
+
+    /* Element type separator */
+    .element-type-separator {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #9e9e9e; padding: 8px 12px 4px; font-weight: 500;
+    }
+    .element-type-area {
+      display: flex; align-items: center; gap: 6px;
+      border: 1px dashed #90CAF9 !important; color: #1976D2 !important;
+      background: #E3F2FD !important; font-weight: 500 !important;
+    }
 
     /* Resize handles */
     .handle {
@@ -936,9 +1001,28 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
       el.textAlign = 'left';
     }
 
+    if (type === 'area') {
+      el.name = 'Область контрола';
+      el.width = 300;
+      el.height = 500;
+      el.borderWidth = 2;
+      el.borderColor = '#90CAF9';
+      el.borderRadius = 4;
+      el.areaBgColor = '#ffffff';
+      el.areaMode = 'list';
+      el.areaListDirection = 'top';
+      el.areaMaxColumns = 1;
+      el.areaStatusType = 'kitchen';
+      el.areaStatuses = [];
+      el.areaOrderTypes = ['ordinary', 'courier', 'pickup'];
+      el.areaOrderSources = [];
+      el.areaSortOrder = 'oldest-first';
+      el.areaInterlineSpacing = 0;
+    }
+
     this.theme.elements.push(el);
     this.selectedElementId = el.id;
-    this.panelView = 'element';
+    this.panelView = el.type === 'area' ? 'element' : 'element';
   }
 
   requestDeleteElement(el: ArrivalsThemeElement, event: Event): void {
@@ -969,7 +1053,13 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   isGenericElement(type: ArrivalsElementType): boolean {
-    return !['text', 'image'].includes(type);
+    return !['text', 'image', 'area'].includes(type);
+  }
+
+  getControlName(controlId: number): string {
+    const controls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
+    const ctrl = controls.find((c: ArrivalsControl) => c.id === controlId);
+    return ctrl ? ctrl.name : 'Контрол #' + controlId;
   }
 
   save(): void {

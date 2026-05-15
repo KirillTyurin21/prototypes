@@ -89,7 +89,8 @@ export type ArrivalsElementType =
   | 'order-items-zones'
   | 'order-items-progress'
   | 'order-items-checklist'
-  | 'order-items-cards';
+  | 'order-items-cards'
+  | 'area';
 
 export interface ArrivalsThemeElement {
   id: string;
@@ -190,6 +191,18 @@ export interface ArrivalsThemeElement {
   cardsPendingBg?: string;
   cardsGap?: number;
   cardsItemFontSize?: number;
+  // ── Area (область для контролов в теме) ──
+  areaMode?: 'list' | 'dynamic';
+  areaControlId?: number;
+  areaListDirection?: 'top' | 'bottom';
+  areaMaxColumns?: number;
+  areaStatusType?: 'kitchen' | 'delivery' | 'balancer';
+  areaStatuses?: string[];
+  areaOrderTypes?: ('ordinary' | 'courier' | 'pickup')[];
+  areaOrderSources?: string[];
+  areaSortOrder?: 'newest-first' | 'oldest-first';
+  areaInterlineSpacing?: number;
+  areaBgColor?: string;
 }
 
 /* ── Product Catalog (for Price element navigator) ── */
@@ -213,6 +226,29 @@ export interface ArrivalsTheme {
   resolution: string;
   screenMode: string;
   elements: ArrivalsThemeElement[];
+}
+
+/* ── Arrivals Order Mock (для эмуляции в теме) ── */
+
+export interface ArrivalsOrderMockItem {
+  name: string;
+  qty: number;
+  status: string;
+}
+
+export interface ArrivalsOrderMock {
+  id: number;
+  orderNumber: string;
+  clientName: string;
+  tableNumber?: string;
+  status: string;
+  orderType: 'ordinary' | 'courier' | 'pickup';
+  source: string;
+  cookingStartTime?: string;
+  expectedDeliveryTime?: string;
+  items: ArrivalsOrderMockItem[];
+  courierName?: string;
+  clientPhone?: string;
 }
 
 /* ── Arrivals Controls Editor ── */
