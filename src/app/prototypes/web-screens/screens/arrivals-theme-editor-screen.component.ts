@@ -51,8 +51,10 @@ interface AreaOrderPosition {
   ],
   template: `
     <div class="editor-layout">
-      <!-- ═══════ CANVAS AREA ═══════ -->
-      <div class="canvas-area" #canvasAreaRef>
+      <!-- ═══════ CANVAS COLUMN (canvas + simulator) ═══════ -->
+      <div class="canvas-column">
+        <!-- Canvas -->
+        <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div
             class="canvas-viewport"
@@ -311,6 +313,93 @@ interface AreaOrderPosition {
           </div>
         </div>
       </div>
+
+      <!-- ═══════ SIMULATOR PANEL ═══════ -->
+      <div class="sim-panel" [class.sim-collapsed]="!simOpen">
+        <div class="sim-header" (click)="simOpen = !simOpen">
+          <div class="sim-header-left">
+            <lucide-icon name="radio" [size]="16"></lucide-icon>
+            <span class="sim-title">Эмулятор заказов</span>
+            <span class="sim-badge" *ngIf="simOrders.length">{{ simOrders.length }}</span>
+          </div>
+          <div class="sim-header-right">
+            <span *ngIf="simAutoRunning" class="sim-live-dot">● LIVE</span>
+            <lucide-icon [name]="simOpen ? 'chevron-down' : 'chevron-up'" [size]="16"></lucide-icon>
+          </div>
+        </div>
+        <div class="sim-body" *ngIf="simOpen">
+          <!-- Toolbar -->
+          <div class="sim-toolbar">
+            <button class="sim-btn sim-btn-primary" (click)="simAddOrder()" title="Добавить заказ">
+              <lucide-icon name="plus" [size]="14"></lucide-icon> Новый заказ
+            </button>
+            <button class="sim-btn" (click)="simLoadMocks()" title="Загрузить мок-заказы">
+              <lucide-icon name="database" [size]="14"></lucide-icon> Моки
+            </button>
+            <div class="sim-divider-v"></div>
+            <button class="sim-btn" [class.sim-btn-active]="simAutoRunning" (click)="simToggleAuto()" title="Авто-генерация">
+              <lucide-icon [name]="simAutoRunning ? 'pause' : 'play'" [size]="14"></lucide-icon>
+              {{ simAutoRunning ? 'Стоп' : 'Авто' }}
+            </button>
+            <div class="sim-divider-v"></div>
+            <button class="sim-btn sim-btn-danger" (click)="simClearAll()" title="Очистить все" [disabled]="!simOrders.length">
+              <lucide-icon name="trash-2" [size]="14"></lucide-icon> Очистить
+            </button>
+          </div>
+          <!-- Orders table -->
+          <div class="sim-table-wrap">
+            <table class="sim-table" *ngIf="simOrders.length">
+              <thead>
+                <tr>
+                  <th style="width:50px">#</th>
+                  <th style="width:130px">Клиент</th>
+                  <th style="width:60px">Стол</th>
+                  <th style="width:90px">Тип</th>
+                  <th style="width:90px">Статус</th>
+                  <th style="width:90px">Источник</th>
+                  <th>Позиции</th>
+                  <th style="width:80px">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let o of simOrders; let idx = index" class="sim-row">
+                  <td class="sim-cell-num">{{ o.orderNumber }}</td>
+                  <td>{{ o.clientName }}</td>
+                  <td>{{ o.tableNumber || '—' }}</td>
+                  <td>
+                    <select class="sim-inline-select" [ngModel]="o.orderType" (ngModelChange)="simChangeOrderType(o, $event)">
+                      <option value="ordinary">Зал</option>
+                      <option value="courier">Доставка</option>
+                      <option value="pickup">Самовывоз</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button class="sim-status-btn" [class]="'sim-st-' + simStatusClass(o.status)"
+                      (click)="simCycleStatus(o)" title="Клик — сменить статус">
+                      {{ o.status }}
+                    </button>
+                  </td>
+                  <td>{{ o.source }}</td>
+                  <td class="sim-cell-items">
+                    <span *ngFor="let item of o.items; let last = last">
+                      {{ item.name }}×{{ item.qty }}<span *ngIf="!last">, </span>
+                    </span>
+                  </td>
+                  <td class="sim-cell-actions">
+                    <button class="sim-act-btn" (click)="simRemoveOrder(idx)" title="Удалить">
+                      <lucide-icon name="x" [size]="14"></lucide-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div *ngIf="!simOrders.length" class="sim-empty">
+              Нет заказов. Нажмите «Новый заказ» или «Моки» для добавления.
+            </div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /canvas-column -->
 
       <!-- ═══════ RIGHT PANEL ═══════ -->
       <div class="control-panel">
@@ -726,6 +815,11 @@ interface AreaOrderPosition {
     .editor-layout {
       display: flex; height: calc(100vh - 110px); margin: -20px -24px;
       font-family: Roboto, sans-serif;
+    }
+
+    /* ═══ Canvas column ═══ */
+    .canvas-column {
+      flex: 1; min-width: 0; display: flex; flex-direction: column;
     }
 
     /* ═══ Canvas ═══ */
@@ -1160,6 +1254,95 @@ interface AreaOrderPosition {
       font-size: 14px; font-weight: 500; color: #333;
       padding: 4px 0 8px; border-bottom: 1px solid #e0e0e0;
     }
+
+    /* ═══ Simulator panel ═══ */
+    .sim-panel {
+      border-top: 2px solid #1976D2; background: #fafafa;
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: max-height 0.3s ease;
+      max-height: 320px;
+    }
+    .sim-panel.sim-collapsed { max-height: 36px; }
+    .sim-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 12px; cursor: pointer;
+      background: linear-gradient(180deg, #f5f5f5, #eeeeee);
+      border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
+      user-select: none;
+    }
+    .sim-header:hover { background: linear-gradient(180deg, #eeeeee, #e0e0e0); }
+    .sim-header-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #333; }
+    .sim-header-right { display: flex; align-items: center; gap: 8px; color: #757575; }
+    .sim-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; border-radius: 10px; padding: 0 6px;
+      background: #1976D2; color: #fff; font-size: 11px; font-weight: 700;
+    }
+    .sim-live-dot { color: #e53935; font-size: 11px; font-weight: 700; animation: simBlink 1s infinite; }
+    @keyframes simBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .sim-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .sim-toolbar {
+      display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+      border-bottom: 1px solid #e0e0e0; background: #fff; flex-shrink: 0;
+    }
+    .sim-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border: 1px solid #e0e0e0; border-radius: 4px;
+      background: #fff; font-size: 12px; font-family: Roboto, sans-serif;
+      cursor: pointer; color: #333; transition: all 0.15s; white-space: nowrap;
+    }
+    .sim-btn:hover { background: #f5f5f5; border-color: #bdbdbd; }
+    .sim-btn:disabled { opacity: 0.4; cursor: default; }
+    .sim-btn-primary { background: #1976D2; color: #fff; border-color: #1565C0; }
+    .sim-btn-primary:hover { background: #1565C0; }
+    .sim-btn-danger { color: #e53935; border-color: #ef9a9a; }
+    .sim-btn-danger:hover { background: #ffebee; }
+    .sim-btn-active { background: #e53935; color: #fff; border-color: #c62828; }
+    .sim-btn-active:hover { background: #c62828; }
+    .sim-divider-v { width: 1px; height: 20px; background: #e0e0e0; }
+    .sim-table-wrap { flex: 1; overflow: auto; }
+    .sim-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .sim-table thead { position: sticky; top: 0; z-index: 1; }
+    .sim-table th {
+      padding: 4px 8px; text-align: left; font-weight: 600;
+      background: #f5f5f5; border-bottom: 1px solid #e0e0e0;
+      color: #616161; font-size: 11px; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .sim-table td {
+      padding: 4px 8px; border-bottom: 1px solid #f5f5f5;
+      vertical-align: middle;
+    }
+    .sim-row:hover td { background: #f5f5f5; }
+    .sim-cell-num { font-weight: 600; color: #1976D2; }
+    .sim-cell-items { color: #757575; font-size: 11px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sim-cell-actions { text-align: center; }
+    .sim-inline-select {
+      padding: 2px 4px; border: 1px solid #e0e0e0; border-radius: 3px;
+      font-size: 11px; font-family: Roboto, sans-serif; background: #fff;
+      cursor: pointer; width: 100%;
+    }
+    .sim-status-btn {
+      padding: 2px 8px; border: 1px solid #e0e0e0; border-radius: 10px;
+      font-size: 11px; font-weight: 600; font-family: Roboto, sans-serif;
+      cursor: pointer; transition: all 0.15s; width: 100%; text-align: center;
+    }
+    .sim-status-btn:hover { filter: brightness(0.95); }
+    .sim-st-waiting { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
+    .sim-st-cooking { background: #e3f2fd; color: #1565C0; border-color: #90caf9; }
+    .sim-st-ready { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+    .sim-st-served { background: #f3e5f5; color: #7b1fa2; border-color: #ce93d8; }
+    .sim-st-delivery { background: #e0f2f1; color: #00695c; border-color: #80cbc4; }
+    .sim-act-btn {
+      border: none; background: none; cursor: pointer;
+      color: #bdbdbd; padding: 2px; border-radius: 3px;
+      transition: all 0.15s;
+    }
+    .sim-act-btn:hover { color: #e53935; background: #ffebee; }
+    .sim-empty {
+      display: flex; align-items: center; justify-content: center;
+      height: 80px; color: #bdbdbd; font-size: 13px; font-style: italic;
+    }
   `],
 })
 export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -1217,6 +1400,28 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     intervalId?: any;
     orderIndex: number;
   }>();
+
+  // ── Theme simulator ──
+  simOpen = false;
+  simOrders: ArrivalsOrderMock[] = [];
+  simActive = false; // true = areas use simOrders instead of MOCK
+  simAutoRunning = false;
+  simAutoInterval: any = null;
+  simNextId = 100;
+  simNextNum = 100;
+
+  private simClientNames = [
+    'Алексей Иванов', 'Ольга Кузнецова', 'Дмитрий Соколов', 'Екатерина Попова',
+    'Максим Лебедев', 'Анна Фёдорова', 'Сергей Козлов', 'Мария Новикова',
+    'Андрей Морозов', 'Юлия Волкова', 'Павел Зайцев', 'Татьяна Семёнова',
+  ];
+  private simDishes = [
+    'Стейк рибай', 'Салат Цезарь', 'Паста карбонара', 'Борщ', 'Том Ям',
+    'Пицца Маргарита', 'Бургер', 'Картофель фри', 'Тирамису', 'Чизкейк',
+    'Солянка', 'Оливье', 'Греческий салат', 'Капучино', 'Лимонад',
+  ];
+  private simSources = ['Front', 'Яндекс.Еда', 'Delivery Club', 'Front'];
+  private simStatuses = ['Ожидает', 'Готовится', 'Готово', 'Подан', 'Выдача'];
 
   resolutionOptions: SelectOption[] = [
     { value: '1024x768', label: '1024px / 768px' },
@@ -1297,6 +1502,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     this.emulationStates.forEach(state => {
       if (state.intervalId) clearInterval(state.intervalId);
     });
+    this.simStopAuto();
   }
 
   onResolutionChange(): void {
@@ -1533,7 +1739,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   /* ── Area: filter & sort orders ── */
 
   filterOrders(area: ArrivalsThemeElement): ArrivalsOrderMock[] {
-    let orders: ArrivalsOrderMock[] = [...MOCK_ARRIVALS_ORDERS];
+    let orders: ArrivalsOrderMock[] = this.simActive ? [...this.simOrders] : [...MOCK_ARRIVALS_ORDERS];
 
     if (area.areaStatuses && area.areaStatuses.length > 0) {
       orders = orders.filter(o => area.areaStatuses!.includes(o.status));
@@ -1807,6 +2013,143 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     }
 
     this.showToast('Тема сохранена');
+  }
+
+  /* ═══ Theme Simulator ═══ */
+
+  simAddOrder(): void {
+    const types: ('ordinary' | 'courier' | 'pickup')[] = ['ordinary', 'courier', 'pickup'];
+    const orderType = types[Math.floor(Math.random() * types.length)];
+    const itemCount = 1 + Math.floor(Math.random() * 4);
+    const items: { name: string; qty: number; status: string }[] = [];
+    const usedDishes = new Set<string>();
+    for (let i = 0; i < itemCount; i++) {
+      let dish: string;
+      do { dish = this.simDishes[Math.floor(Math.random() * this.simDishes.length)]; } while (usedDishes.has(dish) && usedDishes.size < this.simDishes.length);
+      usedDishes.add(dish);
+      items.push({ name: dish, qty: 1 + Math.floor(Math.random() * 3), status: 'Ожидает' });
+    }
+    const h = 12 + Math.floor(Math.random() * 8);
+    const m = Math.floor(Math.random() * 60);
+    const order: ArrivalsOrderMock = {
+      id: this.simNextId++,
+      orderNumber: String(this.simNextNum++).padStart(3, '0'),
+      clientName: this.simClientNames[Math.floor(Math.random() * this.simClientNames.length)],
+      tableNumber: orderType === 'ordinary' ? String(1 + Math.floor(Math.random() * 20)) : undefined,
+      status: 'Ожидает',
+      orderType,
+      source: orderType === 'ordinary' ? 'Front' : this.simSources[Math.floor(Math.random() * this.simSources.length)],
+      cookingStartTime: `${h}:${String(m).padStart(2, '0')}`,
+      items,
+    };
+    if (orderType === 'courier') {
+      order.courierName = this.simClientNames[Math.floor(Math.random() * this.simClientNames.length)].split(' ')[0] + ' К.';
+      order.expectedDeliveryTime = `${h + 1}:${String(m).padStart(2, '0')}`;
+    }
+    if (orderType !== 'ordinary') {
+      order.clientPhone = '+7 (9' + String(Math.floor(Math.random() * 100)).padStart(2, '0') + ') ' +
+        String(Math.floor(Math.random() * 1000)).padStart(3, '0') + '-' +
+        String(Math.floor(Math.random() * 100)).padStart(2, '0') + '-' +
+        String(Math.floor(Math.random() * 100)).padStart(2, '0');
+    }
+    this.simOrders = [...this.simOrders, order];
+    this.simActive = true;
+    this.clearAreaEmulations();
+  }
+
+  simLoadMocks(): void {
+    this.simOrders = JSON.parse(JSON.stringify(MOCK_ARRIVALS_ORDERS));
+    this.simActive = true;
+    this.simNextId = 200;
+    this.simNextNum = 200;
+    this.clearAreaEmulations();
+  }
+
+  simClearAll(): void {
+    this.simOrders = [];
+    this.simActive = false;
+    this.clearAreaEmulations();
+  }
+
+  simRemoveOrder(idx: number): void {
+    this.simOrders = this.simOrders.filter((_, i) => i !== idx);
+    if (!this.simOrders.length) this.simActive = false;
+    this.clearAreaEmulations();
+  }
+
+  simCycleStatus(order: ArrivalsOrderMock): void {
+    const cycle = this.simStatuses;
+    const idx = cycle.indexOf(order.status);
+    const next = cycle[(idx + 1) % cycle.length];
+    order.status = next;
+    // Sync item statuses based on order status
+    if (next === 'Готово' || next === 'Подан' || next === 'Выдача') {
+      order.items.forEach(item => item.status = next);
+    } else if (next === 'Ожидает') {
+      order.items.forEach(item => item.status = 'Ожидает');
+    } else if (next === 'Готовится') {
+      order.items.forEach((item, i) => {
+        item.status = i === 0 ? 'Готово' : 'Готовится';
+      });
+    }
+    this.simOrders = [...this.simOrders];
+    this.clearAreaEmulations();
+  }
+
+  simChangeOrderType(order: ArrivalsOrderMock, newType: 'ordinary' | 'courier' | 'pickup'): void {
+    order.orderType = newType;
+    if (newType === 'ordinary') {
+      order.tableNumber = String(1 + Math.floor(Math.random() * 20));
+      order.source = 'Front';
+    } else {
+      order.tableNumber = undefined;
+      if (newType === 'courier') order.source = 'Delivery Club';
+      else order.source = 'Яндекс.Еда';
+    }
+    this.simOrders = [...this.simOrders];
+    this.clearAreaEmulations();
+  }
+
+  simStatusClass(status: string): string {
+    switch (status) {
+      case 'Ожидает': return 'waiting';
+      case 'Готовится': return 'cooking';
+      case 'Готово': return 'ready';
+      case 'Подан': return 'served';
+      case 'Выдача': return 'delivery';
+      default: return 'waiting';
+    }
+  }
+
+  simToggleAuto(): void {
+    if (this.simAutoRunning) {
+      this.simStopAuto();
+    } else {
+      this.simStartAuto();
+    }
+  }
+
+  private simStartAuto(): void {
+    this.simAutoRunning = true;
+    this.simActive = true;
+    this.simAutoInterval = setInterval(() => {
+      this.simAddOrder();
+    }, 3000);
+  }
+
+  private simStopAuto(): void {
+    this.simAutoRunning = false;
+    if (this.simAutoInterval) {
+      clearInterval(this.simAutoInterval);
+      this.simAutoInterval = null;
+    }
+  }
+
+  private clearAreaEmulations(): void {
+    this.emulationStates.forEach(state => {
+      if (state.intervalId) clearInterval(state.intervalId);
+    });
+    this.emulationStates.clear();
   }
 
   goBack(): void {
