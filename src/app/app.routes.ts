@@ -82,6 +82,13 @@ export const routes: Routes = [
             m => m.AURORA_ROUTES
           ),
       },
+      {
+        path: 'prototype/design-tokens',
+        loadChildren: () =>
+          import('./prototypes/design-tokens/design-tokens.routes').then(
+            m => m.DESIGN_TOKENS_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL

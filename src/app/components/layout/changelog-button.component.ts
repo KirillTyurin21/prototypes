@@ -127,6 +127,8 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/comet/changelog.data');
       case 'aurora':
         return import('../../prototypes/aurora/changelog.data');
+      case 'design-tokens':
+        return import('../../prototypes/design-tokens/changelog.data');
       default:
         return Promise.reject('Unknown prototype');
     }

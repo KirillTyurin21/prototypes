@@ -64,5 +64,11 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'wallet',
     description: 'Плагин оплаты кошельком (Front) + панель управления credentials (Web)',
   },
+  {
+    path: '/prototype/design-tokens',
+    label: 'Дизайн-токены Web',
+    icon: 'palette',
+    description: 'Визуальный справочник дизайн-токенов: цвета, типографика, отступы, компоненты',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];
