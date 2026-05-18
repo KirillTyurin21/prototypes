@@ -138,7 +138,7 @@ import { CSTheme } from '../cs-types';
       position: fixed; top: 20px; right: 20px; z-index: 200;
       display: flex; align-items: center; gap: 8px;
       padding: 10px 20px; border-radius: 6px;
-      background: #323232; color: #fff; font-size: 13px; font-weight: 500;
+      background: var(--dt-surface-snack-tooltip); color: var(--dt-text-inversive); font-size: 13px; font-weight: 500;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       animation: toastIn 0.3s ease-out;
     }
@@ -147,7 +147,7 @@ import { CSTheme } from '../cs-types';
     /* ─── Page header ─── */
     .page-header { margin-bottom: 16px; }
     .page-title-row { display: flex; align-items: center; justify-content: space-between; }
-    .page-title { font-size: 20px; font-weight: 500; color: #212121; margin: 0; }
+    .page-title { font-size: 20px; font-weight: 500; color: var(--dt-text-primary); margin: 0; }
     .header-actions { display: flex; gap: 6px; align-items: center; }
 
     /* ─── Buttons ─── */
@@ -158,18 +158,18 @@ import { CSTheme } from '../cs-types';
       cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
     .app-btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
-    .app-btn-primary { background: #448aff; color: #fff; }
-    .app-btn-primary:hover { background: #2979ff; }
+    .app-btn-primary { background: var(--dt-brand-accent); color: var(--dt-text-inversive); }
+    .app-btn-primary:hover { background: var(--dt-brand-accent-dark); }
     .app-btn-icon {
       width: 34px; height: 34px; padding: 0; justify-content: center;
-      background: transparent; color: #616161; border: 1px solid #e0e0e0; border-radius: 4px;
+      background: transparent; color: var(--dt-text-secondary); border: 1px solid var(--dt-stroke-default); border-radius: 4px;
     }
-    .app-btn-icon:hover { background: #f5f5f5; color: #212121; }
+    .app-btn-icon:hover { background: var(--dt-surface-hover); color: var(--dt-text-primary); }
     .app-btn-danger-icon {
       width: 34px; height: 34px; padding: 0; justify-content: center;
-      background: transparent; color: #e53935; border: 1px solid #e0e0e0; border-radius: 4px;
+      background: transparent; color: var(--dt-brand-negative); border: 1px solid var(--dt-stroke-default); border-radius: 4px;
     }
-    .app-btn-danger-icon:hover { background: #ffebee; }
+    .app-btn-danger-icon:hover { background: var(--dt-brand-negative-lighter); }
 
     /* ─── Toolbar ─── */
     .toolbar { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
@@ -177,10 +177,10 @@ import { CSTheme } from '../cs-types';
 
     /* ─── Table ─── */
     .table-container { border-radius: 4px; overflow: hidden; }
-    .cell-name { cursor: pointer; font-weight: 500; color: #212121; }
-    .cell-description { color: #757575; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; display: inline-block; }
-    .cell-date { color: #757575; font-size: 13px; }
-    .cell-count { color: #757575; }
+    .cell-name { cursor: pointer; font-weight: 500; color: var(--dt-text-primary); }
+    .cell-description { color: var(--dt-text-secondary); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; display: inline-block; }
+    .cell-date { color: var(--dt-text-secondary); font-size: 13px; }
+    .cell-count { color: var(--dt-text-secondary); }
   `],
 })
 export class ThemesCsScreenComponent implements OnInit {

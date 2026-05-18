@@ -132,8 +132,8 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
     .sidebar {
       width: 260px;
       min-width: 260px;
-      border-right: 1px solid #e0e0e0;
-      background: #fff;
+      border-right: 1px solid var(--dt-stroke-default);
+      background: var(--dt-surface-primary);
       overflow-y: auto;
     }
 
@@ -141,7 +141,7 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       padding: 16px 16px 12px;
       font-size: 13px;
       font-weight: 500;
-      color: #757575;
+      color: var(--dt-text-secondary);
       text-transform: uppercase;
       letter-spacing: .5px;
     }
@@ -156,14 +156,14 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
-      color: #212121;
+      color: var(--dt-text-primary);
       user-select: none;
       transition: background .15s;
     }
-    .voice-name:hover { background: #f5f5f5; }
+    .voice-name:hover { background: var(--dt-surface-hover); }
 
-    .chevron-icon { color: #9e9e9e; flex-shrink: 0; }
-    .voice-icon { color: #757575; flex-shrink: 0; }
+    .chevron-icon { color: var(--dt-text-disable); flex-shrink: 0; }
+    .voice-icon { color: var(--dt-text-secondary); flex-shrink: 0; }
 
     .voice-children { padding-left: 16px; }
 
@@ -174,29 +174,29 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       padding: 7px 16px 7px 28px;
       cursor: pointer;
       font-size: 13px;
-      color: #424242;
+      color: var(--dt-text-primary);
       border-radius: 0;
       transition: background .15s;
       user-select: none;
     }
-    .folder-item:hover { background: #f5f5f5; }
+    .folder-item:hover { background: var(--dt-surface-hover); }
     .folder-item-active {
       background: #e3f2fd !important;
       color: #1565c0;
       font-weight: 500;
     }
-    .folder-icon { color: #9e9e9e; flex-shrink: 0; }
+    .folder-icon { color: var(--dt-text-disable); flex-shrink: 0; }
     .folder-item-active .folder-icon { color: #1565c0; }
 
     .folder-label { flex: 1; }
-    .folder-count { color: #9e9e9e; font-size: 12px; }
+    .folder-count { color: var(--dt-text-disable); font-size: 12px; }
     .folder-item-active .folder-count { color: #64b5f6; }
 
     /* ── Content ── */
     .content {
       flex: 1;
       overflow-y: auto;
-      background: #fafafa;
+      background: var(--dt-surface-variant);
       padding: 24px;
     }
 
@@ -209,8 +209,8 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       height: 300px;
       gap: 12px;
     }
-    .empty-icon { color: #bdbdbd; }
-    .empty-text { color: #9e9e9e; font-size: 14px; }
+    .empty-icon { color: var(--dt-text-disable); }
+    .empty-text { color: var(--dt-text-disable); font-size: 14px; }
 
     /* ── Folder header ── */
     .folder-content { animation: fadeIn .2s ease; }
@@ -227,13 +227,13 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
     .folder-title {
       font-size: 20px;
       font-weight: 500;
-      color: #212121;
+      color: var(--dt-text-primary);
       margin: 0;
     }
     .file-count-badge {
       font-size: 12px;
-      color: #757575;
-      background: #f5f5f5;
+      color: var(--dt-text-secondary);
+      background: var(--dt-surface-hover);
       padding: 2px 8px;
       border-radius: 10px;
     }
@@ -247,19 +247,19 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       font-size: 13px;
       margin-bottom: 6px;
     }
-    .progress-label { color: #757575; }
-    .progress-value { color: #424242; font-weight: 500; }
-    .progress-percent { color: #9e9e9e; }
+    .progress-label { color: var(--dt-text-secondary); }
+    .progress-value { color: var(--dt-text-primary); font-weight: 500; }
+    .progress-percent { color: var(--dt-text-disable); }
 
     .progress-bar {
       height: 8px;
-      background: #e0e0e0;
+      background: var(--dt-stroke-default);
       border-radius: 4px;
       overflow: hidden;
     }
     .progress-fill {
       height: 100%;
-      background: #448aff;
+      background: var(--dt-brand-accent);
       border-radius: 4px;
       transition: width .4s ease;
     }
@@ -268,13 +268,13 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
     /* ── Table ── */
     .showing-hint {
       font-size: 12px;
-      color: #9e9e9e;
+      color: var(--dt-text-disable);
       margin-bottom: 8px;
     }
 
     .table-wrap {
-      background: #fff;
-      border: 1px solid #e0e0e0;
+      background: var(--dt-surface-primary);
+      border: 1px solid var(--dt-stroke-default);
       border-radius: 4px;
       overflow: hidden;
     }
@@ -288,11 +288,11 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
     .data-table th {
       text-align: left;
       padding: 10px 14px;
-      background: #fafafa;
-      color: #757575;
+      background: var(--dt-surface-variant);
+      color: var(--dt-text-secondary);
       font-weight: 500;
       font-size: 12px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--dt-stroke-default);
       white-space: nowrap;
     }
     .th-file { width: 45%; }
@@ -302,11 +302,11 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
 
     .data-table td {
       padding: 9px 14px;
-      color: #424242;
-      border-bottom: 1px solid #f5f5f5;
+      color: var(--dt-text-primary);
+      border-bottom: 1px solid var(--dt-surface-hover);
     }
 
-    .table-row:hover { background: #fafafa; }
+    .table-row:hover { background: var(--dt-surface-variant); }
     .table-row:last-child td { border-bottom: none; }
 
     .td-file {
@@ -316,10 +316,10 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       font-family: 'Roboto Mono', monospace;
       font-size: 12px;
     }
-    .file-icon { color: #9e9e9e; flex-shrink: 0; }
+    .file-icon { color: var(--dt-text-disable); flex-shrink: 0; }
 
-    .td-duration { color: #757575; }
-    .td-date { color: #757575; }
+    .td-duration { color: var(--dt-text-secondary); }
+    .td-date { color: var(--dt-text-secondary); }
     .td-actions { text-align: center; }
 
     /* ── Play button ── */
@@ -329,10 +329,10 @@ import { MOCK_SOUND_FOLDERS, AVAILABLE_VOICES } from '../data/mock-data';
       justify-content: center;
       width: 30px;
       height: 30px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid var(--dt-stroke-default);
       border-radius: 50%;
-      background: #fff;
-      color: #448aff;
+      background: var(--dt-surface-primary);
+      color: var(--dt-brand-accent);
       cursor: pointer;
       transition: all .15s;
     }

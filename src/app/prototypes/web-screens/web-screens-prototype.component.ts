@@ -47,7 +47,7 @@ import { filter } from 'rxjs/operators';
       display: flex;
       flex-direction: column;
       min-height: calc(100vh - 64px); /* высота без top-bar основного layout */
-      background-color: #ffffff;
+      background-color: var(--dt-surface-primary);
       font-family: Roboto, sans-serif;
     }
     .web-body {
@@ -59,7 +59,7 @@ import { filter } from 'rxjs/operators';
       flex: 1;
       min-width: 0;
       padding: 20px 24px;
-      background-color: #fafafa;
+      background-color: var(--dt-surface-hover);
       overflow-y: auto;
     }
   `],

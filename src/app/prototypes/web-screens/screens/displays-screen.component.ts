@@ -71,7 +71,7 @@ import { CustomerScreenDisplay } from '../types';
     .page-title {
       font-size: 24px;
       font-weight: 500;
-      color: #212121;
+      color: var(--dt-text-primary);
       line-height: 1.2;
       margin: 0;
     }
@@ -95,11 +95,11 @@ import { CustomerScreenDisplay } from '../types';
       white-space: nowrap;
     }
     .app-btn-primary {
-      background-color: #448aff;
-      color: #fff;
+      background-color: var(--dt-brand-accent);
+      color: var(--dt-text-inversive);
     }
     .app-btn-primary:hover {
-      background-color: #2979ff;
+      background-color: var(--dt-brand-accent-dark);
     }
     .table-container {
       border-radius: 4px;
@@ -119,7 +119,7 @@ import { CustomerScreenDisplay } from '../types';
       background-color: #4caf50;
     }
     .status-dot.inactive {
-      background-color: #bdbdbd;
+      background-color: var(--dt-text-disable);
     }
   `],
 })

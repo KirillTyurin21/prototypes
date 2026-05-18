@@ -69,10 +69,8 @@ import { IconsModule } from '@/shared/icons.module';
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      background-color: #ffffff;
-      box-shadow: 0 3px 4px rgba(158,158,158,.14),
-                  0 3px 3px rgba(158,158,158,.12),
-                  0 1px 8px rgba(158,158,158,.2);
+      background-color: var(--dt-surface-primary);
+      box-shadow: var(--dt-shadow-s);
       font-family: Roboto, sans-serif;
     }
     .header-left {
@@ -92,12 +90,12 @@ import { IconsModule } from '@/shared/icons.module';
       background: none;
       border-radius: 50%;
       cursor: pointer;
-      color: #757575;
+      color: var(--dt-icon-primary);
       transition: background-color 0.2s;
     }
     .header-btn:hover {
       background-color: rgba(0,0,0,0.04);
-      color: #212121;
+      color: var(--dt-text-primary);
     }
     .logo {
       display: flex;
@@ -109,7 +107,7 @@ import { IconsModule } from '@/shared/icons.module';
     .logo-text {
       font-size: 28px;
       font-weight: 700;
-      color: #FF5252;
+      color: var(--dt-brand-negative);
       letter-spacing: -0.5px;
     }
     .header-center {
@@ -124,7 +122,7 @@ import { IconsModule } from '@/shared/icons.module';
     .page-title {
       font-size: 20px;
       font-weight: 500;
-      color: #212121;
+      color: var(--dt-text-primary);
       line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
@@ -132,7 +130,7 @@ import { IconsModule } from '@/shared/icons.module';
     }
     .page-subtitle {
       font-size: 12px;
-      color: #757575;
+      color: var(--dt-text-secondary);
       line-height: 16px;
     }
     .header-right {
@@ -151,8 +149,8 @@ import { IconsModule } from '@/shared/icons.module';
       padding: 0 4px;
     }
     .search-area.search-open {
-      border-color: #448aff;
-      background: #fafafa;
+      border-color: var(--dt-stroke-accent);
+      background: var(--dt-surface-hover);
       flex-grow: 1;
     }
     .search-input {
@@ -166,7 +164,7 @@ import { IconsModule } from '@/shared/icons.module';
       font-family: Roboto, sans-serif;
     }
     .search-toggle {
-      background: #f0f6ff;
+      background: var(--dt-brand-accent-lighter);
     }
     .notification-btn {
       display: flex;
@@ -181,26 +179,26 @@ import { IconsModule } from '@/shared/icons.module';
       gap: 8px;
     }
     .user-area:hover .user-avatar {
-      background-color: #e3f2fd;
+      background-color: var(--dt-brand-accent-lighter);
     }
     .user-avatar {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #f0f6ff;
+      background: var(--dt-brand-accent-lighter);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #448aff;
+      color: var(--dt-icon-accent);
       transition: background-color 0.2s;
     }
     .user-name {
       font-size: 14px;
-      color: #212121;
+      color: var(--dt-text-primary);
       white-space: nowrap;
     }
     .user-chevron {
-      color: #757575;
+      color: var(--dt-icon-primary);
     }
     @media (max-width: 1023px) {
       .header-left {

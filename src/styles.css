@@ -35,6 +35,95 @@
 @tailwind utilities;
 
 /* ============================================
+   Дизайн-токены — CSS-переменные (--dt-*)
+   Источник: materials/Проверка/tokens 1.json
+   Используются в inline-стилях Angular [style.*]
+   ============================================ */
+
+:root {
+  /* Brand */
+  --dt-brand-accent: #448AFF;
+  --dt-brand-accent-light: #A8C9FF;
+  --dt-brand-accent-lighter: #F0F5FF;
+  --dt-brand-accent-lightest: #F5F9FF;
+  --dt-brand-accent-dark: #2651B5;
+  --dt-brand-accent-darker: #162A69;
+  --dt-brand-positive: #14B456;
+  --dt-brand-positive-light: #97E8B9;
+  --dt-brand-positive-lighter: #EBFBF2;
+  --dt-brand-positive-lightest: #F3FCF7;
+  --dt-brand-positive-dark: #0F852C;
+  --dt-brand-positive-darker: #0A571A;
+  --dt-brand-warning: #FFAB40;
+  --dt-brand-warning-light: #FFD9A8;
+  --dt-brand-warning-lighter: #FFF9F0;
+  --dt-brand-warning-lightest: #FFFCF8;
+  --dt-brand-warning-dark: #EA7806;
+  --dt-brand-warning-darker: #994000;
+  --dt-brand-negative: #FF5252;
+  --dt-brand-negative-light: #FFB8B8;
+  --dt-brand-negative-lighter: #FFF2F2;
+  --dt-brand-negative-lightest: #FFF8F8;
+  --dt-brand-negative-dark: #DE1A12;
+  --dt-brand-negative-darker: #7F0F0A;
+
+  /* Surface */
+  --dt-surface-primary: #FFFFFF;
+  --dt-surface-hover: #F5F5F5;
+  --dt-surface-selected: #F5F5F5;
+  --dt-surface-press: #E0E0E0;
+  --dt-surface-disable: #F5F5F5;
+  --dt-surface-variant: #F8F9FC;
+  --dt-surface-snack-tooltip: #424242;
+  --dt-surface-sidebar-selected: #F0F5FF;
+  --dt-surface-sidebar-active: #A8C9FF;
+
+  /* Text */
+  --dt-text-primary: #333333;
+  --dt-text-secondary: #616161;
+  --dt-text-placeholder: #D6D6D6;
+  --dt-text-disable: #9E9E9E;
+  --dt-text-inversive: #FFFFFF;
+  --dt-text-accent: #448AFF;
+  --dt-text-positive: #14B456;
+  --dt-text-warning: #EA7806;
+  --dt-text-negative: #FF5252;
+
+  /* Icon */
+  --dt-icon-primary: #616161;
+  --dt-icon-inversive: #FFFFFF;
+  --dt-icon-disable: #9E9E9E;
+  --dt-icon-accent: #448AFF;
+  --dt-icon-positive: #14B456;
+  --dt-icon-warning: #EA7806;
+  --dt-icon-negative: #FF5252;
+
+  /* Stroke / Border */
+  --dt-stroke-default: #E0E0E0;
+  --dt-stroke-hover: #9E9E9E;
+  --dt-stroke-disable: #EBEBEB;
+  --dt-stroke-accent: #448AFF;
+  --dt-stroke-positive: #14B456;
+  --dt-stroke-warning: #FFAB40;
+  --dt-stroke-negative: #FF5252;
+
+  /* Table */
+  --dt-table-default: #FFFFFF;
+  --dt-table-hover: #F5F5F5;
+  --dt-table-selected: #EBEBEB;
+  --dt-table-head: #F0F5FF;
+  --dt-table-head-group: #E8F0FF;
+  --dt-table-zebra: #F5F5F5;
+  --dt-table-group: #EBEBEB;
+
+  /* Shadows */
+  --dt-shadow-sl: 0 2px 2px 0 rgba(33,33,33,0.04), 0 0 4px 0 rgba(33,33,33,0.12);
+  --dt-shadow-s: 0 4px 6px 0 rgba(33,33,33,0.10), 0 0 16px 0 rgba(33,33,33,0.12);
+  --dt-shadow-m: 0 10px 24px 0 rgba(33,33,33,0.12), 0 0 28px 0 rgba(33,33,33,0.12);
+  --dt-shadow-xl: 0 12px 16px 0 rgba(33,33,33,0.16), 0 0 32px 0 rgba(33,33,33,0.16);
+}
+
+/* ============================================
    Web Design System — Global Styles
    Имитирует внешний вид Web (Angular 16 + Material)
    ============================================ */

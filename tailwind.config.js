@@ -6,6 +6,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // ── Существующие цвета (app, surface, border, text, sidebar) ──
         app: {
           primary: '#1976D2',
           'primary-dark': '#1565C0',
@@ -44,6 +45,106 @@ module.exports = {
           text: '#ECEFF1',
           'text-muted': '#90A4AE',
         },
+
+        // ── Дизайн-токены (dt-*) — из tokens 1.json ──
+
+        'dt-brand': {
+          accent:          '#448AFF',
+          'accent-light':  '#A8C9FF',
+          'accent-lighter': '#F0F5FF',
+          'accent-lightest': '#F5F9FF',
+          'accent-dark':   '#2651B5',
+          'accent-darker': '#162A69',
+          positive:         '#14B456',
+          'positive-light': '#97E8B9',
+          'positive-lighter': '#EBFBF2',
+          'positive-lightest': '#F3FCF7',
+          'positive-dark':  '#0F852C',
+          'positive-darker': '#0A571A',
+          warning:          '#FFAB40',
+          'warning-light':  '#FFD9A8',
+          'warning-lighter': '#FFF9F0',
+          'warning-lightest': '#FFFCF8',
+          'warning-dark':   '#EA7806',
+          'warning-darker': '#994000',
+          negative:         '#FF5252',
+          'negative-light': '#FFB8B8',
+          'negative-lighter': '#FFF2F2',
+          'negative-lightest': '#FFF8F8',
+          'negative-dark':  '#DE1A12',
+          'negative-darker': '#7F0F0A',
+        },
+
+        'dt-surface': {
+          primary:  '#FFFFFF',
+          hover:    '#F5F5F5',
+          selected: '#F5F5F5',
+          press:    '#E0E0E0',
+          disable:  '#F5F5F5',
+          variant:  '#F8F9FC',
+          'snack-tooltip': '#424242',
+          'sidebar-selected': '#F0F5FF',
+          'sidebar-active':   '#A8C9FF',
+        },
+
+        'dt-text': {
+          primary:     '#333333',
+          secondary:   '#616161',
+          placeholder: '#D6D6D6',
+          disable:     '#9E9E9E',
+          inversive:   '#FFFFFF',
+          accent:      '#448AFF',
+          positive:    '#14B456',
+          warning:     '#EA7806',
+          negative:    '#FF5252',
+        },
+
+        'dt-icon': {
+          primary:   '#616161',
+          inversive: '#FFFFFF',
+          disable:   '#9E9E9E',
+          accent:    '#448AFF',
+          positive:  '#14B456',
+          warning:   '#EA7806',
+          negative:  '#FF5252',
+        },
+
+        'dt-stroke': {
+          DEFAULT:  '#E0E0E0',
+          hover:    '#9E9E9E',
+          disable:  '#EBEBEB',
+          accent:   '#448AFF',
+          positive: '#14B456',
+          warning:  '#FFAB40',
+          negative: '#FF5252',
+        },
+
+        'dt-table': {
+          DEFAULT:    '#FFFFFF',
+          hover:      '#F5F5F5',
+          selected:   '#EBEBEB',
+          head:       '#F0F5FF',
+          'head-group': '#E8F0FF',
+          zebra:      '#F5F5F5',
+          group:      '#EBEBEB',
+        },
+
+        'dt-neutral': {
+          0:   '#FFFFFF',
+          10:  '#FAFAFA',
+          50:  '#F5F5F5',
+          100: '#EBEBEB',
+          200: '#E0E0E0',
+          300: '#D6D6D6',
+          400: '#BDBDBD',
+          500: '#9E9E9E',
+          600: '#757575',
+          700: '#616161',
+          800: '#424242',
+          900: '#333333',
+          950: '#212121',
+          990: '#121212',
+        },
       },
       fontFamily: {
         sans: ['Roboto', 'Arial', 'sans-serif'],
@@ -61,6 +162,12 @@ module.exports = {
         'card-hover': '0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12)',
         'modal': '0 11px 15px -7px rgba(0,0,0,0.2), 0 24px 38px 3px rgba(0,0,0,0.14)',
         'dropdown': '0 2px 8px rgba(0,0,0,0.15)',
+
+        // Дизайн-токены теней (из tokens 1.json → shadows.default)
+        'dt-sl': '0 2px 2px 0 rgba(33,33,33,0.04), 0 0 4px 0 rgba(33,33,33,0.12)',
+        'dt-s':  '0 4px 6px 0 rgba(33,33,33,0.10), 0 0 16px 0 rgba(33,33,33,0.12)',
+        'dt-m':  '0 10px 24px 0 rgba(33,33,33,0.12), 0 0 28px 0 rgba(33,33,33,0.12)',
+        'dt-xl': '0 12px 16px 0 rgba(33,33,33,0.16), 0 0 32px 0 rgba(33,33,33,0.16)',
       },
       borderRadius: {
         'sm': '2px',

@@ -150,6 +150,10 @@ import {
   FileAudio,
   // Arrivals area emulation
   Pause,
+  // Inspector vertical alignment
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
 } from 'lucide-angular';
 
 /**
@@ -308,6 +312,10 @@ const icons = {
   FileAudio,
   // Arrivals area emulation
   Pause,
+  // Inspector vertical alignment
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
 };
 
 @NgModule({

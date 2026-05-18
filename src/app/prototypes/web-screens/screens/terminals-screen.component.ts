@@ -53,11 +53,11 @@ import { ArrivalTerminal } from '../types';
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     .page-header { margin-bottom: 20px; }
     .page-title-row { display: flex; align-items: center; justify-content: space-between; }
-    .page-title { font-size: 24px; font-weight: 500; color: #212121; margin: 0; }
+    .page-title { font-size: 24px; font-weight: 500; color: var(--dt-text-primary); margin: 0; }
     .header-actions { display: flex; gap: 8px; }
     .app-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; height: 36px; border: none; border-radius: 4px; font-size: 14px; font-weight: 500; font-family: Roboto, sans-serif; cursor: pointer; transition: all 0.2s; }
-    .app-btn-primary { background-color: #448aff; color: #fff; }
-    .app-btn-primary:hover { background-color: #2979ff; }
+    .app-btn-primary { background-color: var(--dt-brand-accent); color: var(--dt-text-inversive); }
+    .app-btn-primary:hover { background-color: var(--dt-brand-accent-dark); }
     .table-container { border-radius: 4px; overflow: hidden; }
     .status-cell { display: flex; align-items: center; gap: 8px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }

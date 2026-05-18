@@ -89,7 +89,7 @@ interface ScreenTile {
     .multiscreen-page {
       position: relative;
       min-height: calc(100vh - 64px - 48px);
-      background: #ffffff;
+      background: var(--dt-surface-primary);
       font-family: Arial, Helvetica, sans-serif;
     }
 
@@ -106,14 +106,14 @@ interface ScreenTile {
       border: none;
       border-radius: 4px;
       background: rgba(0, 0, 0, 0.06);
-      color: #616161;
+      color: var(--dt-text-secondary);
       font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
     }
     .back-btn:hover {
       background: rgba(0, 0, 0, 0.12);
-      color: #212121;
+      color: var(--dt-text-primary);
     }
 
     /* ─── Кнопка перезагрузки ─── */
@@ -129,14 +129,14 @@ interface ScreenTile {
       border: none;
       border-radius: 4px;
       background: rgba(0, 0, 0, 0.06);
-      color: #616161;
+      color: var(--dt-text-secondary);
       font-size: 13px;
       cursor: pointer;
       transition: background 0.2s;
     }
     .reload-btn:hover {
       background: rgba(0, 0, 0, 0.12);
-      color: #212121;
+      color: var(--dt-text-primary);
     }
 
     /* ─── Toast ─── */
@@ -150,8 +150,8 @@ interface ScreenTile {
       gap: 8px;
       padding: 10px 20px;
       border-radius: 6px;
-      background: #323232;
-      color: #fff;
+      background: var(--dt-surface-snack-tooltip);
+      color: var(--dt-text-inversive);
       font-size: 13px;
       font-weight: 500;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -218,7 +218,7 @@ interface ScreenTile {
       z-index: 30;
       padding: 4px 10px;
       background: rgba(0, 0, 0, 0.8);
-      color: #ffffff;
+      color: var(--dt-text-inversive);
       font-size: 13px;
       font-family: monospace;
       border-radius: 4px;
@@ -240,19 +240,19 @@ interface ScreenTile {
     .resolution-title {
       font-size: 26px;
       font-weight: 700;
-      color: #212121;
+      color: var(--dt-text-primary);
       margin: 0 0 8px;
       text-align: center;
     }
     .resolution-value {
       font-size: 20px;
-      color: #757575;
+      color: var(--dt-text-secondary);
       margin: 0 0 40px;
       text-align: center;
     }
     .select-label {
       font-size: 17px;
-      color: #424242;
+      color: var(--dt-text-primary);
       margin: 0 0 24px;
       text-align: center;
     }
@@ -271,14 +271,14 @@ interface ScreenTile {
       justify-content: center;
       width: 150px;
       height: 96px;
-      background: #E0E0E0;
+      background: var(--dt-surface-press);
       border-radius: 6px;
       cursor: pointer;
       transition: background 0.2s, box-shadow 0.2s;
       user-select: none;
     }
     .screen-tile:hover {
-      background: #BDBDBD;
+      background: var(--dt-stroke-hover);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
     .screen-tile:active {
@@ -287,12 +287,12 @@ interface ScreenTile {
     .tile-name {
       font-size: 17px;
       font-weight: 600;
-      color: #212121;
+      color: var(--dt-text-primary);
       line-height: 1.3;
     }
     .tile-id {
       font-size: 15px;
-      color: #424242;
+      color: var(--dt-text-primary);
       line-height: 1.3;
     }
   `],

@@ -22,16 +22,16 @@ import { IconsModule } from '@/shared/icons.module';
       min-height: 300px;
       padding: 40px;
     }
-    .stub-icon { color: #bdbdbd; }
+    .stub-icon { color: var(--dt-text-disable); }
     .stub-title {
       font-size: 18px;
       font-weight: 500;
-      color: #757575;
+      color: var(--dt-text-secondary);
       margin: 16px 0 8px;
     }
     .stub-text {
       font-size: 14px;
-      color: #9e9e9e;
+      color: var(--dt-text-disable);
     }
   `],
 })
