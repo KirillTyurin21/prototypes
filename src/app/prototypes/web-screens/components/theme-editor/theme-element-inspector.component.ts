@@ -103,8 +103,7 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
 
     <!-- ── Price element (Сумма блюда) ── -->
     <ng-container *ngIf="element.type === 'price'">
-      <div class="field-group">
-        <label class="field-label">Номенклатура</label>
+      <app-collapsible-section title="Номенклатура" [expanded]="true">
         <div *ngIf="!showProductNavigator" class="product-binding">
           <div *ngIf="element.productName" class="product-selected">
             <lucide-icon name="package" [size]="16" class="product-icon"></lucide-icon>
@@ -112,10 +111,20 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
             <span *ngIf="element.sizeName" class="product-size">({{ element.sizeName }})</span>
             <button class="product-clear-btn" (click)="clearProductBinding()" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
           </div>
+          <div *ngIf="!element.productName" class="product-empty">
+            <lucide-icon name="info" [size]="14"></lucide-icon>
+            <span>Товар не выбран</span>
+          </div>
           <button class="product-select-btn" (click)="openProductNavigator()">
             <lucide-icon name="search" [size]="16"></lucide-icon>
-            {{ element.productName ? 'Изменить' : 'Выбрать товар' }}
+            {{ element.productName ? 'Изменить товар' : 'Выбрать товар' }}
           </button>
+          <div *ngIf="element.productId && availableSizes.length > 1" class="size-selector">
+            <label class="field-label">Размер</label>
+            <select class="field-input" [ngModel]="element.sizeId" (ngModelChange)="onSizeChange($event)">
+              <option *ngFor="let size of availableSizes" [ngValue]="size.id">{{ size.name }}</option>
+            </select>
+          </div>
         </div>
         <div *ngIf="showProductNavigator" class="product-navigator">
           <div class="nav-header">
@@ -134,14 +143,31 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
             <div *ngIf="currentCatalogItems.length === 0" class="nav-empty">Нет элементов</div>
           </div>
         </div>
-      </div>
+      </app-collapsible-section>
 
-      <div *ngIf="element.productId && availableSizes.length > 1" class="field-group">
-        <label class="field-label">Размер</label>
-        <select class="field-input" [ngModel]="element.sizeId" (ngModelChange)="onSizeChange($event)">
-          <option *ngFor="let size of availableSizes" [ngValue]="size.id">{{ size.name }}</option>
-        </select>
-      </div>
+      <app-collapsible-section title="Валюта">
+        <div class="currency-toggle">
+          <label class="toggle-row">
+            <input type="checkbox" [ngModel]="element.showCurrency" (ngModelChange)="element.showCurrency = $event" />
+            <span class="toggle-label">Показывать символ валюты</span>
+          </label>
+        </div>
+        <div *ngIf="element.showCurrency" class="currency-settings">
+          <div class="field-group">
+            <label class="field-label">Символ</label>
+            <select class="field-input" [ngModel]="element.currencySymbol" (ngModelChange)="element.currencySymbol = $event">
+              <option *ngFor="let c of currencyOptions" [ngValue]="c.value">{{ c.label }}</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Позиция</label>
+            <select class="field-input" [ngModel]="element.currencyPosition" (ngModelChange)="element.currencyPosition = $event">
+              <option value="after">После суммы (350 ₽)</option>
+              <option value="before">До суммы (₽ 350)</option>
+            </select>
+          </div>
+        </div>
+      </app-collapsible-section>
 
       <app-collapsible-section title="Макет">
         <app-layout-fields
@@ -244,6 +270,24 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
     .nav-item-name { flex: 1; font-size: 13px; color: #333; }
     .nav-chevron { color: #bdbdbd; }
     .nav-empty { padding: 20px; text-align: center; font-size: 13px; color: #9e9e9e; }
+
+    /* Product empty state */
+    .product-empty {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 10px; background: #fafafa; border: 1px dashed #e0e0e0;
+      border-radius: 4px; font-size: 12px; color: #9e9e9e;
+    }
+    .size-selector { margin-top: 4px; }
+
+    /* Currency styles */
+    .currency-toggle { margin-bottom: 4px; }
+    .toggle-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: #333; cursor: pointer;
+    }
+    .toggle-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+    .toggle-label { user-select: none; }
+    .currency-settings { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
   `],
 })
 export class ThemeElementInspectorComponent implements OnChanges {
@@ -255,6 +299,21 @@ export class ThemeElementInspectorComponent implements OnChanges {
   currentGroupId = 'root';
   currentGroupName = '';
   availableSizes: { id: string; name: string }[] = [];
+
+  /* ── Currency Options ── */
+  currencyOptions = [
+    { value: '₽', label: '₽ — Российский рубль' },
+    { value: '$', label: '$ — Доллар США' },
+    { value: '€', label: '€ — Евро' },
+    { value: '£', label: '£ — Фунт стерлингов' },
+    { value: '¥', label: '¥ — Японская иена / Юань' },
+    { value: '₸', label: '₸ — Казахстанский тенге' },
+    { value: '₴', label: '₴ — Украинская гривна' },
+    { value: '₺', label: '₺ — Турецкая лира' },
+    { value: '₾', label: '₾ — Грузинский лари' },
+    { value: '֏', label: '֏ — Армянский драм' },
+    { value: 'сум', label: 'сум — Узбекский сум' },
+  ];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['element'] && this.element?.type === 'price') {

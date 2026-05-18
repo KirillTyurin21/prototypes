@@ -125,6 +125,9 @@ export interface ArrivalsThemeElement {
   productName?: string;
   sizeId?: string | null;
   sizeName?: string;
+  showCurrency?: boolean;
+  currencySymbol?: string;
+  currencyPosition?: 'after' | 'before';
   // Order items (Состав заказа)
   orderDisplayMode?: 'ready-only' | 'all';
   orderTriggerStatus?: string;
