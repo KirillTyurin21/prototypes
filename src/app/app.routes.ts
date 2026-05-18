@@ -90,10 +90,10 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'prototype/halyk-consent',
+        path: 'prototype/titan',
         loadChildren: () =>
-          import('./prototypes/halyk-consent/halyk-consent.routes').then(
-            m => m.HALYK_CONSENT_ROUTES
+          import('./prototypes/titan/titan.routes').then(
+            m => m.TITAN_ROUTES
           ),
       },
       // Добавляй новые прототипы здесь

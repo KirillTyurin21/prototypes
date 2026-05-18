@@ -71,10 +71,10 @@ export const PROTOTYPES: PrototypeEntry[] = [
     description: 'Визуальный справочник дизайн-токенов: цвета, типографика, отступы, компоненты',
   },
   {
-    path: '/prototype/halyk-consent',
-    label: 'Halyk — API Key Consent',
+    path: '/prototype/titan',
+    label: 'Titan — API Key Consent',
     icon: 'key-round',
-    description: 'Прототип управления доступом внешних систем к API ресторана через consent-механизм',
+    description: 'Управление доступом внешних систем к API ресторана через consent-механизм',
   },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];
