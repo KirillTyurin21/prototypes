@@ -154,6 +154,12 @@ import {
   AlignStartVertical,
   AlignCenterVertical,
   AlignEndVertical,
+  // Halyk Consent prototype
+  Plug,
+  ShieldCheck,
+  Inbox,
+  Undo2,
+  CheckCircle,
 } from 'lucide-angular';
 
 /**
@@ -316,6 +322,12 @@ const icons = {
   AlignStartVertical,
   AlignCenterVertical,
   AlignEndVertical,
+  // Halyk Consent prototype
+  Plug,
+  ShieldCheck,
+  Inbox,
+  Undo2,
+  CheckCircle,
 };
 
 @NgModule({

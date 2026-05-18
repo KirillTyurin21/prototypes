@@ -129,6 +129,8 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/aurora/changelog.data');
       case 'design-tokens':
         return import('../../prototypes/design-tokens/changelog.data');
+      case 'halyk-consent':
+        return import('../../prototypes/halyk-consent/changelog.data');
       default:
         return Promise.reject('Unknown prototype');
     }

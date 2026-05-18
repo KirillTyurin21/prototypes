@@ -89,6 +89,13 @@ export const routes: Routes = [
             m => m.DESIGN_TOKENS_ROUTES
           ),
       },
+      {
+        path: 'prototype/halyk-consent',
+        loadChildren: () =>
+          import('./prototypes/halyk-consent/halyk-consent.routes').then(
+            m => m.HALYK_CONSENT_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL
