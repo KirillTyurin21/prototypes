@@ -139,7 +139,6 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <div *ngIf="element.productId && availableSizes.length > 1" class="field-group">
         <label class="field-label">Размер</label>
         <select class="field-input" [ngModel]="element.sizeId" (ngModelChange)="onSizeChange($event)">
-          <option [ngValue]="null">Без размера</option>
           <option *ngFor="let size of availableSizes" [ngValue]="size.id">{{ size.name }}</option>
         </select>
       </div>
