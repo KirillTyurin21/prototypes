@@ -1,23 +1,19 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   UiBadgeComponent,
   UiButtonComponent,
-  UiCardComponent,
-  UiCardContentComponent,
-  UiInputComponent,
-  UiModalComponent,
   UiConfirmDialogComponent,
+  UiModalComponent,
   UiStatusDotComponent,
-  UiTextareaComponent,
 } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
-import { AccessRequest, AccessRequestStatus, AuditLogEntry } from '../types';
+import { AccessRequest, AccessRequestStatus, IntegrationStatus, AuditLogEntry } from '../types';
 import { MOCK_REQUESTS } from '../data/mock-data';
 
-type TabId = 'requests' | 'connections';
+type SidebarSection = 'requests' | 'plugin';
 type FilterStatus = 'all' | 'pending' | 'active' | 'rejected' | 'revoked';
 
 @Component({
@@ -28,345 +24,402 @@ type FilterStatus = 'all' | 'pending' | 'active' | 'rejected' | 'revoked';
     FormsModule,
     UiBadgeComponent,
     UiButtonComponent,
-    UiCardComponent,
-    UiCardContentComponent,
-    UiInputComponent,
-    UiModalComponent,
     UiConfirmDialogComponent,
+    UiModalComponent,
     UiStatusDotComponent,
-    UiTextareaComponent,
     IconsModule,
   ],
   template: `
-    <div class="p-6 max-w-5xl mx-auto animate-fade-in">
-      <!-- Page Header -->
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Управление доступом к API</h1>
-          <p class="text-sm text-gray-500 mt-1">Consent-механизм для внешних интеграций</p>
+    <!-- Header (iiko Web style) -->
+    <header class="border-b border-gray-200 bg-white">
+      <div class="flex h-14 items-center gap-4 px-4">
+        <div class="flex items-center gap-2">
+          <svg width="60" height="24" viewBox="0 0 60 24" fill="none" class="text-[#E94B35]">
+            <path d="M0 0H8V24H0V0Z" fill="currentColor" />
+            <path d="M12 0H20V24H12V0Z" fill="currentColor" />
+            <path d="M28 7L32 0H40L36 7H44V17H36L40 24H32L28 17V7Z" fill="currentColor" />
+            <path d="M52 0C56.4183 0 60 3.58172 60 8V16C60 20.4183 56.4183 24 52 24C47.5817 24 44 20.4183 44 16V8C44 3.58172 47.5817 0 52 0Z" fill="currentColor" />
+          </svg>
         </div>
-        <button
-          (click)="showPluginPanel = true"
-          class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600
-                 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-200 transition-colors">
-          <lucide-icon name="monitor-smartphone" [size]="14"></lucide-icon>
-          Реакция плагина
-        </button>
-      </div>
-
-      <!-- Tabs -->
-      <div class="flex gap-1 mb-6 border-b border-gray-200">
-        <button
-          (click)="activeTab = 'requests'"
-          [class]="activeTab === 'requests'
-            ? 'px-4 py-2.5 text-sm font-medium border-b-2 border-app-primary text-app-primary'
-            : 'px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 border-b-2 border-transparent'">
-          <span class="flex items-center gap-1.5">
-            <lucide-icon name="inbox" [size]="14"></lucide-icon>
-            Запросы доступа
-            <span *ngIf="pendingCount > 0"
-                  class="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full">
-              {{ pendingCount }}
-            </span>
-          </span>
-        </button>
-        <button
-          (click)="activeTab = 'connections'"
-          [class]="activeTab === 'connections'
-            ? 'px-4 py-2.5 text-sm font-medium border-b-2 border-app-primary text-app-primary'
-            : 'px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 border-b-2 border-transparent'">
-          <span class="flex items-center gap-1.5">
-            <lucide-icon name="plug" [size]="14"></lucide-icon>
-            Подключения
-            <span *ngIf="activeCount > 0"
-                  class="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-green-100 text-green-700 rounded-full">
-              {{ activeCount }}
-            </span>
-          </span>
-        </button>
-      </div>
-
-      <!-- TAB: Requests -->
-      <div *ngIf="activeTab === 'requests'">
-        <!-- Filter bar -->
-        <div class="flex items-center gap-3 mb-4">
-          <div class="flex gap-1 bg-gray-100 p-1 rounded-lg">
-            <button *ngFor="let f of filters"
-                    (click)="filterStatus = f.id"
-                    [class]="filterStatus === f.id
-                      ? 'px-3 py-1.5 text-xs font-medium bg-white text-gray-900 rounded-md shadow-sm'
-                      : 'px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 rounded-md'">
-              {{ f.label }}
-              <span *ngIf="f.count > 0" class="ml-1 text-[10px] opacity-60">({{ f.count }})</span>
-            </button>
+        <div class="ml-auto flex items-center gap-2">
+          <div class="relative w-64">
+            <lucide-icon name="search" [size]="16"
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none">
+            </lucide-icon>
+            <input type="text" placeholder="Поиск по партнёрам..."
+                   [(ngModel)]="searchQuery"
+                   class="w-full h-9 pl-9 pr-3 text-sm border border-gray-300 rounded-md bg-white
+                          placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all" />
           </div>
-          <div class="flex-1"></div>
-          <ui-input
-            iconName="search"
-            placeholder="Поиск по партнёру..."
-            [value]="searchQuery"
-            (valueChange)="searchQuery = $event"
-            class="w-56">
-          </ui-input>
+          <button class="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <lucide-icon name="user" [size]="16"></lucide-icon>
+            <span>admin</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="flex" style="height: calc(100vh - 3.5rem)">
+      <!-- Sidebar Navigation -->
+      <aside class="w-52 border-r border-gray-200 bg-gray-50/70 shrink-0 flex flex-col">
+        <nav class="p-2 space-y-0.5 flex-1">
+          <button
+            (click)="activeSection = 'requests'"
+            class="w-full text-left rounded px-3 py-2 text-sm font-medium transition-colors"
+            [ngClass]="activeSection === 'requests' ? 'bg-gray-200 text-gray-800' : 'text-gray-600 hover:bg-gray-100'">
+            Управление доступом
+          </button>
+          <button
+            (click)="activeSection = 'plugin'"
+            class="w-full flex items-center gap-2 text-left rounded px-3 py-2 text-sm font-medium transition-colors"
+            [ngClass]="activeSection === 'plugin' ? 'bg-gray-200 text-gray-800' : 'text-gray-600 hover:bg-gray-100'">
+            <lucide-icon name="monitor-smartphone" [size]="16"></lucide-icon>
+            Реакция плагина
+          </button>
+        </nav>
+      </aside>
+
+      <!-- SECTION: Управление доступом -->
+      <div *ngIf="activeSection === 'requests'" class="flex-1 flex flex-col min-w-0">
+        <!-- Page Header -->
+        <div class="border-b border-gray-200 bg-white px-6 py-4 shrink-0">
+          <div class="flex items-center justify-between gap-4">
+            <h1 class="text-2xl font-semibold text-gray-900">Управление доступом к API</h1>
+          </div>
         </div>
 
-        <!-- Request cards -->
-        <div class="space-y-3">
-          <div *ngFor="let req of filteredRequests; trackBy: trackById"
-               class="border border-gray-200 rounded-lg bg-white overflow-hidden transition-shadow hover:shadow-sm">
-            <!-- Card header -->
-            <div class="flex items-center gap-3 px-4 py-3 cursor-pointer"
-                 (click)="toggleExpand(req.id)">
-              <lucide-icon
-                [name]="expandedIds.has(req.id) ? 'chevron-down' : 'chevron-right'"
-                [size]="16" class="text-gray-400">
-              </lucide-icon>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-sm text-gray-900">{{ req.partnerName }}</span>
-                  <ui-badge [variant]="getStatusVariant(req.status)">{{ getStatusLabel(req.status) }}</ui-badge>
-                </div>
-                <p class="text-xs text-gray-500 mt-0.5 truncate">{{ req.partnerDescription }}</p>
+        <!-- Split Panel: Request List + Detail -->
+        <div class="flex flex-1 min-h-0">
+          <!-- Left: Request List -->
+          <div class="w-96 border-r border-gray-200 overflow-y-auto shrink-0">
+            <div class="p-4">
+              <!-- Filter tabs -->
+              <div class="flex flex-wrap gap-1 mb-4">
+                <button *ngFor="let f of filters"
+                        (click)="filterStatus = f.id"
+                        class="px-2.5 py-1 text-xs rounded-md transition-colors"
+                        [ngClass]="filterStatus === f.id
+                          ? 'bg-gray-900 text-white'
+                          : 'text-gray-500 hover:bg-gray-100'">
+                  {{ f.label }}
+                  <span *ngIf="f.count > 0 && f.id !== 'all'" class="ml-0.5 opacity-70">{{ f.count }}</span>
+                </button>
               </div>
-              <span class="text-xs text-gray-400">{{ formatDate(req.updatedAt) }}</span>
+
+              <!-- Empty -->
+              <div *ngIf="filteredRequests.length === 0" class="py-8 text-center text-sm text-gray-400">
+                Нет запросов
+              </div>
+
+              <!-- Request items -->
+              <div class="space-y-0.5">
+                <button *ngFor="let req of filteredRequests; trackBy: trackById"
+                        (click)="selectRequest(req)"
+                        class="flex w-full items-center gap-3 rounded px-3 py-2.5 text-left transition-colors"
+                        [ngClass]="selectedRequest?.id === req.id ? 'bg-gray-200' : 'hover:bg-gray-100'">
+                  <!-- Status dot -->
+                  <div class="w-2.5 h-2.5 rounded-full shrink-0" [class]="getStatusDotClass(req.status)"></div>
+                  <!-- Info -->
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">{{ req.partnerName }}</p>
+                    <p class="text-xs text-gray-400 truncate">{{ req.partnerDescription }}</p>
+                  </div>
+                  <!-- Badge -->
+                  <ui-badge [variant]="getStatusVariant(req.status)" class="shrink-0">
+                    {{ getStatusLabel(req.status) }}
+                  </ui-badge>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Detail Panel -->
+          <div class="flex-1 overflow-y-auto bg-white">
+            <!-- No selection -->
+            <div *ngIf="!selectedRequest"
+                 class="flex h-full items-center justify-center text-gray-400 text-sm">
+              Выберите запрос в списке слева для просмотра деталей.
             </div>
 
-            <!-- Card expanded content -->
-            <div *ngIf="expandedIds.has(req.id)" class="border-t border-gray-100 px-4 py-4 bg-gray-50/50">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Left: details -->
+            <!-- Selected request detail -->
+            <div *ngIf="selectedRequest" class="p-6 animate-fade-in">
+              <div class="max-w-2xl space-y-6">
+                <!-- Title -->
                 <div>
-                  <p class="text-xs font-medium text-gray-500 uppercase mb-2">Запрашиваемые разрешения</p>
-                  <div class="flex flex-wrap gap-1.5 mb-4">
-                    <span *ngFor="let scope of req.scopes"
-                          class="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded border border-blue-100">
-                      {{ scope.label }}
-                    </span>
+                  <div class="flex items-center gap-3">
+                    <h2 class="text-xl font-semibold text-gray-900">{{ selectedRequest.partnerName }}</h2>
+                    <ui-badge [variant]="getStatusVariant(selectedRequest.status)">
+                      {{ getStatusLabel(selectedRequest.status) }}
+                    </ui-badge>
                   </div>
+                  <p class="text-sm text-gray-500 mt-1">{{ selectedRequest.partnerDescription }}</p>
+                </div>
 
-                  <div class="space-y-2 text-xs text-gray-600">
-                    <div class="flex gap-2">
-                      <span class="text-gray-400 w-20">Создан:</span>
-                      <span>{{ formatDate(req.createdAt) }}</span>
-                    </div>
-                    <div *ngIf="req.apiKeyPreview" class="flex gap-2">
-                      <span class="text-gray-400 w-20">API Key:</span>
-                      <code class="px-1.5 py-0.5 bg-gray-100 rounded text-gray-700">{{ req.apiKeyPreview }}</code>
-                    </div>
-                    <div *ngIf="req.expiresAt" class="flex gap-2">
-                      <span class="text-gray-400 w-20">Истекает:</span>
-                      <span>{{ formatDate(req.expiresAt) }}</span>
-                    </div>
-                    <div *ngIf="req.rejectionReason" class="flex gap-2">
-                      <span class="text-gray-400 w-20">Причина:</span>
-                      <span class="text-red-600">{{ req.rejectionReason }}</span>
+                <!-- Scopes -->
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">Запрашиваемые разрешения (scope)</label>
+                  <div class="space-y-1.5">
+                    <div *ngFor="let scope of selectedRequest.scopes"
+                         class="flex items-center gap-3 px-3 py-2 border border-gray-200 rounded-md bg-gray-50/50">
+                      <lucide-icon name="shield-check" [size]="16" class="text-blue-500 shrink-0"></lucide-icon>
+                      <div>
+                        <p class="text-sm font-medium text-gray-800">{{ scope.label }}</p>
+                        <p class="text-xs text-gray-400">{{ scope.description }}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Right: audit log -->
-                <div>
-                  <p class="text-xs font-medium text-gray-500 uppercase mb-2">Аудит-лог</p>
-                  <div class="space-y-2">
-                    <div *ngFor="let log of req.auditLog" class="flex items-start gap-2">
-                      <div class="mt-1 w-2 h-2 rounded-full flex-shrink-0" [class]="getAuditDotClass(log.action)"></div>
-                      <div class="text-xs">
-                        <span class="text-gray-700">{{ getAuditLabel(log.action) }}</span>
-                        <span class="text-gray-400"> · {{ log.actor }} · {{ formatDate(log.timestamp) }}</span>
-                        <span *ngIf="log.reason" class="text-gray-500 block">{{ log.reason }}</span>
+                <!-- Key info (if approved) -->
+                <div *ngIf="selectedRequest.apiKeyPreview" class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">API-ключ</label>
+                  <input type="text" readonly [value]="selectedRequest.apiKeyPreview"
+                         class="w-full h-9 px-3 text-sm font-mono border border-gray-300 rounded-md bg-gray-50
+                                text-gray-600 cursor-default" />
+                  <p *ngIf="selectedRequest.expiresAt" class="text-xs text-gray-400">
+                    Истекает: {{ formatDate(selectedRequest.expiresAt) }}
+                  </p>
+                </div>
+
+                <!-- Rejection reason -->
+                <div *ngIf="selectedRequest.rejectionReason" class="space-y-2">
+                  <label class="block text-sm font-medium text-gray-700">Причина отклонения</label>
+                  <div class="px-3 py-2 bg-red-50 border border-red-100 rounded-md text-sm text-red-700">
+                    {{ selectedRequest.rejectionReason }}
+                  </div>
+                </div>
+
+                <!-- Meta info -->
+                <div class="space-y-1 text-xs text-gray-400">
+                  <p>Создан: {{ formatDate(selectedRequest.createdAt) }}</p>
+                  <p>Обновлён: {{ formatDateTime(selectedRequest.updatedAt) }}</p>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-2">
+                  <button *ngIf="selectedRequest.status === 'pending'"
+                          (click)="approveRequest()"
+                          class="h-9 px-4 text-sm font-medium rounded-md transition-colors
+                                 bg-gray-900 text-white hover:bg-gray-800">
+                    Одобрить
+                  </button>
+                  <button *ngIf="selectedRequest.status === 'pending'"
+                          (click)="openRejectDialog()"
+                          class="h-9 px-4 text-sm font-medium rounded-md transition-colors
+                                 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                    Отклонить
+                  </button>
+                  <button *ngIf="selectedRequest.status === 'active' || selectedRequest.status === 'approved'"
+                          (click)="showRevokeConfirm = true"
+                          class="h-9 px-4 text-sm font-medium rounded-md transition-colors
+                                 border border-red-200 bg-white text-red-600 hover:bg-red-50">
+                    Отозвать ключ
+                  </button>
+                  <button *ngIf="selectedRequest.status === 'rejected'"
+                          (click)="revertRejection()"
+                          class="h-9 px-4 text-sm font-medium rounded-md transition-colors
+                                 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                    Вернуть на рассмотрение
+                  </button>
+                </div>
+
+                <!-- Audit log -->
+                <div class="border-t border-gray-200 pt-4 mt-6">
+                  <h3 class="text-sm font-semibold text-gray-700 mb-3">Аудит-лог</h3>
+                  <div class="space-y-3">
+                    <div *ngFor="let log of selectedRequest.auditLog" class="flex items-start gap-3">
+                      <div class="mt-1.5 w-2 h-2 rounded-full shrink-0" [class]="getAuditDotClass(log.action)"></div>
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          <span class="font-medium">{{ getAuditLabel(log.action) }}</span>
+                          <span class="text-gray-400"> · {{ log.actor }}</span>
+                        </p>
+                        <p class="text-xs text-gray-400">{{ formatDateTime(log.timestamp) }}</p>
+                        <p *ngIf="log.reason" class="text-xs text-gray-500 mt-0.5">{{ log.reason }}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <!-- Actions -->
-              <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-200">
-                <ui-button *ngIf="req.status === 'pending'" variant="primary" size="sm" iconName="check"
-                           (click)="approveRequest(req)">
-                  Одобрить
-                </ui-button>
-                <ui-button *ngIf="req.status === 'pending'" variant="outline" size="sm" iconName="x-circle"
-                           (click)="openRejectDialog(req)">
-                  Отклонить
-                </ui-button>
-                <ui-button *ngIf="req.status === 'active' || req.status === 'approved'" variant="danger" size="sm" iconName="shield-off"
-                           (click)="openRevokeDialog(req)">
-                  Отозвать ключ
-                </ui-button>
-                <ui-button *ngIf="req.status === 'rejected'" variant="outline" size="sm" iconName="undo-2"
-                           (click)="revertRejection(req)">
-                  Вернуть на рассмотрение
-                </ui-button>
-              </div>
             </div>
-          </div>
-
-          <!-- Empty state -->
-          <div *ngIf="filteredRequests.length === 0"
-               class="text-center py-12 text-gray-400">
-            <lucide-icon name="inbox" [size]="40" class="mx-auto mb-3 opacity-40"></lucide-icon>
-            <p class="text-sm">Нет запросов по выбранному фильтру</p>
           </div>
         </div>
       </div>
 
-      <!-- TAB: Connections -->
-      <div *ngIf="activeTab === 'connections'">
-        <div class="space-y-3">
-          <div *ngFor="let req of activeRequests"
-               class="border border-gray-200 rounded-lg bg-white p-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
-                  <lucide-icon name="plug" [size]="18" class="text-green-600"></lucide-icon>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ req.partnerName }}</p>
-                  <p class="text-xs text-gray-500">{{ req.partnerDescription }}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <ui-badge variant="success">Активен</ui-badge>
-                <p *ngIf="req.apiKeyPreview" class="text-[10px] text-gray-400 mt-1 font-mono">{{ req.apiKeyPreview }}</p>
-              </div>
-            </div>
-            <div class="mt-3 pt-3 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
-              <div class="flex items-center gap-1">
-                <lucide-icon name="key-round" [size]="12"></lucide-icon>
-                <span>Разрешения: {{ req.scopes.map(scopeLabel).join(', ') }}</span>
-              </div>
-              <div *ngIf="req.expiresAt" class="flex items-center gap-1">
-                <lucide-icon name="clock" [size]="12"></lucide-icon>
-                <span>До {{ formatDate(req.expiresAt!) }}</span>
-              </div>
-            </div>
-          </div>
+      <!-- SECTION: Реакция плагина -->
+      <div *ngIf="activeSection === 'plugin'" class="flex-1 flex flex-col min-w-0">
+        <div class="border-b border-gray-200 bg-white px-6 py-4 shrink-0">
+          <h1 class="text-2xl font-semibold text-gray-900">Реакция плагина Front</h1>
+        </div>
+        <div class="flex-1 overflow-y-auto bg-white p-6">
+          <div class="max-w-2xl space-y-6">
+            <p class="text-sm text-gray-500">
+              Имитация того, как плагин терминала реагирует на изменение
+              <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono">integration_status</code>
+              через polling (каждые 60 сек).
+            </p>
 
-          <!-- Empty state -->
-          <div *ngIf="activeRequests.length === 0"
-               class="text-center py-12 text-gray-400">
-            <lucide-icon name="plug" [size]="40" class="mx-auto mb-3 opacity-40"></lucide-icon>
-            <p class="text-sm">Нет активных подключений</p>
-            <p class="text-xs mt-1">Одобрите запрос на вкладке «Запросы доступа»</p>
+            <!-- Status indicator -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Текущий статус интеграции</label>
+              <div class="px-4 py-3 rounded-md border" [class]="getPluginPanelClass()">
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full" [class]="getPluginDotClass()"></div>
+                  <span class="text-sm font-mono font-medium">{{ pluginStatus }}</span>
+                </div>
+                <p *ngIf="pluginReason" class="text-xs text-gray-500 mt-1 ml-[18px]">{{ pluginReason }}</p>
+              </div>
+            </div>
+
+            <!-- Payment types visibility -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Видимость типов оплат (для кассира)</label>
+              <div class="border border-gray-200 rounded-md divide-y divide-gray-100">
+                <div class="flex items-center justify-between px-4 py-2.5"
+                     [class]="pluginPaymentsVisible ? 'bg-white' : 'bg-gray-50'">
+                  <span class="text-sm" [class]="pluginPaymentsVisible ? 'text-gray-800' : 'text-gray-400 line-through'">
+                    QR-оплата (партнёр)
+                  </span>
+                  <span class="text-[11px] font-medium px-2 py-0.5 rounded"
+                        [class]="pluginPaymentsVisible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+                    {{ pluginPaymentsVisible ? 'Виден' : 'Скрыт' }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between px-4 py-2.5"
+                     [class]="pluginPaymentsVisible ? 'bg-white' : 'bg-gray-50'">
+                  <span class="text-sm" [class]="pluginPaymentsVisible ? 'text-gray-800' : 'text-gray-400 line-through'">
+                    Apple Pay (партнёр)
+                  </span>
+                  <span class="text-[11px] font-medium px-2 py-0.5 rounded"
+                        [class]="pluginPaymentsVisible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+                    {{ pluginPaymentsVisible ? 'Виден' : 'Скрыт' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Terminal log -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Лог плагина</label>
+              <div class="p-3 bg-gray-900 rounded-md font-mono text-[11px] text-green-400 max-h-40 overflow-y-auto">
+                <div *ngFor="let log of pluginLogs">{{ log }}</div>
+              </div>
+            </div>
+
+            <!-- Simulation buttons -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">Имитация команд сервера</label>
+              <div class="flex flex-wrap gap-2">
+                <button (click)="simulatePlugin('active', null)"
+                        class="h-9 px-4 text-sm font-medium rounded-md transition-colors bg-gray-900 text-white hover:bg-gray-800">
+                  → active
+                </button>
+                <button (click)="simulatePlugin('inactive', 'Key revoked')"
+                        class="h-9 px-4 text-sm font-medium rounded-md transition-colors border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                  → inactive (revoked)
+                </button>
+                <button (click)="simulatePlugin('blocked', 'rate_limit')"
+                        class="h-9 px-4 text-sm font-medium rounded-md transition-colors border border-red-200 bg-white text-red-600 hover:bg-red-50">
+                  → blocked
+                </button>
+                <button (click)="simulatePlugin('inactive', 'Key expired')"
+                        class="h-9 px-4 text-sm font-medium rounded-md transition-colors border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                  → inactive (TTL)
+                </button>
+              </div>
+            </div>
+
+            <!-- State machine diagram -->
+            <div class="border-t border-gray-200 pt-4">
+              <h3 class="text-sm font-semibold text-gray-700 mb-3">State Machine (маппинг)</h3>
+              <div class="space-y-2 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium">pending</span>
+                  <span class="text-gray-400">→</span>
+                  <span class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded font-medium">inactive</span>
+                  <span class="text-gray-500 ml-1">— оплаты скрыты</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded font-medium">approved / active</span>
+                  <span class="text-gray-400">→</span>
+                  <span class="px-2 py-0.5 bg-green-200 text-green-800 rounded font-medium">active</span>
+                  <span class="text-gray-500 ml-1">— оплаты видны</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded font-medium">rejected / revoked</span>
+                  <span class="text-gray-400">→</span>
+                  <span class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded font-medium">inactive</span>
+                  <span class="text-gray-500 ml-1">— оплаты скрыты</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded font-medium">blocked</span>
+                  <span class="text-gray-400">→</span>
+                  <span class="px-2 py-0.5 bg-red-200 text-red-800 rounded font-medium">blocked</span>
+                  <span class="text-gray-500 ml-1">— оплаты скрыты, причина залогирована</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Plugin Panel (Modal) -->
-      <ui-modal [open]="showPluginPanel" (modalClose)="showPluginPanel = false" title="Реакция плагина Front" size="lg">
-        <div class="space-y-4">
-          <p class="text-sm text-gray-500">
-            Имитация того, как плагин терминала реагирует на изменение <code class="px-1 py-0.5 bg-gray-100 rounded text-xs">integration_status</code>.
-          </p>
-
-          <!-- Status indicator -->
-          <div class="p-4 rounded-lg" [class]="getPluginPanelClass()">
-            <div class="flex items-center gap-2 mb-1">
-              <ui-status-dot [color]="getPluginDotColor()" [pulse]="pluginStatus === 'active'"></ui-status-dot>
-              <span class="text-sm font-medium">integration_status: <strong>{{ pluginStatus }}</strong></span>
-            </div>
-            <p *ngIf="pluginReason" class="text-xs opacity-70 ml-5">{{ pluginReason }}</p>
-          </div>
-
-          <!-- Payment types -->
-          <div class="border border-gray-200 rounded-lg p-3">
-            <p class="text-xs font-medium text-gray-500 uppercase mb-2">Видимость типов оплат</p>
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between p-2 rounded text-sm"
-                   [class]="pluginPaymentsVisible ? 'bg-green-50' : 'bg-gray-50'">
-                <span [class]="pluginPaymentsVisible ? 'text-green-800' : 'text-gray-400 line-through'">
-                  QR-оплата (партнёр)
-                </span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded"
-                      [class]="pluginPaymentsVisible ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'">
-                  {{ pluginPaymentsVisible ? 'Виден' : 'Скрыт' }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between p-2 rounded text-sm"
-                   [class]="pluginPaymentsVisible ? 'bg-green-50' : 'bg-gray-50'">
-                <span [class]="pluginPaymentsVisible ? 'text-green-800' : 'text-gray-400 line-through'">
-                  Apple Pay (партнёр)
-                </span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded"
-                      [class]="pluginPaymentsVisible ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'">
-                  {{ pluginPaymentsVisible ? 'Виден' : 'Скрыт' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Log terminal -->
-          <div class="p-3 bg-gray-900 rounded-lg font-mono text-[11px] text-green-400 max-h-32 overflow-y-auto">
-            <div *ngFor="let log of pluginLogs">{{ log }}</div>
-          </div>
-
-          <!-- Simulation buttons -->
-          <div class="grid grid-cols-2 gap-2">
-            <ui-button variant="primary" size="sm" iconName="check-circle"
-                       (click)="simulatePlugin('active', null)">
-              → active
-            </ui-button>
-            <ui-button variant="outline" size="sm" iconName="x-circle"
-                       (click)="simulatePlugin('inactive', 'Key revoked')">
-              → inactive (revoked)
-            </ui-button>
-            <ui-button variant="danger" size="sm" iconName="shield-off"
-                       (click)="simulatePlugin('blocked', 'rate_limit')">
-              → blocked
-            </ui-button>
-            <ui-button variant="outline" size="sm" iconName="x-circle"
-                       (click)="simulatePlugin('inactive', 'Key expired')">
-              → inactive (TTL)
-            </ui-button>
-          </div>
+    <!-- Reject Modal -->
+    <ui-modal [open]="showRejectModal" (modalClose)="showRejectModal = false" title="Отклонить запрос" size="sm">
+      <div class="space-y-4" *ngIf="selectedRequest">
+        <p class="text-sm text-gray-600">
+          Отклонить запрос от <strong>{{ selectedRequest.partnerName }}</strong>?
+        </p>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Причина отклонения</label>
+          <textarea [(ngModel)]="rejectReason" rows="3" placeholder="Укажите причину..."
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white
+                           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
+                           transition-all resize-none"></textarea>
         </div>
-      </ui-modal>
-
-      <!-- Reject dialog -->
-      <ui-modal [open]="showRejectModal" (modalClose)="showRejectModal = false" title="Отклонить запрос" size="sm">
-        <div class="space-y-4" *ngIf="actionTarget">
-          <p class="text-sm text-gray-600">
-            Отклонить запрос от <strong>{{ actionTarget.partnerName }}</strong>?
-          </p>
-          <ui-textarea
-            label="Причина отклонения"
-            placeholder="Укажите причину..."
-            [(value)]="rejectReason">
-          </ui-textarea>
-          <div class="flex justify-end gap-2">
-            <ui-button variant="ghost" size="sm" (click)="showRejectModal = false">Отмена</ui-button>
-            <ui-button variant="danger" size="sm" (click)="confirmReject()" [disabled]="!rejectReason.trim()">Отклонить</ui-button>
-          </div>
+        <div class="flex justify-end gap-2">
+          <button (click)="showRejectModal = false"
+                  class="h-9 px-4 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+            Отмена
+          </button>
+          <button (click)="confirmReject()" [disabled]="!rejectReason.trim()"
+                  class="h-9 px-4 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            Отклонить
+          </button>
         </div>
-      </ui-modal>
+      </div>
+    </ui-modal>
 
-      <!-- Revoke confirm -->
-      <ui-confirm-dialog
-        [open]="showRevokeConfirm"
-        title="Отозвать API-ключ"
-        [message]="'Отозвать ключ для ' + (actionTarget?.partnerName || '') + '? Это действие заблокирует интеграцию немедленно.'"
-        confirmText="Отозвать"
-        confirmVariant="danger"
-        (confirm)="confirmRevoke()"
-        (cancel)="showRevokeConfirm = false">
-      </ui-confirm-dialog>
+    <!-- Revoke Confirm -->
+    <ui-confirm-dialog
+      [open]="showRevokeConfirm"
+      title="Отозвать API-ключ"
+      [message]="'Отозвать ключ для ' + (selectedRequest?.partnerName || '') + '? Это действие заблокирует интеграцию немедленно.'"
+      confirmText="Отозвать"
+      confirmVariant="danger"
+      (confirm)="confirmRevoke()"
+      (cancel)="showRevokeConfirm = false">
+    </ui-confirm-dialog>
+
+    <!-- Toast -->
+    <div *ngIf="toastMessage"
+         class="fixed bottom-6 right-6 z-50 bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 max-w-sm animate-slide-up">
+      <p class="text-sm font-medium text-gray-900">{{ toastMessage }}</p>
     </div>
   `,
 })
-export class TitanMainScreenComponent {
+export class TitanMainScreenComponent implements OnInit {
   private storage = inject(StorageService);
 
-  // Main state
-  activeTab: TabId = 'requests';
+  // State
+  activeSection: SidebarSection = 'requests';
   filterStatus: FilterStatus = 'all';
   searchQuery = '';
-  expandedIds = new Set<string>();
   requests: AccessRequest[] = [];
+  selectedRequest: AccessRequest | null = null;
 
-  // Plugin panel
-  showPluginPanel = false;
-  pluginStatus: 'active' | 'inactive' | 'blocked' = 'inactive';
+  // Plugin
+  pluginStatus: IntegrationStatus = 'inactive';
   pluginReason: string | null = null;
   pluginPaymentsVisible = false;
   pluginLogs: string[] = ['[INFO] Plugin started. Status: inactive'];
@@ -374,10 +427,10 @@ export class TitanMainScreenComponent {
   // Dialogs
   showRejectModal = false;
   showRevokeConfirm = false;
-  actionTarget: AccessRequest | null = null;
   rejectReason = '';
+  toastMessage = '';
 
-  // Filters definition
+  // Filters
   filters: { id: FilterStatus; label: string; count: number }[] = [];
 
   ngOnInit(): void {
@@ -386,14 +439,6 @@ export class TitanMainScreenComponent {
   }
 
   // --- Computed ---
-
-  get pendingCount(): number {
-    return this.requests.filter(r => r.status === 'pending').length;
-  }
-
-  get activeCount(): number {
-    return this.requests.filter(r => r.status === 'active' || r.status === 'approved').length;
-  }
 
   get filteredRequests(): AccessRequest[] {
     let list = this.requests;
@@ -413,90 +458,80 @@ export class TitanMainScreenComponent {
     return list;
   }
 
-  get activeRequests(): AccessRequest[] {
-    return this.requests.filter(r => r.status === 'active' || r.status === 'approved');
-  }
-
   // --- Actions ---
 
-  toggleExpand(id: string): void {
-    if (this.expandedIds.has(id)) {
-      this.expandedIds.delete(id);
-    } else {
-      this.expandedIds.add(id);
-    }
+  selectRequest(req: AccessRequest): void {
+    this.selectedRequest = req;
   }
 
-  approveRequest(req: AccessRequest): void {
-    req.status = 'active';
-    req.updatedAt = new Date().toISOString();
-    req.apiKeyPreview = 'sk_live_****' + Math.random().toString(36).substring(2, 6);
-    req.expiresAt = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
-    req.auditLog.push({
+  approveRequest(): void {
+    if (!this.selectedRequest) return;
+    this.selectedRequest.status = 'active';
+    this.selectedRequest.updatedAt = new Date().toISOString();
+    this.selectedRequest.apiKeyPreview = 'sk_live_****' + Math.random().toString(36).substring(2, 6);
+    this.selectedRequest.expiresAt = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
+    this.selectedRequest.auditLog.push({
       action: 'approved',
       actor: 'Текущий пользователь',
       timestamp: new Date().toISOString(),
     });
     this.persist();
+    this.showToast('Запрос одобрен');
   }
 
-  openRejectDialog(req: AccessRequest): void {
-    this.actionTarget = req;
+  openRejectDialog(): void {
     this.rejectReason = '';
     this.showRejectModal = true;
   }
 
   confirmReject(): void {
-    if (!this.actionTarget) return;
-    this.actionTarget.status = 'rejected';
-    this.actionTarget.updatedAt = new Date().toISOString();
-    this.actionTarget.rejectionReason = this.rejectReason;
-    this.actionTarget.auditLog.push({
+    if (!this.selectedRequest) return;
+    this.selectedRequest.status = 'rejected';
+    this.selectedRequest.updatedAt = new Date().toISOString();
+    this.selectedRequest.rejectionReason = this.rejectReason;
+    this.selectedRequest.auditLog.push({
       action: 'rejected',
       actor: 'Текущий пользователь',
       timestamp: new Date().toISOString(),
       reason: this.rejectReason,
     });
     this.showRejectModal = false;
-    this.actionTarget = null;
     this.persist();
-  }
-
-  openRevokeDialog(req: AccessRequest): void {
-    this.actionTarget = req;
-    this.showRevokeConfirm = true;
+    this.showToast('Запрос отклонён');
   }
 
   confirmRevoke(): void {
-    if (!this.actionTarget) return;
-    this.actionTarget.status = 'revoked';
-    this.actionTarget.updatedAt = new Date().toISOString();
-    this.actionTarget.auditLog.push({
+    if (!this.selectedRequest) return;
+    this.selectedRequest.status = 'revoked';
+    this.selectedRequest.updatedAt = new Date().toISOString();
+    this.selectedRequest.auditLog.push({
       action: 'revoked',
       actor: 'Текущий пользователь',
       timestamp: new Date().toISOString(),
       reason: 'Отозвано администратором',
     });
     this.showRevokeConfirm = false;
-    this.actionTarget = null;
     this.persist();
+    this.showToast('Ключ отозван');
   }
 
-  revertRejection(req: AccessRequest): void {
-    req.status = 'pending';
-    req.updatedAt = new Date().toISOString();
-    req.rejectionReason = undefined;
-    req.auditLog.push({
+  revertRejection(): void {
+    if (!this.selectedRequest) return;
+    this.selectedRequest.status = 'pending';
+    this.selectedRequest.updatedAt = new Date().toISOString();
+    this.selectedRequest.rejectionReason = undefined;
+    this.selectedRequest.auditLog.push({
       action: 'revert_rejection',
       actor: 'Текущий пользователь',
       timestamp: new Date().toISOString(),
     });
     this.persist();
+    this.showToast('Возвращён на рассмотрение');
   }
 
-  // --- Plugin panel ---
+  // --- Plugin simulation ---
 
-  simulatePlugin(status: 'active' | 'inactive' | 'blocked', reason: string | null): void {
+  simulatePlugin(status: IntegrationStatus, reason: string | null): void {
     const prev = this.pluginStatus;
     this.pluginStatus = status;
     this.pluginReason = reason;
@@ -508,28 +543,28 @@ export class TitanMainScreenComponent {
     } else {
       this.pluginLogs.push('[' + ts + '] Payment types hidden');
     }
-    if (this.pluginLogs.length > 10) {
-      this.pluginLogs = this.pluginLogs.slice(-10);
+    if (this.pluginLogs.length > 12) {
+      this.pluginLogs = this.pluginLogs.slice(-12);
     }
   }
 
   getPluginPanelClass(): string {
     return {
-      active: 'bg-green-50 border border-green-200',
-      inactive: 'bg-gray-50 border border-gray-200',
-      blocked: 'bg-red-50 border border-red-200',
+      active: 'bg-green-50 border-green-200',
+      inactive: 'bg-gray-50 border-gray-200',
+      blocked: 'bg-red-50 border-red-200',
     }[this.pluginStatus];
   }
 
-  getPluginDotColor(): 'green' | 'red' | 'gray' {
-    return { active: 'green' as const, inactive: 'gray' as const, blocked: 'red' as const }[this.pluginStatus];
+  getPluginDotClass(): string {
+    return {
+      active: 'bg-green-500',
+      inactive: 'bg-gray-400',
+      blocked: 'bg-red-500',
+    }[this.pluginStatus];
   }
 
   // --- Helpers ---
-
-  scopeLabel(scope: { label: string }): string {
-    return scope.label;
-  }
 
   trackById(_: number, item: AccessRequest): string {
     return item.id;
@@ -537,6 +572,24 @@ export class TitanMainScreenComponent {
 
   formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  formatDateTime(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+      ', ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  getStatusDotClass(status: AccessRequestStatus): string {
+    const map: Record<AccessRequestStatus, string> = {
+      pending: 'bg-amber-400',
+      approved: 'bg-green-500',
+      active: 'bg-green-500',
+      rejected: 'bg-red-400',
+      revoked: 'bg-red-600',
+      expired: 'bg-gray-400',
+    };
+    return map[status];
   }
 
   getStatusVariant(status: AccessRequestStatus): 'success' | 'warning' | 'danger' | 'default' {
@@ -566,7 +619,7 @@ export class TitanMainScreenComponent {
   getAuditDotClass(action: AuditLogEntry['action']): string {
     const map: Record<string, string> = {
       created: 'bg-blue-400',
-      approved: 'bg-green-400',
+      approved: 'bg-green-500',
       rejected: 'bg-red-400',
       revoked: 'bg-red-600',
       revert_rejection: 'bg-amber-400',
@@ -580,7 +633,7 @@ export class TitanMainScreenComponent {
       approved: 'Одобрен',
       rejected: 'Отклонён',
       revoked: 'Отозван',
-      revert_rejection: 'Возвращён',
+      revert_rejection: 'Возвращён на рассмотрение',
     };
     return map[action] || action;
   }
@@ -598,5 +651,10 @@ export class TitanMainScreenComponent {
       { id: 'rejected', label: 'Отклонённые', count: this.requests.filter(r => r.status === 'rejected').length },
       { id: 'revoked', label: 'Отозванные', count: this.requests.filter(r => r.status === 'revoked').length },
     ];
+  }
+
+  private showToast(msg: string): void {
+    this.toastMessage = msg;
+    setTimeout(() => { this.toastMessage = ''; }, 2500);
   }
 }
