@@ -90,7 +90,8 @@ export type ArrivalsElementType =
   | 'order-items-progress'
   | 'order-items-checklist'
   | 'order-items-cards'
-  | 'area';
+  | 'area'
+  | 'price';
 
 export interface ArrivalsThemeElement {
   id: string;
