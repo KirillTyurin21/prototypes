@@ -131,6 +131,8 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/design-tokens/changelog.data');
       case 'titan':
         return import('../../prototypes/titan/changelog.data');
+      case 'beanshe':
+        return import('../../prototypes/beanshe/changelog.data');
       default:
         return Promise.reject('Unknown prototype');
     }

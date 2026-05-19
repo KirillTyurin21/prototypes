@@ -96,6 +96,13 @@ export const routes: Routes = [
             m => m.TITAN_ROUTES
           ),
       },
+      {
+        path: 'prototype/beanshe',
+        loadChildren: () =>
+          import('./prototypes/beanshe/beanshe.routes').then(
+            m => m.BEANSHE_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL

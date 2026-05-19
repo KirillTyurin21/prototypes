@@ -76,5 +76,11 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'key-round',
     description: 'Управление доступом внешних систем к API ресторана через consent-механизм',
   },
+  {
+    path: '/prototype/beanshe',
+    label: 'Beanshe — Плагин Front',
+    icon: 'coffee',
+    description: 'Плагин интеграции кассового терминала с системой мобильных заказов Beanshe',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];
