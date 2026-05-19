@@ -138,6 +138,10 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
             (change)="element.orderGroupReadyFirst = $any($event.target).checked" />
           Группировать готовые вверху
         </label>
+        <label class="field-check" style="margin-top: 4px;">
+          <input type="checkbox" [(ngModel)]="element.orderDynamicHeight" />
+          Динамическая высота (по количеству блюд)
+        </label>
       </app-collapsible-section>
 
       <!-- Колонки -->
@@ -294,6 +298,12 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
 
     <!-- ── B: Two Zones ── -->
     <ng-container *ngIf="element.type === 'order-items-zones'">
+      <app-collapsible-section title="Данные">
+        <label class="field-check">
+          <input type="checkbox" [(ngModel)]="element.orderDynamicHeight" />
+          Динамическая высота (по количеству блюд)
+        </label>
+      </app-collapsible-section>
       <app-collapsible-section title="Настройки зон">
         <div class="field-group">
           <label class="field-label">Заголовок «Готово»</label>
@@ -339,6 +349,12 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
 
     <!-- ── C: Progress ── -->
     <ng-container *ngIf="element.type === 'order-items-progress'">
+      <app-collapsible-section title="Данные">
+        <label class="field-check">
+          <input type="checkbox" [(ngModel)]="element.orderDynamicHeight" />
+          Динамическая высота (по количеству блюд)
+        </label>
+      </app-collapsible-section>
       <app-collapsible-section title="Прогресс-круг">
         <app-color-field label="Цвет прогресса" [(value)]="element.progressCircleColor!"></app-color-field>
         <app-color-field label="Цвет трека" [(value)]="element.progressTrackColor!"></app-color-field>
@@ -379,6 +395,12 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
 
     <!-- ── D: Checklist ── -->
     <ng-container *ngIf="element.type === 'order-items-checklist'">
+      <app-collapsible-section title="Данные">
+        <label class="field-check">
+          <input type="checkbox" [(ngModel)]="element.orderDynamicHeight" />
+          Динамическая высота (по количеству блюд)
+        </label>
+      </app-collapsible-section>
       <app-collapsible-section title="Настройки чеклиста">
         <label class="field-check" style="margin-bottom: 6px;">
           <input type="checkbox" [(ngModel)]="element.checklistStrikethrough" />
@@ -422,6 +444,12 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
 
     <!-- ── E: Cards ── -->
     <ng-container *ngIf="element.type === 'order-items-cards'">
+      <app-collapsible-section title="Данные">
+        <label class="field-check">
+          <input type="checkbox" [(ngModel)]="element.orderDynamicHeight" />
+          Динамическая высота (по количеству блюд)
+        </label>
+      </app-collapsible-section>
       <app-collapsible-section title="Сетка карточек">
         <div class="field-group">
           <label class="field-label">Карточек в строке</label>
@@ -461,6 +489,47 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
           [(borderColor)]="element.borderColor"
           [(borderRadius)]="element.borderRadius">
         </app-border-fields>
+      </app-collapsible-section>
+    </ng-container>
+
+    <!-- ── Counter (Количество блюд) ── -->
+    <ng-container *ngIf="element.type === 'counter'">
+      <app-collapsible-section title="Считать по статусам" [expanded]="true">
+        <div *ngFor="let s of emuItemStatuses" style="margin-bottom: 4px;">
+          <label class="field-check">
+            <input type="checkbox"
+              [checked]="(element.counterStatuses || []).includes(s)"
+              (change)="toggleCounterStatus(s, $any($event.target).checked)" />
+            {{ s }}
+          </label>
+        </div>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Макет">
+        <app-layout-fields
+          [(x)]="element.x" [(y)]="element.y"
+          [(width)]="element.width" [(height)]="element.height">
+        </app-layout-fields>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Граница">
+        <app-border-fields
+          [(borderWidth)]="element.borderWidth"
+          [(borderColor)]="element.borderColor"
+          [(borderRadius)]="element.borderRadius">
+        </app-border-fields>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Шрифт">
+        <app-font-fields
+          [(fontFamily)]="element.fontFamily!"
+          [(fontSize)]="element.fontSize!"
+          [(fontBold)]="element.fontBold!"
+          [(fontItalic)]="element.fontItalic!">
+        </app-font-fields>
+        <app-align-fields
+          [(hAlign)]="element.textAlign!">
+        </app-align-fields>
       </app-collapsible-section>
     </ng-container>
   `,
@@ -515,6 +584,17 @@ export class ControlElementInspectorComponent {
   @Input() emuItemStatuses: string[] = [];
 
   isGenericElement(type: ArrivalsElementType): boolean {
-    return !['text', 'image', 'order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(type);
+    return !['text', 'image', 'order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards', 'counter'].includes(type);
+  }
+
+  toggleCounterStatus(status: string, checked: boolean): void {
+    const arr = this.element.counterStatuses ? [...this.element.counterStatuses] : [];
+    if (checked && !arr.includes(status)) {
+      arr.push(status);
+    } else if (!checked) {
+      const idx = arr.indexOf(status);
+      if (idx >= 0) arr.splice(idx, 1);
+    }
+    this.element.counterStatuses = arr;
   }
 }

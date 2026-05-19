@@ -91,7 +91,8 @@ export type ArrivalsElementType =
   | 'order-items-checklist'
   | 'order-items-cards'
   | 'area'
-  | 'price';
+  | 'price'
+  | 'counter';
 
 export interface ArrivalsThemeElement {
   id: string;
@@ -128,7 +129,11 @@ export interface ArrivalsThemeElement {
   showCurrency?: boolean;
   currencySymbol?: string;
   currencyPosition?: 'after' | 'before';
+  previewPrice?: number;
+  // Counter (Количество блюд в заказе)
+  counterStatuses?: string[];
   // Order items (Состав заказа)
+  orderDynamicHeight?: boolean;
   orderDisplayMode?: 'ready-only' | 'all';
   orderTriggerStatus?: string;
   orderHideOnComplete?: boolean;

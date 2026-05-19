@@ -145,6 +145,20 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
         </div>
       </app-collapsible-section>
 
+      <app-collapsible-section title="Предпросмотр цены">
+        <div class="field-group">
+          <label class="field-label">Цена для предпросмотра</label>
+          <input type="number" class="field-input"
+            [ngModel]="element.previewPrice ?? 350"
+            (ngModelChange)="element.previewPrice = $event"
+            min="0" step="1" />
+        </div>
+        <div class="preview-price-hint">
+          <lucide-icon name="info" [size]="14" class="hint-icon"></lucide-icon>
+          <span>Цена отображается только в конструкторе для предпросмотра. На реальном экране используется цена из меню.</span>
+        </div>
+      </app-collapsible-section>
+
       <app-collapsible-section title="Валюта">
         <div class="currency-toggle">
           <label class="toggle-row">
@@ -288,6 +302,15 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
     .toggle-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
     .toggle-label { user-select: none; }
     .currency-settings { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+    /* Preview price hint */
+    .preview-price-hint {
+      display: flex; align-items: flex-start; gap: 6px;
+      padding: 8px 10px; background: #fff8e1; border: 1px solid #ffe082;
+      border-radius: 4px; font-size: 12px; color: #795548; line-height: 1.4;
+      margin-top: 8px;
+    }
+    .hint-icon { color: #ffa000; flex-shrink: 0; margin-top: 1px; }
   `],
 })
 export class ThemeElementInspectorComponent implements OnChanges {

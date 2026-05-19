@@ -277,7 +277,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
 
   /* ── Add / Delete ── */
   getPricePreview(el: ArrivalsThemeElement): string {
-    const value = '350';
+    const value = String(el.previewPrice ?? 350);
     if (!el.showCurrency) return value;
     const sym = el.currencySymbol || '₽';
     return el.currencyPosition === 'before' ? sym + ' ' + value : value + ' ' + sym;

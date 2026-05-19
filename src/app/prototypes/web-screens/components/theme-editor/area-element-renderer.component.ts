@@ -215,6 +215,15 @@ export interface AreaOrderPosition {
                   </div>
                 </div>
               </div>
+              <!-- Counter -->
+              <div *ngIf="ce.type === 'counter'" class="area-ctrl-counter"
+                [style.font-family]="ce.fontFamily || 'Roboto'"
+                [style.font-size.px]="ce.fontSize || 14"
+                [style.font-weight]="ce.fontBold ? 'bold' : 'normal'"
+                [style.font-style]="ce.fontItalic ? 'italic' : 'normal'"
+                [style.text-align]="ce.textAlign || 'center'">
+                {{ getCounterText(ce, pos.order) }}
+              </div>
             </div>
           </div>
         </div>
@@ -323,6 +332,9 @@ export interface AreaOrderPosition {
     .area-card-tile.ready { }
     .area-card-status { padding: 2px 4px; font-size: 10px; font-weight: 600; text-align: center; }
     .area-card-body { padding: 4px; display: flex; justify-content: space-between; }
+
+    /* Counter */
+    .area-ctrl-counter { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   `],
 })
 export class AreaElementRendererComponent {
@@ -336,7 +348,7 @@ export class AreaElementRendererComponent {
   @Output() fillEmu = new EventEmitter<ArrivalsThemeElement>();
 
   isOrderVariant(type: string): boolean {
-    return ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(type);
+    return ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards', 'counter'].includes(type);
   }
 
   getAreaElementText(ctrlEl: ArrivalsThemeElement, order: ArrivalsOrderMock): string {
@@ -368,5 +380,11 @@ export class AreaElementRendererComponent {
   getOrderReadyPercent(order: ArrivalsOrderMock): number {
     if (!order.items.length) return 0;
     return Math.round((this.getReadyOrderItems(order).length / order.items.length) * 100);
+  }
+
+  getCounterText(ce: ArrivalsThemeElement, order: ArrivalsOrderMock): string {
+    const statuses = ce.counterStatuses || ['Готово'];
+    const matched = order.items.filter(i => statuses.some(s => i.status === s || (s === 'Готово' && (i.status === 'Выдача' || i.status === 'Подан')))).length;
+    return matched + ' из ' + order.items.length;
   }
 }

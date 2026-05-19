@@ -2,6 +2,28 @@
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.21',
+    date: '2026-05-19',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Конструктор контролов Arrivals',
+        pageRoute: '/prototype/web-screens/arrivals-control-editor/1001',
+        items: [
+          'Добавлен новый элемент «Количество блюд в заказе» с фильтрацией по статусам',
+          'Добавлена настройка «Динамическая высота» для всех типов элементов состава заказа (A–E)',
+        ],
+      },
+      {
+        page: 'Конструктор тем Arrivals',
+        pageRoute: '/prototype/web-screens/arrivals-theme-editor/101',
+        items: [
+          'Добавлена настройка «Предпросмотр цены» для элемента «Сумма блюда» с информационной подсказкой',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.20',
     date: '2026-05-18',
     status: 'released',

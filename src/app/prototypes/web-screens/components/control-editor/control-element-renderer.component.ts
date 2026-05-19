@@ -189,6 +189,16 @@ import { OrderMockItem, EMU_ITEM_STATUSES } from './element-defaults';
         </div>
       </div>
     </div>
+
+    <!-- ═══ Counter ═══ -->
+    <div *ngIf="element.type === 'counter'" class="el-counter"
+      [style.font-family]="element.fontFamily || 'Roboto'"
+      [style.font-size.px]="element.fontSize || 14"
+      [style.font-weight]="element.fontBold ? 'bold' : 'normal'"
+      [style.font-style]="element.fontItalic ? 'italic' : 'normal'"
+      [style.text-align]="element.textAlign || 'center'">
+      {{ getCounterText() }}
+    </div>
   `,
   styles: [`
     :host { display: contents; }
@@ -328,6 +338,12 @@ import { OrderMockItem, EMU_ITEM_STATUSES } from './element-defaults';
     }
     .card-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .card-qty { color: #757575; font-size: 10px; margin-left: 4px; }
+
+    /* Counter */
+    .el-counter {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%; font-family: Roboto, sans-serif;
+    }
   `],
 })
 export class ControlElementRendererComponent {
@@ -337,7 +353,7 @@ export class ControlElementRendererComponent {
   private readonly statuses = EMU_ITEM_STATUSES;
 
   isOrderVariant(type: ArrivalsElementType): boolean {
-    return ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(type);
+    return ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards', 'counter'].includes(type);
   }
 
   getFilteredOrderItems(el: ArrivalsThemeElement): (OrderMockItem & { ready: boolean })[] {
@@ -401,5 +417,15 @@ export class ControlElementRendererComponent {
     const c = 2 * Math.PI * r;
     const pct = this.getReadyPercent() / 100;
     return `${c * (1 - pct)}`;
+  }
+
+  getCounterText(): string {
+    const statuses = this.element.counterStatuses || ['Готово'];
+    const matched = this.orderMockItems.filter(i => {
+      if (statuses.includes(i.status)) return true;
+      if (statuses.includes('Готово') && (i.status === 'Выдача' || i.status === 'Подан')) return true;
+      return false;
+    }).length;
+    return matched + ' из ' + this.orderMockItems.length;
   }
 }

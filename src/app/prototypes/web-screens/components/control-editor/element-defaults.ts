@@ -59,6 +59,7 @@ export const ELEMENT_TYPES: ElementTypeOption[] = [
   { type: 'order-items-progress', label: 'C. Состав заказа — Прогресс' },
   { type: 'order-items-checklist', label: 'D. Состав заказа — Чеклист' },
   { type: 'order-items-cards', label: 'E. Состав заказа — Карточки' },
+  { type: 'counter', label: 'Количество блюд в заказе' },
 ];
 
 export function getElementTypeLabel(type: string): string {
@@ -128,12 +129,14 @@ export function createDefaultElement(type: ArrivalsElementType, offset: number):
     el.orderStatusFontSize = 14;
     el.orderStatusFontFamily = 'Roboto';
     el.orderStatusFontColor = '#333333';
+    el.orderDynamicHeight = true;
   }
 
   if (type === 'order-items-zones' || type === 'order-items-progress' ||
       type === 'order-items-checklist' || type === 'order-items-cards') {
     el.width = 400;
     el.height = 260;
+    el.orderDynamicHeight = true;
   }
 
   if (type === 'order-items-zones') {
@@ -161,6 +164,17 @@ export function createDefaultElement(type: ArrivalsElementType, offset: number):
     el.checklistReadyBg = '#f1f8e9';
     el.checklistDoneText = 'Заказ полностью готов';
     el.checklistItemFontSize = 12;
+  }
+
+  if (type === 'counter') {
+    el.width = 120;
+    el.height = 40;
+    el.counterStatuses = ['Готово'];
+    el.fontFamily = 'Roboto';
+    el.fontSize = 14;
+    el.fontBold = false;
+    el.fontItalic = false;
+    el.textAlign = 'center';
   }
 
   if (type === 'order-items-cards') {
