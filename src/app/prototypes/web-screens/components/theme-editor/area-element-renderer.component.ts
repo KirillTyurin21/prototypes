@@ -323,8 +323,8 @@ export interface AreaOrderPosition {
     .area-p-track { fill: none; stroke-width: 6; }
     .area-p-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 0.3s; }
     .area-p-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-    .area-p-pct { display: block; font-size: 14px; font-weight: 700; color: #333; }
-    .area-p-count { display: block; font-size: 10px; color: #757575; }
+    .area-p-pct { display: block; font-size: inherit; font-weight: inherit; font-family: inherit; font-style: inherit; color: inherit; }
+    .area-p-count { display: block; font-size: inherit; font-family: inherit; font-style: inherit; color: inherit; opacity: 0.6; }
     .area-p-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
     .area-p-item { display: flex; align-items: center; gap: 4px; padding: 1px 2px; }
     .area-p-item.ready { color: #4caf50; }

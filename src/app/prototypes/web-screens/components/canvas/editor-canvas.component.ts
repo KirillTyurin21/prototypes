@@ -24,6 +24,8 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
       display: flex;
       flex: 1;
       min-width: 0;
+      min-height: 0;
+      overflow: hidden;
     }
     .canvas-area {
       flex: 1;

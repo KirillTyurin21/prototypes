@@ -61,7 +61,7 @@ import { OrderMockItem, INITIAL_ORDER_MOCK_ITEMS, EXTRA_DISHES } from './element
     </div>
   `,
   styles: [`
-    :host { display: block; }
+    :host { display: block; flex-shrink: 0; }
 
     .emulation-panel {
       border-top: 2px solid #ff6d00; background: #263238; flex-shrink: 0;

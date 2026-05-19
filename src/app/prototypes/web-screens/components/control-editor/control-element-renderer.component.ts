@@ -370,8 +370,8 @@ import { OrderMockItem, EMU_ITEM_STATUSES } from './element-defaults';
     .counter-track { fill: none; stroke-width: 6; }
     .counter-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 0.3s; }
     .counter-circle-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; display: flex; flex-direction: column; align-items: center; }
-    .counter-pct { display: block; font-size: 14px; font-weight: 700; color: #333; }
-    .counter-count { display: block; font-size: 10px; color: #757575; }
+    .counter-pct { display: block; font-size: inherit; font-weight: inherit; font-family: inherit; font-style: inherit; color: inherit; }
+    .counter-count { display: block; font-size: inherit; font-family: inherit; font-style: inherit; color: inherit; opacity: 0.6; }
   `],
 })
 export class ControlElementRendererComponent {
