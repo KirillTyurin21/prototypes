@@ -59,7 +59,7 @@ export class AreaEmulationHelper {
       const elH = Math.round(contentH * scale);
       // Replace the dynamic element's contribution to bbox with computed height
       const otherH = baseSlotH - Math.round(dynamicEl.height * scale);
-      return Math.max(baseSlotH, otherH + elH);
+      return otherH + elH;
     };
 
     if (area.areaMode === 'list') {
