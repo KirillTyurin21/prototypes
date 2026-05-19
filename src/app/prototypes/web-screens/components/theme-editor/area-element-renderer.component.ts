@@ -425,8 +425,7 @@ export class AreaElementRendererComponent {
     if (ce.orderDynamicHeight) {
       const hdrH = (ce.orderShowHeader !== false) ? (ce.orderHeaderHeight || 36) : 0;
       const rowH = ce.orderRowHeight || 32;
-      const contentH = hdrH + rowH * Math.max(1, pos.order.items.length);
-      return Math.max(ce.height, contentH);
+      return hdrH + rowH * Math.max(1, pos.order.items.length);
     }
     return ce.height;
   }
@@ -435,6 +434,6 @@ export class AreaElementRendererComponent {
     const dynamicEl = pos.controlElements.find(el => !!el.orderDynamicHeight);
     if (!dynamicEl) return pos.bboxH;
     const dynamicH = this.getDynamicCeHeight(dynamicEl, pos);
-    return pos.bboxH + Math.max(0, dynamicH - dynamicEl.height);
+    return Math.max(1, pos.bboxH + dynamicH - dynamicEl.height);
   }
 }
