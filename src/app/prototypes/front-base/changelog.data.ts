@@ -2,6 +2,23 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.1',
+    date: '2026-05-20',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Главный экран',
+        pageRoute: '/prototype/front-base',
+        items: [
+          'Заголовок «user» изменён на фиолетовый цвет',
+          'Заголовки секций (ГОСТИ, СЕРВИС, ПЕРСОНАЛ, ДОКУМЕНТЫ) сделаны компактнее',
+          'Подписи под «КАССА» выровнены по левому краю',
+          'Добавлена область уведомлений между верхней панелью и сеткой кнопок',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.0',
     date: '2026-05-20',
     status: 'unreleased',

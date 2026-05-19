@@ -51,10 +51,33 @@ import { PosScreenVariant, PosBottomButton, POS_COLORS } from './types';
           </div>
         </div>
 
-        <!-- ─── Lock indicator ─── -->
-        <div class="flex justify-end px-3 py-1 shrink-0"
-             [style.background-color]="colors.terminalBg">
-          <lucide-icon name="lock" [size]="14" class="text-gray-500"></lucide-icon>
+        <!-- ─── Notification area ─── -->
+        <div class="flex items-stretch shrink-0" style="min-height: 44px;">
+          <!-- Notification content (beige background) -->
+          <div class="flex-1 flex items-center px-3 py-1.5 text-xs leading-tight"
+               style="background-color: #f0ddb8; color: #4a3c28;">
+            <span class="line-clamp-2">
+              У кассы №2 для налоговой категории 'Основная 20' (ставка 20,00%) не задан регистр фискального регистратора
+            </span>
+          </div>
+          <!-- Notification buttons -->
+          <div class="flex items-center" style="background-color: #f0ddb8;">
+            <button class="pos-notification-btn relative flex items-center justify-center"
+                    style="width: 44px; height: 44px;">
+              <lucide-icon name="mail" [size]="20" class="text-gray-700"></lucide-icon>
+              <span class="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[9px]
+                           font-bold rounded-full w-4 h-4 flex items-center justify-center">5</span>
+            </button>
+            <button class="pos-notification-btn flex items-center justify-center"
+                    style="width: 44px; height: 44px;">
+              <lucide-icon name="x" [size]="20" class="text-gray-700"></lucide-icon>
+            </button>
+          </div>
+          <!-- Lock icon (dark background, right side) -->
+          <div class="flex items-center justify-center px-4 shrink-0"
+               [style.background-color]="colors.terminalBg">
+            <lucide-icon name="lock" [size]="18" class="text-gray-400"></lucide-icon>
+          </div>
         </div>
 
         <!-- ─── Content area (экраны) ─── -->
@@ -107,6 +130,9 @@ import { PosScreenVariant, PosBottomButton, POS_COLORS } from './types';
     :host { display: block; width: 100%; height: 100%; }
     .pos-bottom-btn:hover { background-color: #383838; }
     .pos-bottom-btn:active { background-color: #b8c959 !important; color: #1a1a1a !important; }
+    .pos-notification-btn { cursor: pointer; transition: background-color 0.05s; }
+    .pos-notification-btn:hover { background-color: #e0cfa5; }
+    .pos-notification-btn:active { background-color: #b8c959 !important; }
   `],
 })
 export class PosTerminalShellComponent {

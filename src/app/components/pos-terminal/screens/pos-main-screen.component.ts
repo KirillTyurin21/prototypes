@@ -26,34 +26,34 @@ import { POS_COLORS } from '../types';
         <!-- ═══ ROW 1: Заголовки секций ═══ -->
 
         <!-- user header -->
-        <div class="pos-section-header flex flex-col items-center justify-center px-2 py-3 text-center"
-             [style.background-color]="colors.sectionTeal">
+        <div class="pos-section-header flex flex-col items-center justify-center px-2 py-1.5 text-center"
+             [style.background-color]="colors.sectionPurple">
           <span class="font-bold text-white text-sm">user</span>
-          <span class="text-white/80 text-[10px] mt-1">Смена открыта</span>
+          <span class="text-white/80 text-[10px] mt-0.5">Смена открыта</span>
           <span class="text-white/80 text-[10px]">{{ state.shift.openedAt }}</span>
         </div>
 
         <!-- ГОСТИ header -->
-        <div class="pos-section-header flex items-center justify-center px-2 py-3"
+        <div class="pos-section-header flex items-center justify-center px-2 py-1"
              [style.background-color]="colors.sectionTeal">
           <span class="font-bold text-white text-sm tracking-wider">ГОСТИ</span>
         </div>
 
         <!-- СЕРВИС header -->
-        <div class="pos-section-header flex items-center justify-center px-2 py-3"
+        <div class="pos-section-header flex items-center justify-center px-2 py-1"
              [style.background-color]="colors.sectionTealLight">
           <span class="font-bold text-white text-sm tracking-wider">СЕРВИС</span>
         </div>
 
         <!-- КАССА header (spans 2 columns) -->
-        <div class="pos-section-header flex flex-col items-center justify-center px-3 py-2 text-center"
+        <div class="pos-section-header flex flex-col justify-center px-3 py-1"
              style="grid-column: span 2;"
              [style.background-color]="colors.sectionGreen">
-          <span class="font-bold text-white text-sm tracking-wider mb-0.5">КАССА</span>
-          <span class="text-white/90 text-[10px]">{{ state.shift.terminalName }}</span>
-          <span class="text-white/90 text-[10px]">Смена №{{ state.shift.number }} открыта {{ state.shift.openedAt }}</span>
-          <span class="text-white/90 text-[10px]">менеджер: {{ state.shift.manager }}</span>
-          <span class="text-white/90 text-[10px]">кассир: {{ state.shift.cashier }}</span>
+          <span class="font-bold text-white text-sm tracking-wider text-center mb-0.5">КАССА</span>
+          <span class="text-white/90 text-[10px] text-left">{{ state.shift.terminalName }}</span>
+          <span class="text-white/90 text-[10px] text-left">Смена №{{ state.shift.number }} открыта {{ state.shift.openedAt }}</span>
+          <span class="text-white/90 text-[10px] text-left">менеджер: {{ state.shift.manager }}</span>
+          <span class="text-white/90 text-[10px] text-left">кассир: {{ state.shift.cashier }}</span>
         </div>
 
         <!-- ═══ ROW 2 ═══ -->
@@ -80,7 +80,7 @@ import { POS_COLORS } from '../types';
         <!-- ═══ ROW 5 ═══ -->
         <div class="pos-cell-empty"></div>
         <!-- ПЕРСОНАЛ header -->
-        <div class="pos-section-header flex items-center justify-center px-2 py-3"
+        <div class="pos-section-header flex items-center justify-center px-2 py-1"
              [style.background-color]="colors.sectionPurple">
           <span class="font-bold text-white text-sm tracking-wider">ПЕРСОНАЛ</span>
         </div>
@@ -90,7 +90,7 @@ import { POS_COLORS } from '../types';
 
         <!-- ═══ ROW 6 ═══ -->
         <!-- ДОКУМЕНТЫ header -->
-        <div class="pos-section-header flex items-center justify-center px-2 py-3"
+        <div class="pos-section-header flex items-center justify-center px-2 py-1"
              [style.background-color]="colors.sectionBlue">
           <span class="font-bold text-white text-sm tracking-wider">ДОКУМЕНТЫ</span>
         </div>
