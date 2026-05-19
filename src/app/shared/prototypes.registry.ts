@@ -82,5 +82,11 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'coffee',
     description: 'Плагин интеграции кассового терминала с системой мобильных заказов Beanshe',
   },
+  {
+    path: '/prototype/front-base',
+    label: 'Front Base — Терминал',
+    icon: 'monitor',
+    description: 'Унифицированная база терминала Front: общие компоненты для всех Front-плагинов',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];

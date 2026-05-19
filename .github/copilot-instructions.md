@@ -541,6 +541,49 @@ import { PROTOTYPES, PrototypeEntry } from '@/shared/prototypes.registry';
 
 ---
 
+## POS Terminal — компоненты терминала Front
+
+> Общие компоненты для прототипов **Front-плагинов**. Эмулируют интерфейс терминала Front.
+> Принцип: «Меняешь базу — меняются все прототипы».
+>
+> Полный справочник API: **`files/POS_API_REFERENCE.md`**
+
+### Расположение
+
+```
+src/app/components/pos-terminal/
+├── types.ts                              ← Типы, константы (POS_COLORS, POS_SIZES)
+├── pos-terminal-state.service.ts         ← Состояние терминала (экран, смена, заказ)
+├── pos-terminal-shell.component.ts       ← Контейнер-рамка (header + bottom bar + content)
+├── widgets/
+│   └── pos-button.component.ts           ← Кнопка POS (main/dark/header + анимация нажатия)
+├── dialogs/
+│   └── pos-dialog.component.ts           ← Модальное окно плагина (overlay внутри терминала)
+└── index.ts                              ← Barrel export
+```
+
+### Импорт
+
+```typescript
+import {
+  PosTerminalShellComponent,
+  PosButtonComponent,
+  PosDialogComponent,
+  PosTerminalStateService,
+  POS_COLORS,
+} from '@/components/pos-terminal';
+```
+
+### Правила использования
+
+1. **Все Front-прототипы** должны использовать `pos-terminal-shell` как рамку терминала
+2. **НЕ создавай дубликаты** `pos-dialog` в прототипах — используй единый из `@/components/pos-terminal`
+3. **POS-диалоги** позиционируются `absolute` внутри shell (НЕ `fixed`) — перекрывают только терминал
+4. **Анимация нажатия**: акцентный цвет `#b8c959` (оливково-зелёный) через CSS `:active`
+5. **Цвета**: бери из `POS_COLORS` — НЕ хардкодь. Цвета основаны на скриншотах реального Front
+
+---
+
 ## Правила качества
 
 1. **Каждый экран** должен быть **кликабельным** — кнопки работают, формы отправляются, модалки открываются

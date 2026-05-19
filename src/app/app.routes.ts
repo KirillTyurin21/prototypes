@@ -103,6 +103,13 @@ export const routes: Routes = [
             m => m.BEANSHE_ROUTES
           ),
       },
+      {
+        path: 'prototype/front-base',
+        loadChildren: () =>
+          import('./prototypes/front-base/front-base.routes').then(
+            m => m.FRONT_BASE_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL

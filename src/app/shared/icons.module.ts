@@ -160,6 +160,10 @@ import {
   Inbox,
   Undo2,
   CheckCircle,
+  // POS Terminal shell
+  Wrench,
+  Power,
+  Mail,
 } from 'lucide-angular';
 
 /**
@@ -328,6 +332,10 @@ const icons = {
   Inbox,
   Undo2,
   CheckCircle,
+  // POS Terminal shell
+  Wrench,
+  Power,
+  Mail,
 };
 
 @NgModule({
