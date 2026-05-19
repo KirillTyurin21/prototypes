@@ -145,6 +145,7 @@ export class ControlEmulationPanelComponent implements OnDestroy {
     this.orderMockItems[index].status = newStatus;
     this.orderMockItems[index].ready = newStatus === 'Готово' || newStatus === 'Выдача' || newStatus === 'Подан';
     this.orderMockItems[index].delivered = newStatus === 'Выдача' || newStatus === 'Подан';
+    this.orderMockItemsChange.emit([...this.orderMockItems]);
   }
 
   setAllReady(): void {
@@ -153,24 +154,27 @@ export class ControlEmulationPanelComponent implements OnDestroy {
       item.ready = true;
       item.delivered = false;
     });
+    this.orderMockItemsChange.emit([...this.orderMockItems]);
   }
 
   resetEmulation(): void {
     this.stopScenario();
     const newItems = INITIAL_ORDER_MOCK_ITEMS.map(i => ({ ...i }));
     this.orderMockItems.splice(0, this.orderMockItems.length, ...newItems);
-    this.orderMockItemsChange.emit(this.orderMockItems);
+    this.orderMockItemsChange.emit([...this.orderMockItems]);
   }
 
   addDish(): void {
     const available = EXTRA_DISHES.filter(d => !this.orderMockItems.find(i => i.name === d));
     const name = available.length > 0 ? available[0] : `Блюдо #${this.orderMockItems.length + 1}`;
     this.orderMockItems.push({ name, qty: 1, status: 'Ожидает', ready: false, delivered: false });
+    this.orderMockItemsChange.emit([...this.orderMockItems]);
   }
 
   removeDish(): void {
     if (this.orderMockItems.length > 1) {
       this.orderMockItems.pop();
+      this.orderMockItemsChange.emit([...this.orderMockItems]);
     }
   }
 
@@ -210,6 +214,7 @@ export class ControlEmulationPanelComponent implements OnDestroy {
         }
       }
       step++;
+      this.orderMockItemsChange.emit([...this.orderMockItems]);
       this.scenarioTimer = setTimeout(tick, 1200);
     };
     this.scenarioTimer = setTimeout(tick, 800);

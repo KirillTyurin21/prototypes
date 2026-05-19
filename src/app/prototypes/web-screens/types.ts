@@ -132,6 +132,11 @@ export interface ArrivalsThemeElement {
   previewPrice?: number;
   // Counter (Количество блюд в заказе)
   counterStatuses?: string[];
+  counterDisplayMode?: 'text' | 'fraction' | 'circle';
+  counterCircleColor?: string;
+  counterCircleTrackColor?: string;
+  counterCircleSize?: number;
+  counterShowPercent?: boolean;
   // Order items (Состав заказа)
   orderDynamicHeight?: boolean;
   orderDisplayMode?: 'ready-only' | 'all';

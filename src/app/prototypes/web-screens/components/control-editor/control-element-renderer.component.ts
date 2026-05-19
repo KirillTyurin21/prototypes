@@ -197,7 +197,27 @@ import { OrderMockItem, EMU_ITEM_STATUSES } from './element-defaults';
       [style.font-weight]="element.fontBold ? 'bold' : 'normal'"
       [style.font-style]="element.fontItalic ? 'italic' : 'normal'"
       [style.text-align]="element.textAlign || 'center'">
-      {{ getCounterText() }}
+      <ng-container *ngIf="element.counterDisplayMode !== 'circle'">
+        {{ getCounterText() }}
+      </ng-container>
+      <div *ngIf="element.counterDisplayMode === 'circle'" class="counter-circle-wrap">
+        <div class="counter-circle"
+          [style.width.px]="element.counterCircleSize || 48"
+          [style.height.px]="element.counterCircleSize || 48">
+          <svg viewBox="0 0 80 80" class="counter-svg">
+            <circle cx="40" cy="40" r="34" class="counter-track"
+              [style.stroke]="element.counterCircleTrackColor || '#e0e0e0'"></circle>
+            <circle cx="40" cy="40" r="34" class="counter-fill"
+              [style.stroke]="element.counterCircleColor || '#4caf50'"
+              [style.stroke-dasharray]="213.6"
+              [style.stroke-dashoffset]="213.6 - 213.6 * getCounterPercent() / 100"></circle>
+          </svg>
+          <div class="counter-circle-text">
+            <span *ngIf="element.counterShowPercent" class="counter-pct">{{ getCounterPercent() }}%</span>
+            <span class="counter-count">{{ getCounterMatched() }}/{{ orderMockItems.length }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -344,6 +364,14 @@ import { OrderMockItem, EMU_ITEM_STATUSES } from './element-defaults';
       display: flex; align-items: center; justify-content: center;
       width: 100%; height: 100%; font-family: Roboto, sans-serif;
     }
+    .counter-circle-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    .counter-circle { position: relative; }
+    .counter-svg { width: 100%; height: 100%; }
+    .counter-track { fill: none; stroke-width: 6; }
+    .counter-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 0.3s; }
+    .counter-circle-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .counter-pct { display: block; font-size: 14px; font-weight: 700; color: #333; }
+    .counter-count { display: block; font-size: 10px; color: #757575; }
   `],
 })
 export class ControlElementRendererComponent {
@@ -419,13 +447,25 @@ export class ControlElementRendererComponent {
     return `${c * (1 - pct)}`;
   }
 
-  getCounterText(): string {
+  getCounterMatched(): number {
     const statuses = this.element.counterStatuses || ['Готово'];
-    const matched = this.orderMockItems.filter(i => {
+    return this.orderMockItems.filter(i => {
       if (statuses.includes(i.status)) return true;
       if (statuses.includes('Готово') && (i.status === 'Выдача' || i.status === 'Подан')) return true;
       return false;
     }).length;
+  }
+
+  getCounterPercent(): number {
+    if (this.orderMockItems.length === 0) return 0;
+    return Math.round((this.getCounterMatched() / this.orderMockItems.length) * 100);
+  }
+
+  getCounterText(): string {
+    const matched = this.getCounterMatched();
+    if (this.element.counterDisplayMode === 'fraction') {
+      return matched + '/' + this.orderMockItems.length;
+    }
     return matched + ' из ' + this.orderMockItems.length;
   }
 }

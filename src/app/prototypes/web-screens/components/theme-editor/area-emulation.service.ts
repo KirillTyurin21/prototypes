@@ -41,22 +41,44 @@ export class AreaEmulationHelper {
     const areaH = area.height;
     const slotW = Math.floor((areaW - pad * 2 - (cols - 1) * pad) / cols);
     const scale = bbox.w > 0 ? slotW / bbox.w : 1;
-    const slotH = Math.round(bbox.h * scale);
+    const baseSlotH = Math.round(bbox.h * scale);
+
+    // Check if any element uses dynamic height
+    const dynamicEl = control.elements.find(el =>
+      el.orderDynamicHeight && ['order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards'].includes(el.type)
+    );
 
     const positions: AreaOrderPosition[] = [];
 
+    const getSlotH = (order: ArrivalsOrderMock): number => {
+      if (!dynamicEl) return baseSlotH;
+      const itemCount = order.items.length;
+      const rowH = dynamicEl.orderRowHeight || 32;
+      const hdrH = (dynamicEl.orderShowHeader !== false) ? (dynamicEl.orderHeaderHeight || 36) : 0;
+      const contentH = hdrH + rowH * Math.max(1, itemCount);
+      const elH = Math.round(contentH * scale);
+      // Replace the dynamic element's contribution to bbox with computed height
+      const otherH = baseSlotH - Math.round(dynamicEl.height * scale);
+      return Math.max(baseSlotH, otherH + elH);
+    };
+
     if (area.areaMode === 'list') {
       let col = 0;
-      let row = 0;
+      let rowY = area.areaListDirection === 'bottom' ? areaH - pad : headerH + pad;
       for (const order of orders) {
+        const slotH = getSlotH(order);
         const x = pad + col * (slotW + pad);
         let y: number;
         if (area.areaListDirection === 'bottom') {
-          y = areaH - pad - (row + 1) * slotH - row * spacing;
+          y = rowY - slotH;
         } else {
-          y = headerH + pad + row * (slotH + spacing);
+          y = rowY;
         }
-        if (y + slotH > areaH || y < headerH) break;
+        if (area.areaListDirection === 'bottom') {
+          if (y < headerH) break;
+        } else {
+          if (y + slotH > areaH) break;
+        }
 
         positions.push({
           order, x, y, width: slotW, height: slotH,
@@ -64,15 +86,25 @@ export class AreaEmulationHelper {
           bboxX: bbox.x, bboxY: bbox.y, bboxW: bbox.w, bboxH: bbox.h, scale,
         });
         col++;
-        if (col >= cols) { col = 0; row++; }
+        if (col >= cols) {
+          col = 0;
+          if (area.areaListDirection === 'bottom') {
+            rowY -= slotH + spacing;
+          } else {
+            rowY += slotH + spacing;
+          }
+        }
       }
     } else {
       let posX = pad;
       let posY = headerH + pad;
+      let rowMaxH = 0;
       for (const order of orders) {
+        const slotH = getSlotH(order);
         if (posX + slotW > areaW - pad) {
           posX = pad;
-          posY += slotH + spacing;
+          posY += rowMaxH + spacing;
+          rowMaxH = 0;
         }
         if (posY + slotH > areaH) break;
 
@@ -82,6 +114,7 @@ export class AreaEmulationHelper {
           bboxX: bbox.x, bboxY: bbox.y, bboxW: bbox.w, bboxH: bbox.h, scale,
         });
         posX += slotW + pad;
+        rowMaxH = Math.max(rowMaxH, slotH);
       }
     }
 

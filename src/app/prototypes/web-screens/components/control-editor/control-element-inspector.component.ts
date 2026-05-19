@@ -505,6 +505,41 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
         </div>
       </app-collapsible-section>
 
+      <app-collapsible-section title="Вид отображения" [expanded]="true">
+        <div style="margin-bottom: 8px;">
+          <label class="field-check" style="margin-bottom: 6px;">
+            <input type="radio" name="counterDisplayMode"
+              [checked]="(element.counterDisplayMode || 'text') === 'text'"
+              (change)="element.counterDisplayMode = 'text'" />
+            Текст (3 из 5)
+          </label>
+          <label class="field-check" style="margin-bottom: 6px;">
+            <input type="radio" name="counterDisplayMode"
+              [checked]="element.counterDisplayMode === 'fraction'"
+              (change)="element.counterDisplayMode = 'fraction'" />
+            Дробь (3/5)
+          </label>
+          <label class="field-check" style="margin-bottom: 6px;">
+            <input type="radio" name="counterDisplayMode"
+              [checked]="element.counterDisplayMode === 'circle'"
+              (change)="element.counterDisplayMode = 'circle'" />
+            Круговой прогресс
+          </label>
+        </div>
+        <ng-container *ngIf="element.counterDisplayMode === 'circle'">
+          <div class="section-divider-bold">Настройки круга</div>
+          <app-color-field label="Цвет прогресса" [(value)]="element.counterCircleColor!"></app-color-field>
+          <app-color-field label="Цвет фона" [(value)]="element.counterCircleTrackColor!"></app-color-field>
+          <div class="fields-row">
+            <div class="field-sm"><label>Размер (px)</label><input type="number" [(ngModel)]="element.counterCircleSize" class="field-input-sm" /></div>
+          </div>
+          <label class="field-check" style="margin-top: 6px;">
+            <input type="checkbox" [(ngModel)]="element.counterShowPercent" />
+            Показывать процент
+          </label>
+        </ng-container>
+      </app-collapsible-section>
+
       <app-collapsible-section title="Макет">
         <app-layout-fields
           [(x)]="element.x" [(y)]="element.y"

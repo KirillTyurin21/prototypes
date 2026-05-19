@@ -170,6 +170,7 @@ export function createDefaultElement(type: ArrivalsElementType, offset: number):
     el.width = 120;
     el.height = 40;
     el.counterStatuses = ['Готово'];
+    el.counterDisplayMode = 'text';
     el.fontFamily = 'Roboto';
     el.fontSize = 14;
     el.fontBold = false;

@@ -99,7 +99,7 @@ import { ArrivalsOrderMock } from '../../types';
       border-top: 2px solid #1976D2; background: #fafafa;
       display: flex; flex-direction: column; overflow: hidden;
       transition: max-height 0.3s ease;
-      max-height: 320px;
+      max-height: 320px; flex-shrink: 0;
     }
     .sim-panel.sim-collapsed { max-height: 36px; }
     .sim-header {

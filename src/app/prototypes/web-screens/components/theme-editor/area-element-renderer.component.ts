@@ -222,7 +222,27 @@ export interface AreaOrderPosition {
                 [style.font-weight]="ce.fontBold ? 'bold' : 'normal'"
                 [style.font-style]="ce.fontItalic ? 'italic' : 'normal'"
                 [style.text-align]="ce.textAlign || 'center'">
-                {{ getCounterText(ce, pos.order) }}
+                <ng-container *ngIf="ce.counterDisplayMode !== 'circle'">
+                  {{ getCounterText(ce, pos.order) }}
+                </ng-container>
+                <div *ngIf="ce.counterDisplayMode === 'circle'" class="area-counter-circle-wrap">
+                  <div class="area-p-circle"
+                    [style.width.px]="ce.counterCircleSize || 48"
+                    [style.height.px]="ce.counterCircleSize || 48">
+                    <svg viewBox="0 0 80 80" class="area-p-svg">
+                      <circle cx="40" cy="40" r="34" class="area-p-track"
+                        [style.stroke]="ce.counterCircleTrackColor || '#e0e0e0'"></circle>
+                      <circle cx="40" cy="40" r="34" class="area-p-fill"
+                        [style.stroke]="ce.counterCircleColor || '#4caf50'"
+                        [style.stroke-dasharray]="213.6"
+                        [style.stroke-dashoffset]="213.6 - 213.6 * getCounterPercent(ce, pos.order) / 100"></circle>
+                    </svg>
+                    <div class="area-p-text">
+                      <span *ngIf="ce.counterShowPercent" class="area-p-pct">{{ getCounterPercent(ce, pos.order) }}%</span>
+                      <span class="area-p-count">{{ getCounterMatched(ce, pos.order) }}/{{ pos.order.items.length }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -335,6 +355,7 @@ export interface AreaOrderPosition {
 
     /* Counter */
     .area-ctrl-counter { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .area-counter-circle-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
   `],
 })
 export class AreaElementRendererComponent {
@@ -382,9 +403,21 @@ export class AreaElementRendererComponent {
     return Math.round((this.getReadyOrderItems(order).length / order.items.length) * 100);
   }
 
-  getCounterText(ce: ArrivalsThemeElement, order: ArrivalsOrderMock): string {
+  getCounterMatched(ce: ArrivalsThemeElement, order: ArrivalsOrderMock): number {
     const statuses = ce.counterStatuses || ['Готово'];
-    const matched = order.items.filter(i => statuses.some(s => i.status === s || (s === 'Готово' && (i.status === 'Выдача' || i.status === 'Подан')))).length;
+    return order.items.filter(i => statuses.some(s => i.status === s || (s === 'Готово' && (i.status === 'Выдача' || i.status === 'Подан')))).length;
+  }
+
+  getCounterPercent(ce: ArrivalsThemeElement, order: ArrivalsOrderMock): number {
+    if (!order.items.length) return 0;
+    return Math.round((this.getCounterMatched(ce, order) / order.items.length) * 100);
+  }
+
+  getCounterText(ce: ArrivalsThemeElement, order: ArrivalsOrderMock): string {
+    const matched = this.getCounterMatched(ce, order);
+    if (ce.counterDisplayMode === 'fraction') {
+      return matched + '/' + order.items.length;
+    }
     return matched + ' из ' + order.items.length;
   }
 }
