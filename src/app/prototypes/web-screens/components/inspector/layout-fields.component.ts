@@ -24,7 +24,8 @@ import { FormsModule } from '@angular/forms';
       </div>
       <div class="field-sm">
         <label>Высота</label>
-        <input type="number" [ngModel]="height" (ngModelChange)="heightChange.emit($event)" class="field-input-sm" />
+        <input type="number" [ngModel]="height" (ngModelChange)="heightChange.emit($event)" class="field-input-sm"
+          [disabled]="heightDisabled" [class.disabled]="heightDisabled" />
       </div>
     </div>
   `,
@@ -58,6 +59,11 @@ import { FormsModule } from '@angular/forms';
       outline: none;
       border-color: var(--dt-brand-accent);
     }
+    .field-input-sm.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      background: #f5f5f5;
+    }
   `],
 })
 export class LayoutFieldsComponent {
@@ -65,6 +71,7 @@ export class LayoutFieldsComponent {
   @Input() y = 0;
   @Input() width = 0;
   @Input() height = 0;
+  @Input() heightDisabled = false;
   @Output() xChange = new EventEmitter<number>();
   @Output() yChange = new EventEmitter<number>();
   @Output() widthChange = new EventEmitter<number>();

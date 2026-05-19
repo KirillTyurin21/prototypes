@@ -586,6 +586,7 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
       if (el) {
         const h = this.resizeState.handle;
         const minSize = 20;
+        const lockHeight = !!el.orderDynamicHeight;
 
         if (h.includes('r')) {
           el.width = Math.max(minSize, Math.round(this.resizeState.startElW + dx));
@@ -595,10 +596,10 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
           el.x = Math.max(0, Math.round(this.resizeState.startElX + this.resizeState.startElW - newW));
           el.width = newW;
         }
-        if (h.includes('b')) {
+        if (h.includes('b') && !lockHeight) {
           el.height = Math.max(minSize, Math.round(this.resizeState.startElH + dy));
         }
-        if (h.includes('t')) {
+        if (h.includes('t') && !lockHeight) {
           const newH = Math.max(minSize, Math.round(this.resizeState.startElH - dy));
           el.y = Math.max(0, Math.round(this.resizeState.startElY + this.resizeState.startElH - newH));
           el.height = newH;

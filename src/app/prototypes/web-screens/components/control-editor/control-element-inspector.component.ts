@@ -161,7 +161,8 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <app-collapsible-section title="Макет">
         <app-layout-fields
           [(x)]="element.x" [(y)]="element.y"
-          [(width)]="element.width" [(height)]="element.height">
+          [(width)]="element.width" [(height)]="element.height"
+          [heightDisabled]="!!element.orderDynamicHeight">
         </app-layout-fields>
       </app-collapsible-section>
 
@@ -334,7 +335,8 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <app-collapsible-section title="Макет">
         <app-layout-fields
           [(x)]="element.x" [(y)]="element.y"
-          [(width)]="element.width" [(height)]="element.height">
+          [(width)]="element.width" [(height)]="element.height"
+          [heightDisabled]="!!element.orderDynamicHeight">
         </app-layout-fields>
       </app-collapsible-section>
 
@@ -380,7 +382,8 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <app-collapsible-section title="Макет">
         <app-layout-fields
           [(x)]="element.x" [(y)]="element.y"
-          [(width)]="element.width" [(height)]="element.height">
+          [(width)]="element.width" [(height)]="element.height"
+          [heightDisabled]="!!element.orderDynamicHeight">
         </app-layout-fields>
       </app-collapsible-section>
 
@@ -429,7 +432,8 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <app-collapsible-section title="Макет">
         <app-layout-fields
           [(x)]="element.x" [(y)]="element.y"
-          [(width)]="element.width" [(height)]="element.height">
+          [(width)]="element.width" [(height)]="element.height"
+          [heightDisabled]="!!element.orderDynamicHeight">
         </app-layout-fields>
       </app-collapsible-section>
 
@@ -479,7 +483,8 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <app-collapsible-section title="Макет">
         <app-layout-fields
           [(x)]="element.x" [(y)]="element.y"
-          [(width)]="element.width" [(height)]="element.height">
+          [(width)]="element.width" [(height)]="element.height"
+          [heightDisabled]="!!element.orderDynamicHeight">
         </app-layout-fields>
       </app-collapsible-section>
 

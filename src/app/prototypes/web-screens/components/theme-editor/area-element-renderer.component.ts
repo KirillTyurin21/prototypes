@@ -56,14 +56,14 @@ export interface AreaOrderPosition {
           [style.height.px]="pos.height">
           <div class="area-control-canvas"
             [style.width.px]="pos.bboxW"
-            [style.height.px]="pos.bboxH"
+            [style.height.px]="getDynamicBboxH(pos)"
             [style.transform]="'scale(' + pos.scale + ')'">
             <div *ngFor="let ce of pos.controlElements"
               class="area-ctrl-el"
               [style.left.px]="ce.x - pos.bboxX"
               [style.top.px]="ce.y - pos.bboxY"
               [style.width.px]="ce.width"
-              [style.height.px]="ce.height"
+              [style.height.px]="getDynamicCeHeight(ce, pos)"
               [style.border-width.px]="ce.borderWidth"
               [style.border-color]="ce.borderColor"
               [style.border-radius.px]="ce.borderRadius">
@@ -419,5 +419,22 @@ export class AreaElementRendererComponent {
       return matched + '/' + order.items.length;
     }
     return matched + ' из ' + order.items.length;
+  }
+
+  getDynamicCeHeight(ce: ArrivalsThemeElement, pos: AreaOrderPosition): number {
+    if (ce.orderDynamicHeight) {
+      const hdrH = (ce.orderShowHeader !== false) ? (ce.orderHeaderHeight || 36) : 0;
+      const rowH = ce.orderRowHeight || 32;
+      const contentH = hdrH + rowH * Math.max(1, pos.order.items.length);
+      return Math.max(ce.height, contentH);
+    }
+    return ce.height;
+  }
+
+  getDynamicBboxH(pos: AreaOrderPosition): number {
+    const dynamicEl = pos.controlElements.find(el => !!el.orderDynamicHeight);
+    if (!dynamicEl) return pos.bboxH;
+    const dynamicH = this.getDynamicCeHeight(dynamicEl, pos);
+    return pos.bboxH + Math.max(0, dynamicH - dynamicEl.height);
   }
 }
