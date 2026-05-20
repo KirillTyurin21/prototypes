@@ -97,13 +97,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'prototype/beanshe',
-        loadChildren: () =>
-          import('./prototypes/beanshe/beanshe.routes').then(
-            m => m.BEANSHE_ROUTES
-          ),
-      },
-      {
         path: 'prototype/front-base',
         loadChildren: () =>
           import('./prototypes/front-base/front-base.routes').then(
