@@ -68,6 +68,19 @@ export { PosDialogComponent } from './dialogs/pos-dialog.component';
 export { PosGuestListDialogComponent } from './dialogs/pos-guest-list-dialog.component';
 export { PosPaymentMethodDialogComponent } from './dialogs/pos-payment-method-dialog.component';
 
+// ─── Шаблоны диалогов (Этап 4) ──────────────────────
+export { PosNumpadComponent } from './dialogs/pos-numpad.component';
+export { PosKeyboardComponent } from './dialogs/pos-keyboard.component';
+export { PosGuestCardComponent, PosGuestField } from './dialogs/pos-guest-card.component';
+export { PosInfoBannerComponent, PosInfoField } from './dialogs/pos-info-banner.component';
+export { PosStatusScreenComponent } from './dialogs/pos-status-screen.component';
+export { PosConfirmComponent } from './dialogs/pos-confirm.component';
+export { PosActionListComponent, PosActionItem } from './dialogs/pos-action-list.component';
+
+// ─── Симуляция (Этап 3) ─────────────────────────────
+export { SimulationToolbarComponent } from './simulation/simulation-toolbar.component';
+export { SimulationScenario, SIMULATION_SCENARIOS } from './simulation/simulation-scenarios';
+
 // ─── Экраны ─────────────────────────────────────────
 export { PosMainScreenComponent } from './screens/pos-main-screen.component';
 export { PosTablesScreenComponent } from './screens/pos-tables-screen.component';

@@ -9,6 +9,8 @@ import {
   PosPaymentScreenComponent,
   PosGuestListDialogComponent,
   PosPaymentMethodDialogComponent,
+  SimulationToolbarComponent,
+  SimulationScenario,
   DeliveryOrder,
   PosGuest,
   PosMenuItem,
@@ -35,8 +37,23 @@ let nextOrderId = 1001;
     PosPaymentScreenComponent,
     PosGuestListDialogComponent,
     PosPaymentMethodDialogComponent,
+    SimulationToolbarComponent,
   ],
   template: `
+    <!-- Simulation toolbar (analyst tool) -->
+    <simulation-toolbar
+      [currentScreen]="currentScreen"
+      [tableNumber]="simTable"
+      [guests]="simGuests"
+      (screenChange)="onSimScreenChange($event)"
+      (tableNumberChange)="simTable = $event"
+      (guestsChange)="simGuests = $event"
+      (triggerPlugin)="onSimTriggerPlugin()"
+      (simulateEvent)="onSimEvent($event)"
+      (resetTerminal)="onSimReset()"
+      (applyScenario)="onSimScenario($event)">
+    </simulation-toolbar>
+
     <div class="h-[calc(100vh-48px)]">
       <pos-terminal-shell [showPlaceholder]="false"
                           [showBottomBar]="currentScreen === 'main'"
@@ -108,6 +125,10 @@ export class FrontBaseMainScreenComponent {
   currentOrderId: number | null = null;
   showGuestDlg = false;
   showPaymentMethodDlg = false;
+
+  // Simulation toolbar state
+  simTable = 0;
+  simGuests = 0;
 
   get currentOrder(): DeliveryOrder | null {
     return this.orders.find(o => o.id === this.currentOrderId) || null;
@@ -230,6 +251,39 @@ export class FrontBaseMainScreenComponent {
 
   onPaymentMethodSelected(method: string): void {
     this.showPaymentMethodDlg = false;
+  }
+
+  // ─── Simulation toolbar ──────────────
+  onSimScreenChange(screen: string): void {
+    this.currentScreen = screen as Screen;
+  }
+
+  onSimTriggerPlugin(): void {
+    // Placeholder — в будущем откроет диалог плагина
+  }
+
+  onSimEvent(event: string): void {
+    if (event === 'new-order') {
+      this.createOrder('pickup');
+      this.currentScreen = 'order';
+    }
+  }
+
+  onSimReset(): void {
+    this.currentScreen = 'main';
+    this.orders = [];
+    this.currentOrderId = null;
+    this.simTable = 0;
+    this.simGuests = 0;
+  }
+
+  onSimScenario(scenario: SimulationScenario): void {
+    this.currentScreen = scenario.screen as Screen;
+    this.simTable = scenario.tableNumber;
+    this.simGuests = scenario.guests;
+    if (scenario.hasOpenOrder && this.orders.length === 0) {
+      this.createOrder('pickup');
+    }
   }
 
   // ─── Helpers ─────────────────────────
