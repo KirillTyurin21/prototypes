@@ -4,14 +4,18 @@ import { IconsModule } from '@/shared/icons.module';
 import {
   PosTerminalShellComponent,
   PosMainScreenComponent,
+  PosTablesScreenComponent,
   PosDialogComponent,
 } from '@/components/pos-terminal';
 
 import { SparrowStateService } from '../services/sparrow-state.service';
 import { SparrowBackendPanelComponent } from '../components/sparrow-backend-panel.component';
 import { SparrowPluginDialogComponent } from '../components/sparrow-plugin-dialog.component';
+import { SparrowPluginsMenuComponent } from '../components/sparrow-plugins-menu.component';
 import { SparrowNotificationOverlayComponent } from '../components/sparrow-notification-overlay.component';
 import { ACTIVE_STATUSES, SparrowOrderStatus, SparrowOrderItem } from '../types';
+
+type PosScreen = 'main' | 'tables';
 
 /**
  * Главный экран прототипа Sparrow.
@@ -31,9 +35,11 @@ import { ACTIVE_STATUSES, SparrowOrderStatus, SparrowOrderItem } from '../types'
     IconsModule,
     PosTerminalShellComponent,
     PosMainScreenComponent,
+    PosTablesScreenComponent,
     PosDialogComponent,
     SparrowBackendPanelComponent,
     SparrowPluginDialogComponent,
+    SparrowPluginsMenuComponent,
     SparrowNotificationOverlayComponent,
   ],
   template: `
@@ -42,16 +48,30 @@ import { ACTIVE_STATUSES, SparrowOrderStatus, SparrowOrderItem } from '../types'
       <!-- ═══ Левая колонка: POS Terminal (70%) ═══ -->
       <div class="w-[70%] h-full">
         <pos-terminal-shell [showPlaceholder]="false"
-                            [showBottomBar]="true"
+                            [showBottomBar]="currentScreen === 'main'"
                             [showNotificationArea]="false"
                             (bottomAction)="onBottomAction($event)">
 
           <!-- Главный экран терминала -->
-          <pos-main-screen posScreen
+          <pos-main-screen *ngIf="currentScreen === 'main'"
+                           posScreen
                            (navigate)="onMainNavigate($event)">
           </pos-main-screen>
 
-          <!-- ═══ Окно плагина (pos-dialog внутри shell) ═══ -->
+          <!-- Экран залов/столов (стандартный, по кнопке «Заказы») -->
+          <pos-tables-screen *ngIf="currentScreen === 'tables'"
+                             posScreen
+                             (navigate)="onTablesNavigate($event)">
+          </pos-tables-screen>
+
+          <!-- ═══ Меню выбора плагинов (по кнопке «Дополнения») ═══ -->
+          <app-sparrow-plugins-menu
+            [open]="showPluginsMenu"
+            (selectPlugin)="onPluginSelected($event)"
+            (dialogClose)="showPluginsMenu = false">
+          </app-sparrow-plugins-menu>
+
+          <!-- ═══ Окно плагина Beanshe (после выбора из меню) ═══ -->
           <app-sparrow-plugin-dialog
             [open]="showPluginDialog"
             (dialogClose)="showPluginDialog = false">
@@ -91,6 +111,8 @@ import { ACTIVE_STATUSES, SparrowOrderStatus, SparrowOrderItem } from '../types'
 export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   state = inject(SparrowStateService);
 
+  currentScreen: PosScreen = 'main';
+  showPluginsMenu = false;
   showPluginDialog = false;
 
   /** Есть ли активные заказы (для кнопки отмены) */
@@ -109,14 +131,29 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   // ─── POS Terminal events ─────────────────────
 
   onBottomAction(action: string): void {
-    if (action === 'extensions' || action === 'orders') {
-      this.showPluginDialog = true;
+    if (action === 'orders') {
+      this.currentScreen = 'tables';
+    } else if (action === 'extensions') {
+      this.showPluginsMenu = true;
     }
   }
 
   onMainNavigate(action: string): void {
-    // Ячейки главного экрана: открываем окно плагина на релевантных действиях
-    if (action === 'delivery' || action === 'stop-list') {
+    if (action === 'delivery') {
+      this.currentScreen = 'tables';
+    }
+  }
+
+  onTablesNavigate(action: string): void {
+    if (action === 'back') {
+      this.currentScreen = 'main';
+    }
+  }
+
+  /** Выбор плагина из меню «Дополнения» */
+  onPluginSelected(plugin: string): void {
+    this.showPluginsMenu = false;
+    if (plugin === 'beanshe') {
       this.showPluginDialog = true;
     }
   }
