@@ -109,13 +109,16 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   // ─── POS Terminal events ─────────────────────
 
   onBottomAction(action: string): void {
-    if (action === 'addons') {
+    if (action === 'extensions' || action === 'orders') {
       this.showPluginDialog = true;
     }
   }
 
-  onMainNavigate(_action: string): void {
-    // Основной экран — навигация не используется в этом прототипе
+  onMainNavigate(action: string): void {
+    // Ячейки главного экрана: открываем окно плагина на релевантных действиях
+    if (action === 'delivery' || action === 'stop-list') {
+      this.showPluginDialog = true;
+    }
   }
 
   // ─── Notification overlay events (Этап 4) ───
@@ -174,6 +177,10 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   /** Push стоп-запрос от бэкенда (Этап 6, кейс 3) */
   onSimStopPush(): void {
     this.state.simulateStopPush();
+    // Если запрос создан — автоматически открыть окно плагина
+    if (this.state.pendingStopPush) {
+      this.showPluginDialog = true;
+    }
   }
 
   /** Переключить стоп-лист Front для случайного продукта */

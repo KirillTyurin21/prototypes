@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
 import { PosDialogComponent } from '@/components/pos-terminal';
@@ -171,7 +171,7 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
     </pos-dialog>
   `,
 })
-export class SparrowNotificationOverlayComponent {
+export class SparrowNotificationOverlayComponent implements OnChanges {
   /** Текущая нотификация (null = скрыта) */
   @Input() notification: SparrowNotification | null = null;
 
@@ -188,6 +188,12 @@ export class SparrowNotificationOverlayComponent {
   @Output() notPickedUp = new EventEmitter<number>();
 
   loading = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['notification']) {
+      this.loading = false;
+    }
+  }
 
   get queueLabel(): string {
     const n = this.queueSize;
