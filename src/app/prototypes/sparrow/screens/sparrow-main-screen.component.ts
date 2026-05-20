@@ -114,6 +114,32 @@ type PosScreen = 'main' | 'tables' | 'delivery-list' | 'order' | 'payment';
             (dialogClose)="showPluginDialog = false">
           </app-sparrow-plugin-dialog>
 
+          <!-- ═══ Overlay закрытия заказа (плагин добавляет оплату + отправляет в Beanshe) ═══ -->
+          <pos-dialog *ngIf="showCloseOverlay"
+                      [open]="true"
+                      [closable]="false"
+                      theme="light"
+                      maxWidth="sm"
+                      padding="lg">
+            <!-- Загрузка -->
+            <div *ngIf="closeOverlayState === 'loading'" class="flex flex-col items-center gap-4 py-4">
+              <div class="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+              <div class="text-lg font-medium text-gray-800">Закрытие заказа...</div>
+              <div class="text-sm text-gray-500">Добавление типа оплаты и отправка в Beanshe</div>
+            </div>
+            <!-- Ошибка -->
+            <div *ngIf="closeOverlayState === 'error'" class="flex flex-col items-center gap-4 py-4">
+              <lucide-icon name="alert-circle" [size]="48" color="#ef4444"></lucide-icon>
+              <div class="text-lg font-medium text-red-600">Ошибка</div>
+              <div class="text-sm text-gray-600 text-center">{{ closeErrorMessage }}</div>
+              <div class="text-xs text-gray-400 text-center mt-1">Тип оплаты добавлен. Перейдите на экран оплаты для повторной попытки.</div>
+              <button class="mt-3 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                      (click)="onCloseOverlayDismiss()">
+                Перейти к оплате
+              </button>
+            </div>
+          </pos-dialog>
+
           <!-- ═══ Блокирующая нотификация (overlay поверх всего, FIFO) ═══ -->
           <app-sparrow-notification-overlay
             [notification]="state.currentNotification"
@@ -152,6 +178,11 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   showPluginsMenu = false;
   showPluginDialog = false;
   currentOrderId: number | null = null;
+
+  // Close overlay state
+  showCloseOverlay = false;
+  closeOverlayState: 'loading' | 'error' = 'loading';
+  closeErrorMessage = '';
 
   /** Есть ли активные заказы (для кнопки отмены) */
   get hasActiveOrders(): boolean {
@@ -234,7 +265,8 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
       this.currentScreen = 'delivery-list';
       this.currentOrderId = null;
     } else if (action === 'payment') {
-      this.currentScreen = 'payment';
+      // Плагин перехватывает: автоматическое закрытие заказа
+      this._startCloseFlow();
     }
   }
 
@@ -265,11 +297,8 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   }
 
   onPaymentComplete(): void {
-    if (this.currentOrderId != null) {
-      this.state.updateStatus(this.currentOrderId, 'completed');
-    }
-    this.currentScreen = 'delivery-list';
-    this.currentOrderId = null;
+    // Повторная попытка: плагин снова пытается отправить в Beanshe
+    this._startCloseFlow();
   }
 
   // ─── Notification overlay events (Этап 4) ───
@@ -345,6 +374,46 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
       items[idx].isStopped = true;
       items[idx].stopSource = 'auto_sync';
     }
+  }
+
+  // ─── Close flow (плагин автозакрытия) ───────
+
+  /** Запуск флоу закрытия: overlay → добавить оплату → отправить в Beanshe → закрыть */
+  private _startCloseFlow(): void {
+    this.showCloseOverlay = true;
+    this.closeOverlayState = 'loading';
+
+    this.state.addLog('POST', '/orders/pay', 'success', 'Добавление типа оплаты (предоплата)');
+
+    // Симуляция async-операции (1.5–2.5 сек)
+    const delay = 1500 + Math.random() * 1000;
+    setTimeout(() => {
+      // 70% успех, 30% ошибка (для демонстрации)
+      const success = Math.random() > 0.3;
+
+      if (success) {
+        if (this.currentOrderId != null) {
+          this.state.updateStatus(this.currentOrderId, 'completed');
+          this.state.addLog('POST', '/orders/complete', 'success',
+            `Заказ ${this._orderNumber(this.currentOrderId)} → complete (Beanshe)`);
+          this.state.showInlineMessage(`Заказ ${this._orderNumber(this.currentOrderId)} закрыт`);
+        }
+        this.showCloseOverlay = false;
+        this.currentScreen = 'delivery-list';
+        this.currentOrderId = null;
+      } else {
+        this.closeOverlayState = 'error';
+        this.closeErrorMessage = 'Не удалось отправить уведомление о закрытии в Beanshe. Сервер не отвечает.';
+        this.state.addLog('POST', '/orders/complete', 'error',
+          `Ошибка отправки complete в Beanshe`);
+      }
+    }, delay);
+  }
+
+  /** Dismiss ошибки → переход на экран оплаты (тип оплаты уже добавлен) */
+  onCloseOverlayDismiss(): void {
+    this.showCloseOverlay = false;
+    this.currentScreen = 'payment';
   }
 
   // ─── Helpers ─────────────────────────────────

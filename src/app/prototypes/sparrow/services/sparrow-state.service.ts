@@ -437,6 +437,11 @@ export class SparrowStateService {
     this._nextId = 2000;
   }
 
+  /** Добавить запись в лог (public для использования из компонентов) */
+  addLog(method: string, endpoint: string, status: 'success' | 'error', description: string): void {
+    this._addLog(method, endpoint, status, description);
+  }
+
   // ═══════════════════════════════════════════════
   // Внутренние
   // ═══════════════════════════════════════════════
