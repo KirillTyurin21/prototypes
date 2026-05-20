@@ -133,6 +133,8 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/titan/changelog.data');
       case 'front-base':
         return import('../../prototypes/front-base/changelog.data');
+      case 'sparrow':
+        return import('../../prototypes/sparrow/changelog.data');
       default:
         return Promise.reject('Unknown prototype');
     }

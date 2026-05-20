@@ -173,6 +173,10 @@ import {
   Filter,
   CalendarCheck,
   Ban,
+  // Sparrow notifications
+  BellRing,
+  // Sparrow backend panel
+  Shuffle,
 } from 'lucide-angular';
 
 /**
@@ -354,6 +358,10 @@ const icons = {
   Filter,
   CalendarCheck,
   Ban,
+  // Sparrow notifications
+  BellRing,
+  // Sparrow backend panel
+  Shuffle,
 };
 
 @NgModule({

@@ -103,6 +103,13 @@ export const routes: Routes = [
             m => m.FRONT_BASE_ROUTES
           ),
       },
+      {
+        path: 'prototype/sparrow',
+        loadChildren: () =>
+          import('./prototypes/sparrow/sparrow.routes').then(
+            m => m.SPARROW_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL

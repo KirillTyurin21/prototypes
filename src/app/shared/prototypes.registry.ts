@@ -82,5 +82,11 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'monitor',
     description: 'Унифицированная база терминала Front: общие компоненты для всех Front-плагинов',
   },
+  {
+    path: '/prototype/sparrow',
+    label: 'Sparrow — Плагин Front',
+    icon: 'coffee',
+    description: 'Плагин интеграции Front с внешним сервисом заказов кофейни',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];
