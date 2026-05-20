@@ -168,8 +168,7 @@ type PosScreen = 'main' | 'tables' | 'delivery-list' | 'order' | 'payment';
           (randomOrder)="onSimNewOrder()"
           (createOrder)="onCreateOrder($event)"
           (customerCancel)="onSimCustomerCancel()"
-          (stopPush)="onSimStopPush()"
-          (toggleFrontStop)="onToggleFrontStop()">
+          (stopPush)="onSimStopPush()">
         </app-sparrow-backend-panel>
       </div>
 
@@ -375,19 +374,6 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
     // Если запрос создан — автоматически открыть окно плагина
     if (this.state.pendingStopPush) {
       this.showPluginDialog = true;
-    }
-  }
-
-  /** Переключить стоп-лист Front для случайного продукта */
-  onToggleFrontStop(): void {
-    // Переключаем isStoppedInFront у случайного продукта для демонстрации
-    const items = this.state.stopList;
-    const idx = Math.floor(Math.random() * items.length);
-    items[idx].isStoppedInFront = !items[idx].isStoppedInFront;
-    // Если Front ставит на стоп, продукт тоже на стопе
-    if (items[idx].isStoppedInFront) {
-      items[idx].isStopped = true;
-      items[idx].stopSource = 'auto_sync';
     }
   }
 

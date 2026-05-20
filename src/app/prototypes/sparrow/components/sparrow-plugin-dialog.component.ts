@@ -137,11 +137,6 @@ import { SparrowTab } from '../types';
               {{ stoppedCount }}
             </span>
           </button>
-          <button class="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-medium
-                         text-gray-400 hover:bg-gray-500/10 transition-colors cursor-pointer">
-            <lucide-icon name="send" [size]="14"></lucide-icon>
-            Отправить отчёт
-          </button>
         </div>
       </ng-template>
 
@@ -167,14 +162,13 @@ export class SparrowPluginDialogComponent {
   tabs: { key: SparrowTab; label: string }[] = [
     { key: 'active', label: 'Активные' },
     { key: 'cancelled', label: 'Отменённые' },
-    { key: 'closed', label: 'Закрытые' },
   ];
 
   get emptyMessage(): string {
     switch (this.state.activeTab) {
       case 'active':    return 'Нет активных заказов';
       case 'cancelled': return 'Нет отменённых заказов';
-      case 'closed':    return 'Нет закрытых заказов';
+      default:          return '';
     }
   }
 

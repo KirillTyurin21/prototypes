@@ -182,13 +182,6 @@ import { MOCK_PRODUCTS, MOCK_MODIFICATIONS, MOCK_CUSTOMER_NAMES } from '../data/
               <lucide-icon name="ban" [size]="14"></lucide-icon>
               Push стоп-запрос
             </button>
-            <button (click)="toggleFrontStop.emit()"
-                    class="flex items-center gap-2 px-3 py-2 rounded text-xs font-medium
-                           bg-yellow-600/20 text-yellow-300 hover:bg-yellow-600/30
-                           transition-colors cursor-pointer">
-              <lucide-icon name="lock" [size]="14"></lucide-icon>
-              Переключить стоп Front
-            </button>
             <button (click)="customerCancel.emit()"
                     [disabled]="!isOnline || !hasActiveOrders"
                     class="flex items-center gap-2 px-3 py-2 rounded text-xs font-medium
@@ -246,7 +239,6 @@ export class SparrowBackendPanelComponent {
   @Output() createOrder = new EventEmitter<{ customerName: string; items: SparrowOrderItem[]; pickupMinutes: number; comment: string }>();
   @Output() customerCancel = new EventEmitter<void>();
   @Output() stopPush = new EventEmitter<void>();
-  @Output() toggleFrontStop = new EventEmitter<void>();
 
   // Form state
   showOrderForm = false;
