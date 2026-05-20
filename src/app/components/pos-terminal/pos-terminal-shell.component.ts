@@ -36,7 +36,7 @@ import { PosScreenVariant, PosBottomButton, POS_COLORS } from './types';
       <!-- Рамка терминала -->
       <div class="pos-frame relative flex flex-col rounded-lg overflow-hidden"
            [style.background-color]="colors.terminalBg"
-           style="max-width: 100%; max-height: 100%; aspect-ratio: 3/2;
+           style="height: 100%; max-width: 100%; aspect-ratio: 3/2;
                   box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);">
 
         <!-- ─── Header bar ─── -->
