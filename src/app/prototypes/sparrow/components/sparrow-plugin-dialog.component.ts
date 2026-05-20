@@ -7,7 +7,7 @@ import { SparrowStateService } from '../services/sparrow-state.service';
 import { SparrowOrderCardComponent } from './sparrow-order-card.component';
 import { SparrowStopListScreenComponent } from './sparrow-stop-list-screen.component';
 import { SparrowStopPushDialogComponent } from './sparrow-stop-push-dialog.component';
-import { SparrowTab, SparrowOrderStatus } from '../types';
+import { SparrowTab } from '../types';
 
 /**
  * Окно плагина Sparrow — основной интерфейс баристы.
@@ -121,8 +121,7 @@ import { SparrowTab, SparrowOrderStatus } from '../types';
           <!-- Order cards -->
           <app-sparrow-order-card
             *ngFor="let order of state.filteredOrders"
-            [order]="order"
-            (action)="onOrderAction($event)">
+            [order]="order">
           </app-sparrow-order-card>
         </div>
 
@@ -192,34 +191,6 @@ export class SparrowPluginDialogComponent {
       if (!confirm) return;
     }
     this.state.isOnShift = !this.state.isOnShift;
-  }
-
-  onOrderAction(event: { orderId: number; status: SparrowOrderStatus }): void {
-    this.state.updateStatus(event.orderId, event.status);
-
-    // Inline-уведомление о действии
-    const order = this.state.orders.find(o => o.id === event.orderId);
-    const num = order?.number ?? `#${event.orderId}`;
-    switch (event.status) {
-      case 'accepted':
-        this.state.showInlineMessage(`Заказ ${num} принят`);
-        break;
-      case 'preparing':
-        this.state.showInlineMessage(`Заказ ${num} — начата готовка`);
-        break;
-      case 'ready':
-        this.state.showInlineMessage(`Заказ ${num} приготовлен`);
-        break;
-      case 'completed':
-        this.state.showInlineMessage(`Заказ ${num} завершён`);
-        break;
-      case 'cancelled_barista':
-        this.state.showInlineMessage(`Заказ ${num} отменён`, 'error');
-        break;
-      case 'discarded':
-        this.state.showInlineMessage(`Заказ ${num} — не забрали`, 'error');
-        break;
-    }
   }
 
   /** Количество продуктов на стопе (для бейджа) */

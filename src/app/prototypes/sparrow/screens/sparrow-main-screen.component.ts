@@ -5,7 +5,13 @@ import {
   PosTerminalShellComponent,
   PosMainScreenComponent,
   PosTablesScreenComponent,
+  PosDeliveryListScreenComponent,
+  PosDeliveryOrderScreenComponent,
+  PosPaymentScreenComponent,
   PosDialogComponent,
+  DeliveryOrder,
+  DeliveryOrderStatus,
+  PosMenuItem,
 } from '@/components/pos-terminal';
 
 import { SparrowStateService } from '../services/sparrow-state.service';
@@ -13,9 +19,9 @@ import { SparrowBackendPanelComponent } from '../components/sparrow-backend-pane
 import { SparrowPluginDialogComponent } from '../components/sparrow-plugin-dialog.component';
 import { SparrowPluginsMenuComponent } from '../components/sparrow-plugins-menu.component';
 import { SparrowNotificationOverlayComponent } from '../components/sparrow-notification-overlay.component';
-import { ACTIVE_STATUSES, SparrowOrderStatus, SparrowOrderItem } from '../types';
+import { ACTIVE_STATUSES, SparrowOrderStatus, SparrowOrderItem, SparrowOrder } from '../types';
 
-type PosScreen = 'main' | 'tables';
+type PosScreen = 'main' | 'tables' | 'delivery-list' | 'order' | 'payment';
 
 /**
  * Главный экран прототипа Sparrow.
@@ -36,6 +42,9 @@ type PosScreen = 'main' | 'tables';
     PosTerminalShellComponent,
     PosMainScreenComponent,
     PosTablesScreenComponent,
+    PosDeliveryListScreenComponent,
+    PosDeliveryOrderScreenComponent,
+    PosPaymentScreenComponent,
     PosDialogComponent,
     SparrowBackendPanelComponent,
     SparrowPluginDialogComponent,
@@ -58,11 +67,39 @@ type PosScreen = 'main' | 'tables';
                            (navigate)="onMainNavigate($event)">
           </pos-main-screen>
 
-          <!-- Экран залов/столов (стандартный, по кнопке «Заказы») -->
+          <!-- Экран залов/столов -->
           <pos-tables-screen *ngIf="currentScreen === 'tables'"
                              posScreen
                              (navigate)="onTablesNavigate($event)">
           </pos-tables-screen>
+
+          <!-- Экран списка доставочных заказов -->
+          <pos-delivery-list-screen *ngIf="currentScreen === 'delivery-list'"
+                                    posScreen
+                                    [orders]="deliveryOrders"
+                                    (navigate)="onDeliveryListNavigate($event)"
+                                    (selectOrder)="onSelectOrder($event)"
+                                    (closeOrder)="onCloseOrder($event)">
+          </pos-delivery-list-screen>
+
+          <!-- Экран редактирования заказа -->
+          <pos-delivery-order-screen *ngIf="currentScreen === 'order'"
+                                     posScreen
+                                     [order]="currentDeliveryOrder"
+                                     (navigate)="onOrderNavigate($event)"
+                                     (statusChange)="onDeliveryStatusChange($event)"
+                                     (addItem)="onAddItem($event)"
+                                     (removeItem)="onRemoveItemByIndex($event)"
+                                     (saveOrder)="onSaveOrder()">
+          </pos-delivery-order-screen>
+
+          <!-- Экран оплаты -->
+          <pos-payment-screen *ngIf="currentScreen === 'payment'"
+                              posScreen
+                              [order]="currentDeliveryOrder"
+                              (navigate)="onPaymentNavigate($event)"
+                              (paymentComplete)="onPaymentComplete()">
+          </pos-payment-screen>
 
           <!-- ═══ Меню выбора плагинов (по кнопке «Дополнения») ═══ -->
           <app-sparrow-plugins-menu
@@ -114,10 +151,23 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   currentScreen: PosScreen = 'main';
   showPluginsMenu = false;
   showPluginDialog = false;
+  currentOrderId: number | null = null;
 
   /** Есть ли активные заказы (для кнопки отмены) */
   get hasActiveOrders(): boolean {
     return this.state.orders.some(o => ACTIVE_STATUSES.includes(o.status));
+  }
+
+  /** Маппинг SparrowOrder[] → DeliveryOrder[] для POS-экранов */
+  get deliveryOrders(): DeliveryOrder[] {
+    return this.state.orders.map(o => this._toDeliveryOrder(o));
+  }
+
+  /** Текущий выбранный заказ для экрана редактирования/оплаты */
+  get currentDeliveryOrder(): DeliveryOrder | null {
+    if (this.currentOrderId == null) return null;
+    const sparrow = this.state.orders.find(o => o.id === this.currentOrderId);
+    return sparrow ? this._toDeliveryOrder(sparrow) : null;
   }
 
   ngOnInit(): void {
@@ -147,6 +197,8 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   onTablesNavigate(action: string): void {
     if (action === 'back') {
       this.currentScreen = 'main';
+    } else if (action === 'delivery-list') {
+      this.currentScreen = 'delivery-list';
     }
   }
 
@@ -156,6 +208,68 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
     if (plugin === 'beanshe') {
       this.showPluginDialog = true;
     }
+  }
+
+  // ─── Delivery List events ───────────────────
+
+  onDeliveryListNavigate(action: string): void {
+    if (action === 'back') {
+      this.currentScreen = 'tables';
+    }
+  }
+
+  onSelectOrder(orderId: number): void {
+    this.currentOrderId = orderId;
+    this.currentScreen = 'order';
+  }
+
+  onCloseOrder(orderId: number): void {
+    this.state.updateStatus(orderId, 'completed');
+  }
+
+  // ─── Delivery Order events ──────────────────
+
+  onOrderNavigate(action: string): void {
+    if (action === 'back') {
+      this.currentScreen = 'delivery-list';
+      this.currentOrderId = null;
+    } else if (action === 'payment') {
+      this.currentScreen = 'payment';
+    }
+  }
+
+  onDeliveryStatusChange(status: DeliveryOrderStatus): void {
+    if (this.currentOrderId == null) return;
+    const sparrowStatus = this._fromDeliveryStatus(status);
+    this.state.updateStatus(this.currentOrderId, sparrowStatus);
+  }
+
+  onAddItem(_item: PosMenuItem): void {
+    // Прототип: добавление позиций не поддерживается (заказ приходит из внешней системы)
+  }
+
+  onRemoveItemByIndex(_index: number): void {
+    // Прототип: удаление позиций не поддерживается
+  }
+
+  onSaveOrder(): void {
+    // Прототип: сохранение — noop, данные в памяти
+  }
+
+  // ─── Payment events ─────────────────────────
+
+  onPaymentNavigate(action: string): void {
+    if (action === 'back') {
+      this.currentScreen = 'order';
+    }
+  }
+
+  onPaymentComplete(): void {
+    if (this.currentOrderId != null) {
+      this.state.updateStatus(this.currentOrderId, 'completed');
+    }
+    this.currentScreen = 'delivery-list';
+    this.currentOrderId = null;
   }
 
   // ─── Notification overlay events (Этап 4) ───
@@ -237,5 +351,65 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
 
   private _orderNumber(orderId: number): string {
     return this.state.orders.find(o => o.id === orderId)?.number ?? `#${orderId}`;
+  }
+
+  /** SparrowOrder → DeliveryOrder (для POS-экранов) */
+  private _toDeliveryOrder(o: SparrowOrder): DeliveryOrder {
+    return {
+      id: o.id,
+      status: this._toDeliveryStatus(o.status),
+      type: 'pickup' as const,
+      createdAt: o.createdAt,
+      deliveryTime: o.pickupTime,
+      address: '',
+      courier: '',
+      client: o.customerName,
+      phone: '',
+      comment: o.comment,
+      items: o.items.map((i, idx) => ({
+        id: idx + 1,
+        dishId: i.productId,
+        name: i.modifications.length
+          ? `${i.productName} (${i.modifications.join(', ')})`
+          : i.productName,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+      subtotal: o.totalPrice,
+      discount: 0,
+      surcharge: 0,
+      prepayment: o.totalPrice,
+      total: o.totalPrice,
+      isFiscalized: false,
+      paymentMethod: 'cashless',
+    };
+  }
+
+  /** SparrowOrderStatus → DeliveryOrderStatus */
+  private _toDeliveryStatus(s: SparrowOrderStatus): DeliveryOrderStatus {
+    switch (s) {
+      case 'created':            return 'unconfirmed';
+      case 'accepted':           return 'new';
+      case 'preparing':          return 'cooking';
+      case 'ready':              return 'ready';
+      case 'completed':          return 'closed';
+      case 'discarded':          return 'closed';
+      case 'cancelled_barista':  return 'cancelled';
+      case 'cancelled_customer': return 'cancelled';
+      case 'expired':            return 'cancelled';
+    }
+  }
+
+  /** DeliveryOrderStatus → SparrowOrderStatus */
+  private _fromDeliveryStatus(s: DeliveryOrderStatus): SparrowOrderStatus {
+    switch (s) {
+      case 'unconfirmed': return 'created';
+      case 'new':         return 'accepted';
+      case 'cooking':     return 'preparing';
+      case 'ready':       return 'ready';
+      case 'on-the-way':  return 'ready';
+      case 'closed':      return 'completed';
+      case 'cancelled':   return 'cancelled_barista';
+    }
   }
 }
