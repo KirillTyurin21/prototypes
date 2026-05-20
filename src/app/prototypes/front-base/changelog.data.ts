@@ -2,6 +2,30 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.4',
+    date: '2026-06-02',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Галерея шаблонов диалогов',
+        pageRoute: '/prototype/front-base/gallery',
+        items: [
+          'Добавлена интерактивная галерея всех шаблонов диалогов (10 шаблонов)',
+          'Каталог шаблонов в боковой панели с описаниями и иконками',
+          'Интерактивный превью каждого шаблона поверх терминала',
+          'Переключение между шаблонами без перезагрузки терминала',
+        ],
+      },
+      {
+        page: 'Главный экран',
+        pageRoute: '/prototype/front-base',
+        items: [
+          'Добавлена кнопка навигации в галерею шаблонов',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.3',
     date: '2026-06-02',
     status: 'unreleased',

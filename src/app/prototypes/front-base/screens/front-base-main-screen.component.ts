@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { IconsModule } from '@/shared/icons.module';
 import {
   PosTerminalShellComponent,
   PosMainScreenComponent,
@@ -38,6 +40,7 @@ let nextOrderId = 1001;
     PosGuestListDialogComponent,
     PosPaymentMethodDialogComponent,
     SimulationToolbarComponent,
+    IconsModule,
   ],
   template: `
     <!-- Simulation toolbar (analyst tool) -->
@@ -53,6 +56,17 @@ let nextOrderId = 1001;
       (resetTerminal)="onSimReset()"
       (applyScenario)="onSimScenario($event)">
     </simulation-toolbar>
+
+    <!-- Gallery navigation -->
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-indigo-50/60 border-b border-indigo-100">
+      <button (click)="openGallery()"
+              class="flex items-center gap-1.5 text-xs font-medium text-indigo-600
+                     hover:text-indigo-800 transition-colors cursor-pointer">
+        <lucide-icon name="layout-grid" [size]="14"></lucide-icon>
+        Галерея шаблонов диалогов
+        <span class="text-indigo-400">→</span>
+      </button>
+    </div>
 
     <div class="h-[calc(100vh-48px)]">
       <pos-terminal-shell [showPlaceholder]="false"
@@ -120,6 +134,8 @@ let nextOrderId = 1001;
   `,
 })
 export class FrontBaseMainScreenComponent {
+  private router = inject(Router);
+
   currentScreen: Screen = 'main';
   orders: DeliveryOrder[] = [];
   currentOrderId: number | null = null;
@@ -135,6 +151,10 @@ export class FrontBaseMainScreenComponent {
   }
 
   // ─── Main screen ─────────────────────
+  openGallery(): void {
+    this.router.navigate(['/prototype/front-base/gallery']);
+  }
+
   onBottomAction(action: string): void {
     if (action === 'orders') {
       this.currentScreen = 'tables';

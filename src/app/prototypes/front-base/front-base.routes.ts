@@ -15,6 +15,13 @@ export const FRONT_BASE_ROUTES: Routes = [
             (m) => m.FrontBaseMainScreenComponent
           ),
       },
+      {
+        path: 'gallery',
+        loadComponent: () =>
+          import('./screens/dialog-gallery-screen.component').then(
+            (m) => m.DialogGalleryScreenComponent
+          ),
+      },
     ],
   },
 ];
