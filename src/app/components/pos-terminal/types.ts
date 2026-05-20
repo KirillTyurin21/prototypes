@@ -178,3 +178,91 @@ export const POS_SIZES = {
     full: 900,
   },
 } as const;
+
+// ─── Модуль «Заказы» ───────────────────────────────
+
+/** Статус доставочного заказа */
+export type DeliveryOrderStatus =
+  | 'unconfirmed'
+  | 'new'
+  | 'cooking'
+  | 'ready'
+  | 'on-the-way'
+  | 'closed'
+  | 'cancelled';
+
+/** Тип доставочного заказа */
+export type DeliveryOrderType = 'pickup' | 'delivery';
+
+/** Тип оплаты */
+export type PaymentMethodType = 'cash' | 'bank-card' | 'cashless' | 'no-revenue';
+
+/** Доставочный заказ */
+export interface DeliveryOrder {
+  id: number;
+  status: DeliveryOrderStatus;
+  type: DeliveryOrderType;
+  createdAt: string;
+  deliveryTime: string;
+  address: string;
+  courier: string | null;
+  client: string;
+  phone: string;
+  comment: string;
+  items: PosOrderItem[];
+  subtotal: number;
+  discount: number;
+  surcharge: number;
+  prepayment: number;
+  total: number;
+  isFiscalized: boolean;
+  paymentMethod: PaymentMethodType | null;
+}
+
+/** Гость */
+export interface PosGuest {
+  id: number;
+  name: string;
+  phone: string;
+}
+
+/** Способ оплаты */
+export interface PosPaymentMethod {
+  id: string;
+  name: string;
+  type: PaymentMethodType;
+}
+
+/** Зал ресторана */
+export interface PosHall {
+  id: number;
+  name: string;
+  tables: PosTable[];
+}
+
+/** Категория меню (для модуля Заказы) */
+export interface PosMenuCategory {
+  id: number;
+  name: string;
+  isGroup: boolean;
+}
+
+/** Позиция меню (для модуля Заказы) */
+export interface PosMenuItem {
+  id: number;
+  name: string;
+  categoryId: number;
+  price: number;
+  available: boolean;
+}
+
+/** Метки статусов с иконками и подписями */
+export const DELIVERY_STATUS_META: Record<DeliveryOrderStatus, { label: string; icon: string; filterLabel: string }> = {
+  unconfirmed: { label: 'НЕПОДТВ.', icon: '❓', filterLabel: 'Неподтв.' },
+  new:         { label: 'НОВЫЙ',    icon: '🆕', filterLabel: 'Новые' },
+  cooking:     { label: 'ГОТОВИТСЯ', icon: '🍳', filterLabel: 'Готовится' },
+  ready:       { label: 'СОБРАН',   icon: '📦', filterLabel: 'Готовы' },
+  'on-the-way':{ label: 'В ПУТИ',  icon: '🚚', filterLabel: 'В пути' },
+  closed:      { label: 'ЗАКРЫТ',  icon: '😊', filterLabel: 'Закр-е' },
+  cancelled:   { label: 'ОТМЕНА',  icon: '❌', filterLabel: 'Отмена' },
+};

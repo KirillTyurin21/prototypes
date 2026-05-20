@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PosTerminalStateService } from '../pos-terminal-state.service';
 import { POS_COLORS } from '../types';
@@ -163,10 +163,9 @@ import { POS_COLORS } from '../types';
 export class PosMainScreenComponent {
   state = inject(PosTerminalStateService);
   colors = POS_COLORS;
+  @Output() navigate = new EventEmitter<string>();
 
   onCellClick(action: string): void {
-    // Кнопки главного экрана — заглушки для прототипа.
-    // В будущих этапах: переход на соответствующие экраны.
-    console.log('[POS Main Screen]', action);
+    this.navigate.emit(action);
   }
 }

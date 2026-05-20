@@ -164,6 +164,15 @@ import {
   Wrench,
   Power,
   Mail,
+  // POS Orders module
+  Truck,
+  Minus,
+  Banknote,
+  ChevronsUp,
+  MoreVertical,
+  Filter,
+  CalendarCheck,
+  Ban,
 } from 'lucide-angular';
 
 /**
@@ -336,6 +345,15 @@ const icons = {
   Wrench,
   Power,
   Mail,
+  // POS Orders module
+  Truck,
+  Minus,
+  Banknote,
+  ChevronsUp,
+  MoreVertical,
+  Filter,
+  CalendarCheck,
+  Ban,
 };
 
 @NgModule({

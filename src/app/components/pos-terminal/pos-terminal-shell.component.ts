@@ -52,7 +52,8 @@ import { PosScreenVariant, PosBottomButton, POS_COLORS } from './types';
         </div>
 
         <!-- ─── Notification area ─── -->
-        <div class="flex items-stretch shrink-0" style="min-height: 88px; background: #e8e8e0;">
+        <div *ngIf="showNotificationArea"
+             class="flex items-stretch shrink-0" style="min-height: 88px; background: #e8e8e0;">
           <!-- Notification content (beige, limited to ~50% width) -->
           <div class="flex items-center" style="max-width: 50%;">
             <div class="flex items-center px-3 py-1.5 text-xs leading-tight h-full"
@@ -97,7 +98,8 @@ import { PosScreenVariant, PosBottomButton, POS_COLORS } from './types';
         </div>
 
         <!-- ─── Bottom navigation bar ─── -->
-        <div class="flex items-stretch shrink-0 border-t border-gray-700 select-none"
+        <div *ngIf="showBottomBar"
+             class="flex items-stretch shrink-0 border-t border-gray-700 select-none"
              [style.background-color]="colors.bottomBarBg"
              [style.height.px]="64">
 
@@ -142,6 +144,10 @@ export class PosTerminalShellComponent {
   @Input() showPlaceholder = true;
   /** Текущий экран (для логики state-сервиса) */
   @Input() screen: PosScreenVariant = 'main';
+  /** Показывать нижнюю панель навигации */
+  @Input() showBottomBar = true;
+  /** Показывать область уведомлений */
+  @Input() showNotificationArea = true;
 
   /** Клик по кнопке нижней панели */
   @Output() bottomAction = new EventEmitter<string>();
