@@ -230,6 +230,8 @@ export interface PosGuest {
 export interface PosPaymentMethod {
   id: string;
   name: string;
+  /** Имя для детальной области (жёлтая полоса, сумма). Если не задано — используется name */
+  displayName?: string;
   type: PaymentMethodType;
 }
 

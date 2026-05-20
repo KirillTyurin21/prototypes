@@ -12,6 +12,7 @@ import {
   DeliveryOrder,
   DeliveryOrderStatus,
   PosMenuItem,
+  PosPaymentMethod,
 } from '@/components/pos-terminal';
 
 import { SparrowStateService } from '../services/sparrow-state.service';
@@ -97,6 +98,10 @@ type PosScreen = 'main' | 'tables' | 'delivery-list' | 'order' | 'payment';
           <pos-payment-screen *ngIf="currentScreen === 'payment'"
                               posScreen
                               [order]="currentDeliveryOrder"
+                              [customPaymentMethods]="sparrowPaymentMethods"
+                              [prefillExactAmount]="prefillPayment"
+                              [initialPaymentType]="prefillPayment ? 'bank-card' : 'cash'"
+                              [skipFiscalization]="true"
                               (navigate)="onPaymentNavigate($event)"
                               (paymentComplete)="onPaymentComplete()">
           </pos-payment-screen>
@@ -183,6 +188,15 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   showCloseOverlay = false;
   closeOverlayState: 'loading' | 'error' = 'loading';
   closeErrorMessage = '';
+  prefillPayment = false;
+
+  /** Кастомные типы оплаты: Beanshe как внешний тип под «Банковские карты» */
+  sparrowPaymentMethods: PosPaymentMethod[] = [
+    { id: 'cash', name: 'Наличные', type: 'cash' },
+    { id: 'beanshe', name: 'Банковские карты', displayName: 'Beanshe', type: 'bank-card' },
+    { id: 'cashless', name: 'Безнал. расчет', type: 'cashless' },
+    { id: 'no-revenue', name: 'Без выручки', type: 'no-revenue' },
+  ];
 
   /** Есть ли активные заказы (для кнопки отмены) */
   get hasActiveOrders(): boolean {
@@ -293,6 +307,7 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   onPaymentNavigate(action: string): void {
     if (action === 'back') {
       this.currentScreen = 'order';
+      this.prefillPayment = false;
     }
   }
 
@@ -399,6 +414,7 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
           this.state.showInlineMessage(`Заказ ${this._orderNumber(this.currentOrderId)} закрыт`);
         }
         this.showCloseOverlay = false;
+        this.prefillPayment = false;
         this.currentScreen = 'delivery-list';
         this.currentOrderId = null;
       } else {
@@ -413,6 +429,7 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   /** Dismiss ошибки → переход на экран оплаты (тип оплаты уже добавлен) */
   onCloseOverlayDismiss(): void {
     this.showCloseOverlay = false;
+    this.prefillPayment = true;
     this.currentScreen = 'payment';
   }
 

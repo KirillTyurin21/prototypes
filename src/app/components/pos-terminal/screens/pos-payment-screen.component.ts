@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { POS_COLORS, DeliveryOrder, PaymentMethodType } from '../types';
+import { POS_COLORS, DeliveryOrder, PaymentMethodType, PosPaymentMethod } from '../types';
 import { MOCK_PAYMENT_METHODS } from '../data/mock-delivery-orders';
 
 /**
@@ -87,7 +87,7 @@ import { MOCK_PAYMENT_METHODS } from '../data/mock-delivery-orders';
 
           <!-- Вкладки типов оплаты -->
           <div class="flex items-stretch shrink-0" style="height: 48px; border-bottom: 1px solid #ccc;">
-            <button *ngFor="let pm of paymentMethods"
+            <button *ngFor="let pm of activePaymentMethods"
                     class="pos-pay-tab flex-1 flex flex-col items-center justify-center text-[10px] font-bold"
                     [class.active]="selectedPaymentType === pm.type"
                     (click)="onSelectPaymentType(pm.type)">
@@ -100,7 +100,7 @@ import { MOCK_PAYMENT_METHODS } from '../data/mock-delivery-orders';
           <div class="flex items-center px-3 shrink-0" style="height: 32px; background: #e8e07a;">
             <span class="text-xs font-bold" style="color: #333;">
               <span *ngIf="isFiscalized">[Ф] </span>
-              {{ getSelectedPaymentName() | uppercase }}
+              {{ getSelectedPaymentDisplayName() | uppercase }}
             </span>
             <span class="ml-auto text-xs font-bold" style="color: #333;">
               {{ enteredAmount | number:'1.2-2' }} р.
@@ -117,7 +117,7 @@ import { MOCK_PAYMENT_METHODS } from '../data/mock-delivery-orders';
 
           <!-- Название типа + сумма -->
           <div class="text-center py-2 shrink-0" style="color: #1976d2;">
-            <div class="text-xs font-bold uppercase">{{ getSelectedPaymentName() }}</div>
+            <div class="text-xs font-bold uppercase">{{ getSelectedPaymentDisplayName() }}</div>
             <div class="text-3xl font-bold">{{ enteredAmount | number:'1.2-2' }} р.</div>
           </div>
 
@@ -238,23 +238,36 @@ import { MOCK_PAYMENT_METHODS } from '../data/mock-delivery-orders';
 })
 export class PosPaymentScreenComponent implements OnChanges {
   @Input() order: DeliveryOrder | null = null;
+  @Input() customPaymentMethods: PosPaymentMethod[] | null = null;
+  @Input() prefillExactAmount = false;
+  @Input() initialPaymentType: PaymentMethodType = 'cash';
+  @Input() skipFiscalization = false;
   @Output() navigate = new EventEmitter<string>();
   @Output() paymentComplete = new EventEmitter<void>();
   @Output() showPaymentMethodDialog = new EventEmitter<void>();
 
   colors = POS_COLORS;
-  paymentMethods = MOCK_PAYMENT_METHODS;
   selectedPaymentType: PaymentMethodType = 'cash';
   enteredAmount = 0;
   isFiscalized = false;
+
+  get activePaymentMethods(): PosPaymentMethod[] {
+    return this.customPaymentMethods ?? MOCK_PAYMENT_METHODS;
+  }
   numpadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '/', '0', '✕'];
   quickAmounts = [1, 5, 10, 50, 100, 500, 1000, 5000];
   amountString = '';
 
   ngOnChanges(): void {
-    this.enteredAmount = 0;
+    this.selectedPaymentType = this.initialPaymentType;
     this.isFiscalized = false;
     this.amountString = '';
+    if (this.prefillExactAmount && this.order) {
+      this.enteredAmount = this.order.total;
+      this.amountString = String(this.order.total);
+    } else {
+      this.enteredAmount = 0;
+    }
   }
 
   get total(): number {
@@ -270,12 +283,14 @@ export class PosPaymentScreenComponent implements OnChanges {
   }
 
   get canPay(): boolean {
-    if (!this.isFiscalized && this.remaining <= 0 && this.enteredAmount > 0) return true; // Can fiscalize
-    if (this.isFiscalized) return true; // Can pay after fiscalization
+    if (this.skipFiscalization) return this.remaining <= 0 && this.enteredAmount > 0;
+    if (!this.isFiscalized && this.remaining <= 0 && this.enteredAmount > 0) return true;
+    if (this.isFiscalized) return true;
     return false;
   }
 
   get payButtonLabel(): string {
+    if (this.skipFiscalization) return 'ОПЛАТИТЬ';
     if (this.remaining <= 0 && this.enteredAmount > 0 && !this.isFiscalized) {
       return 'ФИСКАЛЬНЫЙ ЧЕК';
     }
@@ -299,12 +314,17 @@ export class PosPaymentScreenComponent implements OnChanges {
   }
 
   getSelectedPaymentName(): string {
-    const pm = this.paymentMethods.find(p => p.type === this.selectedPaymentType);
+    const pm = this.activePaymentMethods.find(p => p.type === this.selectedPaymentType);
     return pm?.name || '';
   }
 
+  getSelectedPaymentDisplayName(): string {
+    const pm = this.activePaymentMethods.find(p => p.type === this.selectedPaymentType);
+    return pm?.displayName || pm?.name || '';
+  }
+
   onSelectPaymentType(type: PaymentMethodType): void {
-    if (type === 'bank-card') {
+    if (type === 'bank-card' && !this.customPaymentMethods) {
       this.showPaymentMethodDialog.emit();
     }
     this.selectedPaymentType = type;
@@ -340,6 +360,11 @@ export class PosPaymentScreenComponent implements OnChanges {
 
   onPayClick(): void {
     if (!this.canPay) return;
+
+    if (this.skipFiscalization) {
+      this.paymentComplete.emit();
+      return;
+    }
 
     if (!this.isFiscalized && this.remaining <= 0) {
       this.isFiscalized = true;
