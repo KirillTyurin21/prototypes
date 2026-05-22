@@ -18,50 +18,51 @@ import { IconsModule } from '@/shared/icons.module';
     <div *ngIf="visible"
          class="absolute inset-0 z-40 flex items-center justify-center"
          style="background: rgba(0,0,0,0.5);">
-      <div class="bg-[#2a2a3e] border border-gray-600 rounded-xl p-5 shadow-xl max-w-xs w-full mx-4
-                  animate-fade-in">
-        <!-- Icon -->
-        <div class="flex justify-center mb-3">
-          <div class="w-10 h-10 rounded-full bg-orange-600 bg-opacity-20 flex items-center justify-center">
-            <lucide-icon name="alert-triangle" [size]="20" class="text-orange-400"></lucide-icon>
+      <div class="max-w-xs w-full mx-4 animate-fade-in" style="background: #404040;">
+
+        <!-- Title (iiko style: gold italic) -->
+        <div class="px-4 py-3 text-center" style="background: #333;">
+          <span class="text-sm font-semibold italic" style="color: #c8b560;">
+            Запрос на стоп
+          </span>
+        </div>
+
+        <!-- Content -->
+        <div class="px-4 py-4 text-center">
+          <p class="text-xs mb-3" style="color: #ccc;">
+            Система запрашивает остановку позиции:
+          </p>
+
+          <!-- Product name -->
+          <div class="py-2 mb-3 text-center" style="border-top: 1px solid #555; border-bottom: 1px solid #555;">
+            <span class="text-sm font-bold" style="color: #c8b560;">{{ productName }}</span>
           </div>
+
+          <p class="text-[11px]" style="color: #888;">
+            Подтвердите постановку на стоп или отклоните запрос.
+          </p>
         </div>
 
-        <!-- Title -->
-        <h3 class="text-sm font-semibold text-white text-center mb-1">
-          Запрос на стоп
-        </h3>
-
-        <!-- Description -->
-        <p class="text-xs text-gray-400 text-center mb-4 leading-relaxed">
-          Система запрашивает остановку позиции:
-        </p>
-
-        <!-- Product name -->
-        <div class="bg-gray-700 bg-opacity-40 rounded-lg px-3 py-2 mb-4 text-center">
-          <span class="text-sm font-medium text-orange-300">{{ productName }}</span>
-        </div>
-
-        <p class="text-[11px] text-gray-500 text-center mb-4">
-          Подтвердите постановку на стоп или отклоните запрос.
-        </p>
-
-        <!-- Buttons -->
-        <div class="flex gap-2">
-          <button (click)="onDecline()"
-                  [disabled]="loading"
-                  class="flex-1 px-3 py-2 rounded-lg text-xs font-medium
-                         bg-gray-600 text-gray-300 hover:bg-gray-500
-                         disabled:opacity-50 transition-colors cursor-pointer">
-            Нет
-          </button>
+        <!-- Footer (iiko style: dark bar with bold white buttons) -->
+        <div class="flex" style="background: #2a2a2a; border-top: 1px solid #555;">
           <button (click)="onConfirm()"
                   [disabled]="loading"
-                  class="flex-1 px-3 py-2 rounded-lg text-xs font-medium
-                         bg-orange-600 text-white hover:bg-orange-500
-                         disabled:opacity-50 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                  class="flex-1 py-3 text-xs font-bold transition-colors cursor-pointer
+                         disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  style="color: #fff; background: transparent; border-right: 1px solid #555;"
+                  onmouseenter="this.style.background='#3a3a3a'"
+                  onmouseleave="this.style.background='transparent'">
             <span *ngIf="loading" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             {{ loading ? '' : 'Да, на стоп' }}
+          </button>
+          <button (click)="onDecline()"
+                  [disabled]="loading"
+                  class="flex-1 py-3 text-xs font-bold transition-colors cursor-pointer
+                         disabled:opacity-50"
+                  style="color: #fff; background: transparent;"
+                  onmouseenter="this.style.background='#3a3a3a'"
+                  onmouseleave="this.style.background='transparent'">
+            Отмена
           </button>
         </div>
       </div>

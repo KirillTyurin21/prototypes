@@ -23,93 +23,92 @@ import { SparrowStopListItem } from '../types';
   standalone: true,
   imports: [CommonModule, IconsModule],
   template: `
-    <!-- Header -->
-    <div class="flex items-center gap-3 px-4 pt-3 pb-2">
-      <button (click)="back.emit()"
-              class="flex items-center gap-1 text-gray-400 hover:text-white transition-colors
-                     text-xs cursor-pointer">
-        <lucide-icon name="arrow-left" [size]="14"></lucide-icon>
-        Назад
-      </button>
-      <div class="flex-1"></div>
-      <span class="text-sm font-semibold text-white flex items-center gap-2">
-        <lucide-icon name="ban" [size]="16" class="text-orange-400"></lucide-icon>
-        Стоп-лист
-      </span>
-      <div class="flex-1"></div>
-      <div class="w-10"></div> <!-- spacer -->
-    </div>
+    <div class="flex flex-col" style="height: 480px;">
 
-    <!-- Description -->
-    <div class="px-4 pb-3">
-      <p class="text-[11px] text-gray-500 leading-relaxed">
-        Управление доступностью позиций меню. Продукты на стопе не отображаются покупателям в приложении.
-      </p>
-    </div>
+      <!-- Header (iiko style) -->
+      <div class="flex items-center justify-center px-4 py-3"
+           style="background: #333;">
+        <span class="text-base font-semibold italic" style="color: #c8b560;">
+          Стоп-лист
+        </span>
+      </div>
 
-    <!-- Products list -->
-    <div class="flex-1 overflow-y-auto px-4 space-y-1" style="max-height: 380px;">
-      <div *ngFor="let item of state.stopList; trackBy: trackByProduct"
-           class="flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors"
-           [ngClass]="item.isStoppedInFront
-             ? 'bg-gray-700 bg-opacity-30'
-             : item.isStopped
-               ? 'bg-red-900 bg-opacity-15 hover:bg-red-900 hover:bg-opacity-20'
-               : 'hover:bg-gray-700 hover:bg-opacity-30'">
+      <!-- Description -->
+      <div class="px-4 py-2" style="background: #383838; border-bottom: 1px solid #555;">
+        <p class="text-[11px] leading-relaxed" style="color: #999;">
+          Управление доступностью позиций меню. Продукты на стопе не отображаются покупателям в приложении.
+        </p>
+      </div>
 
-        <!-- Product info -->
-        <div class="flex flex-col gap-0.5">
-          <span class="text-sm font-medium"
-                [class.text-white]="!item.isStopped && !item.isStoppedInFront"
-                [class.text-red-400]="item.isStopped && !item.isStoppedInFront"
-                [class.text-gray-500]="item.isStoppedInFront">
-            {{ item.productName }}
+      <!-- Products list -->
+      <div class="flex-1 overflow-y-auto" style="background: #404040;">
+        <div *ngFor="let item of state.stopList; trackBy: trackByProduct"
+             class="flex items-center justify-between py-2.5 px-4 transition-colors"
+             style="border-bottom: 1px solid #4a4a4a;">
+
+          <!-- Product info -->
+          <div class="flex flex-col gap-0.5">
+            <span class="text-sm font-medium"
+                  [style.color]="item.isStoppedInFront ? '#666' : item.isStopped ? '#ef5350' : '#ddd'">
+              {{ item.productName }}
+            </span>
+
+            <!-- Label: stopped in Front -->
+            <span *ngIf="item.isStoppedInFront"
+                  class="text-[10px] flex items-center gap-1" style="color: #c8b560;">
+              <lucide-icon name="lock" [size]="10"></lucide-icon>
+              Уже в стоп-листе Front
+            </span>
+
+            <!-- Label: stop source -->
+            <span *ngIf="item.isStopped && !item.isStoppedInFront && item.stopSource"
+                  class="text-[10px]" style="color: #777;">
+              {{ stopSourceLabel(item.stopSource) }}
+            </span>
+          </div>
+
+          <!-- Toggle button -->
+          <button (click)="onToggle(item)"
+                  [disabled]="item.isStoppedInFront"
+                  class="relative w-10 h-5 rounded-full transition-colors cursor-pointer
+                         disabled:opacity-40 disabled:cursor-not-allowed"
+                  [style.background]="item.isStopped ? '#ef5350' : '#666'">
+            <span class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
+                  [ngClass]="item.isStopped ? 'left-5' : 'left-0.5'"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="px-4 py-2" style="background: #383838; border-top: 1px solid #555;">
+        <div class="flex items-center gap-4 text-[10px]" style="color: #888;">
+          <span class="flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full" style="background: #ef5350;"></span>
+            На стопе
           </span>
-
-          <!-- Label: stopped in Front -->
-          <span *ngIf="item.isStoppedInFront"
-                class="text-[10px] text-yellow-500 flex items-center gap-1">
-            <lucide-icon name="lock" [size]="10"></lucide-icon>
-            Уже в стоп-листе Front
+          <span class="flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full" style="background: #666;"></span>
+            Доступен
           </span>
-
-          <!-- Label: stop source -->
-          <span *ngIf="item.isStopped && !item.isStoppedInFront && item.stopSource"
-                class="text-[10px] text-gray-500">
-            {{ stopSourceLabel(item.stopSource) }}
+          <span class="flex items-center gap-1">
+            <lucide-icon name="lock" [size]="10" style="color: #c8b560;"></lucide-icon>
+            Заблокировано Front
           </span>
         </div>
+      </div>
 
-        <!-- Toggle button -->
-        <button (click)="onToggle(item)"
-                [disabled]="item.isStoppedInFront"
-                class="relative w-10 h-5 rounded-full transition-colors cursor-pointer
-                       disabled:opacity-40 disabled:cursor-not-allowed"
-                [ngClass]="item.isStopped
-                  ? 'bg-red-600'
-                  : 'bg-gray-600'">
-          <span class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
-                [ngClass]="item.isStopped ? 'left-5' : 'left-0.5'"></span>
+      <!-- Footer (iiko style: dark bar) -->
+      <div class="flex items-center justify-end px-1"
+           style="background: #2a2a2a; border-top: 1px solid #555;">
+        <button (click)="back.emit()"
+                class="px-4 py-3 text-xs font-bold transition-colors cursor-pointer"
+                style="color: #fff; background: transparent;"
+                onmouseenter="this.style.background='#3a3a3a'"
+                onmouseleave="this.style.background='transparent'">
+          Назад
         </button>
       </div>
-    </div>
 
-    <!-- Legend -->
-    <div class="px-4 pt-3 pb-2 border-t border-gray-700 mt-3">
-      <div class="flex items-center gap-4 text-[10px] text-gray-500">
-        <span class="flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-red-600"></span>
-          На стопе
-        </span>
-        <span class="flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-gray-600"></span>
-          Доступен
-        </span>
-        <span class="flex items-center gap-1">
-          <lucide-icon name="lock" [size]="10" class="text-yellow-500"></lucide-icon>
-          Заблокировано Front
-        </span>
-      </div>
     </div>
   `,
 })

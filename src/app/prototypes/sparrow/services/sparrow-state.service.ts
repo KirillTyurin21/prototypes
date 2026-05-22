@@ -39,6 +39,17 @@ export class SparrowStateService {
   /** Backend онлайн */
   isBackendOnline = true;
 
+  // ─── Эмуляция ошибок (панель управления) ────
+
+  /** Эмулировать ошибку PayOrder при закрытии */
+  simulateCloseError = false;
+
+  /** Эмулировать ошибку accept при принятии заказа */
+  simulateAcceptError = false;
+
+  /** Эмулировать ошибку сети при обновлении статуса */
+  simulateStatusError = false;
+
   // ─── Заказы ────────────────────────────────────
 
   orders: SparrowOrder[] = this._cloneOrders(MOCK_INITIAL_ORDERS);
@@ -128,7 +139,17 @@ export class SparrowStateService {
       order.completedAt = new Date().toISOString();
     }
 
-    this._addLog('PATCH', `/orders/${orderId}/status`, 'success',
+    // Маппинг статус → API-эндпоинт (из Beanshe API-справочника)
+    const endpointMap: Partial<Record<SparrowOrderStatus, string>> = {
+      accepted: `/api/v2/barista/orders/${orderId}/accept/`,
+      preparing: `/api/v2/barista/orders/${orderId}/preparing/`,
+      ready: `/api/v2/barista/orders/${orderId}/ready/`,
+      completed: `/api/v2/barista/orders/${orderId}/complete/`,
+      discarded: `/api/v2/barista/orders/${orderId}/discard/`,
+      cancelled_barista: `/api/v2/barista/orders/${orderId}/cancel/`,
+    };
+    const endpoint = endpointMap[newStatus] || `/api/v2/barista/orders/${orderId}/`;
+    this._addLog('POST', endpoint, 'success',
       `Статус заказа ${order.number} → ${newStatus}`);
   }
 
@@ -145,8 +166,12 @@ export class SparrowStateService {
     item.stopSource = item.isStopped ? 'manual' : null;
 
     const verb = item.isStopped ? 'добавлен в' : 'убран из';
-    this._addLog('POST', '/stop-list', 'success',
-      `${item.productName} ${verb} стоп-лист`);
+    this._addLog(
+      item.isStopped ? 'POST' : 'DELETE',
+      `/api/barista/products/${productId}/stop/`,
+      'success',
+      `${item.productName} ${verb} стоп-лист`
+    );
   }
 
   /** Эмуляция: push-стоп-запрос от Beanshe (кейс 3, раздел 4.6) */
@@ -158,8 +183,8 @@ export class SparrowStateService {
     const item = available[Math.floor(Math.random() * available.length)];
     this.pendingStopPush = { productId: item.productId, productName: item.productName };
 
-    this._addLog('PUSH', '/stop-list/request', 'success',
-      `Запрос на стоп: ${item.productName}`);
+    this._addLog('WS', `/api/barista/products/${item.productId}/stop/`, 'success',
+      `[Эмуляция] Push-запрос на стоп: ${item.productName}`);
   }
 
   /** Бариста подтверждает push-стоп-запрос */
@@ -172,7 +197,7 @@ export class SparrowStateService {
       item.stopSource = 'backend_push';
     }
 
-    this._addLog('POST', '/stop-list/confirm', 'success',
+    this._addLog('POST', `/api/barista/products/${this.pendingStopPush.productId}/stop/`, 'success',
       `${this.pendingStopPush.productName} поставлен на стоп (подтверждено)`);
     this.pendingStopPush = null;
   }
@@ -181,7 +206,7 @@ export class SparrowStateService {
   declineStopPush(): void {
     if (!this.pendingStopPush) return;
 
-    this._addLog('POST', '/stop-list/decline', 'success',
+    this._addLog('POST', `/api/barista/products/${this.pendingStopPush.productId}/stop/`, 'success',
       `Запрос на стоп «${this.pendingStopPush.productName}» отклонён`);
     this.pendingStopPush = null;
   }
@@ -280,8 +305,8 @@ export class SparrowStateService {
         const autoCancel = pickupTime - 4 * 60_000;
         if (now >= autoCancel) {
           this.updateStatus(order.id, 'expired');
-          this._addLog('TIMER', '/auto-cancel', 'success',
-            `Заказ ${order.number} автоотменён (таймаут)`);
+          this._addLog('TIMER', `/api/v2/barista/orders/${order.id}/cancel/`, 'success',
+            `Заказ ${order.number} автоотменён (pickup_time - 4мин)`);
           // Убрать нотификацию нового заказа из очереди, если она там
           this._removeNotificationForOrder(order.id, 'new_order');
           continue;
@@ -298,8 +323,8 @@ export class SparrowStateService {
             orderId: order.id,
             order,
           });
-          this._addLog('TIMER', '/not-picked-up', 'success',
-            `Заказ ${order.number}: время вышло, покупатель не забрал`);
+          this._addLog('TIMER', `/api/v2/barista/orders/${order.id}/`, 'success',
+            `Заказ ${order.number}: pickup_time + 15мин, покупатель не забрал`);
         }
       }
     }
@@ -403,8 +428,8 @@ export class SparrowStateService {
       order,
     });
 
-    this._addLog('POST', '/orders', 'success',
-      `Новый заказ ${order.number} от ${customer}`);
+    this._addLog('GET', '/api/v2/barista/orders/', 'success',
+      `[Эмуляция] Новый заказ ${order.number} от ${customer} (поллинг)`);
   }
 
   /** Эмуляция: отмена покупателем */
@@ -413,8 +438,8 @@ export class SparrowStateService {
     if (!order || FINAL_STATUSES.includes(order.status)) return;
 
     this.updateStatus(orderId, 'cancelled_customer');
-    this._addLog('POST', `/orders/${orderId}/cancel`, 'success',
-      `Покупатель отменил заказ ${order.number}`);
+    this._addLog('GET', '/api/v2/barista/orders/', 'success',
+      `[Эмуляция] Покупатель отменил заказ ${order.number} (поллинг)`);
   }
 
   /** Сбросить все данные к начальным */

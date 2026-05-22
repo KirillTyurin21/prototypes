@@ -32,8 +32,8 @@ import { PosDialogSize, PosDialogTheme, PosDialogPadding, POS_SIZES } from '../t
            (click)="onOverlayClick()"></div>
 
       <!-- Dialog content -->
-      <div class="relative rounded-lg animate-scale-in w-full mx-4"
-           [ngClass]="[themeClass, paddingClass]"
+      <div class="relative animate-scale-in w-full mx-4"
+           [ngClass]="[themeClass, paddingClass, rounded ? 'rounded-lg' : '']"
            [style.max-width.px]="maxWidthPx"
            [style.border]="borderStyle">
         <!-- Кнопка закрытия -->
@@ -65,6 +65,8 @@ export class PosDialogComponent {
   @Input() closable = true;
   /** Цвет рамки (опционально, стиль Neptune) */
   @Input() borderColor = '';
+  /** Скруглённые углы (по умолчанию true) */
+  @Input() rounded = true;
 
   /** Закрытие диалога */
   @Output() dialogClose = new EventEmitter<void>();
@@ -89,6 +91,7 @@ export class PosDialogComponent {
 
   get paddingClass(): string {
     switch (this.padding) {
+      case 'none': return 'p-0';
       case 'sm': return 'p-4';
       case 'md': return 'p-6';
       case 'lg': return 'p-8';

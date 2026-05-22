@@ -23,92 +23,86 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
     <pos-dialog [open]="!!notification"
                 maxWidth="md"
                 theme="dark"
-                padding="md"
-                [closable]="false">
+                padding="none"
+                [closable]="false"
+                [rounded]="false">
 
       <ng-container *ngIf="notification">
 
         <!-- ═══ Новый заказ ═══ -->
         <ng-container *ngIf="notification.type === 'new_order'">
-          <div class="flex flex-col items-center">
-            <!-- Пульсирующий индикатор -->
-            <div class="w-14 h-14 rounded-full bg-amber-500/20 flex items-center justify-center mb-4 animate-pulse">
-              <lucide-icon name="bell-ring" [size]="28" class="text-amber-400"></lucide-icon>
+          <div class="flex flex-col">
+            <!-- Header (iiko style) -->
+            <div class="px-4 py-3 text-center" style="background: #333;">
+              <span class="text-base font-semibold italic" style="color: #c8b560;">
+                Новый заказ
+              </span>
+              <div class="text-xs mt-0.5" style="color: #999;">{{ notification.order.number }}</div>
             </div>
 
-            <h2 class="text-lg font-bold text-white mb-1">Новый заказ</h2>
-            <span class="text-sm text-gray-400 mb-5">{{ notification.order.number }}</span>
-
             <!-- Информация о заказе -->
-            <div class="w-full bg-[#252536] rounded-lg p-4 mb-5">
-              <!-- Покупатель -->
-              <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-700/50">
-                <div class="flex items-center gap-2">
-                  <lucide-icon name="user" [size]="14" class="text-gray-500"></lucide-icon>
-                  <span class="text-sm text-gray-300">{{ notification.order.customerName }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <lucide-icon name="clock" [size]="14" class="text-gray-500"></lucide-icon>
-                  <span class="text-sm text-gray-300 font-medium">{{ formatTime(notification.order.pickupTime) }}</span>
-                </div>
+            <div class="px-4 py-3" style="background: #404040;">
+              <!-- Покупатель + время -->
+              <div class="flex items-center justify-between mb-3 pb-2" style="border-bottom: 1px solid #555;">
+                <span class="text-sm" style="color: #ddd;">{{ notification.order.customerName }}</span>
+                <span class="text-sm font-medium" style="color: #c8b560;">{{ formatTime(notification.order.pickupTime) }}</span>
               </div>
 
               <!-- Позиции -->
-              <div class="space-y-2 mb-3">
+              <div class="space-y-1.5 mb-3">
                 <div *ngFor="let item of notification.order.items"
                      class="flex items-start justify-between text-sm">
                   <div class="flex-1">
-                    <span class="text-gray-200">
+                    <span style="color: #ddd;">
                       {{ item.quantity > 1 ? item.quantity + '× ' : '' }}{{ item.productName }}
                     </span>
-                    <span class="text-gray-500 ml-1" *ngIf="item.size">({{ item.size }})</span>
-                    <div *ngIf="item.modifications.length" class="text-xs text-gray-500 mt-0.5">
+                    <span style="color: #777;" *ngIf="item.size">({{ item.size }})</span>
+                    <div *ngIf="item.modifications.length" class="text-xs mt-0.5" style="color: #777;">
                       + {{ item.modifications.join(', ') }}
                     </div>
                   </div>
-                  <span class="text-gray-400 ml-2 shrink-0">{{ item.price }} ₽</span>
+                  <span class="ml-2 shrink-0" style="color: #999;">{{ item.price }} ₽</span>
                 </div>
               </div>
 
               <!-- Итого -->
-              <div class="flex items-center justify-between pt-3 border-t border-gray-700/50">
-                <span class="text-xs text-gray-500 uppercase">Итого</span>
-                <span class="text-base text-white font-bold">{{ notification.order.totalPrice }} ₽</span>
+              <div class="flex items-center justify-between pt-2" style="border-top: 1px solid #555;">
+                <span class="text-xs uppercase" style="color: #888;">Итого</span>
+                <span class="text-base font-bold" style="color: #fff;">{{ notification.order.totalPrice }} ₽</span>
               </div>
 
               <!-- Комментарий -->
               <div *ngIf="notification.order.comment"
-                   class="mt-3 pt-3 border-t border-gray-700/50 text-xs text-gray-500 italic">
-                💬 {{ notification.order.comment }}
+                   class="mt-2 pt-2 text-xs italic" style="border-top: 1px solid #555; color: #888;">
+                {{ notification.order.comment }}
               </div>
             </div>
 
             <!-- Счётчик очереди -->
             <div *ngIf="queueSize > 0"
-                 class="text-xs text-gray-500 mb-4">
+                 class="text-xs text-center py-2" style="color: #888; background: #3a3a3a;">
               Ещё {{ queueSize }} {{ queueLabel }} в очереди
             </div>
 
-            <!-- Кнопки -->
-            <div class="flex w-full gap-3">
+            <!-- Footer (iiko style: dark bar with bold white buttons) -->
+            <div class="flex" style="background: #2a2a2a; border-top: 1px solid #555;">
               <button (click)="onAccept()"
                       [disabled]="loading"
-                      class="flex-1 py-3.5 rounded-lg text-sm font-semibold text-center
-                             bg-green-600 text-white hover:bg-green-700
-                             disabled:opacity-50 disabled:cursor-not-allowed
-                             transition-colors cursor-pointer">
-                <span *ngIf="!loading">Принять</span>
-                <span *ngIf="loading" class="flex items-center justify-center gap-2">
-                  <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  Принятие...
-                </span>
+                      class="flex-1 py-3 text-sm font-bold transition-colors cursor-pointer
+                             disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      style="color: #fff; background: transparent; border-right: 1px solid #555;"
+                      onmouseenter="this.style.background='#3a3a3a'"
+                      onmouseleave="this.style.background='transparent'">
+                <span *ngIf="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                {{ loading ? 'Принятие...' : 'Принять' }}
               </button>
               <button (click)="onDecline()"
                       [disabled]="loading"
-                      class="flex-1 py-3.5 rounded-lg text-sm font-semibold text-center
-                             bg-red-600/20 text-red-400 hover:bg-red-600/30
-                             disabled:opacity-50 disabled:cursor-not-allowed
-                             transition-colors cursor-pointer">
+                      class="flex-1 py-3 text-sm font-bold transition-colors cursor-pointer
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                      style="color: #fff; background: transparent;"
+                      onmouseenter="this.style.background='#3a3a3a'"
+                      onmouseleave="this.style.background='transparent'">
                 Отменить
               </button>
             </div>
@@ -117,50 +111,58 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
 
         <!-- ═══ Не забрали ═══ -->
         <ng-container *ngIf="notification.type === 'not_picked_up'">
-          <div class="flex flex-col items-center">
-            <!-- Индикатор -->
-            <div class="w-14 h-14 rounded-full bg-orange-500/20 flex items-center justify-center mb-4 animate-pulse">
-              <lucide-icon name="alert-triangle" [size]="28" class="text-orange-400"></lucide-icon>
+          <div class="flex flex-col">
+            <!-- Header (iiko style) -->
+            <div class="px-4 py-3 text-center" style="background: #333;">
+              <span class="text-base font-semibold italic" style="color: #c8b560;">
+                Заказ не забрали
+              </span>
+              <div class="text-xs mt-0.5" style="color: #999;">
+                {{ notification.order.number }} · {{ notification.order.customerName }}
+              </div>
             </div>
 
-            <h2 class="text-lg font-bold text-white mb-1">Заказ не забрали</h2>
-            <span class="text-sm text-gray-400 mb-2">{{ notification.order.number }}</span>
-            <span class="text-xs text-gray-500 mb-5">{{ notification.order.customerName }} · Время выдачи: {{ formatTime(notification.order.pickupTime) }}</span>
+            <!-- Информация -->
+            <div class="px-4 py-3" style="background: #404040;">
+              <div class="text-xs mb-3" style="color: #888;">
+                Время выдачи: <span style="color: #c8b560;">{{ formatTime(notification.order.pickupTime) }}</span>
+              </div>
 
-            <!-- Позиции (краткий список) -->
-            <div class="w-full bg-[#252536] rounded-lg p-3 mb-5">
-              <div *ngFor="let item of notification.order.items"
-                   class="text-sm text-gray-300 py-1">
-                {{ item.quantity > 1 ? item.quantity + '× ' : '' }}{{ item.productName }}
-                <span class="text-gray-500" *ngIf="item.size">({{ item.size }})</span>
+              <!-- Позиции (краткий список) -->
+              <div style="border-top: 1px solid #555; border-bottom: 1px solid #555;">
+                <div *ngFor="let item of notification.order.items"
+                     class="text-sm py-1.5 px-1" style="color: #ddd; border-bottom: 1px solid #4a4a4a;">
+                  {{ item.quantity > 1 ? item.quantity + '× ' : '' }}{{ item.productName }}
+                  <span style="color: #777;" *ngIf="item.size">({{ item.size }})</span>
+                </div>
               </div>
             </div>
 
             <!-- Счётчик очереди -->
             <div *ngIf="queueSize > 0"
-                 class="text-xs text-gray-500 mb-4">
+                 class="text-xs text-center py-2" style="color: #888; background: #3a3a3a;">
               Ещё {{ queueSize }} {{ queueLabel }} в очереди
             </div>
 
-            <!-- Кнопки -->
-            <div class="flex w-full gap-3">
+            <!-- Footer (iiko style) -->
+            <div class="flex" style="background: #2a2a2a; border-top: 1px solid #555;">
               <button (click)="onPickedUp()"
                       [disabled]="loading"
-                      class="flex-1 py-3.5 rounded-lg text-sm font-semibold text-center
-                             bg-green-600 text-white hover:bg-green-700
-                             disabled:opacity-50 disabled:cursor-not-allowed
-                             transition-colors cursor-pointer">
-                <span *ngIf="!loading">Выдать</span>
-                <span *ngIf="loading" class="flex items-center justify-center gap-2">
-                  <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                </span>
+                      class="flex-1 py-3 text-sm font-bold transition-colors cursor-pointer
+                             disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      style="color: #fff; background: transparent; border-right: 1px solid #555;"
+                      onmouseenter="this.style.background='#3a3a3a'"
+                      onmouseleave="this.style.background='transparent'">
+                <span *ngIf="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                {{ loading ? '' : 'Выдать' }}
               </button>
               <button (click)="onNotPickedUp()"
                       [disabled]="loading"
-                      class="flex-1 py-3.5 rounded-lg text-sm font-semibold text-center
-                             bg-orange-600/20 text-orange-400 hover:bg-orange-600/30
-                             disabled:opacity-50 disabled:cursor-not-allowed
-                             transition-colors cursor-pointer">
+                      class="flex-1 py-3 text-sm font-bold transition-colors cursor-pointer
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                      style="color: #fff; background: transparent;"
+                      onmouseenter="this.style.background='#3a3a3a'"
+                      onmouseleave="this.style.background='transparent'">
                 Не забрали
               </button>
             </div>

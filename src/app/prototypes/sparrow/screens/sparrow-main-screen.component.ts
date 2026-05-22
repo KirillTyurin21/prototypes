@@ -123,25 +123,38 @@ type PosScreen = 'main' | 'tables' | 'delivery-list' | 'order' | 'payment';
           <pos-dialog *ngIf="showCloseOverlay"
                       [open]="true"
                       [closable]="false"
-                      theme="light"
+                      theme="dark"
                       maxWidth="sm"
-                      padding="lg">
+                      padding="none"
+                      [rounded]="false">
             <!-- Загрузка -->
-            <div *ngIf="closeOverlayState === 'loading'" class="flex flex-col items-center gap-4 py-4">
-              <div class="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-              <div class="text-lg font-medium text-gray-800">Закрытие заказа...</div>
-              <div class="text-sm text-gray-500">Добавление типа оплаты и отправка в Beanshe</div>
+            <div *ngIf="closeOverlayState === 'loading'" class="flex flex-col items-center">
+              <div class="px-4 py-3 text-center w-full" style="background: #333;">
+                <span class="text-sm font-semibold italic" style="color: #c8b560;">Закрытие заказа</span>
+              </div>
+              <div class="flex flex-col items-center gap-3 py-6 px-4" style="background: #404040;">
+                <div class="animate-spin w-8 h-8 border-3 border-white/30 border-t-white rounded-full"></div>
+                <div class="text-sm" style="color: #ddd;">Добавление типа оплаты и отправка</div>
+              </div>
             </div>
             <!-- Ошибка -->
-            <div *ngIf="closeOverlayState === 'error'" class="flex flex-col items-center gap-4 py-4">
-              <lucide-icon name="alert-circle" [size]="48" color="#ef4444"></lucide-icon>
-              <div class="text-lg font-medium text-red-600">Ошибка</div>
-              <div class="text-sm text-gray-600 text-center">{{ closeErrorMessage }}</div>
-              <div class="text-xs text-gray-400 text-center mt-1">Тип оплаты добавлен. Перейдите на экран оплаты для повторной попытки.</div>
-              <button class="mt-3 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                      (click)="onCloseOverlayDismiss()">
-                Перейти к оплате
-              </button>
+            <div *ngIf="closeOverlayState === 'error'" class="flex flex-col">
+              <div class="px-4 py-3 text-center" style="background: #333;">
+                <span class="text-sm font-semibold italic" style="color: #c8b560;">Ошибка</span>
+              </div>
+              <div class="py-4 px-4 text-center" style="background: #404040;">
+                <div class="text-sm mb-2" style="color: #ef5350;">{{ closeErrorMessage }}</div>
+                <div class="text-xs" style="color: #888;">Тип оплаты добавлен. Перейдите на экран оплаты для повторной попытки.</div>
+              </div>
+              <div class="flex justify-end" style="background: #2a2a2a; border-top: 1px solid #555;">
+                <button class="px-4 py-3 text-xs font-bold transition-colors cursor-pointer"
+                        style="color: #fff; background: transparent;"
+                        onmouseenter="this.style.background='#3a3a3a'"
+                        onmouseleave="this.style.background='transparent'"
+                        (click)="onCloseOverlayDismiss()">
+                  Перейти к оплате
+                </button>
+              </div>
             </div>
           </pos-dialog>
 
@@ -286,6 +299,12 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   onDeliveryStatusChange(status: DeliveryOrderStatus): void {
     if (this.currentOrderId == null) return;
     const sparrowStatus = this._fromDeliveryStatus(status);
+    if (this.state.simulateStatusError && !['cancelled_barista'].includes(sparrowStatus)) {
+      this.state.addLog('POST', `/api/v2/barista/orders/${this.currentOrderId}/${sparrowStatus}/`, 'error',
+        `Ошибка обновления статуса: сбой при переходе в ${sparrowStatus}`);
+      this.state.showInlineMessage(`Ошибка обновления статуса. Повторите попытку.`, 'error');
+      return;
+    }
     this.state.updateStatus(this.currentOrderId, sparrowStatus);
   }
 
@@ -319,6 +338,12 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
 
   /** Новый заказ: принять */
   onNotifAccept(orderId: number): void {
+    if (this.state.simulateAcceptError) {
+      this.state.addLog('POST', `/api/v2/barista/orders/${orderId}/accept/`, 'error',
+        `Ошибка Accept: сбой сети при принятии заказа ${this._orderNumber(orderId)}`);
+      this.state.showInlineMessage(`Ошибка сети. Повторите попытку.`, 'error');
+      return;
+    }
     this.state.updateStatus(orderId, 'accepted');
     this.state.showInlineMessage(`Заказ ${this._orderNumber(orderId)} принят`);
     this.state.dismissNotification();
@@ -384,19 +409,19 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
     this.showCloseOverlay = true;
     this.closeOverlayState = 'loading';
 
-    this.state.addLog('POST', '/orders/pay', 'success', 'Добавление типа оплаты (предоплата)');
+    this.state.addLog('POST', '/api/v2/barista/orders/{id}/complete', 'success', 'AddExternalFiscalizedPaymentItem → PayOrder');
 
     // Симуляция async-операции (1.5–2.5 сек)
     const delay = 1500 + Math.random() * 1000;
     setTimeout(() => {
-      // 70% успех, 30% ошибка (для демонстрации)
-      const success = Math.random() > 0.3;
+      // Ошибка управляется из панели эмуляции (без случайности)
+      const success = !this.state.simulateCloseError;
 
       if (success) {
         if (this.currentOrderId != null) {
           this.state.updateStatus(this.currentOrderId, 'completed');
-          this.state.addLog('POST', '/orders/complete', 'success',
-            `Заказ ${this._orderNumber(this.currentOrderId)} → complete (Beanshe)`);
+          this.state.addLog('POST', `/api/v2/barista/orders/${this.currentOrderId}/complete`, 'success',
+            `Заказ ${this._orderNumber(this.currentOrderId)} → completed`);
           this.state.showInlineMessage(`Заказ ${this._orderNumber(this.currentOrderId)} закрыт`);
         }
         this.showCloseOverlay = false;
@@ -405,9 +430,9 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
         this.currentOrderId = null;
       } else {
         this.closeOverlayState = 'error';
-        this.closeErrorMessage = 'Не удалось отправить уведомление о закрытии в Beanshe. Сервер не отвечает.';
-        this.state.addLog('POST', '/orders/complete', 'error',
-          `Ошибка отправки complete в Beanshe`);
+        this.closeErrorMessage = 'Ошибка PayOrder: не удалось закрыть заказ. Сервер не отвечает.';
+        this.state.addLog('POST', `/api/v2/barista/orders/${this.currentOrderId}/complete`, 'error',
+          `Ошибка PayOrder → fallback на ручное закрытие`);
       }
     }, delay);
   }

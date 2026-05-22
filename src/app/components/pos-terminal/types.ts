@@ -120,7 +120,7 @@ export type PosDialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 export type PosDialogTheme = 'dark' | 'light';
 
 /** Отступ POS-диалога */
-export type PosDialogPadding = 'sm' | 'md' | 'lg';
+export type PosDialogPadding = 'none' | 'sm' | 'md' | 'lg';
 
 // ─── Константы ──────────────────────────────────────
 

@@ -37,9 +37,9 @@ import { SparrowTab } from '../types';
     <pos-dialog [open]="open"
                 maxWidth="lg"
                 theme="dark"
-                padding="sm"
-                [closable]="true"
-                (dialogClose)="dialogClose.emit()">
+                padding="none"
+                [closable]="false"
+                [rounded]="false">
 
       <!-- ═══ Stop-list screen (replaces main content) ═══ -->
       <ng-container *ngIf="showStopListScreen; else ordersView">
@@ -50,93 +50,93 @@ import { SparrowTab } from '../types';
 
       <!-- ═══ Orders view (main) ═══ -->
       <ng-template #ordersView>
+        <div class="flex flex-col" style="height: 480px;">
 
-        <!-- ═══ Header ═══ -->
-        <div class="flex items-center justify-between mb-4 px-2 pt-2">
-          <div class="flex items-center gap-3">
-            <lucide-icon name="coffee" [size]="20" class="text-amber-400"></lucide-icon>
-            <span class="text-lg font-bold text-white">Sparrow</span>
+          <!-- ═══ Header (iiko style: dark bg, gold title) ═══ -->
+          <div class="flex items-center justify-between px-4 py-3"
+               style="background: #333;">
+            <span class="text-base font-semibold italic" style="color: #c8b560;">
+              Sparrow
+            </span>
+
+            <!-- Switch «На смене» -->
+            <button (click)="onToggleShift()"
+                    class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium
+                           transition-colors cursor-pointer select-none"
+                    style="background: transparent;">
+              <span class="w-2 h-2 rounded-full"
+                    [style.background]="state.isOnShift ? '#4caf50' : '#777'"></span>
+              <span [style.color]="state.isOnShift ? '#4caf50' : '#999'">
+                {{ state.isOnShift ? 'На смене' : 'Не на смене' }}
+              </span>
+            </button>
           </div>
 
-          <!-- Switch «На смене» -->
-          <button (click)="onToggleShift()"
-                  class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium
-                         transition-colors cursor-pointer select-none"
-                  [class.bg-green-600]="state.isOnShift"
-                  [class.text-white]="state.isOnShift"
-                  [class.bg-gray-600]="!state.isOnShift"
-                  [class.text-gray-300]="!state.isOnShift">
-            <span class="w-2 h-2 rounded-full transition-colors"
-                  [class.bg-green-300]="state.isOnShift"
-                  [class.bg-gray-400]="!state.isOnShift"></span>
-            {{ state.isOnShift ? 'На смене' : 'Не на смене' }}
-          </button>
-        </div>
-
-        <!-- ═══ Inline notification banner ═══ -->
-        <div *ngIf="state.inlineMessage"
-             class="mx-2 mb-3 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-2 animate-fade-in"
-             [ngClass]="state.inlineType === 'success'
-               ? 'bg-green-600 bg-opacity-20 text-green-300'
-               : 'bg-red-600 bg-opacity-20 text-red-300'">
-          <lucide-icon [name]="state.inlineType === 'success' ? 'check-circle' : 'alert-circle'"
-                       [size]="14"></lucide-icon>
-          {{ state.inlineMessage }}
-        </div>
-
-        <!-- ═══ Tabs ═══ -->
-        <div class="flex border-b border-gray-600 mb-3 px-2">
-          <button *ngFor="let tab of tabs"
-                  (click)="onTabChange(tab.key)"
-                  class="px-4 py-2 text-xs font-medium transition-colors relative cursor-pointer"
-                  [class.text-white]="state.activeTab === tab.key"
-                  [class.text-gray-500]="state.activeTab !== tab.key"
-                  [class.hover:text-gray-300]="state.activeTab !== tab.key">
-            {{ tab.label }}
-            <span *ngIf="state.tabCounts[tab.key] > 0"
-                  class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                  [class.bg-blue-600]="state.activeTab === tab.key"
-                  [class.text-white]="state.activeTab === tab.key"
-                  [class.bg-gray-600]="state.activeTab !== tab.key"
-                  [class.text-gray-400]="state.activeTab !== tab.key">
-              {{ state.tabCounts[tab.key] }}
-            </span>
-            <!-- Active indicator -->
-            <div *ngIf="state.activeTab === tab.key"
-                 class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t"></div>
-          </button>
-        </div>
-
-        <!-- ═══ Order list ═══ -->
-        <div class="flex-1 overflow-y-auto px-2 space-y-3"
-             style="max-height: 320px;">
-
-          <!-- Empty state -->
-          <div *ngIf="state.filteredOrders.length === 0"
-               class="flex flex-col items-center justify-center py-12 text-gray-500">
-            <lucide-icon name="inbox" [size]="36" class="mb-3 opacity-40"></lucide-icon>
-            <span class="text-sm">{{ emptyMessage }}</span>
+          <!-- ═══ Inline notification banner ═══ -->
+          <div *ngIf="state.inlineMessage"
+               class="px-4 py-2 text-xs font-medium flex items-center gap-2 animate-fade-in"
+               [style.background]="state.inlineType === 'success' ? '#2e4a2e' : '#4a2e2e'"
+               [style.color]="state.inlineType === 'success' ? '#8bc34a' : '#ef5350'">
+            {{ state.inlineMessage }}
           </div>
 
-          <!-- Order cards -->
-          <app-sparrow-order-card
-            *ngFor="let order of state.filteredOrders"
-            [order]="order">
-          </app-sparrow-order-card>
-        </div>
+          <!-- ═══ Tabs (iiko style: flat, minimal) ═══ -->
+          <div class="flex" style="background: #383838; border-bottom: 1px solid #555;">
+            <button *ngFor="let tab of tabs"
+                    (click)="onTabChange(tab.key)"
+                    class="px-5 py-2.5 text-xs font-bold transition-colors cursor-pointer"
+                    [style.background]="state.activeTab === tab.key ? '#4a4a4a' : 'transparent'"
+                    [style.color]="state.activeTab === tab.key ? '#fff' : '#888'"
+                    [style.border-bottom]="state.activeTab === tab.key ? '2px solid #c8b560' : '2px solid transparent'">
+              {{ tab.label }}
+              <span *ngIf="state.tabCounts[tab.key] > 0"
+                    class="ml-1.5 text-[10px] font-bold"
+                    [style.color]="state.activeTab === tab.key ? '#c8b560' : '#666'">
+                ({{ state.tabCounts[tab.key] }})
+              </span>
+            </button>
+          </div>
 
-        <!-- ═══ Footer ═══ -->
-        <div class="flex items-center justify-between px-2 pt-3 mt-3 border-t border-gray-600">
-          <button (click)="showStopListScreen = true"
-                  class="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-medium
-                         text-orange-300 hover:bg-orange-400/10 transition-colors cursor-pointer">
-            <lucide-icon name="ban" [size]="14"></lucide-icon>
-            Стоп-лист
-            <span *ngIf="stoppedCount > 0"
-                  class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white">
-              {{ stoppedCount }}
-            </span>
-          </button>
+          <!-- ═══ Order list ═══ -->
+          <div class="flex-1 overflow-y-auto" style="background: #404040;">
+
+            <!-- Empty state -->
+            <div *ngIf="state.filteredOrders.length === 0"
+                 class="flex flex-col items-center justify-center py-12"
+                 style="color: #777;">
+              <span class="text-sm">{{ emptyMessage }}</span>
+            </div>
+
+            <!-- Order cards -->
+            <app-sparrow-order-card
+              *ngFor="let order of state.filteredOrders"
+              [order]="order">
+            </app-sparrow-order-card>
+          </div>
+
+          <!-- ═══ Footer (iiko style: dark bar with bold white buttons) ═══ -->
+          <div class="flex items-center justify-between px-1"
+               style="background: #2a2a2a; border-top: 1px solid #555;">
+            <button (click)="showStopListScreen = true"
+                    class="px-4 py-3 text-xs font-bold transition-colors cursor-pointer"
+                    style="color: #fff; background: transparent;"
+                    onmouseenter="this.style.background='#3a3a3a'"
+                    onmouseleave="this.style.background='transparent'">
+              Стоп-лист
+              <span *ngIf="stoppedCount > 0"
+                    class="ml-1 text-[10px] font-bold" style="color: #c8b560;">
+                ({{ stoppedCount }})
+              </span>
+            </button>
+            <button (click)="dialogClose.emit()"
+                    class="px-4 py-3 text-xs font-bold transition-colors cursor-pointer"
+                    style="color: #fff; background: transparent;"
+                    onmouseenter="this.style.background='#3a3a3a'"
+                    onmouseleave="this.style.background='transparent'">
+              Закрыть
+            </button>
+          </div>
+
         </div>
       </ng-template>
 
@@ -178,13 +178,20 @@ export class SparrowPluginDialogComponent {
 
   onToggleShift(): void {
     if (this.state.isOnShift && this.state.hasUnfulfilledOrders) {
-      // Предупреждение: есть незавершённые заказы
-      const confirm = window.confirm(
-        'Есть незавершённые заказы. Вы уверены, что хотите выключить приём?'
+      // Спецификация 4.1.1.2: есть незавершённые заказы → НЕ переключать, показать предупреждение
+      this.state.showInlineMessage(
+        'Невозможно выключить приём: есть незавершённые заказы',
+        'error'
       );
-      if (!confirm) return;
+      return;
     }
     this.state.isOnShift = !this.state.isOnShift;
+    this.state.addLog(
+      'POST',
+      this.state.isOnShift ? '/api/v2/barista/shift/start' : '/api/v2/barista/shift/end',
+      'success',
+      this.state.isOnShift ? 'Приём заказов включён' : 'Приём заказов выключен'
+    );
   }
 
   /** Количество продуктов на стопе (для бейджа) */

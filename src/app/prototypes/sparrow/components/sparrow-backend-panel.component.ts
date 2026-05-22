@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 import { SparrowLogEntry, SparrowOrderItem } from '../types';
 import { MOCK_PRODUCTS, MOCK_MODIFICATIONS, MOCK_CUSTOMER_NAMES } from '../data/mock-sparrow-data';
+import { SparrowStateService } from '../services/sparrow-state.service';
 
 /**
  * Панель эмуляции Backend (правая колонка, 30%).
@@ -194,6 +195,51 @@ import { MOCK_PRODUCTS, MOCK_MODIFICATIONS, MOCK_CUSTOMER_NAMES } from '../data/
           </div>
         </div>
 
+        <!-- ═══ Error Emulation ═══ -->
+        <div class="px-4 py-3 border-b border-gray-700">
+          <div class="text-xs text-gray-400 uppercase tracking-wide mb-2">Эмуляция ошибок</div>
+          <div class="flex flex-col gap-2">
+            <!-- Close flow error -->
+            <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox"
+                     [checked]="state.simulateCloseError"
+                     (change)="state.simulateCloseError = !state.simulateCloseError"
+                     class="w-3 h-3 rounded border-gray-500 accent-red-500 cursor-pointer">
+              <div class="flex-1">
+                <span class="text-xs text-gray-300 group-hover:text-gray-200">Ошибка PayOrder</span>
+                <span class="text-[10px] text-gray-500 block">Сбой при закрытии заказа (4.4)</span>
+              </div>
+              <span *ngIf="state.simulateCloseError" class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/60 text-red-400 font-medium">ON</span>
+            </label>
+
+            <!-- Accept error -->
+            <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox"
+                     [checked]="state.simulateAcceptError"
+                     (change)="state.simulateAcceptError = !state.simulateAcceptError"
+                     class="w-3 h-3 rounded border-gray-500 accent-red-500 cursor-pointer">
+              <div class="flex-1">
+                <span class="text-xs text-gray-300 group-hover:text-gray-200">Ошибка Accept</span>
+                <span class="text-[10px] text-gray-500 block">Сбой сети при принятии (4.2)</span>
+              </div>
+              <span *ngIf="state.simulateAcceptError" class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/60 text-red-400 font-medium">ON</span>
+            </label>
+
+            <!-- Status update error -->
+            <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox"
+                     [checked]="state.simulateStatusError"
+                     (change)="state.simulateStatusError = !state.simulateStatusError"
+                     class="w-3 h-3 rounded border-gray-500 accent-red-500 cursor-pointer">
+              <div class="flex-1">
+                <span class="text-xs text-gray-300 group-hover:text-gray-200">Ошибка статуса</span>
+                <span class="text-[10px] text-gray-500 block">Сбой обновления статуса (4.2)</span>
+              </div>
+              <span *ngIf="state.simulateStatusError" class="text-[9px] px-1.5 py-0.5 rounded bg-red-900/60 text-red-400 font-medium">ON</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Event Log -->
         <div class="flex-1 flex flex-col min-h-0">
           <div class="px-4 py-2 flex items-center justify-between border-b border-gray-700">
@@ -230,6 +276,8 @@ import { MOCK_PRODUCTS, MOCK_MODIFICATIONS, MOCK_CUSTOMER_NAMES } from '../data/
   `,
 })
 export class SparrowBackendPanelComponent {
+  state = inject(SparrowStateService);
+
   @Input() isOnline = true;
   @Input() hasActiveOrders = false;
   @Input() log: SparrowLogEntry[] = [];
