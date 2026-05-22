@@ -4,7 +4,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.5',
     date: '2026-05-22',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Окно плагина',
@@ -23,7 +23,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.4',
     date: '2026-05-22',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Панель эмуляции Backend',
