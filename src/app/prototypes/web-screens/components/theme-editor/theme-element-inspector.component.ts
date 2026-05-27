@@ -104,7 +104,7 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
     <!-- ── Price element (Цена блюда) ── -->
     <ng-container *ngIf="element.type === 'price'">
       <app-collapsible-section title="Номенклатура" [expanded]="true">
-        <div *ngIf="!showProductNavigator" class="product-binding">
+        <div class="product-binding">
           <div *ngIf="element.productName || element.modifierName" class="product-selected">
             <lucide-icon [name]="element.bindingType === 'modifier' ? 'puzzle' : 'package'" [size]="16" class="product-icon"></lucide-icon>
             <span class="product-name" [title]="element.productName || element.modifierName">{{ element.productName || element.modifierName }}</span>
@@ -120,62 +120,7 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
             {{ (element.productName || element.modifierName) ? 'Изменить товар' : 'Выбрать товар' }}
           </button>
         </div>
-        <div *ngIf="showProductNavigator" class="product-navigator">
-          <div class="nav-header">
-            <span class="nav-title">Номенклатура</span>
-            <button class="nav-close-btn" (click)="closeProductNavigator()"><lucide-icon name="x" [size]="16"></lucide-icon></button>
-          </div>
-          <div class="tree-search">
-            <lucide-icon name="search" [size]="14" class="tree-search-icon"></lucide-icon>
-            <input class="tree-search-input" placeholder="Поиск..."
-              [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" />
-            <button *ngIf="searchQuery" class="tree-search-clear" (click)="clearSearch()">
-              <lucide-icon name="x" [size]="14"></lucide-icon>
-            </button>
-          </div>
-          <div class="tree-items">
-            <ng-container *ngTemplateOutlet="treeNode; context: { items: displayTree, level: 0 }"></ng-container>
-            <div *ngIf="searchQuery && displayTree.length === 0" class="nav-empty">Ничего не найдено</div>
-          </div>
-        </div>
       </app-collapsible-section>
-
-      <!-- Recursive tree template -->
-      <ng-template #treeNode let-items="items" let-level="level">
-        <ng-container *ngFor="let item of items">
-          <div class="tree-row" [style.paddingLeft.px]="level * 20 + 8"
-            (click)="onNodeClick(item)"
-            [class.tree-row-selectable]="!item.isGroup"
-            [class.tree-row-group]="item.isGroup">
-            <lucide-icon *ngIf="hasChildren(item)" class="tree-chevron"
-              [name]="isExpanded(item.id) ? 'chevron-down' : 'chevron-right'" [size]="14">
-            </lucide-icon>
-            <span *ngIf="!hasChildren(item)" class="tree-chevron-placeholder"></span>
-            <lucide-icon [name]="getItemIcon(item)" [size]="16"
-              [class.icon-folder]="item.isGroup"
-              [class.icon-dish]="item.itemType === 'dish'"
-              [class.icon-goods]="item.itemType === 'goods'"
-              [class.icon-modifier]="item.itemType === 'modifier'">
-            </lucide-icon>
-            <span class="tree-item-name">{{ item.name }}</span>
-            <span *ngIf="item.price && item.itemType === 'modifier'" class="tree-price">(+{{ item.price }}₽)</span>
-          </div>
-          <!-- Children (groups) -->
-          <ng-container *ngIf="isExpanded(item.id) && item.children">
-            <ng-container *ngTemplateOutlet="treeNode; context: { items: item.children, level: level + 1 }"></ng-container>
-          </ng-container>
-          <!-- Sizes (only for dishes/goods with sizes) -->
-          <ng-container *ngIf="isExpanded(item.id) && item.sizes && item.sizes.length > 0">
-            <div *ngFor="let size of item.sizes" class="tree-row tree-row-selectable"
-              [style.paddingLeft.px]="(level + 1) * 20 + 8"
-              (click)="selectSize(item, size)">
-              <span class="tree-chevron-placeholder"></span>
-              <lucide-icon name="ruler" [size]="14" class="icon-size"></lucide-icon>
-              <span class="tree-item-name">{{ item.name }} {{ size.name }}</span>
-            </div>
-          </ng-container>
-        </ng-container>
-      </ng-template>
 
       <app-collapsible-section title="Предпросмотр цены">
         <div class="field-group">
@@ -242,6 +187,66 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
         </app-align-fields>
       </app-collapsible-section>
     </ng-container>
+
+    <!-- ══ Product side panel (overlay) ══ -->
+    <div *ngIf="showProductNavigator" class="product-panel-backdrop" (click)="closeProductNavigator()"></div>
+    <div *ngIf="showProductNavigator" class="product-panel-overlay">
+      <div class="product-panel-header">
+        <button class="product-panel-close" (click)="closeProductNavigator()">
+          <lucide-icon name="x" [size]="20"></lucide-icon>
+        </button>
+        <span class="product-panel-title">Выберите продукты</span>
+      </div>
+      <div class="tree-search">
+        <lucide-icon name="search" [size]="14" class="tree-search-icon"></lucide-icon>
+        <input class="tree-search-input" placeholder="Search"
+          [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" />
+        <button *ngIf="searchQuery" class="tree-search-clear" (click)="clearSearch()">
+          <lucide-icon name="x" [size]="14"></lucide-icon>
+        </button>
+      </div>
+      <div class="tree-items">
+        <ng-container *ngTemplateOutlet="treeNode; context: { items: displayTree, level: 0 }"></ng-container>
+        <div *ngIf="searchQuery && displayTree.length === 0" class="nav-empty">Ничего не найдено</div>
+      </div>
+    </div>
+
+    <!-- Recursive tree template -->
+    <ng-template #treeNode let-items="items" let-level="level">
+      <ng-container *ngFor="let item of items">
+        <div class="tree-row" [style.paddingLeft.px]="level * 20 + 12"
+          (click)="onNodeClick(item)"
+          [class.tree-row-selectable]="!item.isGroup"
+          [class.tree-row-group]="item.isGroup">
+          <lucide-icon *ngIf="hasChildren(item)" class="tree-chevron"
+            [name]="isExpanded(item.id) ? 'chevron-down' : 'chevron-right'" [size]="14">
+          </lucide-icon>
+          <span *ngIf="!hasChildren(item)" class="tree-chevron-placeholder"></span>
+          <lucide-icon [name]="getItemIcon(item)" [size]="16"
+            [class.icon-folder]="item.isGroup"
+            [class.icon-dish]="item.itemType === 'dish'"
+            [class.icon-goods]="item.itemType === 'goods'"
+            [class.icon-modifier]="item.itemType === 'modifier'">
+          </lucide-icon>
+          <span class="tree-item-name">{{ item.name }}</span>
+          <span *ngIf="item.price && item.itemType === 'modifier'" class="tree-price">(+{{ item.price }}₽)</span>
+        </div>
+        <!-- Children (groups) -->
+        <ng-container *ngIf="isExpanded(item.id) && item.children">
+          <ng-container *ngTemplateOutlet="treeNode; context: { items: item.children, level: level + 1 }"></ng-container>
+        </ng-container>
+        <!-- Sizes (only for dishes/goods with sizes) -->
+        <ng-container *ngIf="isExpanded(item.id) && item.sizes && item.sizes.length > 0">
+          <div *ngFor="let size of item.sizes" class="tree-row tree-row-selectable"
+            [style.paddingLeft.px]="(level + 1) * 20 + 12"
+            (click)="selectSize(item, size)">
+            <span class="tree-chevron-placeholder"></span>
+            <lucide-icon name="ruler" [size]="14" class="icon-size"></lucide-icon>
+            <span class="tree-item-name">{{ item.name }} {{ size.name }}</span>
+          </div>
+        </ng-container>
+      </ng-container>
+    </ng-template>
   `,
   styles: [`
     .field-group { margin-bottom: 12px; }
@@ -284,30 +289,44 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
     }
     .product-select-btn:hover { border-color: #448aff; color: #448aff; background: #f5f8ff; }
 
-    .product-navigator {
-      border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden;
+    /* Product side panel overlay */
+    .product-panel-backdrop {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.15); z-index: 999;
     }
-    .nav-header {
+    .product-panel-overlay {
+      position: fixed; top: 0; right: 0;
+      width: 320px; height: 100vh;
+      background: #fff; z-index: 1000;
+      display: flex; flex-direction: column;
+      border-left: 1px solid #e0e0e0;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.12);
+    }
+    .product-panel-header {
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px; background: #fafafa; border-bottom: 1px solid #e0e0e0;
+      padding: 14px 16px; border-bottom: 1px solid #e0e0e0;
+      background: #fff; flex-shrink: 0;
     }
-    .nav-title { flex: 1; font-size: 13px; font-weight: 500; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .nav-close-btn {
+    .product-panel-close {
       display: flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px; border: none; border-radius: 3px;
-      background: transparent; color: #757575; cursor: pointer;
+      width: 28px; height: 28px; border: none; border-radius: 4px;
+      background: transparent; color: #757575; cursor: pointer; flex-shrink: 0;
     }
-    .nav-close-btn:hover { background: #e0e0e0; }
+    .product-panel-close:hover { background: #f0f0f0; color: #333; }
+    .product-panel-title {
+      flex: 1; font-size: 15px; font-weight: 500; color: #333;
+    }
     .nav-empty { padding: 20px; text-align: center; font-size: 13px; color: #9e9e9e; }
 
     /* Tree search */
     .tree-search {
       display: flex; align-items: center; gap: 6px;
-      padding: 6px 10px; border-bottom: 1px solid #e0e0e0; background: #fff;
+      padding: 10px 16px; border-bottom: 1px solid #e0e0e0; background: #fff;
+      flex-shrink: 0;
     }
     .tree-search-icon { color: #9e9e9e; flex-shrink: 0; }
     .tree-search-input {
-      flex: 1; border: none; outline: none; font-size: 13px;
+      flex: 1; border: none; outline: none; font-size: 14px;
       font-family: Roboto, sans-serif; color: #333; background: transparent;
     }
     .tree-search-input::placeholder { color: #bdbdbd; }
@@ -319,11 +338,11 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
     .tree-search-clear:hover { color: #757575; }
 
     /* Tree items */
-    .tree-items { max-height: 320px; overflow-y: auto; }
+    .tree-items { flex: 1; overflow-y: auto; }
     .tree-row {
       display: flex; align-items: center; gap: 6px;
-      padding: 7px 8px; cursor: pointer; transition: background 0.1s;
-      border-bottom: 1px solid #fafafa; font-size: 13px; color: #333;
+      padding: 8px 12px; cursor: pointer; transition: background 0.1s;
+      border-bottom: 1px solid #f5f5f5; font-size: 14px; color: #333;
     }
     .tree-row:hover { background: #f5f5f5; }
     .tree-row-selectable:hover { background: #e3f2fd; }
