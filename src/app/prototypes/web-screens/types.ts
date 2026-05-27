@@ -227,6 +227,7 @@ export interface ArrivalsThemeElement {
 export interface ProductSize {
   id: string;
   name: string;
+  price?: number;
 }
 
 export interface ProductCatalogItem {

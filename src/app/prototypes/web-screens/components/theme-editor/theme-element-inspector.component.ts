@@ -106,10 +106,13 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       <app-collapsible-section title="Номенклатура" [expanded]="true">
         <div class="product-binding">
           <div *ngIf="element.productName || element.modifierName" class="product-selected">
-            <lucide-icon [name]="element.bindingType === 'modifier' ? 'puzzle' : 'package'" [size]="16" class="product-icon"></lucide-icon>
+            <lucide-icon [name]="getBindingIcon()" [size]="16" class="product-icon"></lucide-icon>
             <span class="product-name" [title]="element.productName || element.modifierName">{{ element.productName || element.modifierName }}</span>
             <span *ngIf="element.sizeName" class="product-size">({{ element.sizeName }})</span>
             <button class="product-clear-btn" (click)="clearProductBinding()" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+          </div>
+          <div *ngIf="element.bindingType" class="binding-type-label">
+            <span class="binding-type-text">{{ getBindingTypeLabel() }}</span>
           </div>
           <div *ngIf="!element.productName && !element.modifierName" class="product-empty">
             <lucide-icon name="info" [size]="14"></lucide-icon>
@@ -363,6 +366,8 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       padding: 8px 10px; background: #fafafa; border: 1px dashed #e0e0e0;
       border-radius: 4px; font-size: 12px; color: #9e9e9e;
     }
+    .binding-type-label { margin-top: 4px; }
+    .binding-type-text { font-size: 11px; color: #9e9e9e; }
     .size-selector { margin-top: 4px; }
 
     /* Currency styles */
@@ -485,6 +490,7 @@ export class ThemeElementInspectorComponent implements OnChanges {
     this.element.modifierName = undefined;
     this.element.bindingType = 'product';
     this.element.name = 'Цена: ' + this.truncateName(item.name, 20);
+    if (item.price) this.element.previewPrice = item.price;
     this.showProductNavigator = false;
   }
 
@@ -497,6 +503,7 @@ export class ThemeElementInspectorComponent implements OnChanges {
     this.element.modifierName = undefined;
     this.element.bindingType = 'size';
     this.element.name = 'Цена: ' + this.truncateName(product.name + ' ' + size.name, 20);
+    this.element.previewPrice = size.price ?? product.price ?? 350;
     this.showProductNavigator = false;
   }
 
@@ -509,6 +516,7 @@ export class ThemeElementInspectorComponent implements OnChanges {
     this.element.modifierName = item.name;
     this.element.bindingType = 'modifier';
     this.element.name = 'Цена: ' + this.truncateName(item.name, 20);
+    if (item.price) this.element.previewPrice = item.price;
     this.showProductNavigator = false;
   }
 
@@ -521,6 +529,24 @@ export class ThemeElementInspectorComponent implements OnChanges {
     this.element.modifierName = undefined;
     this.element.bindingType = undefined;
     this.element.name = 'Цена блюда';
+  }
+
+  getBindingIcon(): string {
+    switch (this.element.bindingType) {
+      case 'modifier': return 'puzzle';
+      case 'size': return 'ruler';
+      case 'product': return this.element.productName ? 'utensils' : 'package';
+      default: return 'package';
+    }
+  }
+
+  getBindingTypeLabel(): string {
+    switch (this.element.bindingType) {
+      case 'modifier': return 'Тип: Модификатор';
+      case 'size': return 'Тип: Блюдо + Размер';
+      case 'product': return 'Тип: Блюдо';
+      default: return '';
+    }
   }
 
   /* ── Search ── */

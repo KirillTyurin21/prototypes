@@ -364,25 +364,25 @@ export const MOCK_PRODUCT_CATALOG_TREE: ProductCatalogItem[] = [
           {
             id: 'p1', name: 'Капучино', isGroup: false, itemType: 'dish', price: 280,
             sizes: [
-              { id: 's1', name: 'Маленький (0.2л)' },
-              { id: 's2', name: 'Средний (0.3л)' },
-              { id: 's3', name: 'Большой (0.5л)' },
+              { id: 's1', name: 'Маленький (0.2л)', price: 220 },
+              { id: 's2', name: 'Средний (0.3л)', price: 280 },
+              { id: 's3', name: 'Большой (0.5л)', price: 360 },
             ],
           },
           {
             id: 'p2', name: 'Латте', isGroup: false, itemType: 'dish', price: 320,
             sizes: [
-              { id: 's4', name: 'Маленький' },
-              { id: 's5', name: 'Средний' },
-              { id: 's6', name: 'Большой' },
+              { id: 's4', name: 'Маленький', price: 260 },
+              { id: 's5', name: 'Средний', price: 320 },
+              { id: 's6', name: 'Большой', price: 400 },
             ],
           },
           { id: 'p3', name: 'Американо', isGroup: false, itemType: 'dish', price: 200 },
           {
             id: 'p4', name: 'Чай чёрный', isGroup: false, itemType: 'dish', price: 150,
             sizes: [
-              { id: 's7', name: '0.2' },
-              { id: 's8', name: '0.3' },
+              { id: 's7', name: '0.2', price: 120 },
+              { id: 's8', name: '0.3', price: 150 },
             ],
           },
         ],
@@ -393,9 +393,9 @@ export const MOCK_PRODUCT_CATALOG_TREE: ProductCatalogItem[] = [
           {
             id: 'p17', name: 'Пицца Маргарита', isGroup: false, itemType: 'dish', price: 650,
             sizes: [
-              { id: 's17', name: '25 см' },
-              { id: 's18', name: '30 см' },
-              { id: 's19', name: '35 см' },
+              { id: 's17', name: '25 см', price: 490 },
+              { id: 's18', name: '30 см', price: 650 },
+              { id: 's19', name: '35 см', price: 850 },
             ],
           },
           { id: 'p18', name: 'Бургер Классический', isGroup: false, itemType: 'dish', price: 450 },
@@ -408,8 +408,8 @@ export const MOCK_PRODUCT_CATALOG_TREE: ProductCatalogItem[] = [
           {
             id: 'p20', name: 'Сок апельсиновый', isGroup: false, itemType: 'goods', price: 180,
             sizes: [
-              { id: 's20', name: '0.3' },
-              { id: 's21', name: '0.5' },
+              { id: 's20', name: '0.3', price: 180 },
+              { id: 's21', name: '0.5', price: 250 },
             ],
           },
           { id: 'p21', name: 'Кола', isGroup: false, itemType: 'goods', price: 150 },
