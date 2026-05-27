@@ -177,6 +177,8 @@ import {
   BellRing,
   // Sparrow backend panel
   Shuffle,
+  // Price element tree
+  Ruler,
 } from 'lucide-angular';
 
 /**
@@ -362,6 +364,8 @@ const icons = {
   BellRing,
   // Sparrow backend panel
   Shuffle,
+  // Price element tree
+  Ruler,
 };
 
 @NgModule({

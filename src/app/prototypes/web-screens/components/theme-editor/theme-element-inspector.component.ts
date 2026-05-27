@@ -2,8 +2,8 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
-import { ArrivalsThemeElement, ArrivalsElementType, ProductCatalogItem } from '../../types';
-import { MOCK_PRODUCT_CATALOG } from '../../data/mock-data';
+import { ArrivalsThemeElement, ArrivalsElementType, ProductCatalogItem, ProductSize } from '../../types';
+import { MOCK_PRODUCT_CATALOG_TREE } from '../../data/mock-data';
 import { CollapsibleSectionComponent } from '../inspector/collapsible-section.component';
 import { LayoutFieldsComponent } from '../inspector/layout-fields.component';
 import { BorderFieldsComponent } from '../inspector/border-fields.component';
@@ -101,49 +101,81 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       </app-collapsible-section>
     </ng-container>
 
-    <!-- ── Price element (Сумма блюда) ── -->
+    <!-- ── Price element (Цена блюда) ── -->
     <ng-container *ngIf="element.type === 'price'">
       <app-collapsible-section title="Номенклатура" [expanded]="true">
         <div *ngIf="!showProductNavigator" class="product-binding">
-          <div *ngIf="element.productName" class="product-selected">
-            <lucide-icon name="package" [size]="16" class="product-icon"></lucide-icon>
-            <span class="product-name" [title]="element.productName">{{ element.productName }}</span>
+          <div *ngIf="element.productName || element.modifierName" class="product-selected">
+            <lucide-icon [name]="element.bindingType === 'modifier' ? 'puzzle' : 'package'" [size]="16" class="product-icon"></lucide-icon>
+            <span class="product-name" [title]="element.productName || element.modifierName">{{ element.productName || element.modifierName }}</span>
             <span *ngIf="element.sizeName" class="product-size">({{ element.sizeName }})</span>
             <button class="product-clear-btn" (click)="clearProductBinding()" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
           </div>
-          <div *ngIf="!element.productName" class="product-empty">
+          <div *ngIf="!element.productName && !element.modifierName" class="product-empty">
             <lucide-icon name="info" [size]="14"></lucide-icon>
             <span>Товар не выбран</span>
           </div>
           <button class="product-select-btn" (click)="openProductNavigator()">
             <lucide-icon name="search" [size]="16"></lucide-icon>
-            {{ element.productName ? 'Изменить товар' : 'Выбрать товар' }}
+            {{ (element.productName || element.modifierName) ? 'Изменить товар' : 'Выбрать товар' }}
           </button>
-          <div *ngIf="element.productId && availableSizes.length > 1" class="size-selector">
-            <label class="field-label">Размер</label>
-            <select class="field-input" [ngModel]="element.sizeId" (ngModelChange)="onSizeChange($event)">
-              <option *ngFor="let size of availableSizes" [ngValue]="size.id">{{ size.name }}</option>
-            </select>
-          </div>
         </div>
         <div *ngIf="showProductNavigator" class="product-navigator">
           <div class="nav-header">
-            <button *ngIf="navigationStack.length > 0" class="nav-back-btn" (click)="navigateBack()">
-              <lucide-icon name="arrow-left" [size]="16"></lucide-icon>
-            </button>
-            <span class="nav-title">{{ currentGroupName || 'Номенклатура' }}</span>
+            <span class="nav-title">Номенклатура</span>
             <button class="nav-close-btn" (click)="closeProductNavigator()"><lucide-icon name="x" [size]="16"></lucide-icon></button>
           </div>
-          <div class="nav-items">
-            <div *ngFor="let item of currentCatalogItems" class="nav-item" (click)="onCatalogItemClick(item)">
-              <lucide-icon [name]="item.isGroup ? 'folder' : 'package'" [size]="16" [class.group-icon]="item.isGroup" [class.product-icon]="!item.isGroup"></lucide-icon>
-              <span class="nav-item-name">{{ item.name }}</span>
-              <lucide-icon *ngIf="item.isGroup && item.hasChildren" name="chevron-right" [size]="14" class="nav-chevron"></lucide-icon>
-            </div>
-            <div *ngIf="currentCatalogItems.length === 0" class="nav-empty">Нет элементов</div>
+          <div class="tree-search">
+            <lucide-icon name="search" [size]="14" class="tree-search-icon"></lucide-icon>
+            <input class="tree-search-input" placeholder="Поиск..."
+              [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange($event)" />
+            <button *ngIf="searchQuery" class="tree-search-clear" (click)="clearSearch()">
+              <lucide-icon name="x" [size]="14"></lucide-icon>
+            </button>
+          </div>
+          <div class="tree-items">
+            <ng-container *ngTemplateOutlet="treeNode; context: { items: displayTree, level: 0 }"></ng-container>
+            <div *ngIf="searchQuery && displayTree.length === 0" class="nav-empty">Ничего не найдено</div>
           </div>
         </div>
       </app-collapsible-section>
+
+      <!-- Recursive tree template -->
+      <ng-template #treeNode let-items="items" let-level="level">
+        <ng-container *ngFor="let item of items">
+          <div class="tree-row" [style.paddingLeft.px]="level * 20 + 8"
+            (click)="onNodeClick(item)"
+            [class.tree-row-selectable]="!item.isGroup"
+            [class.tree-row-group]="item.isGroup">
+            <lucide-icon *ngIf="hasChildren(item)" class="tree-chevron"
+              [name]="isExpanded(item.id) ? 'chevron-down' : 'chevron-right'" [size]="14">
+            </lucide-icon>
+            <span *ngIf="!hasChildren(item)" class="tree-chevron-placeholder"></span>
+            <lucide-icon [name]="getItemIcon(item)" [size]="16"
+              [class.icon-folder]="item.isGroup"
+              [class.icon-dish]="item.itemType === 'dish'"
+              [class.icon-goods]="item.itemType === 'goods'"
+              [class.icon-modifier]="item.itemType === 'modifier'">
+            </lucide-icon>
+            <span class="tree-item-name">{{ item.name }}</span>
+            <span *ngIf="item.price && item.itemType === 'modifier'" class="tree-price">(+{{ item.price }}₽)</span>
+          </div>
+          <!-- Children (groups) -->
+          <ng-container *ngIf="isExpanded(item.id) && item.children">
+            <ng-container *ngTemplateOutlet="treeNode; context: { items: item.children, level: level + 1 }"></ng-container>
+          </ng-container>
+          <!-- Sizes (only for dishes/goods with sizes) -->
+          <ng-container *ngIf="isExpanded(item.id) && item.sizes && item.sizes.length > 0">
+            <div *ngFor="let size of item.sizes" class="tree-row tree-row-selectable"
+              [style.paddingLeft.px]="(level + 1) * 20 + 8"
+              (click)="selectSize(item, size)">
+              <span class="tree-chevron-placeholder"></span>
+              <lucide-icon name="ruler" [size]="14" class="icon-size"></lucide-icon>
+              <span class="tree-item-name">{{ item.name }} {{ size.name }}</span>
+            </div>
+          </ng-container>
+        </ng-container>
+      </ng-template>
 
       <app-collapsible-section title="Предпросмотр цены">
         <div class="field-group">
@@ -259,12 +291,6 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       display: flex; align-items: center; gap: 8px;
       padding: 8px 10px; background: #fafafa; border-bottom: 1px solid #e0e0e0;
     }
-    .nav-back-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px; border: none; border-radius: 3px;
-      background: transparent; color: #616161; cursor: pointer;
-    }
-    .nav-back-btn:hover { background: #e0e0e0; }
     .nav-title { flex: 1; font-size: 13px; font-weight: 500; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .nav-close-btn {
       display: flex; align-items: center; justify-content: center;
@@ -272,18 +298,45 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       background: transparent; color: #757575; cursor: pointer;
     }
     .nav-close-btn:hover { background: #e0e0e0; }
-    .nav-items { max-height: 240px; overflow-y: auto; }
-    .nav-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 12px; cursor: pointer; transition: background 0.1s;
-      border-bottom: 1px solid #f5f5f5;
-    }
-    .nav-item:hover { background: #f5f5f5; }
-    .nav-item:last-child { border-bottom: none; }
-    .group-icon { color: #ff9800; }
-    .nav-item-name { flex: 1; font-size: 13px; color: #333; }
-    .nav-chevron { color: #bdbdbd; }
     .nav-empty { padding: 20px; text-align: center; font-size: 13px; color: #9e9e9e; }
+
+    /* Tree search */
+    .tree-search {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-bottom: 1px solid #e0e0e0; background: #fff;
+    }
+    .tree-search-icon { color: #9e9e9e; flex-shrink: 0; }
+    .tree-search-input {
+      flex: 1; border: none; outline: none; font-size: 13px;
+      font-family: Roboto, sans-serif; color: #333; background: transparent;
+    }
+    .tree-search-input::placeholder { color: #bdbdbd; }
+    .tree-search-clear {
+      display: flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border: none; border-radius: 3px;
+      background: transparent; color: #bdbdbd; cursor: pointer;
+    }
+    .tree-search-clear:hover { color: #757575; }
+
+    /* Tree items */
+    .tree-items { max-height: 320px; overflow-y: auto; }
+    .tree-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 8px; cursor: pointer; transition: background 0.1s;
+      border-bottom: 1px solid #fafafa; font-size: 13px; color: #333;
+    }
+    .tree-row:hover { background: #f5f5f5; }
+    .tree-row-selectable:hover { background: #e3f2fd; }
+    .tree-row-group { cursor: pointer; }
+    .tree-chevron { color: #9e9e9e; flex-shrink: 0; width: 14px; }
+    .tree-chevron-placeholder { width: 14px; flex-shrink: 0; }
+    .tree-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-price { color: #4caf50; font-size: 12px; flex-shrink: 0; }
+    .icon-folder { color: #ff9800; }
+    .icon-dish { color: #795548; }
+    .icon-goods { color: #607d8b; }
+    .icon-modifier { color: #9c27b0; }
+    .icon-size { color: #2196f3; }
 
     /* Product empty state */
     .product-empty {
@@ -316,12 +369,11 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
 export class ThemeElementInspectorComponent implements OnChanges {
   @Input() element!: ArrivalsThemeElement;
 
-  /* ── Product Navigator State ── */
+  /* ── Product Tree State ── */
   showProductNavigator = false;
-  navigationStack: string[] = [];
-  currentGroupId = 'root';
-  currentGroupName = '';
-  availableSizes: { id: string; name: string }[] = [];
+  expandedNodes = new Set<string>();
+  searchQuery = '';
+  filteredTree: ProductCatalogItem[] = [];
 
   /* ── Currency Options ── */
   currencyOptions = [
@@ -341,81 +393,104 @@ export class ThemeElementInspectorComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['element'] && this.element?.type === 'price') {
       this.showProductNavigator = false;
-      this.loadAvailableSizes();
+      this.searchQuery = '';
+      this.filteredTree = [];
     }
   }
 
-  private loadAvailableSizes(): void {
-    if (this.element.productId) {
-      for (const items of Object.values(MOCK_PRODUCT_CATALOG)) {
-        const found = items.find(i => i.id === this.element.productId);
-        if (found && found.sizes) { this.availableSizes = found.sizes; return; }
-      }
-    }
-    this.availableSizes = [];
-  }
-
-  get currentCatalogItems(): ProductCatalogItem[] {
-    return MOCK_PRODUCT_CATALOG[this.currentGroupId] || [];
+  get displayTree(): ProductCatalogItem[] {
+    return this.searchQuery ? this.filteredTree : MOCK_PRODUCT_CATALOG_TREE;
   }
 
   isGenericElement(type: ArrivalsElementType): boolean {
     return !['text', 'image', 'area', 'price'].includes(type);
   }
 
+  /* ── Tree Methods ── */
+  hasChildren(item: ProductCatalogItem): boolean {
+    return item.isGroup || !!(item.sizes && item.sizes.length > 0);
+  }
+
+  isExpanded(nodeId: string): boolean {
+    return this.expandedNodes.has(nodeId);
+  }
+
+  toggleNode(nodeId: string): void {
+    if (this.expandedNodes.has(nodeId)) {
+      this.expandedNodes.delete(nodeId);
+    } else {
+      this.expandedNodes.add(nodeId);
+    }
+  }
+
+  getItemIcon(item: ProductCatalogItem): string {
+    if (item.isGroup) return 'folder';
+    switch (item.itemType) {
+      case 'dish': return 'utensils';
+      case 'goods': return 'package';
+      case 'modifier': return 'puzzle';
+      default: return 'package';
+    }
+  }
+
+  onNodeClick(item: ProductCatalogItem): void {
+    if (item.isGroup) {
+      this.toggleNode(item.id);
+    } else if (item.itemType === 'modifier') {
+      this.selectModifier(item);
+    } else if (item.sizes && item.sizes.length > 0) {
+      this.toggleNode(item.id);
+    } else {
+      this.selectProduct(item);
+    }
+  }
+
   /* ── Product Navigator Methods ── */
   openProductNavigator(): void {
     this.showProductNavigator = true;
-    this.navigationStack = [];
-    this.currentGroupId = 'root';
-    this.currentGroupName = '';
+    this.expandedNodes.clear();
+    this.searchQuery = '';
+    this.filteredTree = [];
   }
 
   closeProductNavigator(): void {
     this.showProductNavigator = false;
   }
 
-  navigateBack(): void {
-    this.navigationStack.pop();
-    const parentId = this.navigationStack.length > 0 ? this.navigationStack[this.navigationStack.length - 1] : 'root';
-    this.currentGroupId = parentId;
-    this.currentGroupName = parentId === 'root' ? '' : this.findGroupName(parentId);
-  }
-
-  onCatalogItemClick(item: ProductCatalogItem): void {
-    if (item.isGroup) {
-      if (!item.hasChildren) return;
-      this.navigationStack.push(item.id);
-      this.currentGroupId = item.id;
-      this.currentGroupName = item.name;
-    } else {
-      this.selectProduct(item);
-    }
-  }
-
   selectProduct(item: ProductCatalogItem): void {
     this.element.productId = item.id;
     this.element.productName = item.name;
-    this.element.name = 'Сумма: ' + this.truncateName(item.name, 20);
-    this.availableSizes = item.sizes || [];
-    if (this.availableSizes.length > 1) {
-      this.element.sizeId = this.availableSizes[0].id;
-      this.element.sizeName = this.availableSizes[0].name;
-    } else {
-      this.element.sizeId = null;
-      this.element.sizeName = undefined;
-    }
+    this.element.sizeId = null;
+    this.element.sizeName = undefined;
+    this.element.modifierId = undefined;
+    this.element.modifierName = undefined;
+    this.element.bindingType = 'product';
+    this.element.name = 'Цена: ' + this.truncateName(item.name, 20);
     this.showProductNavigator = false;
   }
 
-  onSizeChange(sizeId: string | null): void {
-    this.element.sizeId = sizeId;
-    if (sizeId) {
-      const size = this.availableSizes.find(s => s.id === sizeId);
-      this.element.sizeName = size?.name;
-    } else {
-      this.element.sizeName = undefined;
-    }
+  selectSize(product: ProductCatalogItem, size: ProductSize): void {
+    this.element.productId = product.id;
+    this.element.productName = product.name;
+    this.element.sizeId = size.id;
+    this.element.sizeName = size.name;
+    this.element.modifierId = undefined;
+    this.element.modifierName = undefined;
+    this.element.bindingType = 'size';
+    this.element.name = 'Цена: ' + this.truncateName(product.name + ' ' + size.name, 20);
+    this.showProductNavigator = false;
+  }
+
+  selectModifier(item: ProductCatalogItem): void {
+    this.element.productId = undefined;
+    this.element.productName = undefined;
+    this.element.sizeId = null;
+    this.element.sizeName = undefined;
+    this.element.modifierId = item.id;
+    this.element.modifierName = item.name;
+    this.element.bindingType = 'modifier';
+    this.element.name = 'Цена: ' + this.truncateName(item.name, 20);
+    this.showProductNavigator = false;
   }
 
   clearProductBinding(): void {
@@ -423,20 +498,60 @@ export class ThemeElementInspectorComponent implements OnChanges {
     this.element.productName = undefined;
     this.element.sizeId = null;
     this.element.sizeName = undefined;
-    this.element.name = 'Сумма блюда';
-    this.availableSizes = [];
+    this.element.modifierId = undefined;
+    this.element.modifierName = undefined;
+    this.element.bindingType = undefined;
+    this.element.name = 'Цена блюда';
+  }
+
+  /* ── Search ── */
+  onSearchChange(query: string): void {
+    this.searchQuery = query;
+    if (!query.trim()) {
+      this.filteredTree = [];
+      return;
+    }
+    this.filteredTree = this.filterTreeItems(MOCK_PRODUCT_CATALOG_TREE, query.toLowerCase());
+    this.expandAllFiltered(this.filteredTree);
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.filteredTree = [];
+  }
+
+  private filterTreeItems(items: ProductCatalogItem[], query: string): ProductCatalogItem[] {
+    const result: ProductCatalogItem[] = [];
+    for (const item of items) {
+      const nameMatch = item.name.toLowerCase().includes(query);
+      const sizeMatch = item.sizes?.some(s => (item.name + ' ' + s.name).toLowerCase().includes(query));
+      let filteredChildren: ProductCatalogItem[] | undefined;
+      if (item.children) {
+        filteredChildren = this.filterTreeItems(item.children, query);
+      }
+      if (nameMatch || sizeMatch || (filteredChildren && filteredChildren.length > 0)) {
+        result.push({
+          ...item,
+          children: filteredChildren && filteredChildren.length > 0 ? filteredChildren : item.children && nameMatch ? item.children : undefined,
+          sizes: (nameMatch || sizeMatch) ? item.sizes : undefined,
+        });
+      }
+    }
+    return result;
+  }
+
+  private expandAllFiltered(items: ProductCatalogItem[]): void {
+    for (const item of items) {
+      if (item.children || (item.sizes && item.sizes.length > 0)) {
+        this.expandedNodes.add(item.id);
+      }
+      if (item.children) {
+        this.expandAllFiltered(item.children);
+      }
+    }
   }
 
   private truncateName(name: string, maxLen: number): string {
     return name.length > maxLen ? name.slice(0, maxLen) + '…' : name;
-  }
-
-  private findGroupName(groupId: string): string {
-    for (const key of Object.keys(MOCK_PRODUCT_CATALOG)) {
-      const items = MOCK_PRODUCT_CATALOG[key];
-      const found = items.find(i => i.id === groupId);
-      if (found) return found.name;
-    }
-    return '';
   }
 }

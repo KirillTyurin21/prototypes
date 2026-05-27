@@ -126,6 +126,9 @@ export interface ArrivalsThemeElement {
   productName?: string;
   sizeId?: string | null;
   sizeName?: string;
+  modifierId?: string;
+  modifierName?: string;
+  bindingType?: 'product' | 'size' | 'modifier';
   showCurrency?: boolean;
   currencySymbol?: string;
   currencyPosition?: 'after' | 'before';
@@ -232,6 +235,10 @@ export interface ProductCatalogItem {
   isGroup: boolean;
   hasChildren?: boolean;
   sizes?: ProductSize[];
+  // Tree rework
+  itemType?: 'dish' | 'goods' | 'modifier' | 'service';
+  price?: number;
+  children?: ProductCatalogItem[];
 }
 
 export interface ArrivalsTheme {

@@ -351,6 +351,145 @@ export const MOCK_PRODUCT_CATALOG: Record<string, ProductCatalogItem[]> = {
   g7: [],
 };
 
+/* ── Product catalog TREE (two root branches: Блюда + Модификаторы) ── */
+
+export const MOCK_PRODUCT_CATALOG_TREE: ProductCatalogItem[] = [
+  // ═══════════════ ВЕТКА «БЛЮДА» ═══════════════
+  {
+    id: 'root-dishes', name: 'Блюда', isGroup: true, hasChildren: true,
+    children: [
+      {
+        id: 'g1', name: 'Горячие напитки', isGroup: true, hasChildren: true,
+        children: [
+          {
+            id: 'p1', name: 'Капучино', isGroup: false, itemType: 'dish', price: 280,
+            sizes: [
+              { id: 's1', name: 'Маленький (0.2л)' },
+              { id: 's2', name: 'Средний (0.3л)' },
+              { id: 's3', name: 'Большой (0.5л)' },
+            ],
+          },
+          {
+            id: 'p2', name: 'Латте', isGroup: false, itemType: 'dish', price: 320,
+            sizes: [
+              { id: 's4', name: 'Маленький' },
+              { id: 's5', name: 'Средний' },
+              { id: 's6', name: 'Большой' },
+            ],
+          },
+          { id: 'p3', name: 'Американо', isGroup: false, itemType: 'dish', price: 200 },
+          {
+            id: 'p4', name: 'Чай чёрный', isGroup: false, itemType: 'dish', price: 150,
+            sizes: [
+              { id: 's7', name: '0.2' },
+              { id: 's8', name: '0.3' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'g5', name: 'Горячие блюда', isGroup: true, hasChildren: true,
+        children: [
+          {
+            id: 'p17', name: 'Пицца Маргарита', isGroup: false, itemType: 'dish', price: 650,
+            sizes: [
+              { id: 's17', name: '25 см' },
+              { id: 's18', name: '30 см' },
+              { id: 's19', name: '35 см' },
+            ],
+          },
+          { id: 'p18', name: 'Бургер Классический', isGroup: false, itemType: 'dish', price: 450 },
+          { id: 'p19', name: 'Блинчики', isGroup: false, itemType: 'dish', price: 350 },
+        ],
+      },
+      {
+        id: 'g6', name: 'Холодные напитки', isGroup: true, hasChildren: true,
+        children: [
+          {
+            id: 'p20', name: 'Сок апельсиновый', isGroup: false, itemType: 'goods', price: 180,
+            sizes: [
+              { id: 's20', name: '0.3' },
+              { id: 's21', name: '0.5' },
+            ],
+          },
+          { id: 'p21', name: 'Кола', isGroup: false, itemType: 'goods', price: 150 },
+        ],
+      },
+      {
+        id: 'g7', name: 'Десерты', isGroup: true, hasChildren: true,
+        children: [
+          { id: 'p22', name: 'Тирамису', isGroup: false, itemType: 'dish', price: 420 },
+          { id: 'p23', name: 'Чизкейк', isGroup: false, itemType: 'dish', price: 380 },
+        ],
+      },
+    ],
+  },
+  // ═══════════════ ВЕТКА «МОДИФИКАТОРЫ» ═══════════════
+  {
+    id: 'root-modifiers', name: 'Модификаторы', isGroup: true, hasChildren: true,
+    children: [
+      {
+        id: 'mg1', name: 'Дополнительные модификаторы', isGroup: true, hasChildren: true,
+        children: [
+          {
+            id: 'mg1-1', name: 'Сиропы', isGroup: true, hasChildren: true,
+            children: [
+              { id: 'm1', name: 'Кленовый сироп', isGroup: false, itemType: 'modifier', price: 50 },
+              { id: 'm2', name: 'Ореховый сироп', isGroup: false, itemType: 'modifier', price: 50 },
+              { id: 'm3', name: 'Ванильный сироп', isGroup: false, itemType: 'modifier', price: 50 },
+              { id: 'm5', name: 'Карамельный сироп', isGroup: false, itemType: 'modifier', price: 50 },
+            ],
+          },
+          {
+            id: 'mg1-2', name: 'Молоко', isGroup: true, hasChildren: true,
+            children: [
+              { id: 'm4_1', name: 'Коровье', isGroup: false, itemType: 'modifier', price: 0 },
+              { id: 'm4_2', name: 'Овсяное', isGroup: false, itemType: 'modifier', price: 60 },
+              { id: 'm4_3', name: 'Кокосовое', isGroup: false, itemType: 'modifier', price: 80 },
+            ],
+          },
+          {
+            id: 'mg1-3', name: 'Добавки к пицце', isGroup: true, hasChildren: true,
+            children: [
+              { id: 'm11', name: 'Доп. сыр', isGroup: false, itemType: 'modifier', price: 80 },
+              { id: 'm12', name: 'Доп. грибы', isGroup: false, itemType: 'modifier', price: 70 },
+            ],
+          },
+          {
+            id: 'mg1-4', name: 'Топпинги', isGroup: true, hasChildren: true,
+            children: [
+              { id: 'm13', name: 'Сметана', isGroup: false, itemType: 'modifier', price: 30 },
+              { id: 'm14', name: 'Мёд', isGroup: false, itemType: 'modifier', price: 40 },
+              { id: 'm15', name: 'Варенье', isGroup: false, itemType: 'modifier', price: 40 },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'mg2', name: 'Основные модификаторы', isGroup: true, hasChildren: true,
+        children: [
+          {
+            id: 'mg2-1', name: 'Тип теста', isGroup: true, hasChildren: true,
+            children: [
+              { id: 'm10_1', name: 'Тонкое', isGroup: false, itemType: 'modifier' },
+              { id: 'm10_2', name: 'Толстое', isGroup: false, itemType: 'modifier' },
+              { id: 'm10_3', name: 'С сырным бортом', isGroup: false, itemType: 'modifier', price: 120 },
+            ],
+          },
+          {
+            id: 'mg2-2', name: 'Тип мяса', isGroup: true, hasChildren: true,
+            children: [
+              { id: 'm16', name: 'Говядина', isGroup: false, itemType: 'modifier' },
+              { id: 'm17', name: 'Курица', isGroup: false, itemType: 'modifier' },
+              { id: 'm18', name: 'Рыба', isGroup: false, itemType: 'modifier' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
 export const MOCK_TERMINALS: ArrivalTerminal[] = [
   {
     id: 1,

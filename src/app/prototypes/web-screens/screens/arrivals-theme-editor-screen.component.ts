@@ -183,7 +183,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     { type: 'client-delivery-time', label: 'Время доставки, обозначенное клиентом' }, { type: 'cancel-reason', label: 'Причина отмены заказа' },
     { type: 'cancel-comment', label: 'Комментарий к отмене заказа' }, { type: 'cancel-time', label: 'Время отмены заказа' },
     { type: 'external-data', label: 'Внешние данные' },
-    { type: 'price', label: 'Сумма блюда' },
+    { type: 'price', label: 'Цена блюда' },
   ];
 
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
@@ -287,7 +287,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     const label = this.elementTypes.find(et => et.type === type)?.label ?? type;
     const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0 };
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
-    if (type === 'price') { el.name = 'Сумма блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
+    if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
     this.theme.elements.push(el);
     this.selectedElementId = el.id; this.panelView = 'element';
