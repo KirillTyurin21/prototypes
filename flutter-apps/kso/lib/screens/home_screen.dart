@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisCount: crossAxisCount,
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
-                childAspectRatio: 1.6,
+                childAspectRatio: 1.35,
               ),
               delegate: SliverChildListDelegate([
                 _PrototypeCard(
@@ -228,14 +228,14 @@ class _PrototypeCardState extends State<_PrototypeCard> {
                     ),
                   ],
           ),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: widget.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -246,7 +246,7 @@ class _PrototypeCardState extends State<_PrototypeCard> {
                   _StatusBadge(status: widget.status, color: widget.color),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 widget.title,
                 style: theme.textTheme.titleMedium?.copyWith(
