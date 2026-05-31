@@ -28,21 +28,34 @@ class KsoProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Photo placeholder with Hero animation
+            // Product image with Hero animation
             AspectRatio(
               aspectRatio: 1,
               child: Hero(
                 tag: 'product-${product.id}',
                 child: Container(
                   color: KsoColors.surfaceVariant,
-                  child: Center(
-                    child: Icon(
-                      Icons.local_cafe,
-                      size: 48,
-                      color: KsoColors.textSecondary
-                          .withValues(alpha: 0.5),
-                    ),
-                  ),
+                  child: product.imageUrl.isNotEmpty
+                      ? Image.network(
+                          product.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Icon(
+                              Icons.local_cafe,
+                              size: 48,
+                              color: KsoColors.textSecondary
+                                  .withValues(alpha: 0.5),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(
+                            Icons.local_cafe,
+                            size: 48,
+                            color: KsoColors.textSecondary
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -74,16 +87,17 @@ class KsoProductCard extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: onAddTap,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: KsoColors.accent,
-                            shape: BoxShape.circle,
+                      Material(
+                        color: KsoColors.accent,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          onTap: onAddTap,
+                          customBorder: const CircleBorder(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.add,
+                                color: Colors.white, size: 18),
                           ),
-                          child: const Icon(Icons.add,
-                              color: Colors.white, size: 18),
                         ),
                       ),
                     ],
