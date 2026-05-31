@@ -27,7 +27,7 @@ class KsoModifierChip extends StatelessWidget {
           color: isSelected ? KsoColors.accent : Colors.transparent,
           borderRadius: BorderRadius.circular(KsoRadius.s),
           border: Border.all(
-            color: isSelected ? KsoColors.accent : KsoColors.darkBorder,
+            color: isSelected ? KsoColors.accent : KsoColors.border,
             width: 1.5,
           ),
         ),
@@ -38,7 +38,7 @@ class KsoModifierChip extends StatelessWidget {
               label,
               style: TextStyle(
                 color:
-                    isSelected ? Colors.white : KsoColors.darkOnSurface,
+                    isSelected ? Colors.white : KsoColors.textPrimary,
                 fontSize: 14,
                 fontWeight:
                     isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -51,7 +51,7 @@ class KsoModifierChip extends StatelessWidget {
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white.withValues(alpha: 0.8)
-                      : KsoColors.darkOnSurfaceSecondary,
+                      : KsoColors.textSecondary,
                   fontSize: 12,
                 ),
               ),

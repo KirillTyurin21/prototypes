@@ -5,67 +5,54 @@ import 'kso_colors.dart';
 class KsoTheme {
   KsoTheme._();
 
-  static ThemeData dark() {
-    final colorScheme = const ColorScheme.dark().copyWith(
-      surface: KsoColors.darkBackground,
-      surfaceContainer: KsoColors.darkSurface,
-      surfaceContainerHigh: KsoColors.darkSurfaceVariant,
-      onSurface: KsoColors.darkOnSurface,
-      onSurfaceVariant: KsoColors.darkOnSurfaceSecondary,
-      primary: KsoColors.accent,
-      secondary: KsoColors.accentLight,
-      outline: KsoColors.darkBorder,
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: KsoColors.darkBackground,
-      textTheme: _textTheme(ThemeData.dark().textTheme),
-    );
-  }
-
+  /// Единая светлая премиальная тема
   static ThemeData light() {
     final colorScheme = const ColorScheme.light().copyWith(
-      surface: KsoColors.lightBackground,
-      surfaceContainer: KsoColors.lightSurface,
-      onSurface: KsoColors.lightOnSurface,
-      onSurfaceVariant: KsoColors.lightOnSurfaceSecondary,
+      surface: KsoColors.background,
+      surfaceContainer: KsoColors.surface,
+      surfaceContainerHigh: KsoColors.surfaceVariant,
+      onSurface: KsoColors.textPrimary,
+      onSurfaceVariant: KsoColors.textSecondary,
       primary: KsoColors.primary,
+      primaryContainer: KsoColors.primaryContainer,
+      secondary: KsoColors.accent,
+      secondaryContainer: KsoColors.accentContainer,
       error: KsoColors.error,
-      outline: KsoColors.lightBorder,
+      errorContainer: KsoColors.errorContainer,
+      outline: KsoColors.border,
+      outlineVariant: KsoColors.divider,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: KsoColors.lightBackground,
+      scaffoldBackgroundColor: KsoColors.background,
       textTheme: _textTheme(ThemeData.light().textTheme),
     );
   }
 
   static TextTheme _textTheme(TextTheme base) {
-    return GoogleFonts.robotoTextTheme(base).copyWith(
+    return GoogleFonts.interTextTheme(base).copyWith(
       displayLarge:
-          GoogleFonts.roboto(fontSize: 28, fontWeight: FontWeight.w700),
+          GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.w700, color: KsoColors.textPrimary),
       headlineLarge:
-          GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.w700),
+          GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.w700, color: KsoColors.textPrimary),
       headlineMedium:
-          GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.w600),
+          GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w600, color: KsoColors.textPrimary),
       titleLarge:
-          GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w600),
+          GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: KsoColors.textPrimary),
       titleMedium:
-          GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+          GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500, color: KsoColors.textPrimary),
       bodyLarge:
-          GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w400),
+          GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400, color: KsoColors.textPrimary),
       bodyMedium:
-          GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w400),
+          GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: KsoColors.textSecondary),
       bodySmall:
-          GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w400),
+          GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, color: KsoColors.textSecondary),
       labelLarge:
-          GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w600),
+          GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: KsoColors.textPrimary),
       labelMedium:
-          GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w500),
+          GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: KsoColors.textSecondary),
     );
   }
 }

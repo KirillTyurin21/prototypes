@@ -33,7 +33,7 @@ class PaymentMethodScreen extends StatelessWidget {
                 'способ оплаты',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: KsoColors.lightOnSurface,
+                      color: KsoColors.textPrimary,
                     ),
               ),
               const Spacer(),
@@ -61,11 +61,11 @@ class PaymentMethodScreen extends StatelessWidget {
               const SizedBox(height: KsoSpacing.m),
               KsoChoiceCard(
                 icon: Icons.qr_code,
-                label: 'Kaspi QR',
-                subtitle: 'отсканируйте QR-код',
-                isSelected: cart.paymentMethod == PaymentMethod.kaspiQr,
+                label: 'СБП',
+                subtitle: 'оплата по QR-коду',
+                isSelected: cart.paymentMethod == PaymentMethod.sbp,
                 onTap: () {
-                  cart.setPaymentMethod(PaymentMethod.kaspiQr);
+                  cart.setPaymentMethod(PaymentMethod.sbp);
                   context.go('/kso/checkout/summary');
                 },
               ),

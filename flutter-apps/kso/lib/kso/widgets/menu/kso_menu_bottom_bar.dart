@@ -22,7 +22,7 @@ class KsoMenuBottomBar extends StatelessWidget {
     if (itemCount == 0) return const SizedBox.shrink();
 
     return KsoBottomBar(
-      backgroundColor: KsoColors.darkBottomBar,
+      backgroundColor: KsoColors.surface,
       child: Row(
         children: [
           // Cart icon with badge

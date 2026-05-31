@@ -153,13 +153,13 @@ class _MenuScreenState extends State<MenuScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              border: Border.all(color: KsoColors.darkBorder),
+              border: Border.all(color: KsoColors.border),
               borderRadius: BorderRadius.circular(KsoRadius.s),
             ),
             child: const Text(
               'RU',
               style: TextStyle(
-                color: KsoColors.darkOnSurfaceSecondary,
+                color: KsoColors.textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),

@@ -8,7 +8,7 @@ enum OrderType {
 enum PaymentMethod {
   card,
   cash,
-  kaspiQr,
+  sbp,
 }
 
 enum OrderStatus {

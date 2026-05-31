@@ -21,7 +21,7 @@ class KsoProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: KsoColors.darkSurface,
+          color: KsoColors.surface,
           borderRadius: BorderRadius.circular(KsoRadius.m),
         ),
         clipBehavior: Clip.antiAlias,
@@ -34,12 +34,12 @@ class KsoProductCard extends StatelessWidget {
               child: Hero(
                 tag: 'product-${product.id}',
                 child: Container(
-                  color: KsoColors.darkSurfaceVariant,
+                  color: KsoColors.surfaceVariant,
                   child: Center(
                     child: Icon(
                       Icons.local_cafe,
                       size: 48,
-                      color: KsoColors.darkOnSurfaceSecondary
+                      color: KsoColors.textSecondary
                           .withValues(alpha: 0.5),
                     ),
                   ),
@@ -55,7 +55,7 @@ class KsoProductCard extends StatelessWidget {
                   Text(
                     product.name,
                     style: const TextStyle(
-                      color: KsoColors.darkOnSurface,
+                      color: KsoColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),

@@ -69,6 +69,7 @@ const kProducts = <Product>[
     modifierGroups: [kSizeGroup, kMilkGroup, kToppingsGroup],
     volume: '350 мл',
     isFeatured: true,
+    imageUrl: 'https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'cappuccino',
@@ -78,6 +79,7 @@ const kProducts = <Product>[
     categoryId: 'coffee',
     modifierGroups: [kSizeGroup, kMilkGroup, kToppingsGroup],
     volume: '300 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'americano',
@@ -87,6 +89,7 @@ const kProducts = <Product>[
     categoryId: 'coffee',
     modifierGroups: [kSizeGroup, kToppingsGroup],
     volume: '300 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefda?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'raf',
@@ -96,6 +99,7 @@ const kProducts = <Product>[
     categoryId: 'coffee',
     modifierGroups: [kSizeGroup, kMilkGroup, kToppingsGroup],
     volume: '350 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'flat-white',
@@ -105,6 +109,7 @@ const kProducts = <Product>[
     categoryId: 'coffee',
     modifierGroups: [kSizeGroup, kMilkGroup],
     volume: '250 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1611564494260-6f21b80af7ea?w=400&h=400&fit=crop',
   ),
 
   // ── Горячие напитки ──
@@ -116,6 +121,7 @@ const kProducts = <Product>[
     categoryId: 'hot',
     modifierGroups: [kSizeGroup, kMilkGroup],
     volume: '350 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'hot-chocolate',
@@ -125,6 +131,7 @@ const kProducts = <Product>[
     categoryId: 'hot',
     modifierGroups: [kSizeGroup],
     volume: '300 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1517578239113-b03992dcdd25?w=400&h=400&fit=crop',
   ),
 
   // ── Холодные напитки ──
@@ -136,6 +143,7 @@ const kProducts = <Product>[
     categoryId: 'cold',
     modifierGroups: [kSizeGroup, kMilkGroup, kToppingsGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'ice-americano',
@@ -145,6 +153,7 @@ const kProducts = <Product>[
     categoryId: 'cold',
     modifierGroups: [kSizeGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'mango-lemonade',
@@ -154,6 +163,7 @@ const kProducts = <Product>[
     categoryId: 'cold',
     modifierGroups: [kSizeGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=400&fit=crop',
   ),
 
   // ── Чай ──
@@ -165,6 +175,7 @@ const kProducts = <Product>[
     categoryId: 'tea',
     modifierGroups: [kSizeGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1556881286-fc6915169721?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'sea-buckthorn',
@@ -174,6 +185,7 @@ const kProducts = <Product>[
     categoryId: 'tea',
     modifierGroups: [kSizeGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d14e?w=400&h=400&fit=crop',
   ),
 
   // ── Десерты ──
@@ -183,6 +195,7 @@ const kProducts = <Product>[
     description: 'Классический нью-йоркский чизкейк',
     basePrice: 1800,
     categoryId: 'desserts',
+    imageUrl: 'https://images.unsplash.com/photo-1524351199432-d330df15f4a7?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'tiramisu',
@@ -190,6 +203,7 @@ const kProducts = <Product>[
     description: 'Итальянский десерт с маскарпоне и кофе',
     basePrice: 2000,
     categoryId: 'desserts',
+    imageUrl: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'napoleon',
@@ -197,6 +211,7 @@ const kProducts = <Product>[
     description: 'Слоёный торт с заварным кремом',
     basePrice: 1600,
     categoryId: 'desserts',
+    imageUrl: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400&h=400&fit=crop',
   ),
 
   // ── Выпечка ──
@@ -207,6 +222,7 @@ const kProducts = <Product>[
     basePrice: 1200,
     categoryId: 'pastry',
     canBeHeated: true,
+    imageUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038024a?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'chocolate-croissant',
@@ -215,6 +231,7 @@ const kProducts = <Product>[
     basePrice: 1100,
     categoryId: 'pastry',
     canBeHeated: true,
+    imageUrl: 'https://images.unsplash.com/photo-1530610476181-d83430b64dcd?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'cinnabon',
@@ -223,6 +240,7 @@ const kProducts = <Product>[
     basePrice: 1400,
     categoryId: 'pastry',
     canBeHeated: true,
+    imageUrl: 'https://images.unsplash.com/photo-1509365390695-33aee754301f?w=400&h=400&fit=crop',
   ),
 
   // ── Завтраки ──
@@ -232,6 +250,7 @@ const kProducts = <Product>[
     description: 'Яйца пашот на тосте с голландским соусом',
     basePrice: 2800,
     categoryId: 'breakfast',
+    imageUrl: 'https://images.unsplash.com/photo-1608039829572-9b6d04a0e2b1?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'avocado-toast',
@@ -239,6 +258,7 @@ const kProducts = <Product>[
     description: 'Тост с авокадо, яйцом пашот и микрозеленью',
     basePrice: 2400,
     categoryId: 'breakfast',
+    imageUrl: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=400&h=400&fit=crop',
   ),
 
   // ── Смузи ──
@@ -250,6 +270,7 @@ const kProducts = <Product>[
     categoryId: 'smoothie',
     modifierGroups: [kSizeGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400&h=400&fit=crop',
   ),
   Product(
     id: 'tropical-smoothie',
@@ -259,6 +280,7 @@ const kProducts = <Product>[
     categoryId: 'smoothie',
     modifierGroups: [kSizeGroup],
     volume: '400 мл',
+    imageUrl: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=400&h=400&fit=crop',
   ),
 ];
 

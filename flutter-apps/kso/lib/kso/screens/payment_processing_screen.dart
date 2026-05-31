@@ -82,7 +82,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: KsoColors.lightOnSurface,
+                    color: KsoColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: KsoSpacing.s),
@@ -90,7 +90,7 @@ class _PaymentProcessingScreenState extends State<PaymentProcessingScreen>
                   'приложите карту',
                   style: TextStyle(
                     fontSize: 16,
-                    color: KsoColors.lightOnSurfaceSecondary,
+                    color: KsoColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: KsoSpacing.xxl),

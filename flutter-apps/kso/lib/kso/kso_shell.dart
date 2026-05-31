@@ -34,20 +34,14 @@ class _KsoShellState extends State<KsoShell> {
     super.dispose();
   }
 
-  bool _isDarkRoute(String location) {
-    return location == '/kso' || location.startsWith('/kso/product');
-  }
-
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-    final theme = _isDarkRoute(location) ? KsoTheme.dark() : KsoTheme.light();
+    final theme = KsoTheme.light();
 
     return CartStateProvider(
       cartState: _cartState,
-      child: AnimatedTheme(
+      child: Theme(
         data: theme,
-        duration: const Duration(milliseconds: 400),
         child: ColoredBox(
           color: theme.scaffoldBackgroundColor,
           child: Center(

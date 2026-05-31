@@ -10,7 +10,7 @@ class Product {
   final String? volume;
   final bool canBeHeated;
   final bool isFeatured;
-  final String imageAsset;
+  final String imageUrl;
 
   const Product({
     required this.id,
@@ -22,6 +22,6 @@ class Product {
     this.volume,
     this.canBeHeated = false,
     this.isFeatured = false,
-    this.imageAsset = '',
+    this.imageUrl = '',
   });
 }

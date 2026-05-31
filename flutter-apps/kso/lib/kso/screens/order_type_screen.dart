@@ -33,7 +33,7 @@ class OrderTypeScreen extends StatelessWidget {
                 'ваш заказ',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: KsoColors.lightOnSurface,
+                      color: KsoColors.textPrimary,
                     ),
               ),
               const Spacer(),

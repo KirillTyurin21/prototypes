@@ -29,7 +29,7 @@ class KsoChoiceCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(KsoRadius.l),
           border: Border.all(
-            color: isSelected ? KsoColors.primary : KsoColors.lightBorder,
+            color: isSelected ? KsoColors.primary : KsoColors.border,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -49,7 +49,7 @@ class KsoChoiceCard extends StatelessWidget {
               size: 48,
               color: isSelected
                   ? KsoColors.primary
-                  : KsoColors.lightOnSurfaceSecondary,
+                  : KsoColors.textSecondary,
             ),
             const SizedBox(height: KsoSpacing.m),
             Text(
@@ -60,7 +60,7 @@ class KsoChoiceCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: isSelected
                     ? KsoColors.primary
-                    : KsoColors.lightOnSurface,
+                    : KsoColors.textPrimary,
               ),
             ),
             if (subtitle != null) ...[
@@ -70,7 +70,7 @@ class KsoChoiceCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
-                  color: KsoColors.lightOnSurfaceSecondary,
+                  color: KsoColors.textSecondary,
                 ),
               ),
             ],

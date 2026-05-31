@@ -27,7 +27,7 @@ class KsoCartHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(KsoRadius.m),
-                border: Border.all(color: KsoColors.lightBorder),
+                border: Border.all(color: KsoColors.border),
               ),
               child: Row(
                 children: [
@@ -48,7 +48,7 @@ class KsoCartHeader extends StatelessWidget {
                     onTap: onQrTap,
                     child: const Icon(
                       Icons.qr_code,
-                      color: KsoColors.lightOnSurfaceSecondary,
+                      color: KsoColors.textSecondary,
                       size: 24,
                     ),
                   ),

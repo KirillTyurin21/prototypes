@@ -43,12 +43,12 @@ class KsoCartItemWidget extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: KsoColors.lightBackground,
+              color: KsoColors.background,
               borderRadius: BorderRadius.circular(KsoRadius.s),
             ),
             child: const Center(
               child: Icon(Icons.local_cafe,
-                  size: 32, color: KsoColors.lightOnSurfaceSecondary),
+                  size: 32, color: KsoColors.textSecondary),
             ),
           ),
           const SizedBox(width: KsoSpacing.m),
@@ -62,7 +62,7 @@ class KsoCartItemWidget extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: KsoColors.lightOnSurface,
+                    color: KsoColors.textPrimary,
                   ),
                 ),
                 if (item.modifierSummary.isNotEmpty)
@@ -72,7 +72,7 @@ class KsoCartItemWidget extends StatelessWidget {
                       item.modifierSummary.join(', '),
                       style: const TextStyle(
                         fontSize: 13,
-                        color: KsoColors.lightOnSurfaceSecondary,
+                        color: KsoColors.textSecondary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -85,7 +85,7 @@ class KsoCartItemWidget extends StatelessWidget {
                       item.product.volume!,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: KsoColors.lightOnSurfaceSecondary,
+                        color: KsoColors.textSecondary,
                       ),
                     ),
                   ),
@@ -98,7 +98,7 @@ class KsoCartItemWidget extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: KsoColors.lightOnSurface,
+                        color: KsoColors.textPrimary,
                       ),
                     ),
                     KsoQuantitySelector(
@@ -128,7 +128,7 @@ class KsoCartItemWidget extends StatelessWidget {
                             'Не греть',
                             style: TextStyle(
                               fontSize: 14,
-                              color: KsoColors.lightOnSurfaceSecondary,
+                              color: KsoColors.textSecondary,
                             ),
                           ),
                         ],

@@ -42,7 +42,7 @@ class KsoHeroBanner extends StatelessWidget {
                 aspectRatio: 1,
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: KsoColors.darkSurfaceVariant,
+                    color: KsoColors.surfaceVariant,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

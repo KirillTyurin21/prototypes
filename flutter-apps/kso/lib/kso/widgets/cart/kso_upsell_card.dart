@@ -37,10 +37,10 @@ class KsoUpsellCard extends StatelessWidget {
             height: 80,
             width: double.infinity,
             child: Container(
-              color: KsoColors.lightBackground,
+              color: KsoColors.background,
               child: const Center(
                 child: Icon(Icons.local_cafe,
-                    size: 32, color: KsoColors.lightOnSurfaceSecondary),
+                    size: 32, color: KsoColors.textSecondary),
               ),
             ),
           ),

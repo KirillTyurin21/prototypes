@@ -102,7 +102,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 children: [
                   // Product image with back button
                   KsoProductImage(
-                    imageAsset: _product.imageAsset,
+                    imageUrl: _product.imageUrl,
                     heroTag: 'product-${_product.id}',
                     onBackTap: () => context.pop(),
                   ),

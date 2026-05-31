@@ -1,28 +1,42 @@
 import 'package:flutter/material.dart';
 
+/// Единая светлая премиальная палитра — стиль «Кофейня»
 class KsoColors {
   KsoColors._();
 
-  // ── Dark theme (Menu, Product Detail) ──
-  static const Color darkBackground = Color(0xFF121212);
-  static const Color darkSurface = Color(0xFF1E1E1E);
-  static const Color darkSurfaceVariant = Color(0xFF2A2A2A);
-  static const Color darkOnSurface = Color(0xFFFFFFFF);
-  static const Color darkOnSurfaceSecondary = Color(0xFF999999);
-  static const Color darkBorder = Color(0xFF444444);
-  static const Color darkBottomBar = Color(0xFF1A1A1A);
+  // ── Background & Surface ──
+  static const Color background = Color(0xFFFAF8F5);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFF5F0EB);
+  static const Color surfaceTinted = Color(0xFFF0E8DF);
 
-  // ── Light theme (Cart, Payment) ──
-  static const Color lightBackground = Color(0xFFF5F5F5);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightOnSurface = Color(0xFF1A1A1A);
-  static const Color lightOnSurfaceSecondary = Color(0xFF666666);
-  static const Color lightBorder = Color(0xFFE0E0E0);
+  // ── Primary (кофейный коричневый) ──
+  static const Color primary = Color(0xFF5C3D2E);
+  static const Color primaryLight = Color(0xFF8B6B5A);
+  static const Color primaryContainer = Color(0xFFEDE0D4);
 
-  // ── Accent colors (shared) ──
-  static const Color accent = Color(0xFFFF6D00);
-  static const Color accentLight = Color(0xFFFFB300);
-  static const Color primary = Color(0xFF2962FF);
-  static const Color error = Color(0xFFF44336);
-  static const Color success = Color(0xFF4CAF50);
+  // ── Accent (карамельный) ──
+  static const Color accent = Color(0xFFD4A574);
+  static const Color accentDark = Color(0xFFC08B5C);
+  static const Color accentLight = Color(0xFFE8C9A4);
+  static const Color accentContainer = Color(0xFFFFF3E6);
+
+  // ── Text ──
+  static const Color textPrimary = Color(0xFF2D2016);
+  static const Color textSecondary = Color(0xFF8C7B6B);
+  static const Color textTertiary = Color(0xFFB5A698);
+
+  // ── Semantic ──
+  static const Color success = Color(0xFF5B8A3C);
+  static const Color successContainer = Color(0xFFE8F5E0);
+  static const Color error = Color(0xFFD64545);
+  static const Color errorContainer = Color(0xFFFDE8E8);
+
+  // ── Border & Divider ──
+  static const Color border = Color(0xFFEDE5DC);
+  static const Color divider = Color(0xFFF0E8E0);
+
+  // ── Overlay ──
+  static const Color overlay = Color(0x33000000);
+  static const Color shimmer = Color(0xFFF5EDE5);
 }

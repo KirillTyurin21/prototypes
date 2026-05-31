@@ -50,7 +50,7 @@ class OrderSummaryScreen extends StatelessWidget {
                           .headlineMedium
                           ?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: KsoColors.lightOnSurface,
+                            color: KsoColors.textPrimary,
                           ),
                     ),
                   ),
@@ -66,13 +66,13 @@ class OrderSummaryScreen extends StatelessWidget {
                         children: [
                           const Icon(Icons.person,
                               size: 18,
-                              color: KsoColors.lightOnSurfaceSecondary),
+                              color: KsoColors.textSecondary),
                           const SizedBox(width: KsoSpacing.s),
                           Text(
                             cart.customerName!,
                             style: const TextStyle(
                               fontSize: 16,
-                              color: KsoColors.lightOnSurfaceSecondary,
+                              color: KsoColors.textSecondary,
                             ),
                           ),
                         ],
@@ -108,7 +108,7 @@ class OrderSummaryScreen extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                         horizontal: KsoSpacing.l, vertical: KsoSpacing.l),
-                    child: Divider(color: KsoColors.lightBorder),
+                    child: Divider(color: KsoColors.border),
                   ),
                 ),
                 // Cart items compact list
@@ -155,7 +155,7 @@ class OrderSummaryScreen extends StatelessWidget {
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
-                                      color: KsoColors.lightOnSurface,
+                                      color: KsoColors.textPrimary,
                                     ),
                                   ),
                                   if (item.modifierSummary.isNotEmpty)
@@ -164,7 +164,7 @@ class OrderSummaryScreen extends StatelessWidget {
                                       style: const TextStyle(
                                         fontSize: 13,
                                         color: KsoColors
-                                            .lightOnSurfaceSecondary,
+                                            .textSecondary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -178,7 +178,7 @@ class OrderSummaryScreen extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: KsoColors.lightOnSurface,
+                                color: KsoColors.textPrimary,
                               ),
                             ),
                           ],
@@ -195,7 +195,7 @@ class OrderSummaryScreen extends StatelessWidget {
                         KsoSpacing.l, KsoSpacing.l, KsoSpacing.l, 0),
                     child: Column(
                       children: [
-                        const Divider(color: KsoColors.lightBorder),
+                        const Divider(color: KsoColors.border),
                         const SizedBox(height: KsoSpacing.m),
                         Row(
                           mainAxisAlignment:
@@ -206,7 +206,7 @@ class OrderSummaryScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                color: KsoColors.lightOnSurface,
+                                color: KsoColors.textPrimary,
                               ),
                             ),
                             Text(
@@ -214,7 +214,7 @@ class OrderSummaryScreen extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: KsoColors.lightOnSurface,
+                                color: KsoColors.textPrimary,
                               ),
                             ),
                           ],
@@ -225,14 +225,14 @@ class OrderSummaryScreen extends StatelessWidget {
                             const Icon(Icons.schedule,
                                 size: 14,
                                 color:
-                                    KsoColors.lightOnSurfaceSecondary),
+                                    KsoColors.textSecondary),
                             const SizedBox(width: 4),
                             Text(
                               '≈ ${cart.estimatedMinutes} мин',
                               style: const TextStyle(
                                 fontSize: 13,
                                 color:
-                                    KsoColors.lightOnSurfaceSecondary,
+                                    KsoColors.textSecondary,
                               ),
                             ),
                           ],
@@ -307,7 +307,7 @@ class OrderSummaryScreen extends StatelessWidget {
         return Icons.credit_card;
       case PaymentMethod.cash:
         return Icons.payments;
-      case PaymentMethod.kaspiQr:
+      case PaymentMethod.sbp:
         return Icons.qr_code;
       case null:
         return Icons.payment;
@@ -320,8 +320,8 @@ class OrderSummaryScreen extends StatelessWidget {
         return 'Картой';
       case PaymentMethod.cash:
         return 'Наличные';
-      case PaymentMethod.kaspiQr:
-        return 'Kaspi QR';
+      case PaymentMethod.sbp:
+        return 'СБП';
       case null:
         return 'Оплата';
     }

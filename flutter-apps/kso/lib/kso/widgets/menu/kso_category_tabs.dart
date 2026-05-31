@@ -38,14 +38,14 @@ class KsoCategoryTabs extends StatelessWidget {
                 borderRadius: BorderRadius.circular(KsoRadius.s),
                 border: isSelected
                     ? null
-                    : Border.all(color: KsoColors.darkBorder),
+                    : Border.all(color: KsoColors.border),
               ),
               child: Text(
                 category.name,
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white
-                      : KsoColors.darkOnSurfaceSecondary,
+                      : KsoColors.textSecondary,
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),

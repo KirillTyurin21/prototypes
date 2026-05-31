@@ -104,7 +104,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
-                      color: KsoColors.lightOnSurface,
+                      color: KsoColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: KsoSpacing.l),
@@ -114,7 +114,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
-                      color: KsoColors.lightOnSurfaceSecondary,
+                      color: KsoColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: KsoSpacing.s),
@@ -124,13 +124,13 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                     children: [
                       const Icon(Icons.schedule,
                           size: 18,
-                          color: KsoColors.lightOnSurfaceSecondary),
+                          color: KsoColors.textSecondary),
                       const SizedBox(width: KsoSpacing.xs),
                       Text(
                         'Будет готово через ≈ ${_order.estimatedMinutes} мин',
                         style: const TextStyle(
                           fontSize: 16,
-                          color: KsoColors.lightOnSurfaceSecondary,
+                          color: KsoColors.textSecondary,
                         ),
                       ),
                     ],
@@ -142,7 +142,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                       'Позовём: ${_order.customerName}',
                       style: const TextStyle(
                         fontSize: 16,
-                        color: KsoColors.lightOnSurfaceSecondary,
+                        color: KsoColors.textSecondary,
                       ),
                     ),
                   ],

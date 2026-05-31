@@ -51,7 +51,7 @@ class KsoModifierToggleRow extends StatelessWidget {
               height: 26,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(13),
-                color: isSelected ? KsoColors.accent : KsoColors.darkBorder,
+                color: isSelected ? KsoColors.accent : KsoColors.border,
               ),
               child: AnimatedAlign(
                 duration: KsoAnim.fast,

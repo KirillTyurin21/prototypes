@@ -29,7 +29,7 @@ class KsoCartBottomBar extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: KsoColors.lightOnSurface,
+                  color: KsoColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -37,13 +37,13 @@ class KsoCartBottomBar extends StatelessWidget {
                 children: [
                   const Icon(Icons.schedule,
                       size: 14,
-                      color: KsoColors.lightOnSurfaceSecondary),
+                      color: KsoColors.textSecondary),
                   const SizedBox(width: 4),
                   Text(
                     '$estimatedMinutes мин',
                     style: const TextStyle(
                       fontSize: 13,
-                      color: KsoColors.lightOnSurfaceSecondary,
+                      color: KsoColors.textSecondary,
                     ),
                   ),
                 ],

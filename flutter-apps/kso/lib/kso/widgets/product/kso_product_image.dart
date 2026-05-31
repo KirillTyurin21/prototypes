@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
+import '../../theme/kso_colors.dart';
 import '../common/kso_back_button.dart';
 
 class KsoProductImage extends StatelessWidget {
-  final String imageAsset;
+  final String imageUrl;
   final VoidCallback? onBackTap;
   final String? heroTag;
 
   const KsoProductImage({
     super.key,
-    required this.imageAsset,
+    required this.imageUrl,
     this.onBackTap,
     this.heroTag,
   });
 
   @override
   Widget build(BuildContext context) {
-    Widget image = Container(
-      color: const Color(0xFF2A2A2A),
-      child: const Center(
-        child: Icon(Icons.local_cafe, size: 80, color: Color(0xFF555555)),
-      ),
-    );
+    Widget image = imageUrl.isNotEmpty
+        ? Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _placeholder(),
+          )
+        : _placeholder();
 
     if (heroTag != null) {
       image = Hero(tag: heroTag!, child: image);
@@ -39,6 +41,15 @@ class KsoProductImage extends StatelessWidget {
             child: KsoBackButton(onPressed: onBackTap),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: KsoColors.surfaceVariant,
+      child: Center(
+        child: Icon(Icons.local_cafe, size: 80, color: KsoColors.textSecondary),
       ),
     );
   }
