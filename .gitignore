@@ -48,6 +48,10 @@ PROTOTYPES.md
 # === Misc ===
 *.log
 *.tgz
+
+# === Flutter ===
+flutter-apps/kso/build/
+flutter-apps/kso/.dart_tool/
 .sass-cache/
 connect.lock
 coverage/

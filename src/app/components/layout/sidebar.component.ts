@@ -41,6 +41,16 @@ import { SessionService } from '@/shared/session.service';
           <span *ngIf="!collapsed">Главная</span>
         </a>
 
+        <!-- Flutter-раздел -->
+        <a
+          href="/flutter/"
+          target="_blank"
+          class="flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer text-sidebar-text hover:bg-sidebar-hover"
+        >
+          <lucide-icon name="smartphone" [size]="18"></lucide-icon>
+          <span *ngIf="!collapsed">Flutter</span>
+        </a>
+
         <!-- Раскрывающийся список доступных прототипов -->
         <div *ngIf="allPrototypes.length > 0" class="pt-1">
           <button
