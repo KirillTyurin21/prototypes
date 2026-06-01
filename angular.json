@@ -22,7 +22,7 @@
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "flutter-apps/kso/build/web",
+                "input": "src/assets/flutter",
                 "output": "/flutter"
               }
             ],
