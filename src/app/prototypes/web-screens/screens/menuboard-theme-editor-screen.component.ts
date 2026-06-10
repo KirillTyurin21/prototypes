@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -43,7 +43,9 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
                   <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
                   <div class="ml-rows" *ngIf="el.productIds?.length">
-                    <div class="ml-row" *ngFor="let pid of el.productIds || []" [style.height.px]="el.rowHeight || 48">
+                    <div class="ml-row" *ngFor="let pid of el.productIds || []; let odd = odd"
+                      [style.height.px]="el.rowHeight || 48"
+                      [style.background-color]="!el.alternateRows ? 'transparent' : (odd ? (el.highlightColor || '#f5f5f5') : 'transparent')">
                       <span class="ml-name">{{ getDishName(pid) }}</span>
                       <span class="ml-price">{{ getDishPrice(pid) }}</span>
                     </div>
@@ -116,41 +118,41 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               <div class="section-divider">Настройки таблицы</div>
               <div class="field-group">
                 <label class="field-label">Чередование строк</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).alternateRows" /> Включено</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="mlAlternateRows" /> Включено</label>
               </div>
               <div class="field-group">
                 <label class="field-label">Высота строки (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="$any(selectedElement).rowHeight" min="24" max="200" />
+                <input type="number" class="field-input" [(ngModel)]="mlRowHeight" min="24" max="200" />
               </div>
               <div class="section-divider">Подсветка строк</div>
               <div class="field-group">
                 <label class="field-label">Цвет подсветки</label>
-                <input type="color" class="field-color" [(ngModel)]="$any(selectedElement).highlightColor" />
+                <input type="color" class="field-color" [(ngModel)]="mlHighlightColor" />
               </div>
               <div class="section-divider">Шрифт названия</div>
               <div class="field-group">
                 <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="fontProxy.nameSize" (ngModelChange)="onFontNameChange()" min="8" max="72" />
+                <input type="number" class="field-input" [(ngModel)]="mlFontNameSize" min="8" max="72" />
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="fontProxy.nameColor" (ngModelChange)="onFontNameChange()" />
+                <input type="color" class="field-color" [(ngModel)]="mlFontNameColor" />
               </div>
               <div class="section-divider">Шрифт цены</div>
               <div class="field-group">
                 <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="fontProxy.priceSize" (ngModelChange)="onFontPriceChange()" min="8" max="72" />
+                <input type="number" class="field-input" [(ngModel)]="mlFontPriceSize" min="8" max="72" />
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="fontProxy.priceColor" (ngModelChange)="onFontPriceChange()" />
+                <input type="color" class="field-color" [(ngModel)]="mlFontPriceColor" />
               </div>
               <div class="section-divider">Отображение</div>
               <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showIcons" /> Показывать иконки</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showDescription" /> Показывать описание</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showAllergens" /> Показывать аллергены</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showNutrition" /> Показывать КБЖУ</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowIcons" /> Показывать иконки</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowDescription" /> Показывать описание</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowAllergens" /> Показывать аллергены</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowNutrition" /> Показывать КБЖУ</label>
               </div>
             </ng-container>
             <!-- Standard element inspector for non-menulist, non-area -->
@@ -192,7 +194,6 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
     .ml-rows { flex: 1; overflow: hidden; }
     .ml-row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
-    .ml-row:nth-child(even) { background: #fafafa; }
     .ml-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
     .ml-price { flex-shrink: 0; font-weight: 600; color: #c62828; margin-left: 8px; }
     .handle { position: absolute; width: 8px; height: 8px; background: #fff; border: 2px solid #448aff; z-index: 2; }
@@ -262,6 +263,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private storage = inject(StorageService);
+  private cdr = inject(ChangeDetectorRef);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
   panelCollapsed = false;
@@ -275,7 +277,6 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   externalMenuCategories = MOCK_EXTERNAL_MENU;
   dishSelectorOpen = false;
   dishSelectorIds: string[] = [];
-  fontProxy = { nameSize: 16, nameColor: '#333333', priceSize: 16, priceColor: '#CC0000' };
 
   campaignOptions: CampaignOption[] = [
     { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
@@ -335,7 +336,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     } else {
       this.theme.id = Date.now();
     }
-    this.availableControls = this.storage.load('web-screens', 'menuboard-controls', [...MOCK_ARRIVALS_CONTROLS]);
+    this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
     setTimeout(() => this.updateCanvasScale(), 0);
   }
 
@@ -354,7 +355,11 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   updateCanvasScale(): void {
     if (!this.canvasAreaRef?.nativeElement) return;
     const c = this.canvasAreaRef.nativeElement;
-    this.canvasScale = Math.min((c.clientWidth - 16) / this.resWidth, (c.clientHeight - 16) / this.resHeight, 1);
+    const newScale = Math.min((c.clientWidth - 16) / this.resWidth, (c.clientHeight - 16) / this.resHeight, 1);
+    if (this.canvasScale !== newScale) {
+      this.canvasScale = newScale;
+      this.cdr.detectChanges();
+    }
   }
 
   onCanvasClick(): void { if (!this.dragState && !this.resizeState) this.deselectElement(); }
@@ -405,8 +410,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* Selection */
-  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.panelView = 'element'; this.syncFontProxy(); }
-  selectElementFromList(id: string): void { this.selectedElementId = id; this.panelView = 'element'; this.syncFontProxy(); }
+  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.panelView = 'element'; }
+  selectElementFromList(id: string): void { this.selectedElementId = id; this.panelView = 'element'; }
   deselectElement(): void { this.selectedElementId = null; this.panelView = 'theme'; }
 
   /* Price helpers */
@@ -467,17 +472,40 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     }
   }
 
-  syncFontProxy(): void {
-    this.ensureMenulistDefaults();
-    if (this.selectedElement?.type === 'menulist') {
-      this.fontProxy = {
-        nameSize: this.selectedElement.fontName?.size ?? 16,
-        nameColor: this.selectedElement.fontName?.color ?? '#333333',
-        priceSize: this.selectedElement.fontPrice?.size ?? 16,
-        priceColor: this.selectedElement.fontPrice?.color ?? '#CC0000',
-      };
-    }
-  }
+  /* ── MenuList proxy properties (замена $any() в шаблоне для ngModel) ── */
+
+  get mlAlternateRows(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.alternateRows ?? true; }
+  set mlAlternateRows(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.alternateRows = v; }
+
+  get mlRowHeight(): number { this.ensureMenulistDefaults(); return this.selectedElement?.rowHeight ?? 48; }
+  set mlRowHeight(v: number) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.rowHeight = v; }
+
+  get mlHighlightColor(): string { this.ensureMenulistDefaults(); return this.selectedElement?.highlightColor ?? '#f5f5f5'; }
+  set mlHighlightColor(v: string) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.highlightColor = v; }
+
+  get mlShowIcons(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showIcons ?? true; }
+  set mlShowIcons(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showIcons = v; }
+
+  get mlShowDescription(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showDescription ?? false; }
+  set mlShowDescription(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showDescription = v; }
+
+  get mlShowAllergens(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showAllergens ?? false; }
+  set mlShowAllergens(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showAllergens = v; }
+
+  get mlShowNutrition(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showNutrition ?? false; }
+  set mlShowNutrition(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showNutrition = v; }
+
+  get mlFontNameSize(): number { this.ensureMenulistDefaults(); return this.selectedElement?.fontName?.size ?? 16; }
+  set mlFontNameSize(v: number) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontName) this.selectedElement.fontName.size = v; }
+
+  get mlFontNameColor(): string { this.ensureMenulistDefaults(); return this.selectedElement?.fontName?.color ?? '#333333'; }
+  set mlFontNameColor(v: string) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontName) this.selectedElement.fontName.color = v; }
+
+  get mlFontPriceSize(): number { this.ensureMenulistDefaults(); return this.selectedElement?.fontPrice?.size ?? 16; }
+  set mlFontPriceSize(v: number) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontPrice) this.selectedElement.fontPrice.size = v; }
+
+  get mlFontPriceColor(): string { this.ensureMenulistDefaults(); return this.selectedElement?.fontPrice?.color ?? '#CC0000'; }
+  set mlFontPriceColor(v: string) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontPrice) this.selectedElement.fontPrice.color = v; }
 
   ensureMenulistDefaults(): void {
     const el = this.selectedElement;
@@ -494,22 +522,6 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (!el.fontPrice) el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false };
     if (!el.fontModifiers) el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' };
     if (!el.fontDescription) el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' };
-  }
-
-  onFontNameChange(): void {
-    this.ensureMenulistDefaults();
-    if (this.selectedElement?.type === 'menulist' && this.selectedElement.fontName) {
-      this.selectedElement.fontName.size = this.fontProxy.nameSize;
-      this.selectedElement.fontName.color = this.fontProxy.nameColor;
-    }
-  }
-
-  onFontPriceChange(): void {
-    this.ensureMenulistDefaults();
-    if (this.selectedElement?.type === 'menulist' && this.selectedElement.fontPrice) {
-      this.selectedElement.fontPrice.size = this.fontProxy.priceSize;
-      this.selectedElement.fontPrice.color = this.fontProxy.priceColor;
-    }
   }
 
   formatCampaignDate(dateStr: string): string {
@@ -529,7 +541,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignId = null; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' }; }
     this.theme.elements.push(el);
-    this.selectedElementId = el.id; this.panelView = 'element'; this.syncFontProxy();
+    this.selectedElementId = el.id; this.panelView = 'element';
   }
 
   requestDeleteElement(el: ArrivalsThemeElement, event: Event): void { event.stopPropagation(); this.deleteElementTarget = el; }
@@ -541,7 +553,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     }
   }
 
-  onAreaControlChange(): void { if (this.selectedElement) { this.areaHelper.reset(this.selectedElement.id); this.availableControls = this.storage.load('web-screens', 'menuboard-controls', [...MOCK_ARRIVALS_CONTROLS]); } }
+  onAreaControlChange(): void { if (this.selectedElement) { this.areaHelper.reset(this.selectedElement.id); this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]); } }
 
   /* Save */
   save(): void {

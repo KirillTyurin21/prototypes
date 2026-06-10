@@ -149,7 +149,7 @@ export class MenuboardControlsScreenComponent {
   private router = inject(Router);
   private storage = inject(StorageService);
 
-  items: ArrivalsControlListItem[] = this.storage.load('web-screens', 'menuboard-controls-list', [...MOCK_ARRIVALS_CONTROLS_LIST]);
+  items: ArrivalsControlListItem[] = this.storage.load('web-screens', 'arrivals-controls-list', [...MOCK_ARRIVALS_CONTROLS_LIST]);
   deleteTarget: ArrivalsControlListItem | null = null;
 
   onRowClick(item: ArrivalsControlListItem): void {
@@ -177,7 +177,7 @@ export class MenuboardControlsScreenComponent {
   confirmDelete(): void {
     if (this.deleteTarget) {
       this.items = this.items.filter(i => i.id !== this.deleteTarget!.id);
-      this.storage.save('web-screens', 'menuboard-controls-list', this.items);
+      this.storage.save('web-screens', 'arrivals-controls-list', this.items);
       this.deleteTarget = null;
     }
   }

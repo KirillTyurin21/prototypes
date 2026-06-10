@@ -36,6 +36,7 @@ import {
   // Theme editor & controls
   Pencil,
   Copy,
+  Clipboard,
   Image,
   Type,
   Megaphone,
@@ -222,6 +223,7 @@ const icons = {
   // Theme editor & controls
   Pencil,
   Copy,
+  Clipboard,
   Image,
   Type,
   Megaphone,

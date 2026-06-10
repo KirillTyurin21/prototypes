@@ -678,7 +678,9 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/prototype/web-screens/arrivals-controls']);
+    const parentSegment = this.route.snapshot.url[0]?.path || '';
+    const parentRoute = parentSegment === 'menuboard-control-editor' ? 'menuboard-controls' : 'arrivals-controls';
+    this.router.navigate(['/prototype/web-screens', parentRoute]);
   }
 
   private showToast(msg: string): void {
