@@ -40,6 +40,16 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     ],
   },
   {
+    title: 'Доска меню',
+    icon: 'monitor',
+    items: [
+      { icon: '', label: 'Контролы', route: 'menuboard-controls' },
+      { icon: '', label: 'Темы', route: 'menuboard-themes' },
+      { icon: '', label: 'Настройка экранов', route: 'menuboard-terminals' },
+      { icon: '', label: 'Мультиэкранность', route: 'menuboard-multiscreen' },
+    ],
+  },
+  {
     title: 'Звуки',
     icon: 'volume-2',
     items: [

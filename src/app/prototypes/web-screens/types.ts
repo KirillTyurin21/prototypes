@@ -92,7 +92,8 @@ export type ArrivalsElementType =
   | 'order-items-cards'
   | 'area'
   | 'price'
-  | 'counter';
+  | 'counter'
+  | 'advertise';
 
 export interface ArrivalsThemeElement {
   id: string;
@@ -220,6 +221,8 @@ export interface ArrivalsThemeElement {
   areaSortOrder?: 'newest-first' | 'oldest-first';
   areaInterlineSpacing?: number;
   areaBgColor?: string;
+  // Advertise (MenuBoard dynamic region)
+  campaignId?: number | null;
 }
 
 /* ── Product Catalog (for Price element navigator) ── */

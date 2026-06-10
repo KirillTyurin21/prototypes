@@ -113,6 +113,48 @@ export const WEB_SCREENS_ROUTES: Routes = [
           ),
       },
       {
+        path: 'menuboard-themes',
+        loadComponent: () =>
+          import('./screens/menuboard-themes-screen.component').then(
+            m => m.MenuboardThemesScreenComponent
+          ),
+      },
+      {
+        path: 'menuboard-theme-editor/:id',
+        loadComponent: () =>
+          import('./screens/menuboard-theme-editor-screen.component').then(
+            m => m.MenuboardThemeEditorScreenComponent
+          ),
+      },
+      {
+        path: 'menuboard-controls',
+        loadComponent: () =>
+          import('./screens/menuboard-controls-screen.component').then(
+            m => m.MenuboardControlsScreenComponent
+          ),
+      },
+      {
+        path: 'menuboard-control-editor/:id',
+        loadComponent: () =>
+          import('./screens/arrivals-control-editor-screen.component').then(
+            m => m.ArrivalsControlEditorScreenComponent
+          ),
+      },
+      {
+        path: 'menuboard-terminals',
+        loadComponent: () =>
+          import('./screens/menuboard-terminals-screen.component').then(
+            m => m.MenuboardTerminalsScreenComponent
+          ),
+      },
+      {
+        path: 'menuboard-multiscreen',
+        loadComponent: () =>
+          import('./screens/menuboard-multiscreen-screen.component').then(
+            m => m.MenuboardMultiscreenScreenComponent
+          ),
+      },
+      {
         path: 'global-hints',
         loadComponent: () =>
           import('./screens/stub-screen.component').then(
