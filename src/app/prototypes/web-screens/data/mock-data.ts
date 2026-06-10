@@ -546,6 +546,7 @@ export const MOCK_TERMINALS: ArrivalTerminal[] = [
 
 export const MOCK_ARRIVALS_CONTROLS_LIST: ArrivalsControlListItem[] = [
   { id: 301, name: 'Контролы', itemType: 'folder' },
+  { id: 307, name: 'Меню-борд (карточки блюд)', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
   { id: 302, name: 'Доставка (для Курьеров) (от 25-10-09)', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
   { id: 303, name: 'Аня тест1', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
   { id: 304, name: 'ВИТ', itemType: 'control', resolution: '1024x768', createdBy: 'Мой' },
