@@ -34,6 +34,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'prototype/web-settings',
+        loadChildren: () =>
+          import('./prototypes/web-settings/web-settings.routes').then(
+            m => m.WEB_SETTINGS_ROUTES
+          ),
+      },
+      {
         path: 'prototype/front-plugins',
         loadChildren: () =>
           import('./prototypes/front-plugins/front-plugins.routes').then(
