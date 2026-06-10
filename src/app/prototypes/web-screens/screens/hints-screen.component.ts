@@ -13,6 +13,7 @@ import { CsDataService } from '../cs-data.service';
 import { Hint } from '../cs-types';
 import { DISCOUNTS, PRODUCT_TREE } from '../data/cs-mock-data';
 import { HintEditDrawerComponent, HintDrawerSaveEvent } from '../components/hint-editor/hint-edit-drawer.component';
+import { HintReportPanelComponent } from '../components/hint-report-panel/hint-report-panel.component';
 
 @Component({
   selector: 'app-hints-screen',
@@ -26,6 +27,7 @@ import { HintEditDrawerComponent, HintDrawerSaveEvent } from '../components/hint
     UiInputComponent,
     IconsModule,
     HintEditDrawerComponent,
+    HintReportPanelComponent,
   ],
   template: `
     <div class="hints-screen">
@@ -94,6 +96,15 @@ import { HintEditDrawerComponent, HintDrawerSaveEvent } from '../components/hint
               {{ getStatusLabel(item.status) }}
             </span>
           </ng-template>
+          <ng-template tableCellDef="report" let-item>
+            <button
+              class="report-btn"
+              title="Отчет по подсказке"
+              (click)="openReportForHint(item); $event.stopPropagation()"
+            >
+              <lucide-icon name="bar-chart-3" [size]="16"></lucide-icon>
+            </button>
+          </ng-template>
         </ui-table>
       </div>
 
@@ -123,11 +134,18 @@ import { HintEditDrawerComponent, HintDrawerSaveEvent } from '../components/hint
         (cancel)="closeDrawer()"
         (nameErrorChange)="nameError = $event"
       ></app-hint-edit-drawer>
+
+      <!-- Report Panel -->
+      <app-hint-report-panel
+        [open]="reportPanelOpen"
+        [hint]="reportHint"
+        (close)="closeReportPanel()"
+      ></app-hint-report-panel>
     </div>
   `,
   styles: [`
-    :host { display: block; font-family: Roboto, sans-serif; }
-    .hints-screen { animation: fadeIn 0.2s ease-out; position: relative; }
+    :host { display: block; position: relative; min-height: 100vh; font-family: Roboto, sans-serif; }
+    .hints-screen { animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
     .toast {
@@ -180,6 +198,14 @@ import { HintEditDrawerComponent, HintDrawerSaveEvent } from '../components/hint
     .status-active { background: #e8f5e9; color: #2e7d32; }
     .status-scheduled { background: #e3f2fd; color: #1565c0; }
     .status-expired { background: #f5f5f5; color: #757575; }
+
+    .report-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border: none; border-radius: 4px;
+      background: transparent; color: #757575; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .report-btn:hover { background: #e3f2fd; color: #1976d2; }
   `],
 })
 export class HintsScreenComponent implements OnInit {
@@ -195,6 +221,8 @@ export class HintsScreenComponent implements OnInit {
   drawerOpen = false;
   drawerHint: Hint | null = null;
   editingHint: Hint | null = null;
+  reportPanelOpen = false;
+  reportHint: Hint | null = null;
   nameError = '';
   selectedControlId = '';
 
@@ -211,6 +239,7 @@ export class HintsScreenComponent implements OnInit {
     { key: 'period', header: 'Период действия', width: '200px' },
     { key: 'time', header: 'Время действия', width: '150px' },
     { key: 'status', header: 'Статус', width: '140px' },
+    { key: 'report', header: '', width: '48px' },
   ];
   rowKeyFn = (item: Hint) => item.id;
 
@@ -363,6 +392,19 @@ export class HintsScreenComponent implements OnInit {
     if (hint.period.endDate && hint.period.endDate < todayStr) return 'expired';
     if (hint.period.startDate && hint.period.startDate > todayStr) return 'scheduled';
     return 'active';
+  }
+
+  openReportPanel(): void {
+    this.reportPanelOpen = true;
+  }
+
+  closeReportPanel(): void {
+    this.reportPanelOpen = false;
+  }
+
+  openReportForHint(item: Hint): void {
+    this.reportHint = item;
+    this.reportPanelOpen = true;
   }
 
   private showToast(message: string): void {

@@ -25,7 +25,6 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     icon: 'monitor',
     items: [
       { icon: '', label: 'Дисплеи', route: 'displays' },
-      { icon: '', label: 'Подсказки', route: 'hints' },
       { icon: '', label: 'Контролы', route: 'controls' },
       { icon: '', label: 'Темы', route: 'themes-cs' },
     ],
@@ -51,7 +50,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   {
     title: 'Подсказки',
     icon: 'wand-2',
-    route: 'global-hints',
+    route: 'hints',
     items: [],
   },
   {

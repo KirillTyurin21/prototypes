@@ -2,6 +2,23 @@
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.24',
+    date: '2026-06-10',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Подсказки',
+        pageRoute: '/prototype/web-screens/hints',
+        items: [
+          'Добавлена кнопка «Отчет» в карточку подсказки (drawer)',
+          'Полноэкранная панель отчета с KPI: Показов, Срабатываний, Конверсия',
+          'Выбор периода: Неделя (по умолчанию), Месяц',
+          'Состояния: загрузка, нет данных, ошибка загрузки с кнопкой «Повторить»',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.23',
     date: '2026-06-10',
     status: 'released',
