@@ -49,7 +49,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                     </div>
                   </div>
                 </div>
-                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise'" class="el-placeholder-label">{{ el.name }}</span>
+                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist'" class="el-placeholder-label">{{ el.name }}</span>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
             </ng-container>
@@ -94,7 +94,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               <div class="section-divider">Данные</div>
               <div class="field-group">
                 <button class="btn-select-dishes" (click)="openDishSelector()">
-                  <lucide-icon name="list-checks" [size]="16"></lucide-icon>
+                  <lucide-icon name="list" [size]="16"></lucide-icon>
                   Выбрать блюда
                 </button>
               </div>
@@ -130,20 +130,20 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               <div class="section-divider">Шрифт названия</div>
               <div class="field-group">
                 <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [ngModel]="$any(selectedElement).fontName.size" (ngModelChange)="$any(selectedElement).fontName.size = $event" min="8" max="72" />
+                <input type="number" class="field-input" [(ngModel)]="fontProxy.nameSize" (ngModelChange)="onFontNameChange()" min="8" max="72" />
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [ngModel]="$any(selectedElement).fontName.color" (ngModelChange)="$any(selectedElement).fontName.color = $event" />
+                <input type="color" class="field-color" [(ngModel)]="fontProxy.nameColor" (ngModelChange)="onFontNameChange()" />
               </div>
               <div class="section-divider">Шрифт цены</div>
               <div class="field-group">
                 <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [ngModel]="$any(selectedElement).fontPrice.size" (ngModelChange)="$any(selectedElement).fontPrice.size = $event" min="8" max="72" />
+                <input type="number" class="field-input" [(ngModel)]="fontProxy.priceSize" (ngModelChange)="onFontPriceChange()" min="8" max="72" />
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [ngModel]="$any(selectedElement).fontPrice.color" (ngModelChange)="$any(selectedElement).fontPrice.color = $event" />
+                <input type="color" class="field-color" [(ngModel)]="fontProxy.priceColor" (ngModelChange)="onFontPriceChange()" />
               </div>
               <div class="section-divider">Отображение</div>
               <div class="field-group">
@@ -275,6 +275,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   externalMenuCategories = MOCK_EXTERNAL_MENU;
   dishSelectorOpen = false;
   dishSelectorIds: string[] = [];
+  fontProxy = { nameSize: 16, nameColor: '#333333', priceSize: 16, priceColor: '#CC0000' };
 
   campaignOptions: CampaignOption[] = [
     { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
@@ -404,8 +405,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* Selection */
-  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.panelView = 'element'; }
-  selectElementFromList(id: string): void { this.selectedElementId = id; this.panelView = 'element'; }
+  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.panelView = 'element'; this.syncFontProxy(); }
+  selectElementFromList(id: string): void { this.selectedElementId = id; this.panelView = 'element'; this.syncFontProxy(); }
   deselectElement(): void { this.selectedElementId = null; this.panelView = 'theme'; }
 
   /* Price helpers */
@@ -466,6 +467,33 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     }
   }
 
+  syncFontProxy(): void {
+    if (this.selectedElement?.type === 'menulist') {
+      this.fontProxy = {
+        nameSize: this.selectedElement.fontName?.size ?? 16,
+        nameColor: this.selectedElement.fontName?.color ?? '#333333',
+        priceSize: this.selectedElement.fontPrice?.size ?? 16,
+        priceColor: this.selectedElement.fontPrice?.color ?? '#CC0000',
+      };
+    }
+  }
+
+  onFontNameChange(): void {
+    if (this.selectedElement?.type === 'menulist') {
+      if (!this.selectedElement.fontName) this.selectedElement.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false };
+      this.selectedElement.fontName.size = this.fontProxy.nameSize;
+      this.selectedElement.fontName.color = this.fontProxy.nameColor;
+    }
+  }
+
+  onFontPriceChange(): void {
+    if (this.selectedElement?.type === 'menulist') {
+      if (!this.selectedElement.fontPrice) this.selectedElement.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false };
+      this.selectedElement.fontPrice.size = this.fontProxy.priceSize;
+      this.selectedElement.fontPrice.color = this.fontProxy.priceColor;
+    }
+  }
+
   formatCampaignDate(dateStr: string): string {
     if (!dateStr) return '—';
     const parts = dateStr.split('-');
@@ -483,7 +511,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignId = null; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' }; }
     this.theme.elements.push(el);
-    this.selectedElementId = el.id; this.panelView = 'element';
+    this.selectedElementId = el.id; this.panelView = 'element'; this.syncFontProxy();
   }
 
   requestDeleteElement(el: ArrivalsThemeElement, event: Event): void { event.stopPropagation(); this.deleteElementTarget = el; }
