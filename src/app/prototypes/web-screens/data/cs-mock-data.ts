@@ -141,6 +141,7 @@ export const CS_THEMES: CSTheme[] = [
   {
     id: 1, name: 'Основная тема кофейни', description: 'Стандартная тема с анимациями и подсказками',
     updatedAt: '10.02.2026 14:30', elementsCount: 4,
+    resolution: '1920x1080', screenMode: 'order', closedModeCampaignId: null,
     elements: [
       { id: 1, type: 'image', name: 'Фон', layout: { x: 0, y: 0, width: 1920, height: 1080 } },
       { id: 2, type: 'animation', name: 'Анимации', controlId: 1, controlName: 'Анимация заказа', hideByTimer: true, displayTime: 5, animationDuration: 0.3, animationType: 'fadeIn', layout: { x: 600, y: 100, width: 400, height: 300 } },
@@ -168,6 +169,7 @@ export const CS_THEMES: CSTheme[] = [
   {
     id: 2, name: 'Акционная тема', description: 'Тема для проведения промо-акций',
     updatedAt: '09.02.2026 10:15', elementsCount: 3,
+    resolution: '1920x1080', screenMode: 'idle', closedModeCampaignId: null,
     elements: [
       { id: 1, type: 'image', name: 'Фон промо', layout: { x: 0, y: 0, width: 1920, height: 1080 } },
       {
@@ -192,6 +194,7 @@ export const CS_THEMES: CSTheme[] = [
   {
     id: 3, name: 'Минимальная тема', description: 'Только заказ, без рекомендаций',
     updatedAt: '08.02.2026 09:00', elementsCount: 1,
+    resolution: '1024x768', screenMode: 'finish', closedModeCampaignId: null,
     elements: [
       { id: 1, type: 'image', name: 'Фон минимальный', layout: { x: 0, y: 0, width: 1920, height: 1080 } },
     ],

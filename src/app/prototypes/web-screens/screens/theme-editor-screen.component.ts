@@ -51,6 +51,28 @@ function deepClone<T>(obj: T): T {
         <div class="toolbar-fields">
           <ui-input label="Название" placeholder="Название темы" [(value)]="theme.name" [fullWidth]="false"></ui-input>
           <ui-input label="Описание" placeholder="Описание темы" [(value)]="theme.description" [fullWidth]="false"></ui-input>
+          <!-- Resolution -->
+          <div class="field-group">
+            <label class="field-label">Разрешение</label>
+            <select class="field-select" [(ngModel)]="theme.resolution">
+              <option *ngFor="let r of resolutionOptions" [value]="r.value">{{ r.label }}</option>
+            </select>
+          </div>
+          <!-- Screen Mode -->
+          <div class="field-group">
+            <label class="field-label">Настройка режима</label>
+            <select class="field-select" [(ngModel)]="theme.screenMode" (ngModelChange)="onScreenModeChange()">
+              <option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option>
+            </select>
+          </div>
+          <!-- Campaign selector (only for closed mode) -->
+          <div class="field-group" *ngIf="theme.screenMode === 'closed'">
+            <label class="field-label">Кампания</label>
+            <select class="field-select" [(ngModel)]="theme.closedModeCampaignId">
+              <option [ngValue]="null">Не выбрана</option>
+              <option *ngFor="let c of campaignOptions" [ngValue]="c.id">{{ c.name }}</option>
+            </select>
+          </div>
         </div>
         <button class="app-btn app-btn-primary" (click)="saveAndClose()">
           <lucide-icon name="save" [size]="16"></lucide-icon>
@@ -75,7 +97,20 @@ function deepClone<T>(obj: T): T {
         <!-- CENTER: Canvas -->
         <div class="panel-center">
           <div class="canvas-container">
-            <div class="canvas" [style.transform]="'scale(' + canvasScale + ')'" [style.transform-origin]="'top left'">
+            <!-- Closed mode overlay -->
+            <div *ngIf="theme.screenMode === 'closed'" class="closed-mode-overlay">
+              <div class="closed-mode-icon">
+                <lucide-icon name="alert-circle" [size]="48"></lucide-icon>
+              </div>
+              <div class="closed-mode-title">Режим: Касса не работает</div>
+              <div class="closed-mode-campaign" *ngIf="getSelectedCampaignName() as campaignName">
+                Кампания: {{ campaignName }}
+              </div>
+              <div class="closed-mode-campaign" *ngIf="!getSelectedCampaignName()">
+                Кампания не выбрана — пустой экран
+              </div>
+            </div>
+            <div class="canvas" [style.transform]="'scale(' + canvasScale + ')'" [style.transform-origin]="'top left'" *ngIf="theme.screenMode !== 'closed'">
               <div class="canvas-bg"></div>
               <div
                 *ngFor="let el of theme.elements"
@@ -206,6 +241,23 @@ function deepClone<T>(obj: T): T {
       border-radius: 4px; overflow: hidden;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
+    .closed-mode-overlay {
+      position: absolute; inset: 0; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; background: #263238; color: #fff; text-align: center;
+    }
+    .closed-mode-icon { color: #ff9800; }
+    .closed-mode-title { font-size: 18px; font-weight: 500; }
+    .closed-mode-campaign { font-size: 14px; color: #b0bec5; }
+
+    .field-group { display: flex; flex-direction: column; min-width: 140px; }
+    .field-label { font-size: 11px; font-weight: 500; color: #757575; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .field-select {
+      height: 34px; padding: 0 8px; border: 1px solid #e0e0e0; border-radius: 4px;
+      font-size: 13px; font-family: Roboto, sans-serif; color: #212121; background: #fff;
+      cursor: pointer; box-sizing: border-box; outline: none;
+    }
+    .field-select:focus { border-color: #448aff; }
     .canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; }
     .canvas-bg { position: absolute; inset: 0; background: #1a1a2e; }
     .canvas-element {
@@ -269,6 +321,19 @@ export class ThemeEditorScreenComponent implements OnInit {
 
   // Options for inspector
   elementTypeOptions: ElementTypeOption[] = [];
+  resolutionOptions = [
+    { value: '1024x768', label: '1024px / 768px' },
+    { value: '1280x720', label: '1280px / 720px' },
+    { value: '1920x1080', label: '1920px / 1080px' },
+  ];
+  screenModeOptions = [
+    { value: 'order', label: 'Экран заказа' },
+    { value: 'idle', label: 'Режим ожидания' },
+    { value: 'total', label: 'Экран оплаты' },
+    { value: 'finish', label: 'Экран завершения' },
+    { value: 'closed', label: 'Касса не работает' },
+  ];
+  campaignOptions: { id: number; name: string }[] = [];
   animationTypeOptions: SelectOption[] = [
     { value: 'fadeIn', label: 'Fade In' },
     { value: 'slideLeft', label: 'Slide Left' },
@@ -300,17 +365,29 @@ export class ThemeEditorScreenComponent implements OnInit {
     const found = this.dataService.themes.find(t => t.id === id);
     if (!found) { this.navigateBack(); return; }
     this.theme = deepClone(found);
+    // Defaults for new fields (migration)
+    if (!this.theme.resolution) this.theme.resolution = '1920x1080';
+    if (!this.theme.screenMode) this.theme.screenMode = 'order';
+    if (this.theme.closedModeCampaignId === undefined) this.theme.closedModeCampaignId = null;
     this.nextElementId = Math.max(100, ...this.theme.elements.map(e => e.id)) + 1;
     this.buildElementTypeOptions();
     this.animationControlOptions = this.dataService.controls.filter(c => c.type === 'animation').map(c => ({ value: '' + c.id, label: c.name }));
     this.hintControlOptions = this.dataService.controls.filter(c => c.type === 'hint').map(c => ({ value: '' + c.id, label: c.name }));
     this.hintElementOptions = getHintElements().map(e => ({ value: e.type, label: e.name }));
     this.typeNames = THEME_ELEMENT_TYPES.map(t => ({ type: t.type, name: t.name }));
+    this.campaignOptions = this.dataService.campaigns.map(c => ({ id: c.id, name: c.name }));
     this.canvasScale = 800 / 1920;
   }
 
   navigateBack(): void {
     this.router.navigate(['/prototype/web-screens/themes-cs']);
+  }
+
+  onScreenModeChange(): void {
+    // При переключении на «Касса не работает» сбрасываем кампанию если не выбрана
+    if (this.theme && this.theme.screenMode === 'closed' && this.theme.closedModeCampaignId === undefined) {
+      this.theme.closedModeCampaignId = null;
+    }
   }
 
   selectElement(id: number): void {
@@ -372,6 +449,12 @@ export class ThemeEditorScreenComponent implements OnInit {
   }
 
   // ── Canvas helpers ──────────────────────────
+
+  getSelectedCampaignName(): string | null {
+    if (!this.theme?.closedModeCampaignId) return null;
+    const c = this.campaignOptions.find(o => o.id === this.theme!.closedModeCampaignId);
+    return c?.name ?? null;
+  }
 
   getElementLayout(el: ThemeElement): { x: number; y: number; width: number; height: number } {
     if (el.type === 'hints') return el.settings.layout;

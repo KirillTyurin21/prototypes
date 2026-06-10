@@ -143,6 +143,12 @@ export interface CSTheme {
   updatedAt: string;
   elementsCount: number;
   elements: ThemeElement[];
+  /** Разрешение экрана (напр. '1024x768', '1920x1080') */
+  resolution?: string;
+  /** Режим экрана: 'order' | 'idle' | 'total' | 'finish' | 'closed' */
+  screenMode?: string;
+  /** ID кампании для режима «Касса не работает» (null — не выбрана) */
+  closedModeCampaignId?: number | null;
 }
 
 // ─── Терминалы ───────────────────────────────
