@@ -116,16 +116,16 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               <div class="section-divider">Настройки таблицы</div>
               <div class="field-group">
                 <label class="field-label">Чередование строк</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.alternateRows" /> Включено</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).alternateRows" /> Включено</label>
               </div>
               <div class="field-group">
                 <label class="field-label">Высота строки (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.rowHeight" min="24" max="200" />
+                <input type="number" class="field-input" [(ngModel)]="$any(selectedElement).rowHeight" min="24" max="200" />
               </div>
               <div class="section-divider">Подсветка строк</div>
               <div class="field-group">
                 <label class="field-label">Цвет подсветки</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" />
+                <input type="color" class="field-color" [(ngModel)]="$any(selectedElement).highlightColor" />
               </div>
               <div class="section-divider">Шрифт названия</div>
               <div class="field-group">
@@ -147,10 +147,10 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               </div>
               <div class="section-divider">Отображение</div>
               <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showIcons" /> Показывать иконки</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showDescription" /> Показывать описание</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showAllergens" /> Показывать аллергены</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showNutrition" /> Показывать КБЖУ</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showIcons" /> Показывать иконки</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showDescription" /> Показывать описание</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showAllergens" /> Показывать аллергены</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="$any(selectedElement).showNutrition" /> Показывать КБЖУ</label>
               </div>
             </ng-container>
             <!-- Standard element inspector for non-menulist, non-area -->
@@ -468,6 +468,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   syncFontProxy(): void {
+    this.ensureMenulistDefaults();
     if (this.selectedElement?.type === 'menulist') {
       this.fontProxy = {
         nameSize: this.selectedElement.fontName?.size ?? 16,
@@ -478,17 +479,34 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     }
   }
 
+  ensureMenulistDefaults(): void {
+    const el = this.selectedElement;
+    if (!el || el.type !== 'menulist') return;
+    if (el.rowHeight == null) el.rowHeight = 48;
+    if (el.alternateRows == null) el.alternateRows = true;
+    if (!el.highlightColor) el.highlightColor = '#f5f5f5';
+    if (el.showIcons == null) el.showIcons = true;
+    if (el.showDescription == null) el.showDescription = false;
+    if (el.showAllergens == null) el.showAllergens = false;
+    if (el.showNutrition == null) el.showNutrition = false;
+    if (!el.productIds) el.productIds = [];
+    if (!el.fontName) el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false };
+    if (!el.fontPrice) el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false };
+    if (!el.fontModifiers) el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' };
+    if (!el.fontDescription) el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' };
+  }
+
   onFontNameChange(): void {
-    if (this.selectedElement?.type === 'menulist') {
-      if (!this.selectedElement.fontName) this.selectedElement.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false };
+    this.ensureMenulistDefaults();
+    if (this.selectedElement?.type === 'menulist' && this.selectedElement.fontName) {
       this.selectedElement.fontName.size = this.fontProxy.nameSize;
       this.selectedElement.fontName.color = this.fontProxy.nameColor;
     }
   }
 
   onFontPriceChange(): void {
-    if (this.selectedElement?.type === 'menulist') {
-      if (!this.selectedElement.fontPrice) this.selectedElement.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false };
+    this.ensureMenulistDefaults();
+    if (this.selectedElement?.type === 'menulist' && this.selectedElement.fontPrice) {
       this.selectedElement.fontPrice.size = this.fontProxy.priceSize;
       this.selectedElement.fontPrice.color = this.fontProxy.priceColor;
     }
