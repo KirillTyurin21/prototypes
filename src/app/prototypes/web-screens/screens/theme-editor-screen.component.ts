@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UiInputComponent, UiConfirmDialogComponent } from '@/components/ui';
+import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
 import { CsDataService } from '../cs-data.service';
@@ -14,7 +14,7 @@ import {
   getHintElements,
 } from '../cs-types';
 import { CsThemeInspectorComponent } from '../components/theme-editor/cs-theme-inspector.component';
-import { ElementTreePanelComponent, ElementTypeOption } from '../components/theme-editor/element-tree-panel.component';
+import { ElementTypeOption } from '../components/theme-editor/element-tree-panel.component';
 
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -24,144 +24,168 @@ function deepClone<T>(obj: T): T {
   selector: 'app-theme-editor-screen',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, UiInputComponent, UiConfirmDialogComponent,
-    IconsModule, CsThemeInspectorComponent, ElementTreePanelComponent,
+    CommonModule, FormsModule, UiConfirmDialogComponent,
+    IconsModule, CsThemeInspectorComponent,
   ],
   template: `
-    <div class="editor-root" *ngIf="theme">
+    <div class="editor-layout" *ngIf="theme">
       <!-- Toast -->
       <div *ngIf="toastMessage" class="toast">
         <lucide-icon name="check-circle-2" [size]="16"></lucide-icon>
         {{ toastMessage }}
       </div>
 
-      <!-- Breadcrumbs -->
-      <div class="breadcrumbs">
-        <span class="crumb" (click)="navigateBack()">Настройки</span>
-        <span class="crumb-sep">/</span>
-        <span class="crumb" (click)="navigateBack()">Дисплей покупателя</span>
-        <span class="crumb-sep">/</span>
-        <span class="crumb" (click)="navigateBack()">Темы</span>
-        <span class="crumb-sep">/</span>
-        <span class="crumb-active">{{ theme.name }}</span>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="toolbar">
-        <div class="toolbar-fields">
-          <ui-input label="Название" placeholder="Название темы" [(value)]="theme.name" [fullWidth]="false"></ui-input>
-          <ui-input label="Описание" placeholder="Описание темы" [(value)]="theme.description" [fullWidth]="false"></ui-input>
-          <!-- Resolution -->
-          <div class="field-group">
-            <label class="field-label">Разрешение</label>
-            <select class="field-select" [(ngModel)]="theme.resolution">
-              <option *ngFor="let r of resolutionOptions" [value]="r.value">{{ r.label }}</option>
-            </select>
-          </div>
-          <!-- Screen Mode -->
-          <div class="field-group">
-            <label class="field-label">Настройка режима</label>
-            <select class="field-select" [(ngModel)]="theme.screenMode" (ngModelChange)="onScreenModeChange()">
-              <option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option>
-            </select>
-          </div>
-          <!-- Campaign selector (only for closed mode) -->
-          <div class="field-group" *ngIf="theme.screenMode === 'closed'">
-            <label class="field-label">Кампания</label>
-            <select class="field-select" [(ngModel)]="theme.closedModeCampaignId">
-              <option [ngValue]="null">Не выбрана</option>
-              <option *ngFor="let c of campaignOptions" [ngValue]="c.id">{{ c.name }}</option>
-            </select>
-          </div>
-        </div>
-        <button class="app-btn app-btn-primary" (click)="saveAndClose()">
-          <lucide-icon name="save" [size]="16"></lucide-icon>
-          <span>Сохранить</span>
-        </button>
-      </div>
-
-      <!-- Main 3-column layout -->
+      <!-- Main: preview (left) + panel (right) -->
       <div class="editor-body">
-        <!-- LEFT: Element tree -->
-        <div class="panel-left">
-          <app-element-tree-panel
-            [elements]="theme.elements"
-            [selectedElementId]="selectedElementId"
-            [elementTypeOptions]="elementTypeOptions"
-            (selectElement)="selectElement($event)"
-            (addElement)="addElement($event)"
-            (deleteElement)="confirmDeleteElement($event)"
-          ></app-element-tree-panel>
-        </div>
-
-        <!-- CENTER: Canvas -->
-        <div class="panel-center">
-          <div class="canvas-container">
-            <!-- Closed mode overlay -->
-            <div *ngIf="theme.screenMode === 'closed'" class="closed-mode-overlay">
-              <div class="closed-mode-icon">
-                <lucide-icon name="alert-circle" [size]="48"></lucide-icon>
-              </div>
-              <div class="closed-mode-title">Режим: Касса не работает</div>
-              <div class="closed-mode-campaign" *ngIf="getSelectedCampaignName() as campaignName">
-                Кампания: {{ campaignName }}
-              </div>
-              <div class="closed-mode-campaign" *ngIf="!getSelectedCampaignName()">
-                Кампания не выбрана — пустой экран
+        <!-- LEFT: Preview -->
+        <div class="preview-column">
+          <!-- Closed mode overlay -->
+          <div *ngIf="theme.screenMode === 'closed'" class="closed-mode-overlay">
+            <lucide-icon name="alert-circle" [size]="56" class="closed-icon"></lucide-icon>
+            <div class="closed-title">Режим: Касса не работает</div>
+            <div class="closed-sub" *ngIf="getSelectedCampaignName() as cn">Кампания: {{ cn }}</div>
+            <div class="closed-sub muted" *ngIf="!getSelectedCampaignName()">Кампания не выбрана — пустой экран</div>
+          </div>
+          <!-- Receipt preview for order modes -->
+          <div *ngIf="theme.screenMode !== 'closed'" class="receipt-preview">
+            <div class="rpt-advertise" *ngIf="hasElementType('advertise')">Здесь может быть ваше изображение или видео</div>
+            <div class="rpt-row" *ngIf="hasElementType('text')">
+              <span class="rpt-label">Итого:</span>
+              <span class="rpt-value">950,00 ₽</span>
+            </div>
+            <div class="rpt-row" *ngIf="hasElementType('text')">
+              <span class="rpt-label">Скидка:</span>
+              <span class="rpt-value">50,00 ₽</span>
+            </div>
+            <div class="rpt-table-header">
+              <span>Сумма</span><span>Кол-во</span><span>Наименование</span>
+            </div>
+            <div class="rpt-table">
+              <div class="rpt-item" *ngFor="let item of mockOrderItems">
+                <span class="rpt-name">{{ item.name }}</span>
+                <span class="rpt-qty">{{ item.qty }}</span>
+                <span class="rpt-price">{{ item.price }}</span>
               </div>
             </div>
-            <div class="canvas" [style.transform]="'scale(' + canvasScale + ')'" [style.transform-origin]="'top left'" *ngIf="theme.screenMode !== 'closed'">
-              <div class="canvas-bg"></div>
-              <div
-                *ngFor="let el of theme.elements"
-                class="canvas-element"
-                [class.canvas-element-selected]="selectedElementId === el.id"
-                [class.canvas-element-hints]="el.type === 'hints'"
-                [style.left.px]="getElementLayout(el).x * canvasScale"
-                [style.top.px]="getElementLayout(el).y * canvasScale"
-                [style.width.px]="getElementLayout(el).width * canvasScale"
-                [style.height.px]="getElementLayout(el).height * canvasScale"
-                [style.background]="getElementColor(el.type)"
-                [style.border-radius.px]="getElementBorderRadius(el) * canvasScale"
-                [style.box-shadow]="getElementShadow(el)"
-                (click)="selectElement(el.id)"
-              >
-                <span class="canvas-element-label" [style.font-size.px]="Math.max(9, 11 * canvasScale)">
-                  {{ getElementEmoji(el.type) }} {{ el.name }}
-                </span>
-                <div *ngIf="el.type === 'hints'" class="canvas-hints-grid">
-                  <div *ngFor="let slot of getHintSlots(el)" class="canvas-hint-slot"
-                    [style.width.px]="slot.w * canvasScale"
-                    [style.height.px]="slot.h * canvasScale"
-                  ></div>
-                </div>
-              </div>
+            <!-- Canvas elements shown as overlay blocks -->
+            <div *ngFor="let el of visiblePreviewElements" class="rpt-element-badge"
+              [class.selected]="selectedElementId === el.id"
+              (click)="selectElement(el.id)">
+              <lucide-icon [name]="getElIcon(el.type)" [size]="14"></lucide-icon>
+              {{ el.name }}
             </div>
           </div>
         </div>
 
-        <!-- RIGHT: Inspector -->
-        <div class="panel-right">
-          <app-cs-theme-inspector
-            [element]="selectedElement"
-            [animationTypeOptions]="animationTypeOptions"
-            [animationControlOptions]="animationControlOptions"
-            [hintControlOptions]="hintControlOptions"
-            [hintElementOptions]="hintElementOptions"
-            [fillDirectionOptions]="fillDirectionOptions"
-            [triggerRemovalOptions]="triggerRemovalOptions"
-            [typeNames]="typeNames"
-          ></app-cs-theme-inspector>
-        </div>
-      </div>
+        <!-- RIGHT: Control panel -->
+        <div class="control-panel">
+          <!-- Panel header -->
+          <div class="panel-header" (click)="panelCollapsed = !panelCollapsed">
+            <span>Панель управления</span>
+            <lucide-icon [name]="panelCollapsed ? 'chevron-right' : 'chevron-down'" [size]="18"></lucide-icon>
+          </div>
+          <div *ngIf="!panelCollapsed" class="panel-body">
+            <!-- Breadcrumb -->
+            <div class="panel-breadcrumb">
+              <lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon>
+              <span class="bc-link" (click)="deselectElement()">Тема</span>
+            </div>
 
-      <!-- Footer -->
-      <div class="editor-footer">
-        <button class="app-btn app-btn-ghost" (click)="navigateBack()">Отмена</button>
-        <button class="app-btn app-btn-primary" (click)="saveAndClose()">
-          <lucide-icon name="save" [size]="16"></lucide-icon>
-          <span>Сохранить</span>
-        </button>
+            <!-- Theme name -->
+            <div class="field-group">
+              <label class="field-label">Имя темы</label>
+              <input class="field-input" [(ngModel)]="theme.name" />
+            </div>
+
+            <!-- Resolution -->
+            <div class="field-group">
+              <label class="field-label">Разрешение</label>
+              <select class="field-select" [(ngModel)]="theme.resolution">
+                <option *ngFor="let r of resolutionOptions" [value]="r.value">{{ r.label }}</option>
+              </select>
+            </div>
+
+            <!-- Mode divider + selector -->
+            <div class="section-divider">Настройка режима</div>
+            <div class="field-group">
+              <select class="field-select" [(ngModel)]="theme.screenMode" (ngModelChange)="onScreenModeChange()">
+                <option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option>
+              </select>
+            </div>
+
+            <!-- Campaign selector (only for closed mode) -->
+            <div class="field-group" *ngIf="theme.screenMode === 'closed'">
+              <label class="field-label">Кампания</label>
+              <select class="field-select" [(ngModel)]="theme.closedModeCampaignId">
+                <option [ngValue]="null">Не выбрана</option>
+                <option *ngFor="let c of campaignOptions" [ngValue]="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+
+            <!-- Elements divider + list -->
+            <div class="section-divider">Элементы</div>
+            <button class="btn-add-el" (click)="toggleAddElement()">
+              <lucide-icon name="plus" [size]="14"></lucide-icon>
+              Добавить элемент
+            </button>
+
+            <!-- Element list -->
+            <div class="element-list">
+              <div *ngFor="let el of theme.elements" class="el-item"
+                [class.active]="selectedElementId === el.id"
+                (click)="selectElement(el.id)">
+                <lucide-icon [name]="getElIcon(el.type)" [size]="18" class="el-icon"></lucide-icon>
+                <span class="el-name">{{ el.name }}</span>
+                <button class="el-btn el-vis" title="Видимость" (click)="$event.stopPropagation()">
+                  <lucide-icon name="eye" [size]="16"></lucide-icon>
+                </button>
+                <button class="el-btn el-del" title="Удалить" (click)="confirmDeleteElement(el); $event.stopPropagation()">
+                  <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+                </button>
+                <button class="el-btn el-drag" title="Переместить" (click)="$event.stopPropagation()">
+                  <lucide-icon name="chevrons-up-down" [size]="14"></lucide-icon>
+                </button>
+              </div>
+              <div *ngIf="theme.elements.length === 0" class="el-empty">Нет элементов</div>
+            </div>
+
+            <!-- Add element flyout -->
+            <div *ngIf="showAddElement" class="add-el-flyout">
+              <div class="add-el-header">
+                <span>Добавить элемент</span>
+                <button class="icon-btn-sm" (click)="showAddElement = false">
+                  <lucide-icon name="x" [size]="18"></lucide-icon>
+                </button>
+              </div>
+              <div *ngFor="let opt of elementTypeOptions" class="add-el-option"
+                [class.disabled]="opt.disabled" (click)="addElement(opt); showAddElement = false">
+                <lucide-icon [name]="getElIcon(opt.type)" [size]="16"></lucide-icon>
+                <span>{{ opt.label }}</span>
+              </div>
+            </div>
+
+            <!-- Element inspector (when element selected) -->
+            <ng-container *ngIf="selectedElement">
+              <div class="section-divider">Свойства</div>
+              <app-cs-theme-inspector
+                [element]="selectedElement"
+                [animationTypeOptions]="animationTypeOptions"
+                [animationControlOptions]="animationControlOptions"
+                [hintControlOptions]="hintControlOptions"
+                [hintElementOptions]="hintElementOptions"
+                [fillDirectionOptions]="fillDirectionOptions"
+                [triggerRemovalOptions]="triggerRemovalOptions"
+                [typeNames]="typeNames"
+              ></app-cs-theme-inspector>
+            </ng-container>
+          </div>
+
+          <!-- Panel footer -->
+          <div class="panel-footer">
+            <button class="btn-save" (click)="saveAndClose()">СОХРАНИТЬ</button>
+            <button class="btn-back" (click)="navigateBack()">НАЗАД</button>
+          </div>
+        </div>
       </div>
 
       <!-- Delete confirm -->
@@ -179,128 +203,86 @@ function deepClone<T>(obj: T): T {
   `,
   styles: [`
     :host { display: block; font-family: Roboto, sans-serif; height: 100%; }
-    .editor-root {
-      display: flex; flex-direction: column; height: calc(100vh - 48px);
-      animation: fadeIn 0.2s ease-out; position: relative;
-    }
+    .editor-layout { display: flex; flex-direction: column; height: calc(100vh - 110px); margin: -20px -24px; position: relative; animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .toast {
-      position: fixed; top: 20px; right: 20px; z-index: 200;
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 20px; border-radius: 6px;
-      background: #323232; color: #fff; font-size: 13px; font-weight: 500;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      animation: toastIn 0.3s ease-out;
-    }
+    .toast { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; background: #323232; color: #fff; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: toastIn 0.3s ease-out; }
     @keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-
-    .breadcrumbs {
-      display: flex; align-items: center; gap: 6px;
-      padding: 10px 16px; font-size: 13px; color: #757575;
-      border-bottom: 1px solid #e0e0e0; background: #fafafa; flex-shrink: 0;
-    }
-    .crumb { cursor: pointer; color: #1976D2; }
-    .crumb:hover { text-decoration: underline; }
-    .crumb-sep { color: #bdbdbd; }
-    .crumb-active { color: #212121; font-weight: 500; }
-
-    .toolbar {
-      display: flex; align-items: flex-end; gap: 16px;
-      padding: 12px 16px; border-bottom: 1px solid #e0e0e0;
-      background: #fff; flex-shrink: 0;
-    }
-    .toolbar-fields { display: flex; gap: 12px; flex: 1; }
-    .toolbar-fields ui-input { min-width: 200px; flex: 0 1 280px; }
-
-    .app-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 0 14px; height: 34px; border: none; border-radius: 4px;
-      font-size: 13px; font-weight: 500; font-family: Roboto, sans-serif;
-      cursor: pointer; transition: all 0.15s; white-space: nowrap;
-    }
-    .app-btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
-    .app-btn-primary { background: #448aff; color: #fff; }
-    .app-btn-primary:hover { background: #2979ff; }
-    .app-btn-ghost { background: transparent; color: #616161; border: 1px solid #e0e0e0; }
-    .app-btn-ghost:hover { background: #f5f5f5; }
 
     .editor-body { display: flex; flex: 1; overflow: hidden; }
 
-    .panel-left {
-      width: 240px; min-width: 240px; border-right: 1px solid #e0e0e0;
-      background: #fafafa; display: flex; flex-direction: column; overflow: hidden;
-    }
-    .panel-center {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      background: #eeeeee; overflow: hidden; position: relative;
-    }
-    .canvas-container {
-      position: relative; width: 90%; max-width: 800px;
-      aspect-ratio: 16 / 9; background: #1a1a2e;
-      border-radius: 4px; overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .closed-mode-overlay {
-      position: absolute; inset: 0; z-index: 10;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 16px; background: #263238; color: #fff; text-align: center;
-    }
-    .closed-mode-icon { color: #ff9800; }
-    .closed-mode-title { font-size: 18px; font-weight: 500; }
-    .closed-mode-campaign { font-size: 14px; color: #b0bec5; }
+    /* ── Preview column (left) ── */
+    .preview-column { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; background: #e0e0e0; overflow: auto; padding: 32px; }
 
-    .field-group { display: flex; flex-direction: column; min-width: 140px; }
-    .field-label { font-size: 11px; font-weight: 500; color: #757575; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .field-select {
-      height: 34px; padding: 0 8px; border: 1px solid #e0e0e0; border-radius: 4px;
-      font-size: 13px; font-family: Roboto, sans-serif; color: #212121; background: #fff;
-      cursor: pointer; box-sizing: border-box; outline: none;
-    }
-    .field-select:focus { border-color: #448aff; }
-    .canvas { position: absolute; inset: 0; width: 1920px; height: 1080px; }
-    .canvas-bg { position: absolute; inset: 0; background: #1a1a2e; }
-    .canvas-element {
-      position: absolute; border: 1px dashed rgba(255,255,255,0.3);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
-      overflow: hidden; border-radius: 3px;
-    }
-    .canvas-element:hover { border-color: rgba(255,255,255,0.6); }
-    .canvas-element-hints {
-      border: 2px dashed rgba(255,152,0,0.7) !important;
-      background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,152,0,0.05) 10px, rgba(255,152,0,0.05) 20px) !important;
-    }
-    .canvas-element-selected {
-      border: 2px solid #448aff !important;
-      box-shadow: 0 0 0 2px rgba(68,138,255,0.3);
-    }
-    .canvas-element-selected.canvas-element-hints { border: 2px solid #448aff !important; }
-    .canvas-hints-grid {
-      position: absolute; inset: 4px; display: flex; flex-wrap: wrap;
-      gap: 3px; align-content: flex-start; pointer-events: none;
-    }
-    .canvas-hint-slot {
-      border: 1px dashed rgba(255,255,255,0.25);
-      border-radius: 2px; background: rgba(255,152,0,0.1);
-    }
-    .canvas-element-label {
-      color: rgba(255,255,255,0.85); font-size: 11px; font-weight: 500;
-      text-align: center; pointer-events: none; padding: 2px 4px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-    }
+    .closed-mode-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; width: 100%; max-width: 600px; aspect-ratio: 16/9; background: #263238; border-radius: 8px; color: #fff; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .closed-icon { color: #ff9800; }
+    .closed-title { font-size: 20px; font-weight: 500; }
+    .closed-sub { font-size: 14px; color: #b0bec5; }
+    .closed-sub.muted { color: #78909c; font-style: italic; }
 
-    .panel-right {
-      width: 320px; min-width: 320px; border-left: 1px solid #e0e0e0;
-      background: #fff; display: flex; flex-direction: column; overflow: hidden;
-    }
+    .receipt-preview { width: 100%; max-width: 600px; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 24px; position: relative; }
+    .rpt-advertise { border: 2px dashed #e0e0e0; border-radius: 6px; padding: 24px; text-align: center; color: #9e9e9e; font-size: 14px; margin-bottom: 16px; }
+    .rpt-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+    .rpt-label { color: #757575; }
+    .rpt-value { font-weight: 600; color: #212121; }
+    .rpt-table-header { display: grid; grid-template-columns: 1fr 80px 120px; gap: 8px; margin: 12px 0 6px; font-size: 12px; color: #9e9e9e; text-transform: uppercase; letter-spacing: 0.5px; }
+    .rpt-table { display: flex; flex-direction: column; gap: 4px; }
+    .rpt-item { display: grid; grid-template-columns: 1fr 80px 120px; gap: 8px; font-size: 13px; color: #424242; padding: 3px 0; border-bottom: 1px solid #f5f5f5; }
+    .rpt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rpt-qty { text-align: center; }
+    .rpt-price { text-align: right; }
+    .rpt-element-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; margin: 2px; background: #e3f2fd; border: 1px solid #90caf9; border-radius: 4px; font-size: 11px; color: #1565c0; cursor: pointer; }
+    .rpt-element-badge:hover { background: #bbdefb; }
+    .rpt-element-badge.selected { background: #1565c0; color: #fff; border-color: #1565c0; }
 
-    .editor-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px; border-top: 1px solid #e0e0e0;
-      background: #fff; flex-shrink: 0;
-    }
+    /* ── Control panel (right) ── */
+    .control-panel { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-left: 1px solid #e0e0e0; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 15px; font-weight: 500; color: #333; border-bottom: 1px solid #e0e0e0; cursor: pointer; user-select: none; flex-shrink: 0; }
+    .panel-header:hover { background: #fafafa; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .panel-footer { display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid #e0e0e0; flex-shrink: 0; }
+    .btn-save { flex: 1; height: 36px; border: 2px solid #616161; border-radius: 4px; background: transparent; color: #333; font-size: 13px; font-weight: 600; font-family: Roboto, sans-serif; cursor: pointer; }
+    .btn-save:hover { background: #f5f5f5; }
+    .btn-back { flex: 1; height: 36px; border: none; border-radius: 4px; background: #ff9800; color: #fff; font-size: 13px; font-weight: 600; font-family: Roboto, sans-serif; cursor: pointer; }
+    .btn-back:hover { background: #f57c00; }
+
+    .panel-breadcrumb { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 14px; }
+    .bc-home { color: #ff6d00; cursor: pointer; }
+    .bc-link { color: #ff6d00; cursor: pointer; font-weight: 500; }
+    .bc-link:hover { text-decoration: underline; }
+
+    .field-group { margin-bottom: 12px; }
+    .field-label { display: block; font-size: 12px; color: #757575; margin-bottom: 4px; }
+    .field-input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; box-sizing: border-box; }
+    .field-input:focus { outline: none; border-color: #448aff; }
+    .field-select { width: 100%; height: 36px; padding: 0 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; background: #fff; cursor: pointer; box-sizing: border-box; }
+    .field-select:focus { outline: none; border-color: #448aff; }
+
+    .section-divider { position: relative; text-align: center; margin: 20px 0 12px; font-size: 12px; font-weight: 500; color: #9e9e9e; text-transform: uppercase; letter-spacing: 0.5px; }
+    .section-divider::before, .section-divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 60px); height: 1px; background: #e0e0e0; }
+    .section-divider::before { left: 0; } .section-divider::after { right: 0; }
+
+    .btn-add-el { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px dashed #bdbdbd; border-radius: 4px; background: none; font-size: 13px; color: #616161; cursor: pointer; width: 100%; margin-bottom: 12px; font-family: Roboto, sans-serif; }
+    .btn-add-el:hover { background: #f5f5f5; border-color: #9e9e9e; }
+
+    .element-list { display: flex; flex-direction: column; gap: 2px; }
+    .el-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 4px; cursor: pointer; transition: background 0.1s; font-size: 13px; }
+    .el-item:hover { background: #f5f5f5; }
+    .el-item.active { background: #e3f2fd; }
+    .el-icon { color: #757575; flex-shrink: 0; }
+    .el-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #424242; }
+    .el-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; background: none; border-radius: 4px; cursor: pointer; color: #9e9e9e; flex-shrink: 0; }
+    .el-btn:hover { color: #616161; background: rgba(0,0,0,0.05); }
+    .el-del:hover { color: #f44336; }
+    .el-empty { padding: 16px; text-align: center; color: #bdbdbd; font-size: 13px; }
+
+    .add-el-flyout { margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+    .add-el-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #fafafa; font-size: 13px; font-weight: 500; border-bottom: 1px solid #e0e0e0; }
+    .icon-btn-sm { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; background: none; border-radius: 4px; cursor: pointer; color: #757575; }
+    .icon-btn-sm:hover { background: rgba(0,0,0,0.06); }
+    .add-el-option { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; font-size: 13px; color: #424242; transition: background 0.1s; }
+    .add-el-option:hover { background: #f5f5f5; }
+    .add-el-option.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
   `],
 })
 export class ThemeEditorScreenComponent implements OnInit {
@@ -314,10 +296,21 @@ export class ThemeEditorScreenComponent implements OnInit {
   selectedElementId: number | null = null;
   deleteElementDialogOpen = false;
   elementToDelete: ThemeElement | null = null;
-  canvasScale = 1;
   toastMessage = '';
+  panelCollapsed = false;
+  showAddElement = false;
   private toastTimer: any;
   private nextElementId = 100;
+
+  mockOrderItems = [
+    { name: '#41 Long Black', qty: 1, price: '1.5' },
+    { name: '#14 Cortado', qty: 1, price: '1.5' },
+    { name: '#0 Affogato', qty: 1, price: '1.5' },
+    { name: '#48 Caffe Mocha', qty: 1, price: '3.45' },
+    { name: '#32 Mazagran', qty: 1, price: '1.5' },
+    { name: '#7 Caffe Mocha', qty: 1, price: '1.5' },
+    { name: '#54 Cinnamon Dolce Latte', qty: 2, price: '7.3' },
+  ];
 
   // Options for inspector
   elementTypeOptions: ElementTypeOption[] = [];
@@ -376,7 +369,6 @@ export class ThemeEditorScreenComponent implements OnInit {
     this.hintElementOptions = getHintElements().map(e => ({ value: e.type, label: e.name }));
     this.typeNames = THEME_ELEMENT_TYPES.map(t => ({ type: t.type, name: t.name }));
     this.campaignOptions = this.dataService.campaigns.map(c => ({ id: c.id, name: c.name }));
-    this.canvasScale = 800 / 1920;
   }
 
   navigateBack(): void {
@@ -390,8 +382,32 @@ export class ThemeEditorScreenComponent implements OnInit {
     }
   }
 
+  deselectElement(): void {
+    this.selectedElementId = null;
+  }
+
   selectElement(id: number): void {
     this.selectedElementId = this.selectedElementId === id ? null : id;
+  }
+
+  toggleAddElement(): void {
+    this.showAddElement = !this.showAddElement;
+  }
+
+  hasElementType(type: string): boolean {
+    return !!this.theme?.elements.some(e => e.type === type);
+  }
+
+  get visiblePreviewElements(): ThemeElement[] {
+    return this.theme?.elements.filter(e => e.type !== 'hints') ?? [];
+  }
+
+  getElIcon(type: string): string {
+    const map: Record<string, string> = {
+      image: 'image', text: 'type', animation: 'play',
+      hints: 'lightbulb', advertise: 'monitor-play',
+    };
+    return map[type] ?? 'square';
   }
 
   // ── Element tree operations ─────────────────
