@@ -559,6 +559,11 @@ export const MOCK_ARRIVALS_CONTROLS: ArrivalsControl[] = [
   { id: 304, name: 'ВИТ', statusType: 'kitchen', elements: [] },
   { id: 305, name: 'Контрол с анимацией', statusType: 'kitchen', elements: [] },
   { id: 306, name: 'Стандартный контрол', statusType: 'balancer', elements: [] },
+  { id: 307, name: 'Меню-борд (карточки блюд)', statusType: 'kitchen', elements: [
+    { id: 'mb1', type: 'image', name: 'Изображение', x: 4, y: 4, width: 90, height: 70, borderWidth: 0, borderColor: '#e0e0e0', borderRadius: 6, imageUrl: '' },
+    { id: 'mb2', type: 'text', name: 'Название', x: 4, y: 78, width: 90, height: 22, borderWidth: 0, borderColor: 'transparent', borderRadius: 0, text: 'Капучино', fontFamily: 'Segoe UI', fontSize: 11, fontBold: true, textAlign: 'center' },
+    { id: 'mb3', type: 'text', name: 'Цена', x: 4, y: 100, width: 90, height: 20, borderWidth: 0, borderColor: 'transparent', borderRadius: 0, text: '280 ₽', fontFamily: 'Segoe UI', fontSize: 12, fontBold: true, textAlign: 'center' },
+  ]},
 ];
 
 /* ── Arrivals mock orders (для эмуляции тем) ── */
@@ -662,6 +667,75 @@ export const MOCK_ARRIVALS_ORDERS: ArrivalsOrderMock[] = [
       { name: 'Оливье', qty: 1, status: 'Готовится' },
       { name: 'Стейк рибай', qty: 1, status: 'Ожидает' },
       { name: 'Мороженое', qty: 3, status: 'Ожидает' },
+    ],
+  },
+];
+
+/* ── External Menu (MenuBoard dish selector) ── */
+
+export interface ExternalMenuCategory {
+  id: string;
+  name: string;
+  items: ExternalMenuItem[];
+}
+
+export interface ExternalMenuItem {
+  externalId: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  modifiers?: string[];
+  sizes?: { name: string; price: number }[];
+  description?: string;
+  weight?: number;
+  measure?: string;
+  allergens?: string[];
+  energy?: number;
+  proteins?: number;
+  fats?: number;
+  carbs?: number;
+}
+
+export const MOCK_EXTERNAL_MENU: ExternalMenuCategory[] = [
+  {
+    id: 'cat-coffee', name: 'Кофе',
+    items: [
+      { externalId: 'em-001', name: 'Капучино', price: 280, modifiers: ['Корица', 'Сливки'], sizes: [{ name: 'S 0.2л', price: 220 }, { name: 'M 0.3л', price: 280 }, { name: 'L 0.5л', price: 360 }], description: 'Классический итальянский кофе с молочной пенкой', weight: 200, measure: 'мл', allergens: ['Молоко', 'Кофеин'], energy: 120, proteins: 8, fats: 5, carbs: 10 },
+      { externalId: 'em-002', name: 'Латте', price: 320, modifiers: ['Сироп'], sizes: [{ name: 'S', price: 260 }, { name: 'M', price: 320 }, { name: 'L', price: 400 }], weight: 250, measure: 'мл', allergens: ['Молоко', 'Кофеин'], energy: 140, proteins: 9, fats: 6, carbs: 12 },
+      { externalId: 'em-003', name: 'Американо', price: 200, sizes: [], weight: 150, measure: 'мл', allergens: ['Кофеин'], energy: 5, proteins: 0, fats: 0, carbs: 1 },
+      { externalId: 'em-004', name: 'Эспрессо', price: 180, sizes: [{ name: 'S', price: 180 }, { name: 'M', price: 220 }], weight: 60, measure: 'мл', allergens: ['Кофеин'], energy: 3, proteins: 0, fats: 0, carbs: 0 },
+      { externalId: 'em-005', name: 'Мокачино', price: 350, modifiers: ['Шоколад', 'Сливки'], sizes: [{ name: 'S 0.2л', price: 300 }, { name: 'M 0.3л', price: 350 }], description: 'Кофе с шоколадом и молочной пенкой', weight: 220, measure: 'мл', allergens: ['Молоко', 'Кофеин'], energy: 180, proteins: 7, fats: 10, carbs: 15 },
+      { externalId: 'em-006', name: 'Флэт Уайт', price: 310, sizes: [], weight: 180, measure: 'мл', allergens: ['Молоко', 'Кофеин'], energy: 100, proteins: 6, fats: 4, carbs: 8 },
+    ],
+  },
+  {
+    id: 'cat-tea', name: 'Чай',
+    items: [
+      { externalId: 'em-011', name: 'Чай чёрный', price: 150, sizes: [{ name: '0.2л', price: 120 }, { name: '0.3л', price: 150 }], weight: 200, measure: 'мл', energy: 2, proteins: 0, fats: 0, carbs: 0 },
+      { externalId: 'em-012', name: 'Чай зелёный', price: 150, weight: 200, measure: 'мл', energy: 2, proteins: 0, fats: 0, carbs: 0 },
+      { externalId: 'em-013', name: 'Чай облепиховый', price: 220, modifiers: ['Мёд'], description: 'Согревающий чай с облепихой и имбирём', weight: 250, measure: 'мл', energy: 45, proteins: 0, fats: 1, carbs: 9 },
+      { externalId: 'em-014', name: 'Матча латте', price: 380, sizes: [{ name: 'S', price: 350 }, { name: 'M', price: 380 }], description: 'Японский зелёный чай матча с молоком', weight: 220, measure: 'мл', allergens: ['Молоко'], energy: 160, proteins: 8, fats: 7, carbs: 14 },
+      { externalId: 'em-015', name: 'Чай травяной', price: 130, description: 'Сбор из мяты, ромашки и мелиссы', weight: 300, measure: 'мл', energy: 1, proteins: 0, fats: 0, carbs: 0 },
+    ],
+  },
+  {
+    id: 'cat-desserts', name: 'Десерты',
+    items: [
+      { externalId: 'em-021', name: 'Тирамису', price: 420, description: 'Классический итальянский десерт с маскарпоне и кофе', weight: 150, measure: 'г', allergens: ['Молоко', 'Яйца', 'Кофеин'], energy: 350, proteins: 6, fats: 18, carbs: 40 },
+      { externalId: 'em-022', name: 'Чизкейк', price: 380, description: 'Нежный сливочный чизкейк на песочной основе', weight: 140, measure: 'г', allergens: ['Молоко', 'Яйца'], energy: 320, proteins: 7, fats: 20, carbs: 28 },
+      { externalId: 'em-023', name: 'Мороженое', price: 250, sizes: [{ name: '1 шарик', price: 180 }, { name: '2 шарика', price: 250 }, { name: '3 шарика', price: 340 }], weight: 100, measure: 'г', allergens: ['Молоко'], energy: 200, proteins: 4, fats: 12, carbs: 20 },
+      { externalId: 'em-024', name: 'Брауни', price: 320, description: 'Шоколадный брауни с грецким орехом', weight: 120, measure: 'г', allergens: ['Орехи', 'Яйца', 'Молоко'], energy: 420, proteins: 6, fats: 24, carbs: 45 },
+      { externalId: 'em-025', name: 'Панна-котта', price: 290, description: 'Итальянский десерт из сливок с ягодным соусом', weight: 130, measure: 'г', allergens: ['Молоко'], energy: 270, proteins: 3, fats: 18, carbs: 22 },
+    ],
+  },
+  {
+    id: 'cat-breakfast', name: 'Завтраки',
+    items: [
+      { externalId: 'em-031', name: 'Омлет с сыром', price: 250, description: 'Воздушный омлет из трёх яиц с сыром Чеддер', weight: 200, measure: 'г', allergens: ['Яйца', 'Молоко'], energy: 280, proteins: 18, fats: 20, carbs: 4 },
+      { externalId: 'em-032', name: 'Блинчики', price: 350, modifiers: ['Сметана', 'Мёд', 'Варенье'], description: 'Тонкие блинчики на молоке', weight: 180, measure: 'г', allergens: ['Молоко', 'Яйца'], energy: 310, proteins: 8, fats: 12, carbs: 42 },
+      { externalId: 'em-033', name: 'Гранола с йогуртом', price: 280, description: 'Домашняя гранола с греческим йогуртом и свежими ягодами', weight: 220, measure: 'г', allergens: ['Молоко', 'Орехи'], energy: 340, proteins: 12, fats: 14, carbs: 38 },
+      { externalId: 'em-034', name: 'Круассан с ветчиной', price: 320, description: 'Свежий круассан с ветчиной и сыром', weight: 130, measure: 'г', allergens: ['Молоко', 'Яйца'], energy: 380, proteins: 14, fats: 22, carbs: 30 },
+      { externalId: 'em-035', name: 'Сырники', price: 290, modifiers: ['Сметана'], description: 'Нежные творожные сырники с ванилью', weight: 160, measure: 'г', allergens: ['Молоко', 'Яйца'], energy: 260, proteins: 14, fats: 12, carbs: 24 },
     ],
   },
 ];

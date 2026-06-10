@@ -2,6 +2,23 @@
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.26',
+    date: '2026-06-10',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Доска меню',
+        pageRoute: '/prototype/web-screens/menuboard-themes',
+        items: [
+          'Новый элемент «Меню-лист» — таблица блюд с ценами из внешнего меню',
+          'Модальное окно выбора блюд: дерево категорий слева, чекбоксы справа',
+          'Инспектор свойств: выбор блюд, шрифты, подсветка строк, отображение',
+          'Готовый мок-контрол «Меню-борд» для ControlArea (карточки блюд)',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.25',
     date: '2026-06-10',
     status: 'unreleased',

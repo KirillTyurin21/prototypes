@@ -93,7 +93,8 @@ export type ArrivalsElementType =
   | 'area'
   | 'price'
   | 'counter'
-  | 'advertise';
+  | 'advertise'
+  | 'menulist';
 
 export interface ArrivalsThemeElement {
   id: string;
@@ -223,6 +224,20 @@ export interface ArrivalsThemeElement {
   areaBgColor?: string;
   // Advertise (MenuBoard dynamic region)
   campaignId?: number | null;
+  // MenuList
+  productIds?: string[];
+  rowHeight?: number;
+  alternateRows?: boolean;
+  rowPadding?: number;
+  highlightColor?: string;
+  showIcons?: boolean;
+  showDescription?: boolean;
+  showAllergens?: boolean;
+  showNutrition?: boolean;
+  fontName?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
+  fontModifiers?: { size: number; family: string; color: string };
+  fontPrice?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
+  fontDescription?: { size: number; family: string; color: string };
 }
 
 /* ── Product Catalog (for Price element navigator) ── */

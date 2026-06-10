@@ -6,7 +6,7 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
-import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS } from '../data/mock-data';
+import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU } from '../data/mock-data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
@@ -14,6 +14,7 @@ import { AreaElementInspectorComponent } from '../components/theme-editor/area-e
 import { OrderSimulatorComponent } from '../components/simulator/order-simulator.component';
 import { AreaEmulationHelper } from '../components/theme-editor/area-emulation.service';
 import { SimulatorHelper } from '../components/theme-editor/simulator.helper';
+import { DishSelectorModalComponent } from '../components/dish-selector-modal/dish-selector-modal.component';
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
@@ -22,7 +23,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
 @Component({
   selector: 'app-menuboard-theme-editor-screen',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent],
+  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent, DishSelectorModalComponent],
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
@@ -39,6 +40,15 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <span *ngIf="el.type === 'image'" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
                 <span *ngIf="el.type === 'price'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign" [title]="getPriceTooltip(el)">{{ getPricePreview(el) }}</span>
                 <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
+                <div *ngIf="el.type === 'menulist'" class="el-menulist">
+                  <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
+                  <div class="ml-rows" *ngIf="el.productIds?.length">
+                    <div class="ml-row" *ngFor="let pid of el.productIds || []" [style.height.px]="el.rowHeight || 48">
+                      <span class="ml-name">{{ getDishName(pid) }}</span>
+                      <span class="ml-price">{{ getDishPrice(pid) }}</span>
+                    </div>
+                  </div>
+                </div>
                 <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise'" class="el-placeholder-label">{{ el.name }}</span>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
@@ -79,7 +89,72 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <option *ngFor="let c of campaignOptions" [ngValue]="c.id">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</option>
               </select>
             </div>
-            <app-theme-element-inspector *ngIf="selectedElement.type !== 'area'" [element]="selectedElement"></app-theme-element-inspector>
+            <!-- MenuList inspector -->
+            <ng-container *ngIf="selectedElement.type === 'menulist'">
+              <div class="section-divider">Данные</div>
+              <div class="field-group">
+                <button class="btn-select-dishes" (click)="openDishSelector()">
+                  <lucide-icon name="list-checks" [size]="16"></lucide-icon>
+                  Выбрать блюда
+                </button>
+              </div>
+              <div class="field-group" *ngIf="selectedElement.productIds?.length">
+                <label class="field-label">Выбранные блюда</label>
+                <div class="selected-dishes">
+                  <div class="sd-item" *ngFor="let pid of selectedElement.productIds">
+                    <span class="sd-name">{{ getDishName(pid) }}</span>
+                    <span class="sd-price">{{ getDishPrice(pid) }}</span>
+                    <button class="sd-remove" (click)="removeDishFromList(pid)" title="Убрать">
+                      <lucide-icon name="x" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="field-group" *ngIf="!selectedElement.productIds?.length">
+                <p class="field-hint">Блюда не выбраны</p>
+              </div>
+              <div class="section-divider">Настройки таблицы</div>
+              <div class="field-group">
+                <label class="field-label">Чередование строк</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.alternateRows" /> Включено</label>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Высота строки (px)</label>
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.rowHeight" min="24" max="200" />
+              </div>
+              <div class="section-divider">Подсветка строк</div>
+              <div class="field-group">
+                <label class="field-label">Цвет подсветки</label>
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" />
+              </div>
+              <div class="section-divider">Шрифт названия</div>
+              <div class="field-group">
+                <label class="field-label">Размер (px)</label>
+                <input type="number" class="field-input" [ngModel]="$any(selectedElement).fontName.size" (ngModelChange)="$any(selectedElement).fontName.size = $event" min="8" max="72" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Цвет</label>
+                <input type="color" class="field-color" [ngModel]="$any(selectedElement).fontName.color" (ngModelChange)="$any(selectedElement).fontName.color = $event" />
+              </div>
+              <div class="section-divider">Шрифт цены</div>
+              <div class="field-group">
+                <label class="field-label">Размер (px)</label>
+                <input type="number" class="field-input" [ngModel]="$any(selectedElement).fontPrice.size" (ngModelChange)="$any(selectedElement).fontPrice.size = $event" min="8" max="72" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Цвет</label>
+                <input type="color" class="field-color" [ngModel]="$any(selectedElement).fontPrice.color" (ngModelChange)="$any(selectedElement).fontPrice.color = $event" />
+              </div>
+              <div class="section-divider">Отображение</div>
+              <div class="field-group">
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showIcons" /> Показывать иконки</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showDescription" /> Показывать описание</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showAllergens" /> Показывать аллергены</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showNutrition" /> Показывать КБЖУ</label>
+              </div>
+            </ng-container>
+            <!-- Standard element inspector for non-menulist, non-area -->
+            <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist'" [element]="selectedElement"></app-theme-element-inspector>
             <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()"></app-area-element-inspector>
           </ng-container>
         </div>
@@ -87,6 +162,15 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
       </div>
       <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
       <ui-confirm-dialog *ngIf="deleteElementTarget" [open]="true" title="Удалить элемент" [message]="'Удалить элемент «' + deleteElementTarget.name + '»?'" confirmText="Удалить" variant="danger" (confirmed)="confirmDeleteElement()" (cancelled)="deleteElementTarget = null"></ui-confirm-dialog>
+
+      <!-- Dish selector modal -->
+      <app-dish-selector-modal
+        [open]="dishSelectorOpen"
+        [categories]="externalMenuCategories"
+        [selectedIds]="dishSelectorIds"
+        (confirm)="onDishSelectorConfirm($event)"
+        (cancel)="dishSelectorOpen = false"
+      ></app-dish-selector-modal>
     </div>
   `,
   styles: [`
@@ -104,6 +188,13 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .el-text { display: block; width: 100%; padding: 4px; word-break: break-word; }
     .el-placeholder { color: #9e9e9e; }
     .el-placeholder-label { color: #9e9e9e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .el-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+    .ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
+    .ml-rows { flex: 1; overflow: hidden; }
+    .ml-row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
+    .ml-row:nth-child(even) { background: #fafafa; }
+    .ml-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
+    .ml-price { flex-shrink: 0; font-weight: 600; color: #c62828; margin-left: 8px; }
     .handle { position: absolute; width: 8px; height: 8px; background: #fff; border: 2px solid #448aff; z-index: 2; }
     .handle.tl { top: -4px; left: -4px; cursor: nw-resize; } .handle.tr { top: -4px; right: -4px; cursor: ne-resize; }
     .handle.bl { bottom: -4px; left: -4px; cursor: sw-resize; } .handle.br { bottom: -4px; right: -4px; cursor: se-resize; }
@@ -146,6 +237,25 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .element-type-area { display: flex; align-items: center; gap: 6px; border: 1px dashed #90CAF9 !important; color: #1976D2 !important; background: #E3F2FD !important; font-weight: 500 !important; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 24px; background: #333; color: #fff; border-radius: 6px; font-size: 14px; z-index: 9000; animation: toastIn 0.3s ease; }
     @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+
+    .btn-select-dishes {
+      width: 100%; height: 38px; border: 2px solid #1976d2; border-radius: 4px;
+      background: #e3f2fd; color: #1565c0; font-size: 13px; font-weight: 600;
+      font-family: Roboto, sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-select-dishes:hover { background: #bbdefb; }
+
+    .selected-dishes { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
+    .sd-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #f5f5f5; border-radius: 4px; font-size: 12px; }
+    .sd-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
+    .sd-price { flex-shrink: 0; font-weight: 600; color: #c62828; }
+    .sd-remove { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: none; border-radius: 3px; background: transparent; color: #bdbdbd; cursor: pointer; flex-shrink: 0; }
+    .sd-remove:hover { background: #ffebee; color: #e53935; }
+
+    .field-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #424242; cursor: pointer; margin-bottom: 6px; }
+    .field-check input[type="checkbox"] { cursor: pointer; }
+    .field-hint { font-size: 12px; color: #bdbdbd; font-style: italic; margin: 0; text-align: center; padding: 8px 0; }
+    .field-color { width: 100%; height: 36px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px; cursor: pointer; box-sizing: border-box; }
   `],
 })
 export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -162,6 +272,9 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   canvasScale = 1;
   availableControls: ArrivalsControl[] = [];
   mockOrders: ArrivalsOrderMock[] = [...MOCK_ARRIVALS_ORDERS];
+  externalMenuCategories = MOCK_EXTERNAL_MENU;
+  dishSelectorOpen = false;
+  dishSelectorIds: string[] = [];
 
   campaignOptions: CampaignOption[] = [
     { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
@@ -188,6 +301,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     { value: 'order-screen', label: 'Экран заказа' }, { value: 'welcome-screen', label: 'Экран приветствия' },
   ];
   elementTypes: { type: ArrivalsElementType; label: string }[] = [
+    { type: 'menulist' as ArrivalsElementType, label: 'Меню-лист' },
     { type: 'advertise' as ArrivalsElementType, label: 'Динамическая область' },
     { type: 'text', label: 'Текст' }, { type: 'image', label: 'Изображение' },
     { type: 'order-number', label: 'Номер заказа' }, { type: 'table-number', label: 'Номер стола' },
@@ -318,6 +432,40 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return 'Динамическая область';
   }
 
+  getDishName(externalId: string): string {
+    for (const cat of this.externalMenuCategories) {
+      const dish = cat.items.find(d => d.externalId === externalId);
+      if (dish) return dish.name;
+    }
+    return '#' + externalId.slice(0, 6);
+  }
+
+  getDishPrice(externalId: string): string {
+    for (const cat of this.externalMenuCategories) {
+      const dish = cat.items.find(d => d.externalId === externalId);
+      if (dish) return dish.price + ' \u20BD';
+    }
+    return '';
+  }
+
+  openDishSelector(): void {
+    this.dishSelectorIds = [...(this.selectedElement?.productIds || [])];
+    this.dishSelectorOpen = true;
+  }
+
+  onDishSelectorConfirm(ids: string[]): void {
+    if (this.selectedElement) {
+      this.selectedElement.productIds = ids;
+    }
+    this.dishSelectorOpen = false;
+  }
+
+  removeDishFromList(externalId: string): void {
+    if (this.selectedElement?.productIds) {
+      this.selectedElement.productIds = this.selectedElement.productIds.filter(id => id !== externalId);
+    }
+  }
+
   formatCampaignDate(dateStr: string): string {
     if (!dateStr) return '—';
     const parts = dateStr.split('-');
@@ -333,6 +481,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
     if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignId = null; }
+    if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' }; }
     this.theme.elements.push(el);
     this.selectedElementId = el.id; this.panelView = 'element';
   }
