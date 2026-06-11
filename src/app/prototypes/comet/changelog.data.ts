@@ -1,9 +1,9 @@
-﻿import { ChangelogRelease } from '@/shared/changelog.types';
+import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.7',
-    date: '2026-04-11',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -41,7 +41,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.6',
-    date: '2026-04-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -68,7 +68,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.5',
-    date: '2026-04-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -83,7 +83,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.4',
-    date: '2026-04-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -103,7 +103,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.3',
-    date: '2026-04-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -130,7 +130,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.2',
-    date: '2026-04-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -178,7 +178,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.1',
-    date: '2026-03-20',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -204,7 +204,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.0',
-    date: '2026-03-19',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {

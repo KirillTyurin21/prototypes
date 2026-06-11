@@ -1,10 +1,10 @@
-﻿import { ChangelogRelease } from '@/shared/changelog.types';
+import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.28',
     date: '2026-06-11',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Электронная очередь — Редактор тем',
@@ -68,7 +68,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.26',
-    date: '2026-06-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -85,7 +85,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.25',
-    date: '2026-06-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -103,7 +103,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.24',
-    date: '2026-06-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -120,7 +120,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.23',
-    date: '2026-06-10',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -139,7 +139,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.22',
-    date: '2026-05-27',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -164,7 +164,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.21',
-    date: '2026-05-19',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -192,7 +192,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.20',
-    date: '2026-05-18',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -213,7 +213,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.19',
-    date: '2026-05-18',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -234,7 +234,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.18',
-    date: '2026-05-15',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -261,7 +261,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.17',
-    date: '2026-05-14',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -279,7 +279,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.16',
-    date: '2026-05-07',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -300,7 +300,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.15',
-    date: '2026-05-06',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -316,7 +316,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.14',
-    date: '2026-05-06',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -357,7 +357,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.13',
-    date: '2026-05-07',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -383,7 +383,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.12',
-    date: '2026-05-05',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -397,7 +397,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.11',
-    date: '2026-05-05',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -413,7 +413,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.10',
-    date: '2026-04-24',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -429,7 +429,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.9',
-    date: '2026-04-24',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -452,7 +452,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.8',
-    date: '2026-04-24',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -472,7 +472,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.7',
-    date: '2026-04-24',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -500,7 +500,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.6',
-    date: '2026-04-24',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -542,7 +542,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.5',
-    date: '2026-04-17',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -562,7 +562,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.4',
-    date: '2026-04-17',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -592,7 +592,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.3',
-    date: '2026-04-13',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -620,7 +620,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.2',
-    date: '2026-03-11',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -644,7 +644,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.1',
-    date: '2026-03-05',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
@@ -659,7 +659,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.0',
-    date: '2026-02-16',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {

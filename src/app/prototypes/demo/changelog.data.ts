@@ -3,13 +3,13 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.0',
-    date: '2026-02-16',
+    date: '2026-06-11',
     status: 'released',
     changes: [
       {
         items: [
-          'Начальная версия прототипа',
-          'Демонстрация UI-компонентов и паттернов',
+          'РќР°С‡Р°Р»СЊРЅР°СЏ РІРµСЂСЃРёСЏ РїСЂРѕС‚РѕС‚РёРїР°',
+          'Р”РµРјРѕРЅСЃС‚СЂР°С†РёСЏ UI-РєРѕРјРїРѕРЅРµРЅС‚РѕРІ Рё РїР°С‚С‚РµСЂРЅРѕРІ',
         ],
       },
     ],
