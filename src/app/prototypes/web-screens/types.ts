@@ -212,7 +212,7 @@ export interface ArrivalsThemeElement {
   cardsGap?: number;
   cardsItemFontSize?: number;
   // ── Area (область для контролов в теме) ──
-  areaMode?: 'list' | 'dynamic';
+  areaMode?: 'list' | 'dynamic' | 'single';
   areaControlId?: number;
   areaListDirection?: 'top' | 'bottom';
   areaMaxColumns?: number;

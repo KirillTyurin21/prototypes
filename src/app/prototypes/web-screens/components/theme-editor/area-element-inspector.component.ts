@@ -49,6 +49,7 @@ import { ColorFieldComponent } from '../inspector/color-field.component';
       <select class="field-select" [(ngModel)]="element.areaMode">
         <option value="list">Лист</option>
         <option value="dynamic">Динамически заполняемая область</option>
+        <option value="single">Одиночный объект</option>
       </select>
     </div>
 
@@ -66,6 +67,7 @@ import { ColorFieldComponent } from '../inspector/color-field.component';
       </div>
     </ng-container>
 
+    <ng-container *ngIf="element.areaMode !== 'single'">
     <div class="field-group">
       <label class="field-label">Тип статуса заказа</label>
       <select class="field-select" [(ngModel)]="element.areaStatusType">
@@ -112,6 +114,7 @@ import { ColorFieldComponent } from '../inspector/color-field.component';
       <label class="field-label">Межстрочный интервал (px)</label>
       <input type="number" class="field-input" [(ngModel)]="element.areaInterlineSpacing" min="0" />
     </div>
+    </ng-container>
 
     <div class="section-divider">Макет</div>
 

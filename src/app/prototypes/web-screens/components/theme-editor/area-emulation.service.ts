@@ -95,6 +95,19 @@ export class AreaEmulationHelper {
           }
         }
       }
+    } else if (area.areaMode === 'single') {
+      // Single object mode — show only the first order, centered
+      if (orders.length > 0) {
+        const order = orders[0];
+        const slotH = getSlotH(order);
+        const x = pad + Math.max(0, (areaW - pad * 2 - slotW) / 2);
+        const y = headerH + pad;
+        positions.push({
+          order, x, y, width: slotW, height: slotH,
+          controlElements: control.elements,
+          bboxX: bbox.x, bboxY: bbox.y, bboxW: bbox.w, bboxH: bbox.h, scale,
+        });
+      }
     } else {
       let posX = pad;
       let posY = headerH + pad;
