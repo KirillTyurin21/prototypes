@@ -642,12 +642,13 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     const newControlId = this.route.snapshot.queryParamMap.get('newControlId');
     if (newControlId) {
       const ncId = Number(newControlId);
-      const selectedEl = this.theme.elements.find(e => e.id === this.selectedElementId);
-      if (selectedEl && selectedEl.type === 'area') {
-        selectedEl.areaControlId = ncId;
-      } else {
-        const firstArea = this.theme.elements.find(e => e.type === 'area');
-        if (firstArea) { firstArea.areaControlId = ncId; this.selectedElementId = firstArea.id; }
+      const elementId = this.route.snapshot.queryParamMap.get('elementId');
+      const targetEl = elementId
+        ? this.theme.elements.find(e => e.id === elementId && e.type === 'area')
+        : null;
+      if (targetEl) {
+        targetEl.areaControlId = ncId;
+        this.selectedElementId = targetEl.id;
       }
       this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
       this.save();
@@ -894,7 +895,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   onEditControl(controlId: number): void {
     this.save();
     this.router.navigate(['/prototype/web-screens/menuboard-control-editor', controlId], {
-      queryParams: { return: 'menuboard-theme-editor', themeId: this.theme.id }
+      queryParams: { return: 'menuboard-theme-editor', themeId: this.theme.id, elementId: this.selectedElementId }
     });
   }
   private showToast(msg: string): void { this.toastMessage = msg; setTimeout(() => (this.toastMessage = ''), 3000); }

@@ -324,14 +324,14 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     const newControlId = this.route.snapshot.queryParamMap.get('newControlId');
     if (newControlId) {
       const ncId = Number(newControlId);
-      // Apply to the currently selected area element
-      const selectedEl = this.theme.elements.find(e => e.id === this.selectedElementId);
-      if (selectedEl && selectedEl.type === 'area') {
-        selectedEl.areaControlId = ncId;
-      } else {
-        // If no element selected, apply to the first area element
-        const firstArea = this.theme.elements.find(e => e.type === 'area');
-        if (firstArea) { firstArea.areaControlId = ncId; this.selectedElementId = firstArea.id; }
+      // Apply to the EXACT area element that was being edited
+      const elementId = this.route.snapshot.queryParamMap.get('elementId');
+      const targetEl = elementId
+        ? this.theme.elements.find(e => e.id === elementId && e.type === 'area')
+        : null;
+      if (targetEl) {
+        targetEl.areaControlId = ncId;
+        this.selectedElementId = targetEl.id;
       }
       this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
       // Auto-save theme after applying new control
@@ -466,7 +466,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     // Автосохранение темы перед уходом в редактор контрола
     this.save();
     this.router.navigate(['/prototype/web-screens/arrivals-control-editor', controlId], {
-      queryParams: { return: 'theme-editor', themeId: this.theme.id }
+      queryParams: { return: 'theme-editor', themeId: this.theme.id, elementId: this.selectedElementId }
     });
   }
   private showToast(msg: string): void { this.toastMessage = msg; setTimeout(() => (this.toastMessage = ''), 3000); }

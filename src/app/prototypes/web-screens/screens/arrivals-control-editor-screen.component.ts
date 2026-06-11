@@ -759,17 +759,18 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   goBack(): void {
     const returnTo = this.route.snapshot.queryParamMap.get('return');
     const themeId = this.route.snapshot.queryParamMap.get('themeId');
+    const elementId = this.route.snapshot.queryParamMap.get('elementId');
     const newId = this.newControlId;
 
     if (returnTo === 'theme-editor' && themeId) {
       const params: any = {};
-      if (newId) { params.newControlId = newId; }
+      if (newId) { params.newControlId = newId; params.elementId = elementId; }
       this.router.navigate(['/prototype/web-screens/arrivals-theme-editor', themeId], { queryParams: params });
       return;
     }
     if (returnTo === 'menuboard-theme-editor' && themeId) {
       const params: any = {};
-      if (newId) { params.newControlId = newId; }
+      if (newId) { params.newControlId = newId; params.elementId = elementId; }
       this.router.navigate(['/prototype/web-screens/menuboard-theme-editor', themeId], { queryParams: params });
       return;
     }
