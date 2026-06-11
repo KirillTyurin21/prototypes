@@ -63,26 +63,35 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                         </div>
                         <div class="ml-modifiers" *ngIf="getDishData(pid)?.modifiers?.length"
                           [style.font-size.px]="el.fontModifiers?.size || 12"
+                          [style.font-weight]="el.fontModifiers?.bold ? 'bold' : 'normal'"
+                          [style.font-style]="el.fontModifiers?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontModifiers?.color || '#666'">
                           Модификаторы: {{ getDishData(pid)?.modifiers?.join(', ') }}
                         </div>
                         <div class="ml-sizes" *ngIf="getDishData(pid)?.sizes?.length"
                           [style.font-size.px]="el.fontModifiers?.size || 12"
+                          [style.font-weight]="el.fontModifiers?.bold ? 'bold' : 'normal'"
+                          [style.font-style]="el.fontModifiers?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontModifiers?.color || '#666'">
                           Размеры: {{ formatSizes(getDishData(pid)?.sizes) }}
                         </div>
                         <div class="ml-desc" *ngIf="el.showDescription && getDishData(pid)?.description"
                           [style.font-size.px]="el.fontDescription?.size || 11"
+                          [style.font-weight]="el.fontDescription?.bold ? 'bold' : 'normal'"
+                          [style.font-style]="el.fontDescription?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontDescription?.color || '#999'">
                           {{ getDishData(pid)?.description }}
                         </div>
                         <div class="ml-extra" *ngIf="(el.showAllergens && getDishData(pid)?.allergens?.length) || (el.showNutrition && getDishData(pid)?.energy != null)"
                           [style.font-size.px]="(el.fontDescription?.size || 11)">
-                          <span class="ml-allergens" *ngIf="el.showAllergens && getDishData(pid)?.allergens?.length">
+                          <span class="ml-allergens" *ngIf="el.showAllergens && getDishData(pid)?.allergens?.length"
+                            [style.color]="el.allergensColor || '#e65100'">
                             ⚠ {{ getDishData(pid)?.allergens?.join(', ') }}
                           </span>
-                          <span class="ml-sep" *ngIf="el.showAllergens && getDishData(pid)?.allergens?.length && el.showNutrition && getDishData(pid)?.energy != null"> | </span>
-                          <span class="ml-nutrition" *ngIf="el.showNutrition && getDishData(pid)?.energy != null">
+                          <span class="ml-sep" *ngIf="el.showAllergens && getDishData(pid)?.allergens?.length && el.showNutrition && getDishData(pid)?.energy != null"
+                            [style.color]="el.fontDescription?.color || '#999'"> | </span>
+                          <span class="ml-nutrition" *ngIf="el.showNutrition && getDishData(pid)?.energy != null"
+                            [style.color]="el.nutritionColor || '#999'">
                             {{ getDishData(pid)?.energy }} ккал Б:{{ getDishData(pid)?.proteins || 0 }} Ж:{{ getDishData(pid)?.fats || 0 }} У:{{ getDishData(pid)?.carbs || 0 }}
                           </span>
                         </div>
@@ -192,7 +201,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <label class="field-label">Отступ строк (px)</label>
                 <input type="number" class="field-input" [(ngModel)]="selectedElement.rowPadding" min="0" max="20" />
               </div>
-              <div class="section-divider">Подсветка строк</div>
+              <div class="section-divider">Цвета строк</div>
+              <div class="field-group">
+                <label class="field-label">Цвет основной строки</label>
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.rowBgColor" />
+              </div>
               <div class="field-group">
                 <label class="field-label">Цвет подсветки</label>
                 <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" />
@@ -203,8 +216,22 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <input type="number" class="field-input" [(ngModel)]="selectedElement.fontName!.size" min="8" max="72" />
               </div>
               <div class="field-group">
+                <label class="field-label">Семейство</label>
+                <select class="field-select" [(ngModel)]="selectedElement.fontName!.family">
+                  <option value="Segoe UI">Segoe UI</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Courier New">Courier New</option>
+                </select>
+              </div>
+              <div class="field-group">
                 <label class="field-label">Цвет</label>
                 <input type="color" class="field-color" [(ngModel)]="selectedElement.fontName!.color" />
+              </div>
+              <div class="field-group">
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontName!.bold" /> Жирный</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontName!.italic" /> Курсив</label>
               </div>
               <div class="section-divider">Шрифт цены</div>
               <div class="field-group">
@@ -212,8 +239,22 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <input type="number" class="field-input" [(ngModel)]="selectedElement.fontPrice!.size" min="8" max="72" />
               </div>
               <div class="field-group">
+                <label class="field-label">Семейство</label>
+                <select class="field-select" [(ngModel)]="selectedElement.fontPrice!.family">
+                  <option value="Segoe UI">Segoe UI</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Courier New">Courier New</option>
+                </select>
+              </div>
+              <div class="field-group">
                 <label class="field-label">Цвет</label>
                 <input type="color" class="field-color" [(ngModel)]="selectedElement.fontPrice!.color" />
+              </div>
+              <div class="field-group">
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontPrice!.bold" /> Жирный</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontPrice!.italic" /> Курсив</label>
               </div>
               <div class="section-divider">Шрифт модификаторов</div>
               <div class="field-group">
@@ -221,8 +262,22 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <input type="number" class="field-input" [(ngModel)]="selectedElement.fontModifiers!.size" min="8" max="48" />
               </div>
               <div class="field-group">
+                <label class="field-label">Семейство</label>
+                <select class="field-select" [(ngModel)]="selectedElement.fontModifiers!.family">
+                  <option value="Segoe UI">Segoe UI</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Courier New">Courier New</option>
+                </select>
+              </div>
+              <div class="field-group">
                 <label class="field-label">Цвет</label>
                 <input type="color" class="field-color" [(ngModel)]="selectedElement.fontModifiers!.color" />
+              </div>
+              <div class="field-group">
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontModifiers!.bold" /> Жирный</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontModifiers!.italic" /> Курсив</label>
               </div>
               <div class="section-divider">Шрифт описания</div>
               <div class="field-group">
@@ -230,8 +285,22 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <input type="number" class="field-input" [(ngModel)]="selectedElement.fontDescription!.size" min="8" max="48" />
               </div>
               <div class="field-group">
+                <label class="field-label">Семейство</label>
+                <select class="field-select" [(ngModel)]="selectedElement.fontDescription!.family">
+                  <option value="Segoe UI">Segoe UI</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Courier New">Courier New</option>
+                </select>
+              </div>
+              <div class="field-group">
                 <label class="field-label">Цвет</label>
                 <input type="color" class="field-color" [(ngModel)]="selectedElement.fontDescription!.color" />
+              </div>
+              <div class="field-group">
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontDescription!.bold" /> Жирный</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontDescription!.italic" /> Курсив</label>
               </div>
               <div class="section-divider">Отображение</div>
               <div class="field-group">
@@ -239,6 +308,15 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showDescription" /> Показывать описание</label>
                 <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showAllergens" /> Показывать аллергены</label>
                 <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showNutrition" /> Показывать КБЖУ</label>
+              </div>
+              <div class="section-divider">Цвета доп. элементов</div>
+              <div class="field-group">
+                <label class="field-label">Цвет аллергенов</label>
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.allergensColor" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Цвет КБЖУ</label>
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.nutritionColor" />
               </div>
             </ng-container>
             <!-- Standard element inspector for non-menulist, non-area -->
@@ -608,8 +686,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   getRowBg(el: ArrivalsThemeElement, odd: boolean): string {
-    if (!el.alternateRows) return 'transparent';
-    return odd ? (el.highlightColor || '#f5f5f5') : 'transparent';
+    if (!el.alternateRows) return el.rowBgColor || '#ffffff';
+    return odd ? (el.highlightColor || '#f5f5f5') : (el.rowBgColor || '#ffffff');
   }
 
   formatSizes(sizes?: { name: string; price: number }[]): string {
@@ -650,7 +728,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
     if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; }
-    if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' }; }
+    if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     this.theme.elements.push(el);
     this.selectedElementId = el.id; this.panelView = 'element';
   }

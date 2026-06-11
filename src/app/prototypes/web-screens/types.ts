@@ -229,15 +229,18 @@ export interface ArrivalsThemeElement {
   rowHeight?: number;
   alternateRows?: boolean;
   rowPadding?: number;
+  rowBgColor?: string;
   highlightColor?: string;
   showIcons?: boolean;
   showDescription?: boolean;
   showAllergens?: boolean;
   showNutrition?: boolean;
+  nutritionColor?: string;
+  allergensColor?: string;
   fontName?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
-  fontModifiers?: { size: number; family: string; color: string };
+  fontModifiers?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
   fontPrice?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
-  fontDescription?: { size: number; family: string; color: string };
+  fontDescription?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
 }
 
 /* ── Product Catalog (for Price element navigator) ── */
