@@ -637,6 +637,22 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       this.theme.id = Date.now();
     }
     this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
+
+    // Handle return from control editor with newControlId (Save as Copy)
+    const newControlId = this.route.snapshot.queryParamMap.get('newControlId');
+    if (newControlId) {
+      const ncId = Number(newControlId);
+      const selectedEl = this.theme.elements.find(e => e.id === this.selectedElementId);
+      if (selectedEl && selectedEl.type === 'area') {
+        selectedEl.areaControlId = ncId;
+      } else {
+        const firstArea = this.theme.elements.find(e => e.type === 'area');
+        if (firstArea) { firstArea.areaControlId = ncId; this.selectedElementId = firstArea.id; }
+      }
+      this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
+      this.save();
+    }
+
     setTimeout(() => this.updateCanvasScale(), 0);
   }
 

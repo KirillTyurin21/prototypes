@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
-import { UiConfirmDialogComponent } from '@/components/ui';
+import { UiConfirmDialogComponent, UiModalComponent, UiButtonComponent } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { MOCK_ARRIVALS_CONTROLS } from '../data/mock-data';
 import {
@@ -48,6 +48,8 @@ const BALANCER_STATUSES = [
     FormsModule,
     IconsModule,
     UiConfirmDialogComponent,
+    UiModalComponent,
+    UiButtonComponent,
     EditorCanvasComponent,
     CanvasElementComponent,
     ControlElementRendererComponent,
@@ -234,7 +236,21 @@ const BALANCER_STATUSES = [
         (confirmed)="confirmDeleteElement()"
         (cancelled)="deleteElementTarget = null"
       ></ui-confirm-dialog>
-    </div>
+      <!-- ─── Save dialog (theme context): Сохранить / Сохранить как копию / Отмена ─── -->
+      <ui-modal
+        *ngIf="showSaveDialog"
+        [open]="true"
+        title="Сохранение контрола"
+        size="sm"
+        (modalClose)="onSaveDialogCancel()"
+      >
+        <p class="text-sm text-text-secondary">Этот контрол может использоваться в других темах. Как вы хотите сохранить изменения?</p>
+        <div modalFooter class="flex items-center justify-end gap-2">
+          <ui-button variant="secondary" size="sm" (click)="onSaveDialogCancel()">Отмена</ui-button>
+          <ui-button variant="secondary" size="sm" (click)="onSaveDialogCopy()">Сохранить как копию</ui-button>
+          <ui-button variant="primary" size="sm" (click)="onSaveDialogConfirm()">Сохранить</ui-button>
+        </div>
+      </ui-modal>    </div>
   `,
   styles: [`
     :host { display: block; height: 100%; }
@@ -439,6 +455,11 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   toastMessage = '';
   canvasScale = 1.0;
 
+  // ── Save dialog (theme context) ──
+  showSaveDialog = false;
+  private isThemeContext = false;
+  private newControlId: number | null = null;
+
   elementTypes = ELEMENT_TYPES;
   readonly emuItemStatuses = EMU_ITEM_STATUSES;
 
@@ -482,6 +503,10 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+    // Check if we came from a theme editor
+    const returnTo = this.route.snapshot.queryParamMap.get('return');
+    this.isThemeContext = !!(returnTo && (returnTo === 'theme-editor' || returnTo === 'menuboard-theme-editor'));
+
     if (id && id !== 'new') {
       const numId = Number(id);
       const allControls: ArrivalsControl[] = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
@@ -653,6 +678,16 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
+    // In theme context → show dialog with 3 options
+    if (this.isThemeContext) {
+      this.showSaveDialog = true;
+      return;
+    }
+    this.performSave();
+  }
+
+  /** Save control in-place (update existing) */
+  private performSave(): void {
     const allControls: ArrivalsControl[] = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
     const idx = allControls.findIndex(c => c.id === this.control.id);
     if (idx >= 0) {
@@ -663,7 +698,10 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
     this.storage.save('web-screens', 'arrivals-controls', allControls);
 
     const list: any[] = this.storage.load('web-screens', 'arrivals-controls-list', []);
-    if (!list.find((i: any) => i.id === this.control.id)) {
+    const listIdx = list.findIndex((i: any) => i.id === this.control.id);
+    if (listIdx >= 0) {
+      list[listIdx].name = this.control.name;
+    } else {
       list.push({
         id: this.control.id,
         name: this.control.name,
@@ -671,21 +709,68 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
         resolution: '1024x768',
         createdBy: 'Мой',
       });
-      this.storage.save('web-screens', 'arrivals-controls-list', list);
     }
+    this.storage.save('web-screens', 'arrivals-controls-list', list);
 
     this.showToast('Контрол сохранён');
+  }
+
+  /** Save as copy — create new control, apply it to the calling theme */
+  private performSaveAsCopy(): void {
+    const newId = Date.now();
+    const copiedControl: ArrivalsControl = JSON.parse(JSON.stringify(this.control));
+    copiedControl.id = newId;
+    copiedControl.name = this.control.name + ' (копия)';
+
+    const allControls: ArrivalsControl[] = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
+    allControls.push(copiedControl);
+    this.storage.save('web-screens', 'arrivals-controls', allControls);
+
+    const list: any[] = this.storage.load('web-screens', 'arrivals-controls-list', []);
+    list.push({
+      id: newId,
+      name: copiedControl.name,
+      itemType: 'control',
+      resolution: '1024x768',
+      createdBy: 'Мой',
+    });
+    this.storage.save('web-screens', 'arrivals-controls-list', list);
+
+    this.newControlId = newId;
+    this.showToast('Контрол сохранён как копия');
+  }
+
+  onSaveDialogConfirm(): void {
+    this.showSaveDialog = false;
+    this.performSave();
+    this.goBack();
+  }
+
+  onSaveDialogCopy(): void {
+    this.showSaveDialog = false;
+    this.performSaveAsCopy();
+    this.goBack();
+  }
+
+  onSaveDialogCancel(): void {
+    this.showSaveDialog = false;
   }
 
   goBack(): void {
     const returnTo = this.route.snapshot.queryParamMap.get('return');
     const themeId = this.route.snapshot.queryParamMap.get('themeId');
+    const newId = this.newControlId;
+
     if (returnTo === 'theme-editor' && themeId) {
-      this.router.navigate(['/prototype/web-screens/arrivals-theme-editor', themeId]);
+      const params: any = {};
+      if (newId) { params.newControlId = newId; }
+      this.router.navigate(['/prototype/web-screens/arrivals-theme-editor', themeId], { queryParams: params });
       return;
     }
     if (returnTo === 'menuboard-theme-editor' && themeId) {
-      this.router.navigate(['/prototype/web-screens/menuboard-theme-editor', themeId]);
+      const params: any = {};
+      if (newId) { params.newControlId = newId; }
+      this.router.navigate(['/prototype/web-screens/menuboard-theme-editor', themeId], { queryParams: params });
       return;
     }
     const parentSegment = this.route.snapshot.url[0]?.path || '';
