@@ -850,9 +850,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   onEditControl(controlId: number): void {
     this.save();
-    const themeId = this.route.snapshot.paramMap.get('id') || 'new';
     this.router.navigate(['/prototype/web-screens/menuboard-control-editor', controlId], {
-      queryParams: { return: 'menuboard-theme-editor', themeId }
+      queryParams: { return: 'menuboard-theme-editor', themeId: this.theme.id }
     });
   }
   private showToast(msg: string): void { this.toastMessage = msg; setTimeout(() => (this.toastMessage = ''), 3000); }

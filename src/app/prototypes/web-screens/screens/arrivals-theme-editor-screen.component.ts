@@ -417,9 +417,8 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   onEditControl(controlId: number): void {
     // Автосохранение темы перед уходом в редактор контрола
     this.save();
-    const themeId = this.route.snapshot.paramMap.get('id') || 'new';
     this.router.navigate(['/prototype/web-screens/arrivals-control-editor', controlId], {
-      queryParams: { return: 'theme-editor', themeId }
+      queryParams: { return: 'theme-editor', themeId: this.theme.id }
     });
   }
   private showToast(msg: string): void { this.toastMessage = msg; setTimeout(() => (this.toastMessage = ''), 3000); }
