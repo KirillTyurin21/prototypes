@@ -16,6 +16,7 @@ import { OrderSimulatorComponent } from '../components/simulator/order-simulator
 import { AreaEmulationHelper } from '../components/theme-editor/area-emulation.service';
 import { SimulatorHelper } from '../components/theme-editor/simulator.helper';
 import { DishSelectorModalComponent } from '../components/dish-selector-modal/dish-selector-modal.component';
+import { CollapsibleSectionComponent } from '../components/inspector/collapsible-section.component';
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
@@ -24,7 +25,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
 @Component({
   selector: 'app-menuboard-theme-editor-screen',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent, DishSelectorModalComponent],
+  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent, DishSelectorModalComponent, CollapsibleSectionComponent],
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
@@ -190,160 +191,208 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
             </div>
             <!-- MenuList inspector -->
             <ng-container *ngIf="selectedElement.type === 'menulist'">
-              <div class="section-divider">Данные</div>
-              <div class="field-group">
-                <button class="btn-select-dishes" (click)="openDishSelector()">
-                  <lucide-icon name="list" [size]="16"></lucide-icon>
-                  Выбрать блюда
-                </button>
-              </div>
-              <div class="field-group" *ngIf="selectedElement.productIds?.length">
-                <label class="field-label">Выбранные блюда</label>
-                <div class="selected-dishes">
-                  <div class="sd-item" *ngFor="let pid of selectedElement.productIds">
-                    <span class="sd-name">{{ getDishDisplayName(pid) }}</span>
-                    <span class="sd-price">{{ getDishDisplayPrice(pid) }}</span>
-                    <button class="sd-remove" (click)="removeDishFromList(pid)" title="Убрать">
-                      <lucide-icon name="x" [size]="14"></lucide-icon>
-                    </button>
+              <app-collapsible-section title="Данные" [expanded]="true">
+                <div class="field-group">
+                  <button class="btn-select-dishes" (click)="openDishSelector()">
+                    <lucide-icon name="list" [size]="16"></lucide-icon>
+                    Выбрать блюда
+                  </button>
+                </div>
+                <div class="field-group" *ngIf="selectedElement.productIds?.length">
+                  <label class="field-label">Выбранные блюда</label>
+                  <div class="selected-dishes">
+                    <div class="sd-item" *ngFor="let pid of selectedElement.productIds">
+                      <span class="sd-name">{{ getDishDisplayName(pid) }}</span>
+                      <span class="sd-price">{{ getDishDisplayPrice(pid) }}</span>
+                      <button class="sd-remove" (click)="removeDishFromList(pid)" title="Убрать">
+                        <lucide-icon name="x" [size]="14"></lucide-icon>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="field-group" *ngIf="!selectedElement.productIds?.length">
-                <p class="field-hint">Блюда не выбраны</p>
-              </div>
-              <div class="section-divider">Настройки таблицы</div>
-              <div class="field-group">
-                <label class="field-label">Чередование строк</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.alternateRows" /> Включено</label>
-              </div>
-              <div class="field-group">
-                <label class="field-label">Высота строки (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.rowHeight" min="24" max="200" />
-              </div>
-              <div class="field-group">
-                <label class="field-label">Отступ строк (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.rowPadding" min="0" max="20" />
-              </div>
-              <div class="section-divider">Цвета строк</div>
-              <div class="field-group">
-                <label class="field-label">Цвет основной строки</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.rowBgColor" [disabled]="!!selectedElement.rowBgTransparent" />
-                <label class="field-check" style="margin-top:6px"><input type="checkbox" [(ngModel)]="selectedElement.rowBgTransparent" /> Прозрачный</label>
-              </div>
-              <div class="field-group">
-                <label class="field-label">Цвет подсветки</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" [disabled]="!!selectedElement.highlightTransparent" />
-                <label class="field-check" style="margin-top:6px"><input type="checkbox" [(ngModel)]="selectedElement.highlightTransparent" /> Прозрачный</label>
-              </div>
-              <div class="section-divider">Шрифт названия</div>
-              <div class="field-group">
-                <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontName!.size" min="8" max="72" />
-              </div>
-              <div class="field-group">
-                <label class="field-label">Семейство</label>
-                <select class="field-select" [(ngModel)]="selectedElement.fontName!.family">
-                  <option value="Segoe UI">Segoe UI</option>
-                  <option value="Roboto">Roboto</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontName!.color" />
-              </div>
-              <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontName!.bold" /> Жирный</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontName!.italic" /> Курсив</label>
-              </div>
-              <div class="section-divider">Шрифт цены</div>
-              <div class="field-group">
-                <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontPrice!.size" min="8" max="72" />
-              </div>
-              <div class="field-group">
-                <label class="field-label">Семейство</label>
-                <select class="field-select" [(ngModel)]="selectedElement.fontPrice!.family">
-                  <option value="Segoe UI">Segoe UI</option>
-                  <option value="Roboto">Roboto</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontPrice!.color" />
-              </div>
-              <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontPrice!.bold" /> Жирный</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontPrice!.italic" /> Курсив</label>
-              </div>
-              <div class="section-divider">Шрифт модификаторов</div>
-              <div class="field-group">
-                <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontModifiers!.size" min="8" max="48" />
-              </div>
-              <div class="field-group">
-                <label class="field-label">Семейство</label>
-                <select class="field-select" [(ngModel)]="selectedElement.fontModifiers!.family">
-                  <option value="Segoe UI">Segoe UI</option>
-                  <option value="Roboto">Roboto</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontModifiers!.color" />
-              </div>
-              <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontModifiers!.bold" /> Жирный</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontModifiers!.italic" /> Курсив</label>
-              </div>
-              <div class="section-divider">Шрифт описания</div>
-              <div class="field-group">
-                <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontDescription!.size" min="8" max="48" />
-              </div>
-              <div class="field-group">
-                <label class="field-label">Семейство</label>
-                <select class="field-select" [(ngModel)]="selectedElement.fontDescription!.family">
-                  <option value="Segoe UI">Segoe UI</option>
-                  <option value="Roboto">Roboto</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Courier New">Courier New</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontDescription!.color" />
-              </div>
-              <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontDescription!.bold" /> Жирный</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontDescription!.italic" /> Курсив</label>
-              </div>
-              <div class="section-divider">Отображение</div>
-              <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showIcons" /> Показывать иконки</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showDescription" /> Показывать описание</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showAllergens" /> Показывать аллергены</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showNutrition" /> Показывать КБЖУ</label>
-              </div>
-              <div class="section-divider">Цвета доп. элементов</div>
-              <div class="field-group">
-                <label class="field-label">Цвет аллергенов</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.allergensColor" />
-              </div>
-              <div class="field-group">
-                <label class="field-label">Цвет КБЖУ</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.nutritionColor" />
-              </div>
+                <div class="field-group" *ngIf="!selectedElement.productIds?.length">
+                  <p class="field-hint">Блюда не выбраны</p>
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Макет">
+                <div class="field-group">
+                  <label class="field-label">Позиция X</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.x" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Позиция Y</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.y" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Ширина (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.width" min="100" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Высота (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.height" min="100" />
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Граница">
+                <div class="field-group">
+                  <label class="field-label">Толщина (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.borderWidth" min="0" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.borderColor" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Скругление (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.borderRadius" min="0" />
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Настройки таблицы">
+                <div class="field-group">
+                  <label class="field-label">Чередование строк</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.alternateRows" /> Включено</label>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Высота строки (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.rowHeight" min="24" max="200" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Отступ строк (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.rowPadding" min="0" max="20" />
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Подсветка строк">
+                <div class="field-group">
+                  <label class="field-label">Цвет основной строки</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.rowBgColor" [disabled]="!!selectedElement.rowBgTransparent" />
+                  <label class="field-check" style="margin-top:6px"><input type="checkbox" [(ngModel)]="selectedElement.rowBgTransparent" /> Прозрачный</label>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет подсветки</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" [disabled]="!!selectedElement.highlightTransparent" />
+                  <label class="field-check" style="margin-top:6px"><input type="checkbox" [(ngModel)]="selectedElement.highlightTransparent" /> Прозрачный</label>
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Шрифт названия">
+                <div class="field-group">
+                  <label class="field-label">Размер (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.fontName!.size" min="8" max="72" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Семейство</label>
+                  <select class="field-select" [(ngModel)]="selectedElement.fontName!.family">
+                    <option value="Segoe UI">Segoe UI</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.fontName!.color" />
+                </div>
+                <div class="field-group">
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontName!.bold" /> Жирный</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontName!.italic" /> Курсив</label>
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Шрифт цены">
+                <div class="field-group">
+                  <label class="field-label">Размер (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.fontPrice!.size" min="8" max="72" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Семейство</label>
+                  <select class="field-select" [(ngModel)]="selectedElement.fontPrice!.family">
+                    <option value="Segoe UI">Segoe UI</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.fontPrice!.color" />
+                </div>
+                <div class="field-group">
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontPrice!.bold" /> Жирный</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontPrice!.italic" /> Курсив</label>
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Шрифт модификаторов">
+                <div class="field-group">
+                  <label class="field-label">Размер (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.fontModifiers!.size" min="8" max="48" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Семейство</label>
+                  <select class="field-select" [(ngModel)]="selectedElement.fontModifiers!.family">
+                    <option value="Segoe UI">Segoe UI</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.fontModifiers!.color" />
+                </div>
+                <div class="field-group">
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontModifiers!.bold" /> Жирный</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontModifiers!.italic" /> Курсив</label>
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Шрифт описания">
+                <div class="field-group">
+                  <label class="field-label">Размер (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.fontDescription!.size" min="8" max="48" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Семейство</label>
+                  <select class="field-select" [(ngModel)]="selectedElement.fontDescription!.family">
+                    <option value="Segoe UI">Segoe UI</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.fontDescription!.color" />
+                </div>
+                <div class="field-group">
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontDescription!.bold" /> Жирный</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.fontDescription!.italic" /> Курсив</label>
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Отображение">
+                <div class="field-group">
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showIcons" /> Показывать иконки</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showDescription" /> Показывать описание</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showAllergens" /> Показывать аллергены</label>
+                  <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showNutrition" /> Показывать КБЖУ</label>
+                </div>
+                <div class="field-group" *ngIf="selectedElement.showAllergens">
+                  <label class="field-label">Цвет аллергенов</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.allergensColor" />
+                </div>
+                <div class="field-group" *ngIf="selectedElement.showNutrition">
+                  <label class="field-label">Цвет КБЖУ</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.nutritionColor" />
+                </div>
+              </app-collapsible-section>
             </ng-container>
             <!-- Standard element inspector for non-menulist, non-area -->
             <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist'" [element]="selectedElement"></app-theme-element-inspector>
