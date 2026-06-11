@@ -296,6 +296,22 @@ export interface ArrivalsOrderMock {
   clientPhone?: string;
 }
 
+/* ── Element Categories (grouping for add-element palette) ── */
+
+export interface ElementCategoryItem {
+  type: ArrivalsElementType;
+  label: string;
+  icon: string;
+}
+
+export interface ElementCategory {
+  id: string;
+  label: string;
+  icon: string;
+  elements: ElementCategoryItem[];
+  collapsed: boolean;
+}
+
 /* ── Arrivals Controls Editor ── */
 
 export type ArrivalsControlStatusType = 'kitchen' | 'delivery' | 'balancer';

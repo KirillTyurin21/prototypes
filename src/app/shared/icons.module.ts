@@ -183,6 +183,9 @@ import {
   Shuffle,
   // Price element tree
   Ruler,
+  // Element grouping accordion
+  Layers,
+  Paintbrush,
 } from 'lucide-angular';
 
 /**
@@ -373,6 +376,9 @@ const icons = {
   Shuffle,
   // Price element tree
   Ruler,
+  // Element grouping accordion
+  Layers,
+  Paintbrush,
 };
 
 @NgModule({

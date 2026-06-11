@@ -7,7 +7,8 @@ import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS } from '../data/mock-data';
-import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock } from '../types';
+import { ARRIVALS_THEME_CATEGORIES } from '../data/element-categories.data';
+import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
 import { AreaElementInspectorComponent } from '../components/theme-editor/area-element-inspector.component';
@@ -60,11 +61,24 @@ type PanelView = 'theme' | 'add-element' | 'element';
           </ng-container>
           <ng-container *ngIf="panelView === 'add-element'">
             <div class="add-element-header"><span class="add-element-title">Добавить элемент</span><button class="icon-btn-sm" (click)="panelView = 'theme'"><lucide-icon name="x" [size]="18"></lucide-icon></button></div>
-            <div class="element-type-list">
-              <div class="element-type-item element-type-area" (click)="addElement('area')"><lucide-icon name="layout-grid" [size]="16"></lucide-icon> Область</div>
-              <div class="element-type-separator">Элементы</div>
-              <div *ngFor="let et of elementTypes" class="element-type-item" (click)="addElement(et.type)">{{ et.label }}</div>
+            <div class="element-categories">
+              <div *ngFor="let cat of themeCategories" class="category-group">
+                <div class="category-header" (click)="toggleCategory(cat.id)">
+                  <lucide-icon [name]="cat.icon" [size]="18" class="category-icon"></lucide-icon>
+                  <span class="category-label">{{ cat.label }}</span>
+                  <span class="category-count">{{ cat.elements.length }}</span>
+                  <lucide-icon [name]="cat.collapsed ? 'chevron-down' : 'chevron-up'" [size]="16" class="category-chevron"></lucide-icon>
+                </div>
+                <div *ngIf="!cat.collapsed" class="category-elements">
+                  <div *ngFor="let el of cat.elements" class="element-item" (click)="addElement(el.type)">
+                    <lucide-icon [name]="el.icon" [size]="16" class="element-icon"></lucide-icon>
+                    <span>{{ el.label }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
+            <div class="element-type-separator">Элементы контрола</div>
+            <div *ngFor="let et of elementTypes" class="element-type-item" (click)="addElement(et.type)">{{ et.label }}</div>
           </ng-container>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
@@ -131,8 +145,25 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .element-type-list { display: flex; flex-direction: column; }
     .element-type-item { padding: 12px 8px; font-size: 14px; color: #333; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
     .element-type-item:hover { background: #f5f5f5; } .element-type-item:last-child { border-bottom: none; }
-    .element-type-separator { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #9e9e9e; padding: 8px 12px 4px; font-weight: 500; }
-    .element-type-area { display: flex; align-items: center; gap: 6px; border: 1px dashed #90CAF9 !important; color: #1976D2 !important; background: #E3F2FD !important; font-weight: 500 !important; }
+    .element-type-separator { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #9e9e9e; padding: 12px 8px 6px; font-weight: 500; }
+
+    /* ── Element category accordion ── */
+    .element-categories { display: flex; flex-direction: column; }
+    .category-group { border-bottom: 1px solid #f0f0f0; }
+    .category-group:last-child { border-bottom: none; }
+    .category-header { display: flex; align-items: center; gap: 8px; padding: 10px 8px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .category-header:hover { background: #f5f5f5; }
+    .category-icon { color: #757575; flex-shrink: 0; }
+    .category-label { flex: 1; font-size: 14px; font-weight: 500; color: #333; }
+    .category-count { font-size: 12px; color: #9e9e9e; background: #f0f0f0; border-radius: 10px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+    .category-chevron { color: #9e9e9e; flex-shrink: 0; transition: transform 0.2s ease; }
+
+    .category-elements { display: flex; flex-direction: column; padding: 0 0 4px 0; animation: accordionIn 0.15s ease-out; }
+    @keyframes accordionIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .element-item { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 34px; font-size: 13px; color: #555; cursor: pointer; transition: background 0.12s; }
+    .element-item:hover { background: #e3f2fd; color: #1976d2; }
+    .element-icon { color: #9e9e9e; flex-shrink: 0; }
+    .element-item:hover .element-icon { color: #1976d2; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 24px; background: #333; color: #fff; border-radius: 6px; font-size: 14px; z-index: 9000; animation: toastIn 0.3s ease; }
     @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
   `],
@@ -185,6 +216,13 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     { type: 'external-data', label: 'Внешние данные' },
     { type: 'price', label: 'Цена блюда' },
   ];
+
+  themeCategories: ElementCategory[] = JSON.parse(JSON.stringify(ARRIVALS_THEME_CATEGORIES));
+
+  toggleCategory(id: string): void {
+    const cat = this.themeCategories.find(c => c.id === id);
+    if (cat) cat.collapsed = !cat.collapsed;
+  }
 
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
   get resHeight(): number { return parseInt(this.theme.resolution.split('x')[1]) || 768; }
