@@ -28,16 +28,43 @@ import { ExternalMenuCategory } from '../../data/mock-data';
             </div>
           </div>
           <div class="dishes-panel">
-            <div *ngFor="let dish of filteredDishes" class="dish-item" [class.dish-selected]="isSelected(dish.externalId)" (click)="toggleDish(dish)">
-              <div class="dish-check"><lucide-icon [name]="isSelected(dish.externalId) ? 'check-square' : 'square'" [size]="18" [class.check-on]="isSelected(dish.externalId)"></lucide-icon></div>
-              <div class="dish-icon-wrap"><lucide-icon name="coffee" [size]="22" class="dish-icon"></lucide-icon></div>
-              <div class="dish-info">
-                <span class="dish-name">{{ dish.name }}</span>
-                <span class="dish-meta" *ngIf="dish.modifiers?.length">Модификаторы: {{ dish.modifiers?.join(', ') }}</span>
-                <span class="dish-meta" *ngIf="dish.sizes?.length">Размеры: {{ getSizesLabel(dish) }}</span>
+            <ng-container *ngFor="let dish of filteredDishes">
+              <!-- Dish row (clickable parent) -->
+              <div class="dish-item" [class.dish-selected]="isDishFullySelected(dish)" (click)="toggleDishRow(dish)">
+                <div class="dish-check">
+                  <lucide-icon [name]="isDishFullySelected(dish) ? 'check-square' : 'square'" [size]="18" [class.check-on]="isDishFullySelected(dish)"></lucide-icon>
+                  <span class="check-partial" *ngIf="isDishPartiallySelected(dish)">−</span>
+                </div>
+                <div class="dish-expand" *ngIf="dish.sizes?.length">
+                  <lucide-icon [name]="isExpanded(dish.externalId) ? 'chevron-down' : 'chevron-right'" [size]="16"></lucide-icon>
+                </div>
+                <div class="dish-expand" *ngIf="!dish.sizes?.length"></div>
+                <div class="dish-icon-wrap"><lucide-icon name="coffee" [size]="22" class="dish-icon"></lucide-icon></div>
+                <div class="dish-info">
+                  <span class="dish-name">{{ dish.name }}</span>
+                  <span class="dish-meta" *ngIf="dish.modifiers?.length">Модификаторы: {{ dish.modifiers?.join(', ') }}</span>
+                  <span class="dish-meta" *ngIf="dish.sizes?.length">{{ dish.sizes!.length }} размеров</span>
+                </div>
+                <div class="dish-price" *ngIf="!dish.sizes?.length">{{ formatPrice(dish.price) }}</div>
+                <div class="dish-price dish-price-range" *ngIf="dish.sizes?.length">{{ getSizePriceRange(dish) }}</div>
               </div>
-              <div class="dish-price">{{ formatPrice(dish.price) }}</div>
-            </div>
+              <!-- Size variant rows (expandable children) -->
+              <ng-container *ngIf="dish.sizes?.length && isExpanded(dish.externalId)">
+                <div class="size-item" *ngFor="let size of dish.sizes; let si = index"
+                  [class.size-selected]="isSelected(sizeId(dish.externalId, si))"
+                  (click)="toggleSize(dish.externalId, si, $event)">
+                  <div class="size-indent"></div>
+                  <div class="dish-check">
+                    <lucide-icon [name]="isSelected(sizeId(dish.externalId, si)) ? 'check-square' : 'square'" [size]="16" [class.check-on]="isSelected(sizeId(dish.externalId, si))"></lucide-icon>
+                  </div>
+                  <div class="size-icon-wrap"><lucide-icon name="coffee" [size]="18" class="dish-icon"></lucide-icon></div>
+                  <div class="dish-info">
+                    <span class="size-name">{{ dish.name }} {{ size.name }}</span>
+                  </div>
+                  <div class="dish-price">{{ formatPrice(size.price) }}</div>
+                </div>
+              </ng-container>
+            </ng-container>
             <div *ngIf="filteredDishes.length === 0" class="dishes-empty">
               <lucide-icon name="search" [size]="32" class="empty-icon"></lucide-icon><span>Ничего не найдено</span>
             </div>
@@ -85,14 +112,25 @@ import { ExternalMenuCategory } from '../../data/mock-data';
     .dish-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f5f5f5; }
     .dish-item:hover { background: #fafafa; }
     .dish-selected { background: #e8f5e9; }
-    .dish-check { flex-shrink: 0; display: flex; color: #bdbdbd; }
+    .dish-check { flex-shrink: 0; display: flex; position: relative; color: #bdbdbd; }
     .check-on { color: #4caf50; }
+    .check-partial { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 700; color: #1976d2; line-height: 1; pointer-events: none; }
     .dish-icon-wrap { width: 36px; height: 36px; background: #f5f5f5; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .dish-icon { color: #9e9e9e; }
     .dish-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .dish-name { font-size: 14px; font-weight: 500; color: #212121; }
     .dish-meta { font-size: 11px; color: #9e9e9e; }
     .dish-price { font-size: 14px; font-weight: 600; color: #c62828; flex-shrink: 0; white-space: nowrap; }
+    .dish-price-range { font-size: 12px; font-weight: 400; color: #9e9e9e; }
+    .dish-expand { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #9e9e9e; }
+    /* Size variant rows */
+    .size-item { display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 0; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #fafafa; background: #fafafa; }
+    .size-item:hover { background: #f0f0f0; }
+    .size-selected { background: #e8f5e9; }
+    .size-selected:hover { background: #dcedc8; }
+    .size-indent { width: 56px; flex-shrink: 0; }
+    .size-icon-wrap { width: 28px; height: 28px; background: #f5f5f5; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .size-name { font-size: 13px; font-weight: 400; color: #424242; }
     .dishes-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 20px; color: #bdbdbd; font-size: 14px; }
     .modal-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid #e0e0e0; flex-shrink: 0; background: #fafafa; }
     .footer-count { font-size: 13px; color: #757575; }
@@ -114,6 +152,7 @@ export class DishSelectorModalComponent implements OnInit, OnChanges {
 
   activeCategory = '';
   searchQuery = '';
+  private expandedDishes = new Set<string>();
 
   ngOnInit(): void {
     if (this.categories.length > 0) this.activeCategory = this.categories[0].id;
@@ -136,19 +175,62 @@ export class DishSelectorModalComponent implements OnInit, OnChanges {
     return dishes.filter(d => d.name.toLowerCase().includes(q));
   }
 
-  isSelected(externalId: string): boolean { return this.selectedIds.includes(externalId); }
+  /* ── Size-aware IDs ── */
+  sizeId(externalId: string, sizeIndex: number): string {
+    return externalId + '::' + sizeIndex;
+  }
 
-  toggleDish(dish: { externalId: string }): void {
-    const idx = this.selectedIds.indexOf(dish.externalId);
+  /* ── Selection ── */
+  isSelected(id: string): boolean { return this.selectedIds.includes(id); }
+
+  isDishFullySelected(dish: { externalId: string; sizes?: { name: string; price: number }[] }): boolean {
+    if (!dish.sizes?.length) return this.isSelected(dish.externalId);
+    return dish.sizes.every((_, i) => this.isSelected(this.sizeId(dish.externalId, i)));
+  }
+
+  isDishPartiallySelected(dish: { externalId: string; sizes?: { name: string; price: number }[] }): boolean {
+    if (!dish.sizes?.length) return false;
+    return dish.sizes.some((_, i) => this.isSelected(this.sizeId(dish.externalId, i))) && !this.isDishFullySelected(dish);
+  }
+
+  /* ── Toggle ── */
+  toggleDishRow(dish: { externalId: string; sizes?: { name: string; price: number }[] }): void {
+    if (dish.sizes?.length) {
+      // Toggle expand/collapse
+      if (this.expandedDishes.has(dish.externalId)) {
+        this.expandedDishes.delete(dish.externalId);
+      } else {
+        this.expandedDishes.add(dish.externalId);
+      }
+      return;
+    }
+    // No sizes — toggle dish directly
+    this.toggleSingle(dish.externalId);
+  }
+
+  toggleSize(externalId: string, sizeIndex: number, event: Event): void {
+    event.stopPropagation();
+    this.toggleSingle(this.sizeId(externalId, sizeIndex));
+  }
+
+  private toggleSingle(id: string): void {
+    const idx = this.selectedIds.indexOf(id);
     if (idx >= 0) {
-      this.selectedIds = this.selectedIds.filter(id => id !== dish.externalId);
+      this.selectedIds = this.selectedIds.filter(x => x !== id);
     } else {
-      this.selectedIds = [...this.selectedIds, dish.externalId];
+      this.selectedIds = [...this.selectedIds, id];
     }
   }
 
-  getSizesLabel(dish: { sizes?: { name: string; price: number }[] }): string {
-    return dish.sizes?.map(s => s.name).join(', ') ?? '';
+  isExpanded(externalId: string): boolean { return this.expandedDishes.has(externalId); }
+
+  /* ── Helpers ── */
+  getSizePriceRange(dish: { sizes?: { name: string; price: number }[] }): string {
+    if (!dish.sizes?.length) return '';
+    const prices = dish.sizes.map(s => s.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? min + ' \u20BD' : min + ' – ' + max + ' \u20BD';
   }
 
   formatPrice(price: number): string { return price + ' \u20BD'; }

@@ -168,8 +168,8 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <label class="field-label">Выбранные блюда</label>
                 <div class="selected-dishes">
                   <div class="sd-item" *ngFor="let pid of selectedElement.productIds">
-                    <span class="sd-name">{{ getDishData(pid)?.name || '#' + pid.slice(0, 6) }}</span>
-                    <span class="sd-price">{{ getDishData(pid)?.price || 0 }} \u20BD</span>
+                    <span class="sd-name">{{ getDishDisplayName(pid) }}</span>
+                    <span class="sd-price">{{ getDishDisplayPrice(pid) }}</span>
                     <button class="sd-remove" (click)="removeDishFromList(pid)" title="Убрать">
                       <lucide-icon name="x" [size]="14"></lucide-icon>
                     </button>
@@ -571,12 +571,40 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return this.selectedElement?.campaignIds?.length ?? 0;
   }
 
-  getDishData(externalId: string): ExternalMenuItem | undefined {
+  getDishData(productId: string): ExternalMenuItem | undefined {
+    // Parse composite ID: externalId::sizeIndex
+    const parts = productId.split('::');
+    const externalId = parts[0];
+    const sizeIndex = parts.length > 1 ? parseInt(parts[1], 10) : -1;
+
     for (const cat of this.externalMenuCategories) {
       const dish = cat.items.find(d => d.externalId === externalId);
-      if (dish) return dish;
+      if (!dish) continue;
+      // If a specific size is selected, return dish with size-specific overrides
+      if (sizeIndex >= 0 && dish.sizes && dish.sizes[sizeIndex]) {
+        const size = dish.sizes[sizeIndex];
+        return {
+          ...dish,
+          name: dish.name + ' ' + size.name,
+          price: size.price,
+          sizes: undefined, // Hide sizes list — only one size selected
+        };
+      }
+      return dish;
     }
     return undefined;
+  }
+
+  /** Get display name for a productId (for inspector selected-dishes list) */
+  getDishDisplayName(productId: string): string {
+    const dish = this.getDishData(productId);
+    return dish?.name || '#' + productId.slice(0, 10);
+  }
+
+  /** Get display price for a productId */
+  getDishDisplayPrice(productId: string): string {
+    const dish = this.getDishData(productId);
+    return dish ? dish.price + ' \u20BD' : '';
   }
 
   getRowBg(el: ArrivalsThemeElement, odd: boolean): string {

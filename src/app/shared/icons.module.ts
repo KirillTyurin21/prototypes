@@ -24,6 +24,9 @@ import {
   Settings,
   BarChart3,
   KeyRound,
+  // MenuList & dish selector
+  CheckSquare,
+  ImageOff,
   // Web Screens prototype
   Menu,
   Bell,
@@ -211,6 +214,8 @@ const icons = {
   FileEdit,
   Settings,
   BarChart3,
+  CheckSquare,
+  ImageOff,
   // Web Screens prototype
   Menu,
   Bell,
