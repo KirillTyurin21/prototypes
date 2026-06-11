@@ -77,8 +77,6 @@ type PanelView = 'theme' | 'add-element' | 'element';
                 </div>
               </div>
             </div>
-            <div class="element-type-separator">Элементы контрола</div>
-            <div *ngFor="let et of elementTypes" class="element-type-item" (click)="addElement(et.type)">{{ et.label }}</div>
           </ng-container>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
