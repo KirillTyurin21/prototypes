@@ -204,11 +204,13 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               <div class="section-divider">Цвета строк</div>
               <div class="field-group">
                 <label class="field-label">Цвет основной строки</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.rowBgColor" />
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.rowBgColor" [disabled]="!!selectedElement.rowBgTransparent" />
+                <label class="field-check" style="margin-top:6px"><input type="checkbox" [(ngModel)]="selectedElement.rowBgTransparent" /> Прозрачный</label>
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет подсветки</label>
-                <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" />
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" [disabled]="!!selectedElement.highlightTransparent" />
+                <label class="field-check" style="margin-top:6px"><input type="checkbox" [(ngModel)]="selectedElement.highlightTransparent" /> Прозрачный</label>
               </div>
               <div class="section-divider">Шрифт названия</div>
               <div class="field-group">
@@ -686,8 +688,10 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   getRowBg(el: ArrivalsThemeElement, odd: boolean): string {
-    if (!el.alternateRows) return el.rowBgColor || '#ffffff';
-    return odd ? (el.highlightColor || '#f5f5f5') : (el.rowBgColor || '#ffffff');
+    const primary = el.rowBgTransparent ? 'transparent' : (el.rowBgColor || '#ffffff');
+    const alt = el.highlightTransparent ? 'transparent' : (el.highlightColor || '#f5f5f5');
+    if (!el.alternateRows) return primary;
+    return odd ? alt : primary;
   }
 
   formatSizes(sizes?: { name: string; price: number }[]): string {
@@ -728,7 +732,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
     if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; }
-    if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
+    if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     this.theme.elements.push(el);
     this.selectedElementId = el.id; this.panelView = 'element';
   }

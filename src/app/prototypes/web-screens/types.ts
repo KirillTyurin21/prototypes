@@ -230,7 +230,9 @@ export interface ArrivalsThemeElement {
   alternateRows?: boolean;
   rowPadding?: number;
   rowBgColor?: string;
+  rowBgTransparent?: boolean;
   highlightColor?: string;
+  highlightTransparent?: boolean;
   showIcons?: boolean;
   showDescription?: boolean;
   showAllergens?: boolean;
