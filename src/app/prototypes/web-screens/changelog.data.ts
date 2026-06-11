@@ -2,6 +2,29 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.29',
+    date: '2026-06-11',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Электронная очередь — Редактор тем',
+        pageRoute: '/prototype/web-screens/themes-arrivals',
+        items: [
+          'Добавлена кнопка «Редактировать контрол» в инспекторе области — переход в редактор контрола прямо из редактора темы',
+          'После сохранения контрола кнопка «Назад» возвращает обратно в редактор темы',
+        ],
+      },
+      {
+        page: 'Доска меню — Редактор тем',
+        pageRoute: '/prototype/web-screens/menuboard-themes',
+        items: [
+          'Добавлена кнопка «Редактировать контрол» в инспекторе области — переход в редактор контрола прямо из редактора темы',
+          'После сохранения контрола кнопка «Назад» возвращает обратно в редактор темы',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.28',
     date: '2026-06-11',
     status: 'released',

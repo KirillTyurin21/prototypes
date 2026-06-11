@@ -678,6 +678,16 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    const returnTo = this.route.snapshot.queryParamMap.get('return');
+    const themeId = this.route.snapshot.queryParamMap.get('themeId');
+    if (returnTo === 'theme-editor' && themeId) {
+      this.router.navigate(['/prototype/web-screens/arrivals-theme-editor', themeId]);
+      return;
+    }
+    if (returnTo === 'menuboard-theme-editor' && themeId) {
+      this.router.navigate(['/prototype/web-screens/menuboard-theme-editor', themeId]);
+      return;
+    }
     const parentSegment = this.route.snapshot.url[0]?.path || '';
     const parentRoute = parentSegment === 'menuboard-control-editor' ? 'menuboard-controls' : 'arrivals-controls';
     this.router.navigate(['/prototype/web-screens', parentRoute]);

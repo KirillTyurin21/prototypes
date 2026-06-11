@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { IconsModule } from '@/shared/icons.module';
 import { ArrivalsThemeElement, ArrivalsControl } from '../../types';
 import { CollapsibleSectionComponent } from '../inspector/collapsible-section.component';
 import { LayoutFieldsComponent } from '../inspector/layout-fields.component';
@@ -13,6 +14,7 @@ import { ColorFieldComponent } from '../inspector/color-field.component';
   imports: [
     CommonModule,
     FormsModule,
+    IconsModule,
     CollapsibleSectionComponent,
     LayoutFieldsComponent,
     BorderFieldsComponent,
@@ -25,6 +27,14 @@ import { ColorFieldComponent } from '../inspector/color-field.component';
         <option [ngValue]="undefined">\u2014 Выберите контрол \u2014</option>
         <option *ngFor="let c of availableControls" [ngValue]="c.id">{{ c.name }}</option>
       </select>
+      <button
+        *ngIf="element.areaControlId"
+        class="btn-edit-control"
+        (click)="editControl.emit(element.areaControlId!)"
+      >
+        <lucide-icon name="pencil" [size]="14"></lucide-icon>
+        Редактировать контрол
+      </button>
     </div>
 
     <div class="field-group">
@@ -154,6 +164,16 @@ import { ColorFieldComponent } from '../inspector/color-field.component';
     }
     .section-divider::before { left: 0; }
     .section-divider::after { right: 0; }
+
+    .btn-edit-control {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding: 6px 12px;
+      border: 1px solid #1976d2; border-radius: 4px;
+      background: transparent; color: #1976d2;
+      font-size: 12px; font-family: Roboto, sans-serif; font-weight: 500;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .btn-edit-control:hover { background: #e3f2fd; }
   `],
 })
 export class AreaElementInspectorComponent {
@@ -161,6 +181,7 @@ export class AreaElementInspectorComponent {
   @Input() availableControls: ArrivalsControl[] = [];
 
   @Output() areaControlChange = new EventEmitter<void>();
+  @Output() editControl = new EventEmitter<number>();
 
   get availableStatuses(): string[] {
     const t = this.element.areaStatusType;

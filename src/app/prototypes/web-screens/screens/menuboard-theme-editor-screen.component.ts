@@ -341,7 +341,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
             </ng-container>
             <!-- Standard element inspector for non-menulist, non-area -->
             <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist'" [element]="selectedElement"></app-theme-element-inspector>
-            <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()"></app-area-element-inspector>
+            <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()" (editControl)="onEditControl($event)"></app-area-element-inspector>
           </ng-container>
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
@@ -847,5 +847,13 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   goBack(): void { this.router.navigate(['/prototype/web-screens/menuboard-themes']); }
+
+  onEditControl(controlId: number): void {
+    this.save();
+    const themeId = this.route.snapshot.paramMap.get('id') || 'new';
+    this.router.navigate(['/prototype/web-screens/menuboard-control-editor', controlId], {
+      queryParams: { return: 'menuboard-theme-editor', themeId }
+    });
+  }
   private showToast(msg: string): void { this.toastMessage = msg; setTimeout(() => (this.toastMessage = ''), 3000); }
 }

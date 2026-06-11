@@ -81,7 +81,7 @@ type PanelView = 'theme' | 'add-element' | 'element';
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
             <app-theme-element-inspector *ngIf="selectedElement.type !== 'area'" [element]="selectedElement"></app-theme-element-inspector>
-            <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()"></app-area-element-inspector>
+            <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()" (editControl)="onEditControl($event)"></app-area-element-inspector>
           </ng-container>
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
@@ -413,5 +413,14 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   }
 
   goBack(): void { this.router.navigate(['/prototype/web-screens/themes-arrivals']); }
+
+  onEditControl(controlId: number): void {
+    // Автосохранение темы перед уходом в редактор контрола
+    this.save();
+    const themeId = this.route.snapshot.paramMap.get('id') || 'new';
+    this.router.navigate(['/prototype/web-screens/arrivals-control-editor', controlId], {
+      queryParams: { return: 'theme-editor', themeId }
+    });
+  }
   private showToast(msg: string): void { this.toastMessage = msg; setTimeout(() => (this.toastMessage = ''), 3000); }
 }
