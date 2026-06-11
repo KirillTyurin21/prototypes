@@ -83,13 +83,24 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           </ng-container>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
-            <!-- Campaign selector for Advertise elements -->
+            <!-- Campaign multi-select for Advertise elements -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
-              <label class="field-label">Рекламная кампания <span style="color: #e53935;">*</span></label>
-              <select class="field-select" [ngModel]="selectedElement.campaignId" (ngModelChange)="selectedElement.campaignId = $event">
-                <option [ngValue]="null" disabled>Выберите кампанию...</option>
-                <option *ngFor="let c of campaignOptions" [ngValue]="c.id">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</option>
-              </select>
+              <label class="field-label">Рекламные кампании</label>
+              <div class="campaign-multiselect">
+                <label
+                  *ngFor="let c of campaignOptions"
+                  class="campaign-checkbox"
+                  (click)="toggleCampaign(c.id)"
+                >
+                  <span class="campaign-checkbox-box" [class.checked]="isCampaignSelected(c.id)"></span>
+                  <span class="campaign-checkbox-label">{{ c.name }}</span>
+                  <span class="campaign-checkbox-dates">{{ formatCampaignDate(c.dateFrom) }} – {{ formatCampaignDate(c.dateTo) }}</span>
+                </label>
+                <div *ngIf="!selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
+              </div>
+              <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
+                Выбрано кампаний: {{ selectedCampaignCount }}
+              </div>
             </div>
             <!-- MenuList inspector -->
             <ng-container *ngIf="selectedElement.type === 'menulist'">
@@ -217,6 +228,18 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .field-input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; box-sizing: border-box; }
     .field-input:focus { outline: none; border-color: #448aff; }
     .field-select { width: 100%; height: 36px; padding: 0 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; background: #fff; cursor: pointer; box-sizing: border-box; }
+    /* Campaign multi-select */
+    .campaign-multiselect { max-height: 200px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
+    .campaign-checkbox { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f5f5f5; }
+    .campaign-checkbox:last-child { border-bottom: none; }
+    .campaign-checkbox:hover { background: #f5f5f5; }
+    .campaign-checkbox-box { width: 18px; height: 18px; border: 2px solid #bdbdbd; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .campaign-checkbox-box.checked { background: #1976d2; border-color: #1976d2; }
+    .campaign-checkbox-box.checked::after { content: ''; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -1px; }
+    .campaign-checkbox-label { flex: 1; font-size: 13px; color: #333; }
+    .campaign-checkbox-dates { font-size: 11px; color: #9e9e9e; flex-shrink: 0; }
+    .campaign-empty-hint { padding: 12px 10px; font-size: 12px; color: #bdbdbd; text-align: center; }
+    .campaign-selected-count { margin-top: 6px; font-size: 12px; color: #1976d2; font-weight: 500; }
     .section-divider { position: relative; text-align: center; margin: 20px 0 12px; font-size: 13px; font-weight: 500; color: #9e9e9e; }
     .section-divider::before, .section-divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 50px); height: 1px; background: #e0e0e0; }
     .section-divider::before { left: 0; } .section-divider::after { right: 0; }
@@ -431,11 +454,35 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Advertise helpers */
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
-    if (el.campaignId) {
-      const camp = this.campaignOptions.find(c => c.id === el.campaignId);
-      return 'Динамическая область: ' + (camp?.name ?? 'Кампания #' + el.campaignId);
+    const ids = el.campaignIds;
+    if (ids && ids.length > 0) {
+      const names = ids.map(id => {
+        const camp = this.campaignOptions.find(c => c.id === id);
+        return camp?.name ?? '#' + id;
+      });
+      return 'Динамическая область: ' + names.join(', ');
     }
     return 'Динамическая область';
+  }
+
+  /* Campaign multi-select helpers */
+  toggleCampaign(campId: number): void {
+    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
+    if (!this.selectedElement.campaignIds) this.selectedElement.campaignIds = [];
+    const idx = this.selectedElement.campaignIds.indexOf(campId);
+    if (idx >= 0) {
+      this.selectedElement.campaignIds.splice(idx, 1);
+    } else {
+      this.selectedElement.campaignIds.push(campId);
+    }
+  }
+
+  isCampaignSelected(campId: number): boolean {
+    return this.selectedElement?.campaignIds?.includes(campId) ?? false;
+  }
+
+  get selectedCampaignCount(): number {
+    return this.selectedElement?.campaignIds?.length ?? 0;
   }
 
   getDishName(externalId: string): string {
@@ -538,7 +585,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
-    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignId = null; }
+    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.highlightColor = '#f5f5f5'; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' }; }
     this.theme.elements.push(el);
     this.selectedElementId = el.id; this.panelView = 'element';

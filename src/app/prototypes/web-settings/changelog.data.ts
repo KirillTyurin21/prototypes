@@ -2,6 +2,20 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.1',
+    date: '2026-06-11',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Права доступа',
+        pageRoute: '/prototype/web-settings',
+        items: [
+          'Убраны промежуточные подпапки внутри «Экраны и звуки» — коды APP_* теперь на первом уровне (обратная связь Миши)',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.0',
     date: '2026-06-10',
     status: 'released',

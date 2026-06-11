@@ -223,7 +223,7 @@ export interface ArrivalsThemeElement {
   areaInterlineSpacing?: number;
   areaBgColor?: string;
   // Advertise (MenuBoard dynamic region)
-  campaignId?: number | null;
+  campaignIds?: number[];
   // MenuList
   productIds?: string[];
   rowHeight?: number;

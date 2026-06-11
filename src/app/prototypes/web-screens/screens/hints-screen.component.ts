@@ -66,6 +66,10 @@ import { HintReportPanelComponent } from '../components/hint-report-panel/hint-r
             (valueChange)="applyFilters()"
           ></ui-input>
         </div>
+        <button class="report-toolbar-btn" (click)="openReportDashboard()">
+          <lucide-icon name="bar-chart-3" [size]="16"></lucide-icon>
+          <span>Отчет</span>
+        </button>
       </div>
 
       <!-- Table -->
@@ -95,15 +99,6 @@ import { HintReportPanelComponent } from '../components/hint-report-panel/hint-r
             <span class="status-badge" [ngClass]="getStatusClass(item.status)">
               {{ getStatusLabel(item.status) }}
             </span>
-          </ng-template>
-          <ng-template tableCellDef="report" let-item>
-            <button
-              class="report-btn"
-              title="Отчет по подсказке"
-              (click)="openReportForHint(item); $event.stopPropagation()"
-            >
-              <lucide-icon name="bar-chart-3" [size]="16"></lucide-icon>
-            </button>
           </ng-template>
         </ui-table>
       </div>
@@ -138,7 +133,7 @@ import { HintReportPanelComponent } from '../components/hint-report-panel/hint-r
       <!-- Report Panel -->
       <app-hint-report-panel
         [open]="reportPanelOpen"
-        [hint]="reportHint"
+        [hints]="hints"
         (close)="closeReportPanel()"
       ></app-hint-report-panel>
     </div>
@@ -184,6 +179,13 @@ import { HintReportPanelComponent } from '../components/hint-report-panel/hint-r
     .app-btn-danger-icon:hover { background: #ffebee; }
 
     .toolbar { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
+    .report-toolbar-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0 14px; height: 34px; border: 1px solid #e0e0e0; border-radius: 4px;
+      background: #fff; color: #1976d2; font-size: 13px; font-weight: 500;
+      font-family: Roboto, sans-serif; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .report-toolbar-btn:hover { background: #e3f2fd; border-color: #1976d2; }
     .search-box { width: 280px; }
 
     .table-container { border-radius: 4px; overflow: hidden; }
@@ -198,14 +200,6 @@ import { HintReportPanelComponent } from '../components/hint-report-panel/hint-r
     .status-active { background: #e8f5e9; color: #2e7d32; }
     .status-scheduled { background: #e3f2fd; color: #1565c0; }
     .status-expired { background: #f5f5f5; color: #757575; }
-
-    .report-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; border: none; border-radius: 4px;
-      background: transparent; color: #757575; cursor: pointer;
-      transition: all 0.15s;
-    }
-    .report-btn:hover { background: #e3f2fd; color: #1976d2; }
   `],
 })
 export class HintsScreenComponent implements OnInit {
@@ -222,7 +216,6 @@ export class HintsScreenComponent implements OnInit {
   drawerHint: Hint | null = null;
   editingHint: Hint | null = null;
   reportPanelOpen = false;
-  reportHint: Hint | null = null;
   nameError = '';
   selectedControlId = '';
 
@@ -239,7 +232,6 @@ export class HintsScreenComponent implements OnInit {
     { key: 'period', header: 'Период действия', width: '200px' },
     { key: 'time', header: 'Время действия', width: '150px' },
     { key: 'status', header: 'Статус', width: '140px' },
-    { key: 'report', header: '', width: '48px' },
   ];
   rowKeyFn = (item: Hint) => item.id;
 
@@ -394,16 +386,11 @@ export class HintsScreenComponent implements OnInit {
     return 'active';
   }
 
-  openReportPanel(): void {
-    this.reportPanelOpen = true;
-  }
-
   closeReportPanel(): void {
     this.reportPanelOpen = false;
   }
 
-  openReportForHint(item: Hint): void {
-    this.reportHint = item;
+  openReportDashboard(): void {
     this.reportPanelOpen = true;
   }
 
