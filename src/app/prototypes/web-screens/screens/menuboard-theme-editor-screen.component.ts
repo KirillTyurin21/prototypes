@@ -31,12 +31,12 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
-            <ng-container *ngFor="let el of theme.elements">
-              <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+            <ng-container *ngFor="let el of theme.elements; let i = index">
+              <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <app-area-element-renderer [element]="el" [orderPositions]="areaHelper.getOrderPositions(el, sim.orders, sim.active, mockOrders, availableControls)" [emulationRunning]="areaHelper.isRunning(el.id)" [hasControl]="!!el.areaControlId" (toggleEmu)="areaHelper.toggle($event, getFilterSource(), availableControls)" (resetEmu)="areaHelper.reset($event.id)" (fillEmu)="areaHelper.fill($event, getFilterSource(), availableControls)"></app-area-element-renderer>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
-              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <span *ngIf="el.type === 'text'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
                 <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
                 <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
@@ -139,7 +139,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
             <div class="section-divider">Настройка режима</div>
             <div class="field-group"><select class="field-select" [(ngModel)]="theme.screenMode"><option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option></select></div>
             <div class="section-divider">Элементы</div>
-            <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" (click)="selectElementFromList(el.id)"><span class="el-list-name">{{ el.name }}</span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
+            <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" [class.list-dragging]="listDragIndex === i" [class.list-drag-above]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! > i" [class.list-drag-below]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! < i" (click)="selectElementFromList(el.id)" (mousedown)="onListMouseDown(i, $event)"><span class="el-list-name">{{ el.name }}</span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
             <button class="btn-add-element" (click)="panelView = 'add-element'">Добавить элемент</button>
           </ng-container>
           <ng-container *ngIf="panelView === 'add-element'">
@@ -427,8 +427,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .section-divider { position: relative; text-align: center; margin: 20px 0 12px; font-size: 13px; font-weight: 500; color: #9e9e9e; }
     .section-divider::before, .section-divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 50px); height: 1px; background: #e0e0e0; }
     .section-divider::before { left: 0; } .section-divider::after { right: 0; }
-    .element-list-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; margin-bottom: 4px; border-radius: 4px; cursor: pointer; transition: background 0.15s; font-size: 13px; }
+    .element-list-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; margin-bottom: 4px; border-radius: 4px; cursor: grab; transition: background 0.15s, opacity 0.15s, transform 0.1s; font-size: 13px; position: relative; }
     .element-list-item:hover { background: #f5f5f5; } .element-list-item.active { background: #e3f2fd; }
+    .element-list-item.list-dragging { opacity: 0.4; cursor: grabbing; }
+    .element-list-item.list-drag-above::before { content: ''; position: absolute; top: -2px; left: 0; right: 0; height: 2px; background: #1976d2; border-radius: 1px; z-index: 1; }
+    .element-list-item.list-drag-below::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #1976d2; border-radius: 1px; z-index: 1; }
     .el-list-name { flex: 1; }
     .el-list-delete { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: none; border-radius: 3px; background: transparent; color: #bdbdbd; cursor: pointer; }
     .el-list-delete:hover { background: #ffebee; color: #e53935; }
@@ -517,6 +520,14 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   dragState: { elementId: string; startMouseX: number; startMouseY: number; startElX: number; startElY: number } | null = null;
   resizeState: { elementId: string; handle: string; startMouseX: number; startMouseY: number; startElX: number; startElY: number; startElW: number; startElH: number } | null = null;
+
+  /* ── List drag reorder ── */
+  listDragIndex: number | null = null;
+  listDragOverIndex: number | null = null;
+  private listDragStartY = 0;
+  private boundListMouseMove = this.onListMouseMove.bind(this);
+  private boundListMouseUp = this.onListMouseUp.bind(this);
+
   private boundMouseMove = this.onDocMouseMove.bind(this);
   private boundMouseUp = this.onDocMouseUp.bind(this);
 
@@ -539,6 +550,48 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   toggleCategory(id: string): void {
     const cat = this.themeCategories.find(c => c.id === id);
     if (cat) cat.collapsed = !cat.collapsed;
+  }
+
+  /* ── List drag reorder ── */
+  onListMouseDown(index: number, event: MouseEvent): void {
+    if (event.button !== 0) return;
+    // Don't start drag if clicking the delete button
+    const target = event.target as HTMLElement;
+    if (target.closest('.el-list-delete')) return;
+    event.preventDefault();
+    this.listDragIndex = index;
+    this.listDragOverIndex = index;
+    this.listDragStartY = event.clientY;
+    document.addEventListener('mousemove', this.boundListMouseMove);
+    document.addEventListener('mouseup', this.boundListMouseUp);
+  }
+
+  private onListMouseMove(event: MouseEvent): void {
+    if (this.listDragIndex === null) return;
+    const items = document.querySelectorAll('.element-list-item');
+    let closest = this.listDragIndex;
+    let closestDist = Infinity;
+    items.forEach((item, i) => {
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const dist = Math.abs(event.clientY - midY);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = i;
+      }
+    });
+    this.listDragOverIndex = closest;
+  }
+
+  private onListMouseUp(): void {
+    if (this.listDragIndex !== null && this.listDragOverIndex !== null && this.listDragIndex !== this.listDragOverIndex) {
+      const el = this.theme.elements.splice(this.listDragIndex, 1)[0];
+      this.theme.elements.splice(this.listDragOverIndex, 0, el);
+    }
+    this.listDragIndex = null;
+    this.listDragOverIndex = null;
+    document.removeEventListener('mousemove', this.boundListMouseMove);
+    document.removeEventListener('mouseup', this.boundListMouseUp);
   }
 
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
@@ -565,6 +618,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   ngOnDestroy(): void {
     document.removeEventListener('mousemove', this.boundMouseMove);
     document.removeEventListener('mouseup', this.boundMouseUp);
+    document.removeEventListener('mousemove', this.boundListMouseMove);
+    document.removeEventListener('mouseup', this.boundListMouseUp);
     this.areaHelper.clearAll();
     this.sim.stopAuto();
   }
