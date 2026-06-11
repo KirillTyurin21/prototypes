@@ -205,7 +205,7 @@ export class MenuboardTerminalsScreenComponent {
   showToast = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
-  openDropdown: { terminalId: number; column: 'hints' | 'terminalGroups' } | null = null;
+  openDropdown: { terminalId: number; column: 'hints' } | null = null;
   isSending = false;
   screenshotLoadingId: number | null = null;
   screenshotModal: TerminalScreenshot | null = null;
@@ -242,30 +242,19 @@ export class MenuboardTerminalsScreenComponent {
   }
   toggleTerminal(id: number): void { this.selectedTerminals.has(id) ? this.selectedTerminals.delete(id) : this.selectedTerminals.add(id); }
   onThemeChange(restaurantId: number, terminal: CSTerminalV2, themeId: number | null): void { terminal.themeId = themeId; this.dataService.markTerminalChanged(restaurantId, terminal.id); }
-  toggleDropdown(terminalId: number, column: 'hints' | 'terminalGroups'): void {
+  toggleDropdown(terminalId: number, column: 'hints'): void {
     this.openDropdown = (this.openDropdown?.terminalId === terminalId && this.openDropdown?.column === column) ? null : { terminalId, column };
   }
-  isDropdownOpen(terminalId: number, column: 'hints' | 'terminalGroups'): boolean {
+  isDropdownOpen(terminalId: number, column: 'hints'): boolean {
     return this.openDropdown?.terminalId === terminalId && this.openDropdown?.column === column;
   }
   onPageClick(_event: Event): void { if (this.openDropdown) this.openDropdown = null; }
-  toggleTerminalGroup(restaurantId: number, terminal: CSTerminalV2, groupId: number): void {
-    const idx = terminal.terminalGroupIds.indexOf(groupId);
-    idx >= 0 ? terminal.terminalGroupIds.splice(idx, 1) : terminal.terminalGroupIds.push(groupId);
-    this.dataService.markTerminalChanged(restaurantId, terminal.id);
-  }
-  clearTerminalGroups(restaurantId: number, terminal: CSTerminalV2): void { terminal.terminalGroupIds = []; this.dataService.markTerminalChanged(restaurantId, terminal.id); }
   toggleHint(restaurantId: number, terminal: CSTerminalV2, hintId: number): void {
     const idx = terminal.hintIds.indexOf(hintId);
     idx >= 0 ? terminal.hintIds.splice(idx, 1) : terminal.hintIds.push(hintId);
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
   clearHints(restaurantId: number, terminal: CSTerminalV2): void { terminal.hintIds = []; this.dataService.markTerminalChanged(restaurantId, terminal.id); }
-  getTerminalGroupsSummary(terminal: CSTerminalV2): string {
-    if (terminal.terminalGroupIds.length === 0) return '--- Все группы ---';
-    if (terminal.terminalGroupIds.length === 1) { const opt = this.dataService.terminalGroupOptions.find(g => g.id === terminal.terminalGroupIds[0]); return opt?.name ?? '1 vibrano'; }
-    return terminal.terminalGroupIds.length + ' vibrano';
-  }
   getHintsSummary(terminal: CSTerminalV2): string {
     if (terminal.hintIds.length === 0) return '--- Не выбрано ---';
     if (terminal.hintIds.length === 1) { const opt = this.dataService.hintOptions.find(h => h.id === terminal.hintIds[0]); return opt?.name ?? '1 vibrano'; }
@@ -283,12 +272,6 @@ export class MenuboardTerminalsScreenComponent {
     if (ids.size === 0) return '---';
     const names = Array.from(ids).map(id => this.dataService.hintOptions.find(h => h.id === id)?.name).filter(Boolean);
     return names.length <= 2 ? names.join(', ') : names.length + ' podskazok';
-  }
-  getDefaultTerminalGroupsSummary(restaurant: CSRestaurant): string {
-    const ids = new Set<number>(); for (const t of restaurant.terminals) for (const id of t.terminalGroupIds) ids.add(id);
-    if (ids.size === 0) return 'Vse gruppi';
-    const names = Array.from(ids).map(id => this.dataService.terminalGroupOptions.find(g => g.id === id)?.name).filter(Boolean);
-    return names.length <= 2 ? names.join(', ') : names.length + ' grupp';
   }
   getTerminalWord(n: number): string {
     const m10 = n % 10, m100 = n % 100;

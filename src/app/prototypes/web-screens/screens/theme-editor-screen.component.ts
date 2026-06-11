@@ -365,13 +365,6 @@ export class ThemeEditorScreenComponent implements OnInit {
     this.router.navigate(['/prototype/web-screens/themes-cs']);
   }
 
-  onScreenModeChange(): void {
-    // При переключении на «Касса не работает» сбрасываем кампанию если не выбрана
-    if (this.theme && this.theme.screenMode === 'closed' && this.theme.closedModeCampaignId === undefined) {
-      this.theme.closedModeCampaignId = null;
-    }
-  }
-
   deselectElement(): void {
     this.selectedElementId = null;
   }
