@@ -45,6 +45,9 @@ import { HintReportPanelComponent } from '../components/hint-report-panel/hint-r
             <button class="app-btn app-btn-icon" [disabled]="!selectedHint" title="Редактировать" (click)="openEditDrawer()">
               <lucide-icon name="pencil" [size]="16"></lucide-icon>
             </button>
+            <button class="app-btn app-btn-icon" [disabled]="!selectedHint" title="Дублировать" (click)="duplicateHint()">
+              <lucide-icon name="copy" [size]="16"></lucide-icon>
+            </button>
             <button class="app-btn app-btn-danger-icon" [disabled]="!selectedHint" title="Удалить" (click)="confirmDelete()">
               <lucide-icon name="trash-2" [size]="16"></lucide-icon>
             </button>
@@ -339,6 +342,19 @@ export class HintsScreenComponent implements OnInit {
     this.nameError = '';
     this.buildControlOptions();
     this.drawerOpen = true;
+  }
+
+  duplicateHint(): void {
+    if (!this.selectedHint) return;
+    const source = this.hints.find(h => h.id === this.selectedHint!.id);
+    if (!source) return;
+    const { id, ...rest } = JSON.parse(JSON.stringify(source)) as Hint;
+    rest.name = source.name + ' (копия)';
+    rest.status = 'scheduled';
+    const created = this.dataService.addHint(rest);
+    this.loadHints();
+    this.selectedHint = null;
+    this.showToast(`Создана копия подсказки «${created.name}»`);
   }
 
   confirmDelete(): void {

@@ -7,7 +7,8 @@ import { Hint } from '../../cs-types';
 interface HintRowData {
   hintId: number;
   hintName: string;
-  shows: number;
+  guestShows: number;
+  cashierShows: number;
   sales: number;
   conversion: number;
 }
@@ -37,6 +38,10 @@ type Period = 'day' | 'week' | 'month';
           <button class="period-btn" [class.period-active]="selectedPeriod === 'week'" (click)="onPeriodChange('week')">Неделя</button>
           <button class="period-btn" [class.period-active]="selectedPeriod === 'month'" (click)="onPeriodChange('month')">Месяц</button>
         </div>
+        <label class="cashier-check" (click)="showCashier = !showCashier; loadData()">
+          <span class="cashier-check-box" [class.checked]="showCashier"></span>
+          <span class="cashier-check-label">Учитывать показы кассиру</span>
+        </label>
       </div>
       <div class="panel-body">
         <!-- Loading -->
@@ -94,17 +99,29 @@ type Period = 'day' | 'week' | 'month';
             </div>
           </div>
           <!-- Table -->
-          <div class="dashboard-table">
+          <div class="dashboard-table" [class.dt-cashier]="showCashier">
             <div class="dash-table-header">
               <span class="dth-name">Название подсказки</span>
-              <span class="dth-val">Срабатывание</span>
-              <span class="dth-val">Продаж</span>
-              <span class="dth-val">Конверсия</span>
+              <ng-container *ngIf="!showCashier">
+                <span class="dth-val" title="Количество показов подсказки гостю на экране покупателя">Показы гостю</span>
+              </ng-container>
+              <ng-container *ngIf="showCashier">
+                <span class="dth-val" title="Количество показов подсказки гостю на экране покупателя">Показы гостю</span>
+                <span class="dth-val" title="Количество показов подсказки кассиру на экране терминала">Показы кассиру</span>
+              </ng-container>
+              <span class="dth-val" title="Количество заказов, в которых подсказка привела к продаже">Продаж</span>
+              <span class="dth-val" title="Процент продаж от общего количества показов">Конверсия</span>
             </div>
             <div class="dash-table-body">
               <div *ngFor="let row of rows; let odd = odd" class="dash-table-row" [class.dtr-odd]="odd">
                 <span class="dtr-name">{{ row.hintName }}</span>
-                <span class="dtr-val">{{ row.shows }}</span>
+                <ng-container *ngIf="!showCashier">
+                  <span class="dtr-val">{{ row.guestShows + row.cashierShows }}</span>
+                </ng-container>
+                <ng-container *ngIf="showCashier">
+                  <span class="dtr-val">{{ row.guestShows }}</span>
+                  <span class="dtr-val">{{ row.cashierShows }}</span>
+                </ng-container>
                 <span class="dtr-val">{{ row.sales }}</span>
                 <span class="dtr-val">{{ row.conversion }}%</span>
               </div>
@@ -149,9 +166,17 @@ type Period = 'day' | 'week' | 'month';
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .legend-name { flex: 1; color: #424242; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .legend-pct { color: #757575; font-weight: 500; flex-shrink: 0; }
+    /* Cashier checkbox */
+    .cashier-check { display: flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; margin-left: auto; }
+    .cashier-check-box { width: 16px; height: 16px; border: 2px solid #bdbdbd; border-radius: 3px; flex-shrink: 0; transition: all 0.15s; }
+    .cashier-check-box.checked { background: #1976d2; border-color: #1976d2; }
+    .cashier-check-label { font-size: 12px; color: #616161; }
+    .cashier-check:hover .cashier-check-label { color: #1976d2; }
     /* Table */
     .dashboard-table { border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; }
     .dash-table-header { display: grid; grid-template-columns: 1fr 110px 90px 90px; gap: 0; background: #fafafa; border-bottom: 1px solid #e0e0e0; }
+    .dt-cashier .dash-table-header { grid-template-columns: 1fr 100px 100px 80px 80px; }
+    .dt-cashier .dash-table-row { grid-template-columns: 1fr 100px 100px 80px 80px; }
     .dash-table-header span { padding: 10px 12px; font-size: 12px; font-weight: 500; color: #757575; }
     .dash-table-body { max-height: 360px; overflow-y: auto; }
     .dash-table-row { display: grid; grid-template-columns: 1fr 110px 90px 90px; gap: 0; border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
@@ -187,6 +212,7 @@ export class HintReportPanelComponent implements OnChanges {
 
   state: 'loading' | 'normal' | 'empty' | 'error' = 'loading';
   selectedPeriod: Period = 'week';
+  showCashier = false;
   rows: HintRowData[] = [];
   pieSegments: { name: string; percent: number; color: string; dashArray: string; dashOffset: string }[] = [];
   private loadTimer: any;
@@ -224,7 +250,7 @@ export class HintReportPanelComponent implements OnChanges {
       }
       const multiplier = this.selectedPeriod === 'day' ? 0.14 : this.selectedPeriod === 'week' ? 1 : 4.2;
       this.rows = generateAllRows(this.hints, multiplier);
-      const totalShows = this.rows.reduce((s, r) => s + r.shows, 0);
+      const totalShows = this.rows.reduce((s, r) => s + r.guestShows + r.cashierShows, 0);
       if (totalShows === 0) {
         this.state = 'empty';
         return;
@@ -239,7 +265,8 @@ export class HintReportPanelComponent implements OnChanges {
     const circumference = 2 * Math.PI * 85; // r=85
     let offset = 0;
     this.pieSegments = this.rows.map((row, i) => {
-      const percent = totalShows > 0 ? Math.round((row.shows / totalShows) * 1000) / 10 : 0;
+      const rowTotal = row.guestShows + row.cashierShows;
+      const percent = totalShows > 0 ? Math.round((rowTotal / totalShows) * 1000) / 10 : 0;
       const length = (percent / 100) * circumference;
       const seg = {
         name: row.hintName,
@@ -253,7 +280,7 @@ export class HintReportPanelComponent implements OnChanges {
     });
   }
 
-  get totalShows(): number { return this.rows.reduce((s, r) => s + r.shows, 0); }
+  get totalShows(): number { return this.rows.reduce((s, r) => s + r.guestShows + r.cashierShows, 0); }
   get totalSales(): number { return this.rows.reduce((s, r) => s + r.sales, 0); }
   get totalConversion(): number {
     const s = this.totalShows;
@@ -270,9 +297,11 @@ function generateAllRows(hints: Hint[], multiplier: number): HintRowData[] {
     const seed = (hint.id * 7 + 3) % 100;
     const baseShows = 120 + seed;
     const baseSales = Math.round(baseShows * (0.25 + (seed % 30) / 100));
-    const shows = Math.round(baseShows * multiplier);
+    const totalShows = Math.round(baseShows * multiplier);
+    const guestPart = Math.round(totalShows * (0.4 + (seed % 30) / 100));
+    const cashierPart = totalShows - guestPart;
     const sales = Math.round(baseSales * multiplier);
-    const conversion = shows > 0 ? Math.round((sales / shows) * 1000) / 10 : 0;
-    return { hintId: hint.id, hintName: hint.name, shows, sales, conversion };
+    const conversion = totalShows > 0 ? Math.round((sales / totalShows) * 1000) / 10 : 0;
+    return { hintId: hint.id, hintName: hint.name, guestShows: guestPart, cashierShows: cashierPart, sales, conversion };
   });
 }
