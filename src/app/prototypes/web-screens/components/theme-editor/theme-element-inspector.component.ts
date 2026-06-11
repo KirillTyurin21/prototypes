@@ -66,6 +66,14 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
         <label class="field-label">URL изображения</label>
         <input class="field-input" [(ngModel)]="element.imageUrl" placeholder="https://..." />
       </div>
+      <div class="field-group">
+        <label class="field-label">Загрузить с ПК</label>
+        <input type="file" accept="image/*" style="display:none" #fileInput (change)="onFileSelected($event)" />
+        <button class="btn-upload-image" (click)="fileInput.click()">
+          <lucide-icon name="upload" [size]="16"></lucide-icon>
+          Выбрать файл
+        </button>
+      </div>
 
       <app-collapsible-section title="Макет">
         <app-layout-fields
@@ -388,6 +396,9 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       margin-top: 8px;
     }
     .hint-icon { color: #ffa000; flex-shrink: 0; margin-top: 1px; }
+    .btn-upload-image { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; color: #333; font-size: 13px; font-family: Roboto, sans-serif; cursor: pointer; transition: background 0.15s; }
+    .btn-upload-image:hover { background: #f0f0f0; }
+    .el-image-img { width: 100%; height: 100%; object-fit: contain; }
   `],
 })
 export class ThemeElementInspectorComponent implements OnChanges {
@@ -428,6 +439,17 @@ export class ThemeElementInspectorComponent implements OnChanges {
 
   isGenericElement(type: ArrivalsElementType): boolean {
     return !['text', 'image', 'area', 'price'].includes(type);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.element.imageUrl = reader.result as string;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
   }
 
   /* ── Tree Methods ── */

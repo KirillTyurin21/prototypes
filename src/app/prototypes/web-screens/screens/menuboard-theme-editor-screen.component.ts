@@ -7,7 +7,8 @@ import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
-import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock } from '../types';
+import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
+import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
 import { AreaElementInspectorComponent } from '../components/theme-editor/area-element-inspector.component';
@@ -37,9 +38,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               </div>
               <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <span *ngIf="el.type === 'text'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
-                <span *ngIf="el.type === 'image'" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
+                <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
+                <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
                 <span *ngIf="el.type === 'price'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign" [title]="getPriceTooltip(el)">{{ getPricePreview(el) }}</span>
                 <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
+                <span *ngIf="el.type === 'counter'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
                   <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
                   <div class="ml-rows" *ngIf="el.productIds?.length">
@@ -117,7 +120,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                     </div>
                   </div>
                 </div>
-                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist'" class="el-placeholder-label">{{ el.name }}</span>
+                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist' && el.type !== 'counter'" class="el-placeholder-label">{{ el.name }}</span>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
             </ng-container>
@@ -141,10 +144,21 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           </ng-container>
           <ng-container *ngIf="panelView === 'add-element'">
             <div class="add-element-header"><span class="add-element-title">Добавить элемент</span><button class="icon-btn-sm" (click)="panelView = 'theme'"><lucide-icon name="x" [size]="18"></lucide-icon></button></div>
-            <div class="element-type-list">
-              <div class="element-type-item element-type-area" (click)="addElement('area')"><lucide-icon name="layout-grid" [size]="16"></lucide-icon> Область</div>
-              <div class="element-type-separator">Элементы</div>
-              <div *ngFor="let et of elementTypes" class="element-type-item" (click)="addElement(et.type)">{{ et.label }}</div>
+            <div class="element-categories">
+              <div *ngFor="let cat of themeCategories" class="category-group">
+                <div class="category-header" (click)="toggleCategory(cat.id)">
+                  <lucide-icon [name]="cat.icon" [size]="18" class="category-icon"></lucide-icon>
+                  <span class="category-label">{{ cat.label }}</span>
+                  <span class="category-count">{{ cat.elements.length }}</span>
+                  <lucide-icon [name]="cat.collapsed ? 'chevron-down' : 'chevron-up'" [size]="16" class="category-chevron"></lucide-icon>
+                </div>
+                <div *ngIf="!cat.collapsed" class="category-elements">
+                  <div *ngFor="let el of cat.elements" class="element-item" (click)="addElement(el.type)">
+                    <lucide-icon [name]="el.icon" [size]="16" class="element-icon"></lucide-icon>
+                    <span>{{ el.label }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </ng-container>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
@@ -428,7 +442,25 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .element-type-item { padding: 12px 8px; font-size: 14px; color: #333; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
     .element-type-item:hover { background: #f5f5f5; } .element-type-item:last-child { border-bottom: none; }
     .element-type-separator { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #9e9e9e; padding: 8px 12px 4px; font-weight: 500; }
-    .element-type-area { display: flex; align-items: center; gap: 6px; border: 1px dashed #90CAF9 !important; color: #1976D2 !important; background: #E3F2FD !important; font-weight: 500 !important; }
+
+    /* ── Element category accordion ── */
+    .element-categories { display: flex; flex-direction: column; }
+    .category-group { border-bottom: 1px solid #f0f0f0; }
+    .category-group:last-child { border-bottom: none; }
+    .category-header { display: flex; align-items: center; gap: 8px; padding: 10px 8px; cursor: pointer; user-select: none; transition: background 0.15s; }
+    .category-header:hover { background: #f5f5f5; }
+    .category-icon { color: #757575; flex-shrink: 0; }
+    .category-label { flex: 1; font-size: 14px; font-weight: 500; color: #333; }
+    .category-count { font-size: 12px; color: #9e9e9e; background: #f0f0f0; border-radius: 10px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+    .category-chevron { color: #9e9e9e; flex-shrink: 0; transition: transform 0.2s ease; }
+
+    .category-elements { display: flex; flex-direction: column; padding: 0 0 4px 0; animation: accordionIn 0.15s ease-out; }
+    @keyframes accordionIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .element-item { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 34px; font-size: 13px; color: #555; cursor: pointer; transition: background 0.12s; }
+    .element-item:hover { background: #e3f2fd; color: #1976d2; }
+    .element-icon { color: #9e9e9e; flex-shrink: 0; }
+    .element-item:hover .element-icon { color: #1976d2; }
+
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 24px; background: #333; color: #fff; border-radius: 6px; font-size: 14px; z-index: 9000; animation: toastIn 0.3s ease; }
     @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
 
@@ -499,20 +531,15 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     { type: 'menulist' as ArrivalsElementType, label: 'Меню-лист' },
     { type: 'advertise' as ArrivalsElementType, label: 'Динамическая область' },
     { type: 'text', label: 'Текст' }, { type: 'image', label: 'Изображение' },
-    { type: 'order-number', label: 'Номер заказа' }, { type: 'table-number', label: 'Номер стола' },
-    { type: 'order-status', label: 'Статус заказа' }, { type: 'cooking-start-time', label: 'Время начала приготовления заказа' },
-    { type: 'cooking-end-time', label: 'Время завершения приготовления заказа' }, { type: 'system-cooking-time', label: 'Системное время приготовления заказа' },
-    { type: 'cooking-wait-time', label: 'Время ожидания приготовления заказа' }, { type: 'expired-wait-flag', label: 'Признак истекшего времени ожидания' },
-    { type: 'client-name', label: 'Имя клиента' }, { type: 'client-phone', label: 'Номер телефона клиента' },
-    { type: 'courier-name', label: 'Имя назначенного курьера' }, { type: 'expected-delivery-time', label: 'Ожидаемое время доставки заказа' },
-    { type: 'expected-delivery-duration', label: 'Ожидаемая продолжительность доставки' }, { type: 'dispatch-time', label: 'Время отправки заказа' },
-    { type: 'travel-time', label: 'Время в пути' }, { type: 'delivery-time', label: 'Время доставки заказа' },
-    { type: 'delivery-status', label: 'Статус доставки' }, { type: 'client-comment', label: 'Комментарий от клиента' },
-    { type: 'client-delivery-time', label: 'Время доставки, обозначенное клиентом' }, { type: 'cancel-reason', label: 'Причина отмены заказа' },
-    { type: 'cancel-comment', label: 'Комментарий к отмене заказа' }, { type: 'cancel-time', label: 'Время отмены заказа' },
-    { type: 'external-data', label: 'Внешние данные' },
-    { type: 'price', label: 'Цена блюда' },
+    { type: 'counter' as ArrivalsElementType, label: 'Текущее время' },
   ];
+
+  themeCategories: ElementCategory[] = JSON.parse(JSON.stringify(MENUBOARD_THEME_CATEGORIES));
+
+  toggleCategory(id: string): void {
+    const cat = this.themeCategories.find(c => c.id === id);
+    if (cat) cat.collapsed = !cat.collapsed;
+  }
 
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
   get resHeight(): number { return parseInt(this.theme.resolution.split('x')[1]) || 768; }
@@ -737,6 +764,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
     if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
+    if (type === 'counter') { el.name = 'Текущее время'; el.width = 100; el.height = 40; el.fontFamily = 'Arial'; el.fontSize = 16; el.fontBold = false; el.fontItalic = false; el.textAlign = 'center'; el.text = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
     this.theme.elements.push(el);
     this.selectedElementId = el.id; this.panelView = 'element';
   }
