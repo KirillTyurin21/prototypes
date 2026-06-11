@@ -42,8 +42,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
                   <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
-                  <div class="ml-rows" *ngIf="el.productIds?.length"
-                    [style.font-family]="el.fontName?.family || 'Segoe UI'">
+                  <div class="ml-rows" *ngIf="el.productIds?.length">
                     <div class="ml-row" *ngFor="let pid of el.productIds || []; let odd = odd"
                       [style.min-height.px]="el.rowHeight || 48"
                       [style.background-color]="getRowBg(el, odd)"
@@ -56,6 +55,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                       <!-- Main column -->
                       <div class="ml-main">
                         <div class="ml-name" [style.font-size.px]="el.fontName?.size || 16"
+                          [style.font-family]="el.fontName?.family || 'Segoe UI'"
                           [style.font-weight]="el.fontName?.bold ? 'bold' : 'normal'"
                           [style.font-style]="el.fontName?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontName?.color || '#333'">
@@ -63,6 +63,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                         </div>
                         <div class="ml-modifiers" *ngIf="getDishData(pid)?.modifiers?.length"
                           [style.font-size.px]="el.fontModifiers?.size || 12"
+                          [style.font-family]="el.fontModifiers?.family || 'Segoe UI'"
                           [style.font-weight]="el.fontModifiers?.bold ? 'bold' : 'normal'"
                           [style.font-style]="el.fontModifiers?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontModifiers?.color || '#666'">
@@ -70,6 +71,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                         </div>
                         <div class="ml-sizes" *ngIf="getDishData(pid)?.sizes?.length"
                           [style.font-size.px]="el.fontModifiers?.size || 12"
+                          [style.font-family]="el.fontModifiers?.family || 'Segoe UI'"
                           [style.font-weight]="el.fontModifiers?.bold ? 'bold' : 'normal'"
                           [style.font-style]="el.fontModifiers?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontModifiers?.color || '#666'">
@@ -77,6 +79,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                         </div>
                         <div class="ml-desc" *ngIf="el.showDescription && getDishData(pid)?.description"
                           [style.font-size.px]="el.fontDescription?.size || 11"
+                          [style.font-family]="el.fontDescription?.family || 'Segoe UI'"
                           [style.font-weight]="el.fontDescription?.bold ? 'bold' : 'normal'"
                           [style.font-style]="el.fontDescription?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontDescription?.color || '#999'">
@@ -99,6 +102,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                       <!-- Price column -->
                       <div class="ml-price-col">
                         <div class="ml-price" [style.font-size.px]="el.fontPrice?.size || 16"
+                          [style.font-family]="el.fontPrice?.family || 'Segoe UI'"
                           [style.font-weight]="el.fontPrice?.bold ? 'bold' : 'normal'"
                           [style.font-style]="el.fontPrice?.italic ? 'italic' : 'normal'"
                           [style.color]="el.fontPrice?.color || '#C00'">
