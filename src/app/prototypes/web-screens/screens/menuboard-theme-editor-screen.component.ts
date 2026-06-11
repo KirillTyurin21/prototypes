@@ -45,7 +45,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                   <div class="ml-rows" *ngIf="el.productIds?.length"
                     [style.font-family]="el.fontName?.family || 'Segoe UI'">
                     <div class="ml-row" *ngFor="let pid of el.productIds || []; let odd = odd"
-                      [style.height.px]="el.rowHeight || 48"
+                      [style.min-height.px]="el.rowHeight || 48"
                       [style.background-color]="getRowBg(el, odd)"
                       [style.padding.px]="el.rowPadding || 4">
                       <!-- Icon -->
@@ -279,7 +279,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .el-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
     .ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 11px; }
     .ml-rows { flex: 1; overflow: hidden; }
-    .ml-row { display: flex; align-items: flex-start; gap: 6px; overflow: hidden; border-bottom: 1px solid #eee; box-sizing: border-box; }
+    .ml-row { display: flex; align-items: flex-start; gap: 6px; overflow-x: hidden; border-bottom: 1px solid #eee; box-sizing: border-box; }
     .ml-row:last-child { border-bottom: none; }
     .ml-icon { width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #fafafa; border-radius: 3px; overflow: hidden; color: #ccc; }
     .ml-icon-img { width: 100%; height: 100%; object-fit: cover; }
