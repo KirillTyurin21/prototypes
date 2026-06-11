@@ -57,6 +57,7 @@ export const ARRIVALS_THEME_CATEGORIES: ElementCategory[] = [
     elements: [
       { type: 'counter', label: 'Текущее время', icon: 'clock' },
       { type: 'price', label: 'Счетчик', icon: 'bar-chart-3' },
+      { type: 'external-order-number', label: 'Внешний номер заказа', icon: 'hash' },
     ],
   },
 ];

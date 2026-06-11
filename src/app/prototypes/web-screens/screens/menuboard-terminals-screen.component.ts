@@ -47,7 +47,6 @@ import { CsMultiSelectCellComponent } from '../components/cs-multi-select-cell.c
                 <th class="cs-th cs-th-checkbox"><label class="cs-checkbox-wrap" (click)="$event.stopPropagation()"><input type="checkbox" class="cs-checkbox" [checked]="isRestaurantSelected(restaurant)" (change)="toggleSelectRestaurant(restaurant)" /></label></th>
                 <th class="cs-th cs-th-terminal">Кассовый аппарат</th>
                 <th class="cs-th cs-th-theme">Тема</th>
-                <th class="cs-th cs-th-multi">Терминальные группы</th>
                 <th class="cs-th cs-th-multi">Настройки</th>
                 <th class="cs-th cs-th-actions"></th>
               </tr></thead>
@@ -61,9 +60,6 @@ import { CsMultiSelectCellComponent } from '../components/cs-multi-select-cell.c
                     <div class="cs-field-cell" (click)="$event.stopPropagation()"><span class="cs-field-label">Выбрать</span><div class="cs-field-dropdown"><select class="cs-select" [ngModel]="terminal.themeId" (ngModelChange)="onThemeChange(restaurant.id, terminal, $event)"><option [ngValue]="null">Выбрать</option><option *ngFor="let theme of dataService.themeOptions" [ngValue]="theme.id">{{ theme.name }}</option></select><button class="cs-clear-btn" *ngIf="terminal.themeId !== null" (click)="onThemeChange(restaurant.id, terminal, null); $event.stopPropagation()"><lucide-icon name="x" [size]="14"></lucide-icon></button></div></div>
                   </td>
                   <td class="cs-td cs-td-multi">
-                    <app-cs-multi-select-cell [options]="dataService.terminalGroupOptions" [selectedIds]="terminal.terminalGroupIds" [summary]="getTerminalGroupsSummary(terminal)" [open]="isDropdownOpen(terminal.id, 'terminalGroups')" emptyText="Нет доступных групп" (toggle)="toggleDropdown(terminal.id, 'terminalGroups')" (clear)="clearTerminalGroups(restaurant.id, terminal)" (toggleOption)="toggleTerminalGroup(restaurant.id, terminal, $event)"></app-cs-multi-select-cell>
-                  </td>
-                  <td class="cs-td cs-td-multi">
                     <app-cs-multi-select-cell [options]="dataService.hintOptions" [selectedIds]="terminal.hintIds" [summary]="getHintsSummary(terminal)" [open]="isDropdownOpen(terminal.id, 'hints')" emptyText="Нет доступных настроек" (toggle)="toggleDropdown(terminal.id, 'hints')" (clear)="clearHints(restaurant.id, terminal)" (toggleOption)="toggleHint(restaurant.id, terminal, $event)"></app-cs-multi-select-cell>
                   </td>
                   <td class="cs-td cs-td-actions">
@@ -71,7 +67,7 @@ import { CsMultiSelectCellComponent } from '../components/cs-multi-select-cell.c
                     <button class="cs-icon-btn cs-icon-btn--add" *ngIf="!terminal.supportsScreenshot || !terminal.isOnline" title="Добавить"><lucide-icon name="plus-circle" [size]="18"></lucide-icon></button>
                   </td>
                 </tr>
-                <tr *ngIf="getFilteredTerminals(restaurant).length === 0"><td colspan="6" class="cs-td-empty"><div class="cs-empty-state"><lucide-icon name="monitor" [size]="32" class="text-gray-300"></lucide-icon><span>Нет терминалов, соответствующих фильтру</span></div></td></tr>
+                <tr *ngIf="getFilteredTerminals(restaurant).length === 0"><td colspan="5" class="cs-td-empty"><div class="cs-empty-state"><lucide-icon name="monitor" [size]="32" class="text-gray-300"></lucide-icon><span>Нет терминалов, соответствующих фильтру</span></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -79,7 +75,6 @@ import { CsMultiSelectCellComponent } from '../components/cs-multi-select-cell.c
             <span class="cs-default-label">Привязка по умолчанию:</span>
             <div class="cs-default-fields">
               <div class="cs-field-cell"><span class="cs-field-label">Выбрать</span><div class="cs-field-dropdown"><select class="cs-select cs-select-sm"><option>{{ getDefaultThemeName(restaurant) }}</option></select><button class="cs-clear-btn"><lucide-icon name="x" [size]="14"></lucide-icon></button></div></div>
-              <div class="cs-field-cell"><span class="cs-field-label">Выбрать</span><div class="cs-field-dropdown"><select class="cs-select cs-select-sm"><option>{{ getDefaultTerminalGroupsSummary(restaurant) }}</option></select><button class="cs-clear-btn"><lucide-icon name="x" [size]="14"></lucide-icon></button></div></div>
               <div class="cs-field-cell"><span class="cs-field-label">Выбрать</span><div class="cs-field-dropdown"><select class="cs-select cs-select-sm"><option>{{ getDefaultHintsSummary(restaurant) }}</option></select><button class="cs-clear-btn"><lucide-icon name="x" [size]="14"></lucide-icon></button></div></div>
             </div>
           </div>

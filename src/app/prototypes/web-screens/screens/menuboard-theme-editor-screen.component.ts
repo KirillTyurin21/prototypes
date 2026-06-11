@@ -144,8 +144,14 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           </ng-container>
           <ng-container *ngIf="panelView === 'add-element'">
             <div class="add-element-header"><span class="add-element-title">Добавить элемент</span><button class="icon-btn-sm" (click)="panelView = 'theme'"><lucide-icon name="x" [size]="18"></lucide-icon></button></div>
+            <div class="search-elements">
+              <input type="text" class="search-elements-input" placeholder="Поиск элементов..." [(ngModel)]="searchElementsQuery" />
+              <lucide-icon *ngIf="!searchElementsQuery" name="search" [size]="16" class="search-elements-icon"></lucide-icon>
+              <button *ngIf="searchElementsQuery" class="search-elements-clear" (click)="searchElementsQuery = ''"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+            </div>
+            <div *ngIf="searchElementsQuery && filteredCategories.length === 0" class="search-empty">Ничего не найдено</div>
             <div class="element-categories">
-              <div *ngFor="let cat of themeCategories" class="category-group">
+              <div *ngFor="let cat of filteredCategories" class="category-group">
                 <div class="category-header" (click)="toggleCategory(cat.id)">
                   <lucide-icon [name]="cat.icon" [size]="18" class="category-icon"></lucide-icon>
                   <span class="category-label">{{ cat.label }}</span>
@@ -457,6 +463,15 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .category-count { font-size: 12px; color: #9e9e9e; background: #f0f0f0; border-radius: 10px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
     .category-chevron { color: #9e9e9e; flex-shrink: 0; transition: transform 0.2s ease; }
 
+    /* ── Search elements ── */
+    .search-elements { position: relative; margin-bottom: 12px; }
+    .search-elements-input { width: 100%; height: 34px; padding: 0 36px 0 36px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px; font-family: Roboto, sans-serif; color: #333; box-sizing: border-box; }
+    .search-elements-input:focus { outline: none; border-color: #448aff; }
+    .search-elements-icon { position: absolute; left: 10px; top: 9px; color: #9e9e9e; pointer-events: none; }
+    .search-elements-clear { position: absolute; right: 6px; top: 6px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: none; border-radius: 50%; background: transparent; color: #9e9e9e; cursor: pointer; }
+    .search-elements-clear:hover { background: #f0f0f0; color: #333; }
+    .search-empty { padding: 24px 0; text-align: center; font-size: 13px; color: #bdbdbd; }
+
     .category-elements { display: flex; flex-direction: column; padding: 0 0 4px 0; animation: accordionIn 0.15s ease-out; }
     @keyframes accordionIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .element-item { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 34px; font-size: 13px; color: #555; cursor: pointer; transition: background 0.12s; }
@@ -546,6 +561,18 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   ];
 
   themeCategories: ElementCategory[] = JSON.parse(JSON.stringify(MENUBOARD_THEME_CATEGORIES));
+  searchElementsQuery = '';
+
+  get filteredCategories(): ElementCategory[] {
+    const q = this.searchElementsQuery.trim().toLowerCase();
+    if (!q) return this.themeCategories;
+    return this.themeCategories
+      .map(cat => ({
+        ...cat,
+        elements: cat.elements.filter(el => el.label.toLowerCase().includes(q)),
+      }))
+      .filter(cat => cat.elements.length > 0);
+  }
 
   toggleCategory(id: string): void {
     const cat = this.themeCategories.find(c => c.id === id);

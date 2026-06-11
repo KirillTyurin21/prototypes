@@ -2,9 +2,44 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
-    version: '1.29',
+    version: '1.30',
     date: '2026-06-11',
     status: 'unreleased',
+    changes: [
+      {
+        page: 'Электронная очередь — Редактор тем',
+        pageRoute: '/prototype/web-screens/themes-arrivals',
+        items: [
+          'Добавлен поиск элементов в палитре «Добавить элемент» — живой фильтр по названию',
+        ],
+      },
+      {
+        page: 'Доска меню — Редактор тем',
+        pageRoute: '/prototype/web-screens/menuboard-themes',
+        items: [
+          'Добавлен поиск элементов в палитре «Добавить элемент» — живой фильтр по названию',
+        ],
+      },
+      {
+        page: 'Доска меню — Настройки экрана',
+        pageRoute: '/prototype/web-screens/menuboard-terminals',
+        items: [
+          'Исключена колонка «Терминальные группы» — не требуется для менюбордов',
+        ],
+      },
+      {
+        page: 'Экран покупателя — Редактор тем',
+        pageRoute: '/prototype/web-screens/themes-cs',
+        items: [
+          'Убран селектор кампании из редактора темы — кампания назначается на уровне терминала',
+        ],
+      },
+    ],
+  },
+  {
+    version: '1.29',
+    date: '2026-06-11',
+    status: 'released',
     changes: [
       {
         page: 'Электронная очередь — Редактор тем',

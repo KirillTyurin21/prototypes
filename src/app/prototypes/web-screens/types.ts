@@ -85,6 +85,7 @@ export type ArrivalsElementType =
   | 'cancel-comment'
   | 'cancel-time'
   | 'external-data'
+  | 'external-order-number'
   | 'order-items'
   | 'order-items-zones'
   | 'order-items-progress'

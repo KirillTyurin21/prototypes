@@ -43,8 +43,7 @@ function deepClone<T>(obj: T): T {
           <div *ngIf="theme.screenMode === 'closed'" class="closed-mode-overlay">
             <lucide-icon name="alert-circle" [size]="56" class="closed-icon"></lucide-icon>
             <div class="closed-title">Режим: Касса не работает</div>
-            <div class="closed-sub" *ngIf="getSelectedCampaignName() as cn">Кампания: {{ cn }}</div>
-            <div class="closed-sub muted" *ngIf="!getSelectedCampaignName()">Кампания не выбрана — пустой экран</div>
+            <div class="closed-sub muted">Кампания назначается в настройках терминала</div>
           </div>
           <!-- Receipt preview for order modes -->
           <div *ngIf="theme.screenMode !== 'closed'" class="receipt-preview">
@@ -108,17 +107,8 @@ function deepClone<T>(obj: T): T {
             <!-- Mode divider + selector -->
             <div class="section-divider">Настройка режима</div>
             <div class="field-group">
-              <select class="field-select" [(ngModel)]="theme.screenMode" (ngModelChange)="onScreenModeChange()">
+              <select class="field-select" [(ngModel)]="theme.screenMode">
                 <option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option>
-              </select>
-            </div>
-
-            <!-- Campaign selector (only for closed mode) -->
-            <div class="field-group" *ngIf="theme.screenMode === 'closed'">
-              <label class="field-label">Кампания</label>
-              <select class="field-select" [(ngModel)]="theme.closedModeCampaignId">
-                <option [ngValue]="null">Не выбрана</option>
-                <option *ngFor="let c of campaignOptions" [ngValue]="c.id">{{ c.name }}</option>
               </select>
             </div>
 
