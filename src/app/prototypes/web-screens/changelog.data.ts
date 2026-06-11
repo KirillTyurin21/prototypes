@@ -3,8 +3,8 @@
 export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.27',
-    date: '2026-06-10',
-    status: 'unreleased',
+    date: '2026-06-11',
+    status: 'released',
     changes: [
       {
         page: 'Доска меню — Контролы',
