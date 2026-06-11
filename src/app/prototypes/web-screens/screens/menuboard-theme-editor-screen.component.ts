@@ -6,7 +6,7 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
-import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU } from '../data/mock-data';
+import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
@@ -42,12 +42,65 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
                   <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
-                  <div class="ml-rows" *ngIf="el.productIds?.length">
+                  <div class="ml-rows" *ngIf="el.productIds?.length"
+                    [style.font-family]="el.fontName?.family || 'Segoe UI'">
                     <div class="ml-row" *ngFor="let pid of el.productIds || []; let odd = odd"
                       [style.height.px]="el.rowHeight || 48"
-                      [style.background-color]="!el.alternateRows ? 'transparent' : (odd ? (el.highlightColor || '#f5f5f5') : 'transparent')">
-                      <span class="ml-name">{{ getDishName(pid) }}</span>
-                      <span class="ml-price">{{ getDishPrice(pid) }}</span>
+                      [style.background-color]="getRowBg(el, odd)"
+                      [style.padding.px]="el.rowPadding || 4">
+                      <!-- Icon -->
+                      <div class="ml-icon" *ngIf="el.showIcons !== false">
+                        <lucide-icon *ngIf="!getDishData(pid)?.imageUrl" name="image-off" [size]="20"></lucide-icon>
+                        <img *ngIf="getDishData(pid)?.imageUrl" [src]="getDishData(pid)?.imageUrl" class="ml-icon-img" />
+                      </div>
+                      <!-- Main column -->
+                      <div class="ml-main">
+                        <div class="ml-name" [style.font-size.px]="el.fontName?.size || 16"
+                          [style.font-weight]="el.fontName?.bold ? 'bold' : 'normal'"
+                          [style.font-style]="el.fontName?.italic ? 'italic' : 'normal'"
+                          [style.color]="el.fontName?.color || '#333'">
+                          {{ getDishData(pid)?.name || '#' + pid.slice(0, 6) }}
+                        </div>
+                        <div class="ml-modifiers" *ngIf="getDishData(pid)?.modifiers?.length"
+                          [style.font-size.px]="el.fontModifiers?.size || 12"
+                          [style.color]="el.fontModifiers?.color || '#666'">
+                          Модификаторы: {{ getDishData(pid)?.modifiers?.join(', ') }}
+                        </div>
+                        <div class="ml-sizes" *ngIf="getDishData(pid)?.sizes?.length"
+                          [style.font-size.px]="el.fontModifiers?.size || 12"
+                          [style.color]="el.fontModifiers?.color || '#666'">
+                          Размеры: {{ formatSizes(getDishData(pid)?.sizes) }}
+                        </div>
+                        <div class="ml-desc" *ngIf="el.showDescription && getDishData(pid)?.description"
+                          [style.font-size.px]="el.fontDescription?.size || 11"
+                          [style.color]="el.fontDescription?.color || '#999'">
+                          {{ getDishData(pid)?.description }}
+                        </div>
+                        <div class="ml-extra" *ngIf="(el.showAllergens && getDishData(pid)?.allergens?.length) || (el.showNutrition && getDishData(pid)?.energy != null)"
+                          [style.font-size.px]="(el.fontDescription?.size || 11)">
+                          <span class="ml-allergens" *ngIf="el.showAllergens && getDishData(pid)?.allergens?.length">
+                            ⚠ {{ getDishData(pid)?.allergens?.join(', ') }}
+                          </span>
+                          <span class="ml-sep" *ngIf="el.showAllergens && getDishData(pid)?.allergens?.length && el.showNutrition && getDishData(pid)?.energy != null"> | </span>
+                          <span class="ml-nutrition" *ngIf="el.showNutrition && getDishData(pid)?.energy != null">
+                            {{ getDishData(pid)?.energy }} ккал Б:{{ getDishData(pid)?.proteins || 0 }} Ж:{{ getDishData(pid)?.fats || 0 }} У:{{ getDishData(pid)?.carbs || 0 }}
+                          </span>
+                        </div>
+                      </div>
+                      <!-- Price column -->
+                      <div class="ml-price-col">
+                        <div class="ml-price" [style.font-size.px]="el.fontPrice?.size || 16"
+                          [style.font-weight]="el.fontPrice?.bold ? 'bold' : 'normal'"
+                          [style.font-style]="el.fontPrice?.italic ? 'italic' : 'normal'"
+                          [style.color]="el.fontPrice?.color || '#C00'">
+                          {{ getDishData(pid)?.price || 0 }} \u20BD
+                        </div>
+                        <div class="ml-weight" *ngIf="getDishData(pid)?.weight"
+                          [style.font-size.px]="(el.fontDescription?.size || 11)"
+                          [style.color]="el.fontDescription?.color || '#999'">
+                          {{ getDishData(pid)?.weight }} {{ getDishData(pid)?.measure || '' }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -115,8 +168,8 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <label class="field-label">Выбранные блюда</label>
                 <div class="selected-dishes">
                   <div class="sd-item" *ngFor="let pid of selectedElement.productIds">
-                    <span class="sd-name">{{ getDishName(pid) }}</span>
-                    <span class="sd-price">{{ getDishPrice(pid) }}</span>
+                    <span class="sd-name">{{ getDishData(pid)?.name || '#' + pid.slice(0, 6) }}</span>
+                    <span class="sd-price">{{ getDishData(pid)?.price || 0 }} \u20BD</span>
                     <button class="sd-remove" (click)="removeDishFromList(pid)" title="Убрать">
                       <lucide-icon name="x" [size]="14"></lucide-icon>
                     </button>
@@ -129,41 +182,63 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               <div class="section-divider">Настройки таблицы</div>
               <div class="field-group">
                 <label class="field-label">Чередование строк</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="mlAlternateRows" /> Включено</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.alternateRows" /> Включено</label>
               </div>
               <div class="field-group">
                 <label class="field-label">Высота строки (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="mlRowHeight" min="24" max="200" />
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.rowHeight" min="24" max="200" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Отступ строк (px)</label>
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.rowPadding" min="0" max="20" />
               </div>
               <div class="section-divider">Подсветка строк</div>
               <div class="field-group">
                 <label class="field-label">Цвет подсветки</label>
-                <input type="color" class="field-color" [(ngModel)]="mlHighlightColor" />
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.highlightColor" />
               </div>
               <div class="section-divider">Шрифт названия</div>
               <div class="field-group">
                 <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="mlFontNameSize" min="8" max="72" />
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontName!.size" min="8" max="72" />
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="mlFontNameColor" />
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontName!.color" />
               </div>
               <div class="section-divider">Шрифт цены</div>
               <div class="field-group">
                 <label class="field-label">Размер (px)</label>
-                <input type="number" class="field-input" [(ngModel)]="mlFontPriceSize" min="8" max="72" />
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontPrice!.size" min="8" max="72" />
               </div>
               <div class="field-group">
                 <label class="field-label">Цвет</label>
-                <input type="color" class="field-color" [(ngModel)]="mlFontPriceColor" />
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontPrice!.color" />
+              </div>
+              <div class="section-divider">Шрифт модификаторов</div>
+              <div class="field-group">
+                <label class="field-label">Размер (px)</label>
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontModifiers!.size" min="8" max="48" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Цвет</label>
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontModifiers!.color" />
+              </div>
+              <div class="section-divider">Шрифт описания</div>
+              <div class="field-group">
+                <label class="field-label">Размер (px)</label>
+                <input type="number" class="field-input" [(ngModel)]="selectedElement.fontDescription!.size" min="8" max="48" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Цвет</label>
+                <input type="color" class="field-color" [(ngModel)]="selectedElement.fontDescription!.color" />
               </div>
               <div class="section-divider">Отображение</div>
               <div class="field-group">
-                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowIcons" /> Показывать иконки</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowDescription" /> Показывать описание</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowAllergens" /> Показывать аллергены</label>
-                <label class="field-check"><input type="checkbox" [(ngModel)]="mlShowNutrition" /> Показывать КБЖУ</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showIcons" /> Показывать иконки</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showDescription" /> Показывать описание</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showAllergens" /> Показывать аллергены</label>
+                <label class="field-check"><input type="checkbox" [(ngModel)]="selectedElement.showNutrition" /> Показывать КБЖУ</label>
               </div>
             </ng-container>
             <!-- Standard element inspector for non-menulist, non-area -->
@@ -202,11 +277,22 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .el-placeholder { color: #9e9e9e; }
     .el-placeholder-label { color: #9e9e9e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
     .el-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
-    .ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
+    .ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 11px; }
     .ml-rows { flex: 1; overflow: hidden; }
-    .ml-row { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
-    .ml-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
-    .ml-price { flex-shrink: 0; font-weight: 600; color: #c62828; margin-left: 8px; }
+    .ml-row { display: flex; align-items: flex-start; gap: 6px; overflow: hidden; border-bottom: 1px solid #eee; box-sizing: border-box; }
+    .ml-row:last-child { border-bottom: none; }
+    .ml-icon { width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #fafafa; border-radius: 3px; overflow: hidden; color: #ccc; }
+    .ml-icon-img { width: 100%; height: 100%; object-fit: cover; }
+    .ml-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
+    .ml-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+    .ml-modifiers, .ml-sizes, .ml-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .ml-extra { display: flex; flex-wrap: wrap; gap: 2px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .ml-allergens { flex-shrink: 0; }
+    .ml-nutrition { flex-shrink: 0; }
+    .ml-sep { color: #ddd; flex-shrink: 0; }
+    .ml-price-col { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; gap: 1px; min-width: 50px; }
+    .ml-price { font-weight: 600; white-space: nowrap; line-height: 1.25; }
+    .ml-weight { white-space: nowrap; line-height: 1.3; }
     .handle { position: absolute; width: 8px; height: 8px; background: #fff; border: 2px solid #448aff; z-index: 2; }
     .handle.tl { top: -4px; left: -4px; cursor: nw-resize; } .handle.tr { top: -4px; right: -4px; cursor: ne-resize; }
     .handle.bl { bottom: -4px; left: -4px; cursor: sw-resize; } .handle.br { bottom: -4px; right: -4px; cursor: se-resize; }
@@ -485,20 +571,22 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return this.selectedElement?.campaignIds?.length ?? 0;
   }
 
-  getDishName(externalId: string): string {
+  getDishData(externalId: string): ExternalMenuItem | undefined {
     for (const cat of this.externalMenuCategories) {
       const dish = cat.items.find(d => d.externalId === externalId);
-      if (dish) return dish.name;
+      if (dish) return dish;
     }
-    return '#' + externalId.slice(0, 6);
+    return undefined;
   }
 
-  getDishPrice(externalId: string): string {
-    for (const cat of this.externalMenuCategories) {
-      const dish = cat.items.find(d => d.externalId === externalId);
-      if (dish) return dish.price + ' \u20BD';
-    }
-    return '';
+  getRowBg(el: ArrivalsThemeElement, odd: boolean): string {
+    if (!el.alternateRows) return 'transparent';
+    return odd ? (el.highlightColor || '#f5f5f5') : 'transparent';
+  }
+
+  formatSizes(sizes?: { name: string; price: number }[]): string {
+    if (!sizes?.length) return '';
+    return sizes.map(s => s.name + ' (' + s.price + '\u20BD)').join(' \u00B7 ');
   }
 
   openDishSelector(): void {
@@ -517,58 +605,6 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (this.selectedElement?.productIds) {
       this.selectedElement.productIds = this.selectedElement.productIds.filter(id => id !== externalId);
     }
-  }
-
-  /* ── MenuList proxy properties (замена $any() в шаблоне для ngModel) ── */
-
-  get mlAlternateRows(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.alternateRows ?? true; }
-  set mlAlternateRows(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.alternateRows = v; }
-
-  get mlRowHeight(): number { this.ensureMenulistDefaults(); return this.selectedElement?.rowHeight ?? 48; }
-  set mlRowHeight(v: number) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.rowHeight = v; }
-
-  get mlHighlightColor(): string { this.ensureMenulistDefaults(); return this.selectedElement?.highlightColor ?? '#f5f5f5'; }
-  set mlHighlightColor(v: string) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.highlightColor = v; }
-
-  get mlShowIcons(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showIcons ?? true; }
-  set mlShowIcons(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showIcons = v; }
-
-  get mlShowDescription(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showDescription ?? false; }
-  set mlShowDescription(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showDescription = v; }
-
-  get mlShowAllergens(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showAllergens ?? false; }
-  set mlShowAllergens(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showAllergens = v; }
-
-  get mlShowNutrition(): boolean { this.ensureMenulistDefaults(); return this.selectedElement?.showNutrition ?? false; }
-  set mlShowNutrition(v: boolean) { this.ensureMenulistDefaults(); if (this.selectedElement) this.selectedElement.showNutrition = v; }
-
-  get mlFontNameSize(): number { this.ensureMenulistDefaults(); return this.selectedElement?.fontName?.size ?? 16; }
-  set mlFontNameSize(v: number) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontName) this.selectedElement.fontName.size = v; }
-
-  get mlFontNameColor(): string { this.ensureMenulistDefaults(); return this.selectedElement?.fontName?.color ?? '#333333'; }
-  set mlFontNameColor(v: string) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontName) this.selectedElement.fontName.color = v; }
-
-  get mlFontPriceSize(): number { this.ensureMenulistDefaults(); return this.selectedElement?.fontPrice?.size ?? 16; }
-  set mlFontPriceSize(v: number) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontPrice) this.selectedElement.fontPrice.size = v; }
-
-  get mlFontPriceColor(): string { this.ensureMenulistDefaults(); return this.selectedElement?.fontPrice?.color ?? '#CC0000'; }
-  set mlFontPriceColor(v: string) { this.ensureMenulistDefaults(); if (this.selectedElement?.fontPrice) this.selectedElement.fontPrice.color = v; }
-
-  ensureMenulistDefaults(): void {
-    const el = this.selectedElement;
-    if (!el || el.type !== 'menulist') return;
-    if (el.rowHeight == null) el.rowHeight = 48;
-    if (el.alternateRows == null) el.alternateRows = true;
-    if (!el.highlightColor) el.highlightColor = '#f5f5f5';
-    if (el.showIcons == null) el.showIcons = true;
-    if (el.showDescription == null) el.showDescription = false;
-    if (el.showAllergens == null) el.showAllergens = false;
-    if (el.showNutrition == null) el.showNutrition = false;
-    if (!el.productIds) el.productIds = [];
-    if (!el.fontName) el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false };
-    if (!el.fontPrice) el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false };
-    if (!el.fontModifiers) el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666' };
-    if (!el.fontDescription) el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999' };
   }
 
   formatCampaignDate(dateStr: string): string {
