@@ -20,10 +20,10 @@ class _SplashScreenState extends State<SplashScreen> {
   int _currentIndex = 0;
 
   SplashConfig get _config {
-    final items = _dev.get<List<MediaItem>?>('splash_media',
-        defaultValue: null);
+    final items = _parseMediaItems();
+
     return SplashConfig(
-      mediaItems: items ?? const [],
+      mediaItems: items,
       imageIntervalSeconds: _dev.get<int>('splash_interval', defaultValue: 5),
       showBuyButton: _dev.get<bool>('splash_show_btn', defaultValue: true),
       buyButtonText: _dev.get<String>('splash_btn_text',
@@ -34,7 +34,33 @@ class _SplashScreenState extends State<SplashScreen> {
           defaultValue: 0xFFFFFFFF),
       hintText: _dev.get<String?>('splash_hint',
           defaultValue: 'Нажмите на экран, чтобы войти в меню'),
+      repeatVideo: _dev.get<bool>('splash_repeat_video', defaultValue: false),
     );
+  }
+
+  /// Парсинг медиа-элементов из JSON-строки, сохранённой в настройках
+  List<MediaItem> _parseMediaItems() {
+    final raw = _dev.get<String>('splash_media_json', defaultValue: '[]');
+    final result = <MediaItem>[];
+    try {
+      final itemPattern = RegExp(r'\{[^}]+\}');
+      for (final match in itemPattern.allMatches(raw)) {
+        final item = match.group(0)!;
+        final pathMatch = RegExp(r'"path"\s*:\s*"([^"]*)"').firstMatch(item);
+        final typeMatch = RegExp(r'"type"\s*:\s*"([^"]*)"').firstMatch(item);
+        final orderMatch = RegExp(r'"order"\s*:\s*(\d+)').firstMatch(item);
+        if (pathMatch != null) {
+          result.add(MediaItem(
+            assetPath: pathMatch.group(1)!,
+            type: (typeMatch?.group(1) ?? 'image') == 'video'
+                ? MediaType.video
+                : MediaType.image,
+            order: int.tryParse(orderMatch?.group(1) ?? '0') ?? 0,
+          ));
+        }
+      }
+    } catch (_) {}
+    return result;
   }
 
   @override

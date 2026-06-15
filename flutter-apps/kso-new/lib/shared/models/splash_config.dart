@@ -25,6 +25,7 @@ class SplashConfig {
   final int buyButtonBackgroundColor;
   final int buyButtonTextColor;
   final String? hintText;
+  final bool repeatVideo;
 
   const SplashConfig({
     this.mediaItems = const [],
@@ -34,6 +35,7 @@ class SplashConfig {
     this.buyButtonBackgroundColor = 0xFFFF6D00,
     this.buyButtonTextColor = 0xFFFFFFFF,
     this.hintText = 'Нажмите на экран, чтобы войти в меню',
+    this.repeatVideo = false,
   });
 
   Color get btnBgColor => Color(buyButtonBackgroundColor);

@@ -7,15 +7,28 @@ import '../../dev_panel/dev_panel_service.dart';
 extension ResponsiveContext on BuildContext {
   /// Коэффициент масштабирования относительно Figma-референса
   double get scaleFactor {
+    final dev = DevPanelService();
+    final useCustom = dev.get<bool>('global_use_custom_size', defaultValue: false);
+
+    if (useCustom) {
+      // Фиксированный размер экрана: масштаб = min(W_custom/1080, H_custom/1920)
+      final screenW = dev.get<int>('global_screen_width', defaultValue: 540).toDouble();
+      final screenH = dev.get<int>('global_screen_height', defaultValue: 960).toDouble();
+      if (screenW > 0 && screenH > 0) {
+        return min(
+          screenW / FigmaReference.width,
+          screenH / FigmaReference.height,
+        );
+      }
+    }
+
+    // По умолчанию: масштабирование под реальное окно браузера
     final media = MediaQuery.of(this);
     if (media.size.width <= 0 || media.size.height <= 0) return 1.0;
-    final baseScale = min(
+    return min(
       media.size.width / FigmaReference.width,
       media.size.height / FigmaReference.height,
     );
-    // Глобальный масштаб из Dev Panel (50-150%)
-    final devScale = DevPanelService().get<int>('global_screen_scale', defaultValue: 100) / 100.0;
-    return baseScale * devScale;
   }
 
   /// Масштабировать размер из Figma
