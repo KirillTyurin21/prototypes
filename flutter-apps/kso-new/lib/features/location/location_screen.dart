@@ -123,15 +123,10 @@ class _LocationButton extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              imageAsset,
-              height: context.scaled(240),
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => Icon(
-                Icons.storefront,
-                size: context.scaled(120),
-                color: AppColors.accent,
-              ),
+            Icon(
+              Icons.storefront,
+              size: context.scaled(120),
+              color: AppColors.accent,
             ),
             SizedBox(height: context.scaled(24)),
             Text(

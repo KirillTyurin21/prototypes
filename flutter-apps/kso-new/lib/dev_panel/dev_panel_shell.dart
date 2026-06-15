@@ -17,21 +17,10 @@ class DevPanelShell extends StatelessWidget {
     return ListenableBuilder(
       listenable: dev,
       builder: (context, _) {
-        final scalePercent = dev.get<int>('global_screen_scale', defaultValue: 100);
-        final scale = scalePercent / 100.0;
-
         return Stack(
           children: [
-            // Контент с глобальным масштабом
-            Positioned.fill(
-              child: ClipRect(
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.center,
-                  child: child,
-                ),
-              ),
-            ),
+            // Основной контент
+            child,
             // Панель настроек (overlay слева)
             if (dev.isOpen)
               Positioned(

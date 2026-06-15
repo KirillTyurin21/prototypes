@@ -165,20 +165,16 @@ class _SplashScreenState extends State<SplashScreen> {
     if (item.type == MediaType.image) {
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 800),
-        child: Image.asset(
-          item.assetPath,
+        child: Container(
           key: ValueKey(item.assetPath),
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Container(
-            color: AppColors.darkBackground,
-            child: const Center(
-              child: Icon(Icons.image, size: 80, color: AppColors.grey),
-            ),
+          color: AppColors.darkBackground,
+          child: const Center(
+            child: Icon(Icons.image, size: 80, color: AppColors.grey),
           ),
         ),
       );
     }
-    // Видео — заглушка (будет реализовано позже через video_player)
+    // Видео — заглушка
     return Container(
       color: AppColors.darkBackground,
       child: Center(

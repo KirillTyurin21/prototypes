@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'app_constants.dart';
+import '../../dev_panel/dev_panel_service.dart';
 
 /// Расширение для адаптивного масштабирования размеров
 extension ResponsiveContext on BuildContext {
@@ -8,10 +9,13 @@ extension ResponsiveContext on BuildContext {
   double get scaleFactor {
     final media = MediaQuery.of(this);
     if (media.size.width <= 0 || media.size.height <= 0) return 1.0;
-    return min(
+    final baseScale = min(
       media.size.width / FigmaReference.width,
       media.size.height / FigmaReference.height,
     );
+    // Глобальный масштаб из Dev Panel (50-150%)
+    final devScale = DevPanelService().get<int>('global_screen_scale', defaultValue: 100) / 100.0;
+    return baseScale * devScale;
   }
 
   /// Масштабировать размер из Figma
