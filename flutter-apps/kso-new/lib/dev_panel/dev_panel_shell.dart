@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dev_panel_service.dart';
 
 /// Контейнер: панель настроек + контент приложения.
-/// Оборачивает экран и при открытой панели показывает sidebar слева.
+/// Панель отображается как overlay поверх контента (не сдвигает его).
 class DevPanelShell extends StatelessWidget {
   final Widget child;
   const DevPanelShell({super.key, required this.child});
@@ -18,15 +18,18 @@ class DevPanelShell extends StatelessWidget {
       builder: (context, _) {
         return Stack(
           children: [
-            Row(
-              children: [
-                // Панель настроек (слева)
-                if (dev.isOpen) const _DevPanelWidget(),
-                // Контент
-                Expanded(child: child),
-              ],
-            ),
-            // Кнопка открытия панели (видна только когда панель закрыта)
+            // Основной контент
+            child,
+            // Панель настроек (overlay слева)
+            if (dev.isOpen)
+              Positioned(
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: 300,
+                child: const _DevPanelWidget(),
+              ),
+            // Кнопка открытия (слева сверху, когда панель закрыта)
             if (!dev.isOpen)
               Positioned(
                 top: 8,
@@ -45,7 +48,7 @@ class DevPanelShell extends StatelessWidget {
       child: IconButton(
         icon: const Icon(Icons.settings, color: Colors.white38, size: 22),
         onPressed: () => dev.toggle(),
-        tooltip: 'Настройки (Ctrl+.)',
+        tooltip: 'Настройки',
         padding: const EdgeInsets.all(8),
         style: IconButton.styleFrom(
           backgroundColor: Colors.black.withValues(alpha: 0.3),
@@ -187,42 +190,50 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
 
   Widget _buildCheckbox(String key, String label, bool defaultValue) {
     final value = _dev.get<bool>(key, defaultValue: defaultValue);
-    return Row(
-      children: [
-        SizedBox(
-          width: 20,
-          height: 20,
-          child: Checkbox(
-            value: value,
-            onChanged: (v) => _dev.set(key, v ?? defaultValue),
-            activeColor: Colors.orange,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Material(
+              color: Colors.transparent,
+              child: Checkbox(
+                value: value,
+                onChanged: (v) => _dev.set(key, v ?? defaultValue),
+                activeColor: Colors.orange,
+                checkColor: Colors.white,
+                side: const BorderSide(color: Colors.white30, width: 1.5),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(label,
+                style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildSlider(
-      String key, String label, double min, double max, double defaultValue) {
-    final value = _dev.get<double>(key, defaultValue: defaultValue);
+      String key, String label, int min, int max, int defaultValue) {
+    final value = _dev.get<int>(key, defaultValue: defaultValue);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${value.toInt()}',
+        Text('$label: $value',
             style: const TextStyle(color: Colors.white70, fontSize: 12)),
         Slider(
-          value: value,
-          min: min,
-          max: max,
-          divisions: ((max - min) / 1).toInt(),
+          value: value.toDouble(),
+          min: min.toDouble(),
+          max: max.toDouble(),
+          divisions: max - min,
           activeColor: Colors.orange,
-          label: value.toInt().toString(),
-          onChanged: (v) => _dev.set(key, v),
+          label: value.toString(),
+          onChanged: (v) => _dev.set(key, v.toInt()),
         ),
       ],
     );
@@ -245,13 +256,15 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: TextField(
-              controller: TextEditingController(text: value)
-                ..selection = TextSelection.collapsed(offset: value.length),
+              key: ValueKey('$key-$value'),
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(vertical: 8),
+              ),
+              controller: TextEditingController.fromValue(
+                TextEditingValue(text: value),
               ),
               onChanged: (v) => _dev.set(key, v),
             ),
