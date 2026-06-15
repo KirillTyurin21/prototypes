@@ -8,7 +8,7 @@ extension ResponsiveContext on BuildContext {
   /// Коэффициент масштабирования относительно Figma-референса
   double get scaleFactor {
     final dev = DevPanelService();
-    final useCustom = dev.get<bool>('global_use_custom_size', defaultValue: false);
+    final useCustom = dev.get<bool>('global_use_custom_size', defaultValue: true);
 
     if (useCustom) {
       // Фиксированный размер экрана: масштаб = min(W_custom/1080, H_custom/1920)

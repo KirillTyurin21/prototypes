@@ -23,7 +23,7 @@ class DevPanelShell extends StatelessWidget {
         // Глобальные размеры из настроек
         final screenW = dev.get<int>('global_screen_width', defaultValue: 506);
         final screenH = dev.get<int>('global_screen_height', defaultValue: 900);
-        final useCustom = dev.get<bool>('global_use_custom_size', defaultValue: false);
+        final useCustom = dev.get<bool>('global_use_custom_size', defaultValue: true);
 
         return Stack(
           children: [
@@ -233,7 +233,7 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
   // ===================================================================
 
   Widget _buildGlobalSettings() {
-    final useCustom = _dev.get<bool>('global_use_custom_size', defaultValue: false);
+    final useCustom = _dev.get<bool>('global_use_custom_size', defaultValue: true);
     final screenW = _dev.get<int>('global_screen_width', defaultValue: 506);
     final screenH = _dev.get<int>('global_screen_height', defaultValue: 900);
 
@@ -342,7 +342,7 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
     // Дефолтные элементы, если галерея пуста
     if (items.isEmpty) {
       items = [
-        {'path': 'assets/media/splash_bg_1.png', 'type': 'image', 'order': 0},
+        {'path': 'assets/media/image.png', 'type': 'image', 'order': 0},
       ];
     }
 
@@ -486,7 +486,7 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
           spacing: 4,
           runSpacing: 4,
           children: [
-            _presetBtn('Фон 1', 'assets/media/splash_bg_1.png', items),
+            _presetBtn('Фон', 'assets/media/image.png', items),
             _presetBtn('Фон 2', 'assets/media/splash_bg_2.png', items),
             _presetBtn('Фон 3', 'assets/media/splash_bg_3.png', items),
             _presetBtn('Видео', 'assets/media/promo.mp4', items, type: 'video'),
