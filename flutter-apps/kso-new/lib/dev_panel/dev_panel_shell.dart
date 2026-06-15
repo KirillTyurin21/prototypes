@@ -16,15 +16,41 @@ class DevPanelShell extends StatelessWidget {
     return ListenableBuilder(
       listenable: dev,
       builder: (context, _) {
-        return Row(
+        return Stack(
           children: [
-            // Панель настроек (слева)
-            if (dev.isOpen) const _DevPanelWidget(),
-            // Контент
-            Expanded(child: child),
+            Row(
+              children: [
+                // Панель настроек (слева)
+                if (dev.isOpen) const _DevPanelWidget(),
+                // Контент
+                Expanded(child: child),
+              ],
+            ),
+            // Кнопка открытия панели (видна только когда панель закрыта)
+            if (!dev.isOpen)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: _buildOpenButton(dev),
+              ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildOpenButton(DevPanelService dev) {
+    return Material(
+      color: Colors.transparent,
+      child: IconButton(
+        icon: const Icon(Icons.settings, color: Colors.white38, size: 22),
+        onPressed: () => dev.toggle(),
+        tooltip: 'Настройки (Ctrl+.)',
+        padding: const EdgeInsets.all(8),
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.black.withValues(alpha: 0.3),
+        ),
+      ),
     );
   }
 }
