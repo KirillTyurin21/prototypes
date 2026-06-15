@@ -126,20 +126,6 @@ class _SplashScreenState extends State<SplashScreen> {
             else
               Container(color: AppColors.black),
 
-            // Затемнение для читаемости кнопок
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.7),
-                  ],
-                ),
-              ),
-            ),
-
             // Кнопка «Купить здесь»
             if (config.showBuyButton)
               Positioned(
