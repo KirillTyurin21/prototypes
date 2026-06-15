@@ -19,8 +19,8 @@ class DevPanelShell extends StatelessWidget {
       listenable: dev,
       builder: (context, _) {
         // Глобальные размеры из настроек
-        final screenW = dev.get<int>('global_screen_width', defaultValue: 540);
-        final screenH = dev.get<int>('global_screen_height', defaultValue: 960);
+        final screenW = dev.get<int>('global_screen_width', defaultValue: 506);
+        final screenH = dev.get<int>('global_screen_height', defaultValue: 900);
         final useCustom = dev.get<bool>('global_use_custom_size', defaultValue: false);
 
         return Stack(
@@ -232,8 +232,8 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
 
   Widget _buildGlobalSettings() {
     final useCustom = _dev.get<bool>('global_use_custom_size', defaultValue: false);
-    final screenW = _dev.get<int>('global_screen_width', defaultValue: 540);
-    final screenH = _dev.get<int>('global_screen_height', defaultValue: 960);
+    final screenW = _dev.get<int>('global_screen_width', defaultValue: 506);
+    final screenH = _dev.get<int>('global_screen_height', defaultValue: 900);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

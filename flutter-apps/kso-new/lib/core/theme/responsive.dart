@@ -12,8 +12,8 @@ extension ResponsiveContext on BuildContext {
 
     if (useCustom) {
       // Фиксированный размер экрана: масштаб = min(W_custom/1080, H_custom/1920)
-      final screenW = dev.get<int>('global_screen_width', defaultValue: 540).toDouble();
-      final screenH = dev.get<int>('global_screen_height', defaultValue: 960).toDouble();
+      final screenW = dev.get<int>('global_screen_width', defaultValue: 506).toDouble();
+      final screenH = dev.get<int>('global_screen_height', defaultValue: 900).toDouble();
       if (screenW > 0 && screenH > 0) {
         return min(
           screenW / FigmaReference.width,
