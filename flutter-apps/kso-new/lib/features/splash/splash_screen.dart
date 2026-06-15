@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   /// Парсинг медиа-элементов из JSON-строки, сохранённой в настройках
   List<MediaItem> _parseMediaItems() {
-    final raw = _dev.get<String>('splash_media_json', defaultValue: '[]');
+    final raw = _dev.get<String>('splash_media_json', defaultValue: '[{"path":"assets/media/Start_screen.png","type":"image","order":0}]');
     final result = <MediaItem>[];
     try {
       final itemPattern = RegExp(r'\{[^}]+\}');
@@ -124,7 +124,7 @@ class _SplashScreenState extends State<SplashScreen> {
             if (mediaItems.isNotEmpty)
               _buildMediaItem(mediaItems[_currentIndex % mediaItems.length])
             else
-              Container(color: AppColors.black),
+              _buildDefaultBackground(),
 
             // Кнопка «Купить здесь»
             if (config.showBuyButton)
@@ -169,6 +169,18 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Фон по умолчанию — предзагруженное изображение из assets/media/Start_screen.png
+  Widget _buildDefaultBackground() {
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/media/Start_screen.png'),
+          fit: BoxFit.cover,
         ),
       ),
     );

@@ -21,17 +21,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # --- Angular ---
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Angular dependencies
         run: npm ci
 
       - name: Build Angular app
         run: npx ng build --configuration production --base-href /
+
+      # --- Flutter КСО ---
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: 'stable'
+
+      - name: Build Flutter KSO
+        run: |
+          cd flutter-apps/kso-new
+          flutter pub get
+          flutter build web --base-href /kso-new/ --no-tree-shake-icons
+
+      # --- Объединяем артефакты ---
+      - name: Merge Angular + Flutter artifacts
+        run: |
+          # Angular уже в dist/prototypes/
+          # Копируем Flutter в /kso-new/ под Angular
+          mkdir -p dist/prototypes/kso-new/
+          cp -r flutter-apps/kso-new/build/web/* dist/prototypes/kso-new/
 
       - name: Add 404.html for SPA routing
         run: cp dist/prototypes/index.html dist/prototypes/404.html

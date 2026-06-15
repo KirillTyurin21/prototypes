@@ -346,7 +346,7 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
     // Дефолтные элементы, если галерея пуста
     if (items.isEmpty) {
       items = [
-        {'path': 'assets/media/image.png', 'type': 'image', 'order': 0},
+        {'path': 'assets/media/Start_screen.png', 'type': 'image', 'order': 0},
       ];
     }
 

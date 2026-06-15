@@ -9,6 +9,11 @@
     "start": "ng serve --port 3000 --open",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "kso:build": "powershell -ExecutionPolicy Bypass -File scripts/build-kso.ps1",
+    "kso:dev": "powershell -ExecutionPolicy Bypass -File scripts/serve-kso.ps1 -dev",
+    "kso:chrome": "powershell -ExecutionPolicy Bypass -File scripts/serve-kso.ps1 -chrome",
+    "kso:serve": "powershell -ExecutionPolicy Bypass -File scripts/serve-kso.ps1",
+    "build:all": "npm run build && npm run kso:build",
     "validate": "powershell -ExecutionPolicy Bypass -File scripts/validate.ps1",
     "lint:proto": "powershell -ExecutionPolicy Bypass -File scripts/lint-proto.ps1"
   },
