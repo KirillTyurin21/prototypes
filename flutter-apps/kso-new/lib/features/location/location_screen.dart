@@ -5,25 +5,46 @@ import '../../shared/models/splash_config.dart';
 import '../../dev_panel/dev_panel_service.dart';
 
 /// Экран выбора локации: «В зале» / «С собой»
-class LocationScreen extends StatelessWidget {
+class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
 
+  @override
+  State<LocationScreen> createState() => _LocationScreenState();
+}
+
+class _LocationScreenState extends State<LocationScreen> {
+  final _dev = DevPanelService();
+
   LocationSelectionConfig get _config {
-    final dev = DevPanelService();
     return LocationSelectionConfig(
-      title: dev.get<String>('location_title',
+      title: _dev.get<String>('location_title',
           defaultValue: 'Как хотите получить заказ?'),
-      dineInImageAsset: dev.get<String>('location_dinein_img',
+      dineInImageAsset: _dev.get<String>('location_dinein_img',
           defaultValue: 'assets/media/dinein.png'),
-      takeawayImageAsset: dev.get<String>('location_takeaway_img',
+      takeawayImageAsset: _dev.get<String>('location_takeaway_img',
           defaultValue: 'assets/media/takeaway.png'),
     );
   }
 
-  void _onSelect(BuildContext context, String type) {
-    // Пока заглушка — позже переход на меню
+  @override
+  void initState() {
+    super.initState();
+    _dev.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _dev.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _onSelect(String type) {
     debugPrint('Выбрано: $type');
-    // context.go('/menu'); // будет позже
   }
 
   @override
@@ -55,7 +76,7 @@ class LocationScreen extends StatelessWidget {
               _LocationButton(
                 imageAsset: config.dineInImageAsset,
                 label: 'В зале',
-                onTap: () => _onSelect(context, 'dinein'),
+                onTap: () => _onSelect('dinein'),
               ),
               SizedBox(height: context.scaled(32)),
 
@@ -63,7 +84,7 @@ class LocationScreen extends StatelessWidget {
               _LocationButton(
                 imageAsset: config.takeawayImageAsset,
                 label: 'С собой',
-                onTap: () => _onSelect(context, 'takeaway'),
+                onTap: () => _onSelect('takeaway'),
               ),
             ],
           ),

@@ -182,26 +182,23 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
     final v = _dev.get<bool>(key, defaultValue: defaultValue);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: InkWell(
-        onTap: () => _dev.set(key, !v),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20, height: 20,
-              child: Checkbox(
-                value: v,
-                onChanged: (val) => _dev.set(key, val ?? defaultValue),
-                activeColor: Colors.orange,
-                checkColor: Colors.white,
-                side: const BorderSide(color: Colors.white30, width: 1.5),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 20, height: 20,
+            child: Checkbox(
+              value: v,
+              onChanged: (val) => _dev.set(key, val ?? defaultValue),
+              activeColor: Colors.orange,
+              checkColor: Colors.white,
+              side: const BorderSide(color: Colors.white30, width: 1.5),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(label,
-                style: const TextStyle(color: Colors.white70, fontSize: 12))),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label,
+              style: const TextStyle(color: Colors.white70, fontSize: 12))),
+        ],
       ),
     );
   }
