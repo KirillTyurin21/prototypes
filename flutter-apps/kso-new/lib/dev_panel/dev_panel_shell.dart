@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dev_panel_service.dart';
@@ -372,7 +374,7 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    path.split('/').last,
+                    item['filename'] as String? ?? path.split('/').last,
                     style: const TextStyle(color: Colors.white70, fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -438,6 +440,21 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
               ),
             ),
             const SizedBox(width: 4),
+            // Кнопка загрузки с ПК
+            GestureDetector(
+              onTap: () => _uploadMediaFromPC(items),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.file_upload, color: Colors.white, size: 16),
+              ),
+            ),
+            const SizedBox(width: 4),
+            // Кнопка добавления по текстовому пути
             GestureDetector(
               onTap: () {
                 final path = _newMediaPathCtrl.text.trim();
@@ -526,6 +543,44 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
     );
   }
 
+  /// Загрузка медиа-файлов с ПК через диалог выбора файлов
+  void _uploadMediaFromPC(List<Map<String, dynamic>> items) {
+    final input = html.FileUploadInputElement()
+      ..accept = _newMediaType == 'video' ? 'video/*' : 'image/*'
+      ..multiple = true;
+
+    input.onChange.listen((event) {
+      final files = input.files;
+      if (files == null || files.isEmpty) return;
+
+      for (final file in files!) {
+        final reader = html.FileReader();
+        reader.onLoad.listen((loadEvent) {
+          final dataUrl = reader.result as String?;
+          if (dataUrl == null || dataUrl.isEmpty) return;
+
+          final fileName = file.name;
+          final mimeType = _newMediaType == 'video'
+              ? 'video'
+              : (fileName.endsWith('.gif') ? 'gif' : 'image');
+
+          items.add({
+            'path': dataUrl,       // data:image/png;base64,... или data:video/mp4;base64,...
+            'type': _newMediaType,
+            'order': items.length,
+            'filename': fileName,
+            'mime': mimeType,
+          });
+          _saveMediaItems(items);
+          setState(() {}); // Обновить UI
+        });
+        reader.readAsDataUrl(file);
+      }
+    });
+
+    input.click(); // Открыть диалог выбора файлов
+  }
+
   void _saveMediaItems(List<Map<String, dynamic>> items) {
     _dev.set('splash_media_json', _encodeMediaJson(items));
   }
@@ -537,14 +592,18 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
     final itemPattern = RegExp(r'\{[^}]+\}');
     for (final match in itemPattern.allMatches(raw)) {
       final item = match.group(0)!;
-      final pathMatch = RegExp(r'"path"\s*:\s*"([^"]*)"').firstMatch(item);
+      final pathMatch = RegExp(r'"path"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(item);
       final typeMatch = RegExp(r'"type"\s*:\s*"([^"]*)"').firstMatch(item);
       final orderMatch = RegExp(r'"order"\s*:\s*(\d+)').firstMatch(item);
+      final filenameMatch = RegExp(r'"filename"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(item);
+      final mimeMatch = RegExp(r'"mime"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(item);
       if (pathMatch != null) {
         result.add({
-          'path': pathMatch.group(1)!,
+          'path': pathMatch.group(1)!.replaceAll('\\"', '"').replaceAll('\\\\', '\\'),
           'type': typeMatch?.group(1) ?? 'image',
           'order': int.tryParse(orderMatch?.group(1) ?? '0') ?? 0,
+          'filename': filenameMatch?.group(1)?.replaceAll('\\"', '"').replaceAll('\\\\', '\\') ?? '',
+          'mime': mimeMatch?.group(1)?.replaceAll('\\"', '"').replaceAll('\\\\', '\\') ?? '',
         });
       }
     }
@@ -556,7 +615,19 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
       final path = (item['path'] as String?) ?? '';
       final type = (item['type'] as String?) ?? 'image';
       final order = item['order'] ?? 0;
-      return '{"path":"$path","type":"$type","order":$order}';
+      final filename = (item['filename'] as String?) ?? '';
+      final mime = (item['mime'] as String?) ?? '';
+      // Экранируем кавычки и бэкслеши в path и filename
+      final escapedPath = path
+          .replaceAll('\\', '\\\\')
+          .replaceAll('"', '\\"');
+      final escapedFilename = filename
+          .replaceAll('\\', '\\\\')
+          .replaceAll('"', '\\"');
+      final escapedMime = mime
+          .replaceAll('\\', '\\\\')
+          .replaceAll('"', '\\"');
+      return '{"path":"$escapedPath","type":"$type","order":$order,"filename":"$escapedFilename","mime":"$escapedMime"}';
     }).toList();
     return '[${parts.join(',')}]';
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
@@ -46,12 +47,12 @@ class _SplashScreenState extends State<SplashScreen> {
       final itemPattern = RegExp(r'\{[^}]+\}');
       for (final match in itemPattern.allMatches(raw)) {
         final item = match.group(0)!;
-        final pathMatch = RegExp(r'"path"\s*:\s*"([^"]*)"').firstMatch(item);
+        final pathMatch = RegExp(r'"path"\s*:\s*"((?:[^"\\]|\\.)*)"').firstMatch(item);
         final typeMatch = RegExp(r'"type"\s*:\s*"([^"]*)"').firstMatch(item);
         final orderMatch = RegExp(r'"order"\s*:\s*(\d+)').firstMatch(item);
         if (pathMatch != null) {
           result.add(MediaItem(
-            assetPath: pathMatch.group(1)!,
+            assetPath: pathMatch.group(1)!.replaceAll('\\"', '"').replaceAll('\\\\', '\\'),
             type: (typeMatch?.group(1) ?? 'image') == 'video'
                 ? MediaType.video
                 : MediaType.image,
@@ -189,6 +190,23 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Widget _buildMediaItem(MediaItem item) {
     if (item.type == MediaType.image) {
+      // Если путь — data URL, отображаем реальное изображение
+      if (item.assetPath.startsWith('data:image/')) {
+        final bytes = base64Decode(item.assetPath.split(',').last);
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 800),
+          child: Container(
+            key: ValueKey(item.assetPath),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: MemoryImage(bytes),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        );
+      }
+      // Обычный asset-путь — иконка-заглушка
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 800),
         child: Container(
