@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:html' as html;
 
 /// Главная страница — витрина Flutter-прототипов
 class HomeScreen extends StatelessWidget {
@@ -30,12 +31,20 @@ class HomeScreen extends StatelessWidget {
               ),
               delegate: SliverChildListDelegate([
                 _PrototypeCard(
-                  title: 'КСО Прототип',
-                  description: 'Касса самообслуживания — экраны заказа, оплаты и выдачи',
+                  title: 'КСО Киоск',
+                  description: 'Новое приложение киоска самообслуживания — заказ, оплата, выдача',
                   icon: Icons.point_of_sale_rounded,
+                  color: const Color(0xFFFF6D00),
+                  externalUrl: '/flutter/kso-new/',
+                  status: 'В разработке',
+                ),
+                _PrototypeCard(
+                  title: 'КСО Прототип (старый)',
+                  description: 'Старая версия КСО — экраны заказа, оплаты и выдачи',
+                  icon: Icons.storefront_rounded,
                   color: theme.colorScheme.primary,
                   route: '/kso',
-                  status: 'В разработке',
+                  status: 'Устарело',
                 ),
                 _PrototypeCard(
                   title: 'Скоро...',
@@ -169,6 +178,7 @@ class _PrototypeCard extends StatefulWidget {
   final IconData icon;
   final Color color;
   final String? route;
+  final String? externalUrl;
   final String status;
 
   const _PrototypeCard({
@@ -176,7 +186,8 @@ class _PrototypeCard extends StatefulWidget {
     required this.description,
     required this.icon,
     required this.color,
-    required this.route,
+    this.route,
+    this.externalUrl,
     required this.status,
   });
 
@@ -190,14 +201,21 @@ class _PrototypeCardState extends State<_PrototypeCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isClickable = widget.route != null;
+    final isClickable = widget.route != null || widget.externalUrl != null;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       cursor: isClickable ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
-        onTap: isClickable ? () => context.go(widget.route!) : null,
+        onTap: isClickable ? () {
+          if (widget.externalUrl != null) {
+            // Navigate to external Flutter app
+            _navigateExternal(widget.externalUrl!);
+          } else if (widget.route != null) {
+            context.go(widget.route!);
+          }
+        } : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
@@ -267,6 +285,10 @@ class _PrototypeCardState extends State<_PrototypeCard> {
         ),
       ),
     );
+  }
+
+  void _navigateExternal(String url) {
+    html.window.location.assign(url);
   }
 }
 
