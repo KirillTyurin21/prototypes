@@ -19,6 +19,7 @@ class DevPanelService extends ChangeNotifier {
   /// Получить значение настройки
   T get<T>(String key, {required T defaultValue}) {
     if (!enabled) return defaultValue;
+    if (!_settings.containsKey(key)) return defaultValue;
     final v = _settings[key];
     if (v is T) return v;
     return defaultValue;
