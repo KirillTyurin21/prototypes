@@ -102,6 +102,72 @@ import { AlignFieldsComponent } from '../inspector/align-fields.component';
       </app-collapsible-section>
     </ng-container>
 
+    <!-- ── External Order Number (Внешний номер заказа) ── -->
+    <ng-container *ngIf="element.type === 'external-order-number'">
+      <app-collapsible-section title="Данные" [expanded]="true">
+        <div class="field-group">
+          <label class="field-label">Источник заказов</label>
+          <select class="field-select" [(ngModel)]="element.externalSource">
+            <option value="">— Любой источник —</option>
+            <option *ngFor="let s of externalSources" [ngValue]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Демо-номер (для предпросмотра)</label>
+          <input class="field-input" [(ngModel)]="element.externalDemoNumber" placeholder="#EXT-12345" />
+        </div>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Формат">
+        <div class="field-group">
+          <label class="field-label">Префикс</label>
+          <input class="field-input" [(ngModel)]="element.externalPrefix" placeholder="Напр. DEL-" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Суффикс</label>
+          <input class="field-input" [(ngModel)]="element.externalSuffix" placeholder="Напр. -01" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Макс. длина символов</label>
+          <input type="number" class="field-input" [(ngModel)]="element.externalMaxLength" min="0" placeholder="0 — не ограничена" />
+        </div>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Отображение">
+        <label class="field-check">
+          <input type="checkbox" [(ngModel)]="element.externalShowFallback" />
+          Показывать обычный номер при отсутствии внешнего
+        </label>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Макет">
+        <app-layout-fields
+          [(x)]="element.x" [(y)]="element.y"
+          [(width)]="element.width" [(height)]="element.height">
+        </app-layout-fields>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Граница">
+        <app-border-fields
+          [(borderWidth)]="element.borderWidth"
+          [(borderColor)]="element.borderColor"
+          [(borderRadius)]="element.borderRadius">
+        </app-border-fields>
+      </app-collapsible-section>
+
+      <app-collapsible-section title="Шрифт">
+        <app-font-fields
+          [(fontFamily)]="element.fontFamily!"
+          [(fontSize)]="element.fontSize!"
+          [(fontBold)]="element.fontBold!"
+          [(fontItalic)]="element.fontItalic!">
+        </app-font-fields>
+        <app-align-fields
+          [(hAlign)]="element.textAlign!">
+        </app-align-fields>
+      </app-collapsible-section>
+    </ng-container>
+
     <!-- ── Order items (Type A) ── -->
     <ng-container *ngIf="element.type === 'order-items'">
       <!-- Данные -->
@@ -624,8 +690,19 @@ export class ControlElementInspectorComponent {
   @Input() emuItemStatuses: string[] = [];
 
   isGenericElement(type: ArrivalsElementType): boolean {
-    return !['text', 'image', 'order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards', 'counter'].includes(type);
+    return !['text', 'image', 'order-items', 'order-items-zones', 'order-items-progress', 'order-items-checklist', 'order-items-cards', 'counter', 'external-order-number'].includes(type);
   }
+
+  /* ── External Order Number Sources ── */
+  externalSources = [
+    { value: '', label: 'Любой источник' },
+    { value: 'delivery', label: 'Доставка (Delivery)' },
+    { value: 'kiosk', label: 'Киоск (Kiosk)' },
+    { value: 'website', label: 'Сайт (Website)' },
+    { value: 'app', label: 'Мобильное приложение (App)' },
+    { value: 'yandex', label: 'Яндекс.Еда' },
+    { value: 'magnit', label: 'Магнит' },
+  ];
 
   toggleCounterStatus(status: string, checked: boolean): void {
     const arr = this.element.counterStatuses ? [...this.element.counterStatuses] : [];

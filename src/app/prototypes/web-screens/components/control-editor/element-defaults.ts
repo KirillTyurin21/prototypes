@@ -60,6 +60,7 @@ export const ELEMENT_TYPES: ElementTypeOption[] = [
   { type: 'order-items-checklist', label: 'D. Состав заказа — Чеклист' },
   { type: 'order-items-cards', label: 'E. Состав заказа — Карточки' },
   { type: 'counter', label: 'Количество блюд в заказе' },
+  { type: 'external-order-number', label: 'Внешний номер заказа' },
 ];
 
 export function getElementTypeLabel(type: string): string {
@@ -185,6 +186,23 @@ export function createDefaultElement(type: ArrivalsElementType, offset: number):
     el.cardsPendingBg = '#fff3e0';
     el.cardsGap = 4;
     el.cardsItemFontSize = 11;
+  }
+
+  if (type === 'external-order-number') {
+    el.name = 'Внешний номер заказа';
+    el.fontFamily = 'Arial';
+    el.fontSize = 24;
+    el.fontBold = true;
+    el.fontItalic = false;
+    el.textAlign = 'center';
+    el.externalSource = '';
+    el.externalPrefix = '';
+    el.externalSuffix = '';
+    el.externalMaxLength = 0;
+    el.externalShowFallback = false;
+    el.externalDemoNumber = '';
+    el.width = 200;
+    el.height = 40;
   }
 
   return el;

@@ -244,6 +244,13 @@ export interface ArrivalsThemeElement {
   fontModifiers?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
   fontPrice?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
   fontDescription?: { size: number; family: string; color: string; bold: boolean; italic: boolean };
+  // ── External Order Number (Внешний номер заказа) ──
+  externalSource?: string;
+  externalPrefix?: string;
+  externalSuffix?: string;
+  externalMaxLength?: number;
+  externalShowFallback?: boolean;
+  externalDemoNumber?: string;
 }
 
 /* ── Product Catalog (for Price element navigator) ── */

@@ -21,8 +21,17 @@ import { OrderMockItem, EMU_ITEM_STATUSES } from './element-defaults';
       <lucide-icon name="image" [size]="24"></lucide-icon>
     </span>
 
-    <span *ngIf="element.type !== 'text' && element.type !== 'image' && !isOrderVariant(element.type)"
+    <span *ngIf="element.type !== 'text' && element.type !== 'image' && element.type !== 'external-order-number' && !isOrderVariant(element.type)"
       class="el-placeholder-label">{{ element.name }}</span>
+
+    <!-- ═══ External Order Number ═══ -->
+    <span *ngIf="element.type === 'external-order-number'" class="el-text"
+      [style.font-family]="element.fontFamily"
+      [style.font-size.px]="element.fontSize"
+      [style.font-weight]="element.fontBold ? 'bold' : 'normal'"
+      [style.font-style]="element.fontItalic ? 'italic' : 'normal'"
+      [style.text-align]="element.textAlign"
+    >{{ getExternalNumberPreview(element) }}</span>
 
     <!-- ═══ A: Order items table ═══ -->
     <div *ngIf="element.type === 'order-items'" class="el-order-table">
@@ -467,5 +476,14 @@ export class ControlElementRendererComponent {
       return matched + '/' + this.orderMockItems.length;
     }
     return matched + ' из ' + this.orderMockItems.length;
+  }
+
+  getExternalNumberPreview(el: ArrivalsThemeElement): string {
+    if (el.externalDemoNumber) return el.externalDemoNumber;
+    const prefix = el.externalPrefix || '';
+    const suffix = el.externalSuffix || '';
+    const sourceMap: Record<string, string> = { delivery: 'DEL-', kiosk: 'K-', website: 'WEB-', app: 'APP-', yandex: 'YANDEX-', magnit: 'MGN-' };
+    const demo = el.externalSource ? (sourceMap[el.externalSource] || 'EXT-') : 'EXT-';
+    return prefix + demo + '12345' + suffix;
   }
 }

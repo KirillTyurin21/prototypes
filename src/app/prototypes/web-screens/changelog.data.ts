@@ -2,6 +2,22 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.32',
+    date: '2026-06-11',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Электронная очередь — Редактор контролов',
+        pageRoute: '/prototype/web-screens/control-editor',
+        items: [
+          'Добавлен элемент «Внешний номер заказа» в палитру контролов',
+          'Инспектор элемента: выбор источника заказов, формат (префикс/суффикс/длина), fallback на обычный номер',
+          'Рендеринг на canvas с демо-отображением в зависимости от выбранного источника',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.31',
     date: '2026-06-11',
     status: 'released',
