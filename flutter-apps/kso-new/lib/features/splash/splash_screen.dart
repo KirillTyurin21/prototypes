@@ -176,7 +176,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Widget _buildMediaItem(MediaItem item) {
     if (item.type == MediaType.image) {
-      // Если путь — data URL, отображаем реальное изображение
+      // Если путь — data URL, отображаем реальное изображение из base64
       if (item.assetPath.startsWith('data:image/')) {
         final bytes = base64Decode(item.assetPath.split(',').last);
         return AnimatedSwitcher(
@@ -192,14 +192,17 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         );
       }
-      // Обычный asset-путь — иконка-заглушка
+      // Обычный asset-путь — загружаем из assets
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 800),
         child: Container(
           key: ValueKey(item.assetPath),
-          color: AppColors.darkBackground,
-          child: const Center(
-            child: Icon(Icons.image, size: 80, color: AppColors.grey),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(item.assetPath),
+              fit: BoxFit.cover,
+              onError: (_, __) {}, // Если asset не найден — просто чёрный фон
+            ),
           ),
         ),
       );

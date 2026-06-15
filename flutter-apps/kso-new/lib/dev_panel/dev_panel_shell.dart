@@ -27,6 +27,10 @@ class DevPanelShell extends StatelessWidget {
 
         return Stack(
           children: [
+            // Чёрный фон за пределами КСО-экрана
+            Positioned.fill(
+              child: Container(color: Colors.black),
+            ),
             // Основной контент — центрирован в custom-размере, либо на весь экран
             if (useCustom)
               Center(
@@ -241,7 +245,7 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Чекбокс: использовать фиксированный размер
-        _check('global_use_custom_size', 'Фиксированный размер экрана', false),
+        _check('global_use_custom_size', 'Фиксированный размер экрана', true),
         const SizedBox(height: 8),
 
         // Поля ввода Ш×В (активны только при включённом чекбоксе)
