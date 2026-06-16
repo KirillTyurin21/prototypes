@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/splash_screen.dart';
-import '../../features/location/location_screen.dart';
+import '../../features/catalog/catalog_screen.dart';
 
 /// Конфигурация маршрутов приложения
 class AppRouter {
@@ -18,10 +18,10 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: '/location',
+        path: '/catalog',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: const LocationScreen(),
+          child: const CatalogScreen(),
           transitionDuration: const Duration(milliseconds: 400),
           reverseTransitionDuration: const Duration(milliseconds: 400),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {

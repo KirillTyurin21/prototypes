@@ -13,6 +13,10 @@ class AppColors {
   static const darkBorder = Color(0xFF444444);
   static const darkBottomBar = Color(0xFF1A1A1A);
 
+  // Экран «Каталог»
+  static const catalogBackground = Color(0xFFECEDEF);
+  static const catalogHeaderBg = Color(0xFFECEDEF);
+
   // Светлая тема
   static const lightBackground = Color(0xFFF5F5F5);
   static const lightSurface = Color(0xFFFFFFFF);

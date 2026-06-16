@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dev_panel_service.dart';
@@ -216,6 +217,13 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
         _text('location_takeaway_img', 'Изображение «С собой»', 'assets/media/takeaway.png'),
         const SizedBox(height: 16),
 
+        // --- Каталог ---
+        _sectionTitle('Каталог'),
+        const SizedBox(height: 8),
+        _color('catalog_bg_color', 'Цвет фона', 0xFFECEDEF),
+        _buildCatalogHeaderImage(),
+        const SizedBox(height: 16),
+
         // --- Сброс ---
         Center(
           child: TextButton(
@@ -284,6 +292,135 @@ class _DevPanelWidgetState extends State<_DevPanelWidget> {
           ),
       ],
     );
+  }
+
+  // ===================================================================
+  //  КАТАЛОГ: изображение в header
+  // ===================================================================
+
+  Widget _buildCatalogHeaderImage() {
+    final currentPath = _dev.get<String>('catalog_header_image', defaultValue: '');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Изображение в header', style: TextStyle(color: Colors.white70, fontSize: 12)),
+        const SizedBox(height: 4),
+
+        // Превью текущего изображения
+        if (currentPath.isNotEmpty)
+          Container(
+            width: double.infinity,
+            height: 80,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2A2A4A),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white10),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: currentPath.startsWith('assets/')
+                ? Image.asset(currentPath, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _previewPlaceholder())
+                : Image.network(currentPath, fit: BoxFit.cover, errorBuilder: (_, __, ___) {
+                    // data: URL
+                    if (currentPath.startsWith('data:')) {
+                      return Image.memory(
+                        _dataUrlToBytes(currentPath),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _previewPlaceholder(),
+                      );
+                    }
+                    return _previewPlaceholder();
+                  }),
+          ),
+
+        // Строка: текстовое поле + кнопка загрузки
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2A2A4A),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: TextField(
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  decoration: const InputDecoration(
+                    hintText: 'assets/media/...',
+                    hintStyle: TextStyle(color: Colors.white24, fontSize: 12),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  controller: _ctrl('catalog_header_image_tf', currentPath),
+                  onChanged: (val) {
+                    _dev.set('catalog_header_image', val);
+                    setState(() {});
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            // Кнопка загрузки с ПК
+            GestureDetector(
+              onTap: () => _uploadCatalogHeaderImage(),
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.file_upload, color: Colors.white, size: 18),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Поддерживаются: assets/..., URL, или загрузка с ПК',
+          style: TextStyle(color: Colors.white30, fontSize: 10, fontStyle: FontStyle.italic),
+        ),
+      ],
+    );
+  }
+
+  Widget _previewPlaceholder() {
+    return Center(
+      child: Icon(Icons.image_outlined, color: Colors.white24, size: 32),
+    );
+  }
+
+  void _uploadCatalogHeaderImage() {
+    final input = html.FileUploadInputElement()
+      ..accept = 'image/*';
+
+    input.onChange.listen((event) {
+      final files = input.files;
+      if (files == null || files.isEmpty) return;
+
+      final file = files.first!;
+      final reader = html.FileReader();
+      reader.onLoad.listen((loadEvent) {
+        final dataUrl = reader.result as String?;
+        if (dataUrl == null || dataUrl.isEmpty) return;
+        _dev.set('catalog_header_image', dataUrl);
+        setState(() {});
+      });
+      reader.readAsDataUrl(file);
+    });
+
+    input.click();
+  }
+
+  /// Преобразование data: URL в массив байт (для Image.memory)
+  Uint8List _dataUrlToBytes(String dataUrl) {
+    final commaIndex = dataUrl.indexOf(',');
+    if (commaIndex == -1) return Uint8List(0);
+    final base64 = dataUrl.substring(commaIndex + 1);
+    return base64Decode(base64);
   }
 
   Widget _numberInput({
