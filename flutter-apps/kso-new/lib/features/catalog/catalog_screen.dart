@@ -28,6 +28,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
   List<CatalogProduct> get _filteredProducts =>
       mockProducts.where((p) => p.categoryId == _activeCategoryId).toList();
 
+  /// Группирует товары по groupName, null → «Все»
+  List<_ProductGroup> get _groupedProducts {
+    final products = _filteredProducts;
+    final map = <String, List<CatalogProduct>>{};
+    for (final p in products) {
+      final key = p.groupName ?? 'Все';
+      map.putIfAbsent(key, () => []).add(p);
+    }
+    return map.entries.map((e) => _ProductGroup(e.key, e.value)).toList();
+  }
+
   @override
   void dispose() {
     _gridScrollCtrl.dispose();
@@ -76,7 +87,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       // Левая панель категорий
                       _buildCategorySidebar(),
                       // Сетка товаров
-                      Expanded(child: _buildProductGrid()),
+                      Expanded(child: _buildProductArea()),
                     ],
                   ),
                 ),
@@ -251,23 +262,40 @@ class _CatalogScreenState extends State<CatalogScreen> {
           vertical: context.scaled(3),
         ),
         decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.accent.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(context.scaledRadius(10)),
+          color: isActive ? AppColors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(context.scaledRadius(24)),
           border: Border.all(
-            color: isActive
-                ? AppColors.accent.withValues(alpha: 0.4)
-                : Colors.transparent,
-            width: 1.5,
+            color: isActive ? AppColors.lightBorder : Colors.transparent,
+            width: 1,
           ),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.black.withValues(alpha: 0.06),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
-            Icon(
-              iconForCategory(cat.icon),
-              size: context.scaled(24),
-              color: isActive ? AppColors.accent : AppColors.grey,
+            // Цветная иконка категории
+            Container(
+              width: context.scaled(36),
+              height: context.scaled(36),
+              decoration: BoxDecoration(
+                color: (categoryColors[cat.id] ?? AppColors.grey)
+                    .withValues(alpha: isActive ? 1.0 : 0.15),
+                borderRadius: BorderRadius.circular(context.scaledRadius(10)),
+              ),
+              child: Icon(
+                iconForCategory(cat.icon),
+                size: context.scaled(20),
+                color: isActive
+                    ? AppColors.white
+                    : (categoryColors[cat.id] ?? AppColors.grey),
+              ),
             ),
             SizedBox(width: context.scaled(12)),
             Expanded(
@@ -289,10 +317,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  Widget _buildProductGrid() {
-    final products = _filteredProducts;
+  Widget _buildProductArea() {
+    final groups = _groupedProducts;
 
-    if (products.isEmpty) {
+    if (groups.isEmpty) {
       return Center(
         child: Text(
           'Нет товаров',
@@ -304,23 +332,55 @@ class _CatalogScreenState extends State<CatalogScreen> {
       );
     }
 
-    return GridView.builder(
+    return CustomScrollView(
       controller: _gridScrollCtrl,
-      padding: context.scaledPadding(12),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: context.scaled(12),
-        crossAxisSpacing: context.scaled(12),
-        childAspectRatio: 0.68,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        return _ProductCard(
-          product: products[index],
-          onAdd: () => _addToCart(products[index]),
-          formatPrice: _formatPrice,
-        );
-      },
+      slivers: [
+        for (final group in groups) ...[
+          // Заголовок группы
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                context.scaled(12),
+                context.scaled(16),
+                context.scaled(12),
+                context.scaled(8),
+              ),
+              child: Text(
+                group.name,
+                style: TextStyle(
+                  color: AppColors.black,
+                  fontSize: context.scaledFont(18),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+
+          // Сетка 2 колонки
+          SliverPadding(
+            padding: context.scaledSymmetric(12, 0),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: context.scaled(10),
+                crossAxisSpacing: context.scaled(10),
+                childAspectRatio: 0.72,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (ctx, i) => _ProductCard(
+                  product: group.products[i],
+                  onAdd: () => _addToCart(group.products[i]),
+                  formatPrice: _formatPrice,
+                ),
+                childCount: group.products.length,
+              ),
+            ),
+          ),
+        ],
+
+        // Отступ снизу
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+      ],
     );
   }
 
@@ -422,7 +482,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   }
 }
 
-/// Карточка товара в сетке каталога
+/// Карточка товара в сетке каталога (точный дизайн как в Figma)
 class _ProductCard extends StatelessWidget {
   final CatalogProduct product;
   final VoidCallback onAdd;
@@ -444,38 +504,27 @@ class _ProductCard extends StatelessWidget {
           color: AppColors.lightBorder,
           width: 1,
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Изображение товара
+          // Фото товара (заполняет ~55% высоты)
           Expanded(
-            flex: 5,
-            child: Container(
-              color: AppColors.catalogBackground,
-              child: Center(
-                child: Icon(
-                  Icons.restaurant,
-                  size: context.scaled(40),
-                  color: AppColors.grey.withValues(alpha: 0.4),
-                ),
-              ),
-            ),
+            flex: 11,
+            child: _ProductEmoji(emoji: product.emoji, categoryId: product.categoryId),
           ),
 
-          // Информация о товаре
+          // Информация о товаре (~45% высоты)
           Expanded(
-            flex: 4,
+            flex: 9,
             child: Padding(
-              padding: context.scaledSymmetric(10, 6),
+              padding: EdgeInsets.fromLTRB(
+                context.scaled(10),
+                context.scaled(10),
+                context.scaled(10),
+                context.scaled(8),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -486,23 +535,40 @@ class _ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: AppColors.black,
-                      fontSize: context.scaledFont(14),
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
+                      fontSize: context.scaledFont(16),
+                      fontWeight: FontWeight.w500,
+                      height: 1.25,
                     ),
                   ),
+                  const SizedBox(height: 4),
+
+                  // Описание (1 строка)
+                  if (product.description != null)
+                    Text(
+                      product.description!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.darkGrey,
+                        fontSize: context.scaledFont(12),
+                        fontWeight: FontWeight.w400,
+                        height: 1.3,
+                      ),
+                    ),
+
                   const Spacer(),
 
                   // Цена и кнопка +
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         formatPrice(product.price),
                         style: TextStyle(
-                          color: AppColors.accent,
+                          color: AppColors.accentLight,
                           fontSize: context.scaledFont(16),
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       GestureDetector(
@@ -530,5 +596,70 @@ class _ProductCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Модель группы товаров
+class _ProductGroup {
+  final String name;
+  final List<CatalogProduct> products;
+  const _ProductGroup(this.name, this.products);
+}
+
+/// Фото-плейсхолдер для карточки товара (как в Figma)
+class _ProductEmoji extends StatelessWidget {
+  final String? emoji;
+  final String categoryId;
+
+  const _ProductEmoji({this.emoji, required this.categoryId});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = categoryColors[categoryId] ?? AppColors.grey;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Фоновый паттерн (едва заметная текстура)
+          Positioned(
+            right: -8,
+            bottom: -8,
+            child: Opacity(
+              opacity: 0.08,
+              child: Icon(
+                iconForCategory(_categoryIconName(categoryId)),
+                size: context.scaled(64),
+                color: color,
+              ),
+            ),
+          ),
+          // Центральный emoji
+          Center(
+            child: Text(
+              emoji ?? '🍽️',
+              style: TextStyle(fontSize: context.scaled(52)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _categoryIconName(String catId) {
+    return switch (catId) {
+      'soups' => 'soup_kitchen',
+      'pizza' => 'local_pizza',
+      'burgers' => 'lunch_dining',
+      'rolls' => 'set_meal',
+      'hot' => 'local_fire_department',
+      'salads' => 'eco',
+      'drinks' => 'local_cafe',
+      'desserts' => 'cake',
+      _ => 'restaurant',
+    };
   }
 }

@@ -19,6 +19,8 @@ class CatalogProduct {
   final String? description;
   final int price; // в тенге
   final String? imageAsset;
+  final String? groupName; // группа внутри категории (напр. «Классические супы»)
+  final String? emoji; // emoji-плейсхолдер для фото
 
   const CatalogProduct({
     required this.id,
@@ -27,5 +29,7 @@ class CatalogProduct {
     this.description,
     required this.price,
     this.imageAsset,
+    this.groupName,
+    this.emoji,
   });
 }
