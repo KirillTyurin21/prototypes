@@ -200,9 +200,6 @@ import { SoundEventHandler } from '../types';
                                   <input type="checkbox" [checked]="d.handlerIds.includes(h.id)" (change)="toggleDisplayHandler(d, h.id)" />
                                   <span>{{ h.name }}</span>
                                   <span class="handler-badge" [ngClass]="getHandlerBadgeClass(h)">{{ getHandlerBadgeText(h) }}</span>
-                                  <span class="handler-duplicate-hint" *ngIf="isHandlerOnOtherDisplay(arr, d.id, h.id) as otherName">
-                                    Уже назначен на {{ otherName }}
-                                  </span>
                                 </label>
                               </div>
                             </div>
@@ -288,9 +285,6 @@ import { SoundEventHandler } from '../types';
     .dropdown-option { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--dt-text-primary); flex-wrap: wrap; }
     .dropdown-option:hover { background: var(--dt-surface-hover); }
     .dropdown-option input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--dt-brand-accent); cursor: pointer; }
-
-    /* Handler duplicate hint */
-    .handler-duplicate-hint { width: 100%; font-size: 11px; color: #e65100; margin-left: 26px; margin-top: 2px; }
 
     /* Audio select */
     .audio-cell { display: flex; align-items: center; gap: 8px; }
@@ -569,11 +563,6 @@ export class SoundsTerminalsScreenComponent implements OnInit, OnDestroy {
       display.handlerIds.push(handlerId);
     }
     this.hasUnsavedChanges = true;
-  }
-
-  isHandlerOnOtherDisplay(arrivals: ArrivalsDevice, currentDisplayId: string, handlerId: number): string | null {
-    const other = arrivals.displays.find(d => d.id !== currentDisplayId && d.handlerIds.includes(handlerId));
-    return other ? other.name : null;
   }
 
   // ── Handler helpers ──
