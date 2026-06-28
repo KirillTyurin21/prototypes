@@ -120,12 +120,10 @@ import { SoundEventHandler } from '../types';
                     <td class="col-audio">
                       <div class="audio-cell">
                         <select class="audio-select" [(ngModel)]="t.audioDevice" (ngModelChange)="onAudioDeviceChange(t)">
-                          <ng-container *ngFor="let dev of getAudioDevices(); let i = index">
-                            <option *ngIf="i === physicalDeviceCount && arrivalsDeviceCount > 0" disabled class="audio-divider">──────────────</option>
-                            <option [value]="dev.value" [class.audio-arrivals]="dev.type === 'arrivals'" [class.audio-offline]="dev.isOnline === false">
-                              {{ dev.type === 'arrivals' ? '🖥 ' : '🔊 ' }}{{ dev.label }}
-                            </option>
-                          </ng-container>
+                          <option *ngFor="let dev of audioDeviceOptions" [value]="dev.value" [disabled]="dev.label === '---'" [class.audio-divider]="dev.label === '---'" [class.audio-arrivals]="dev.type === 'arrivals'" [class.audio-offline]="dev.isOnline === false">
+                            <ng-container *ngIf="dev.label === '---'">──────────────</ng-container>
+                            <ng-container *ngIf="dev.label !== '---'">{{ dev.type === 'arrivals' ? '🖥 ' : '🔊 ' }}{{ dev.label }}</ng-container>
+                          </option>
                         </select>
                         <!-- Refresh button for selected Arrivals -->
                         <button
@@ -368,9 +366,8 @@ export class SoundsTerminalsScreenComponent implements OnInit, OnDestroy {
   hasUnsavedChanges = false;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Counts for divider in audio select
-  physicalDeviceCount = 0;
-  arrivalsDeviceCount = 0;
+  // Pre-computed audio device options (with divider)
+  audioDeviceOptions: AudioDeviceOption[] = [];
 
   private clickListener = (e: Event) => {
     this.activeHandlerDropdown = null;
@@ -395,7 +392,7 @@ export class SoundsTerminalsScreenComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.updateDeviceCounts();
+    this.rebuildAudioOptions();
     document.addEventListener('click', this.clickListener);
   }
 
@@ -406,14 +403,14 @@ export class SoundsTerminalsScreenComponent implements OnInit, OnDestroy {
 
   // ── Audio devices ──
 
-  getAudioDevices(): AudioDeviceOption[] {
-    return getAudioDeviceOptions(this.arrivalsDevices);
-  }
-
-  updateDeviceCounts(): void {
+  rebuildAudioOptions(): void {
     const opts = getAudioDeviceOptions(this.arrivalsDevices);
-    this.physicalDeviceCount = opts.filter(o => o.type === 'physical').length;
-    this.arrivalsDeviceCount = opts.filter(o => o.type === 'arrivals').length;
+    const physical = opts.filter(o => o.type === 'physical');
+    const arrivals = opts.filter(o => o.type === 'arrivals');
+    // Build flat array with divider between physical and arrivals
+    this.audioDeviceOptions = arrivals.length > 0
+      ? [...physical, { label: '---', value: '', type: 'physical' as const }, ...arrivals]
+      : [...physical];
   }
 
   onAudioDeviceChange(terminal: SoundTerminal): void {
