@@ -316,7 +316,8 @@ import { SoundEventHandler } from '../types';
     .display-status { font-size: 12px; }
     .status-online { color: #2e7d32; }
     .status-offline { color: #9e9e9e; }
-    .display-handlers { flex: 1; position: relative; }
+    .display-handlers { flex: 1; position: relative; max-width: 35%; }
+    .display-handlers .dropdown-wrap { max-width: 100%; }
     .display-handlers-disabled { opacity: 0.5; pointer-events: none; }
 
     /* Display loading / error */
@@ -555,7 +556,7 @@ export class SoundsTerminalsScreenComponent implements OnInit, OnDestroy {
     const rect = trigger.getBoundingClientRect();
     this.dropdownTop = rect.bottom + 2;
     this.dropdownLeft = rect.left;
-    this.dropdownWidth = rect.width;
+    this.dropdownWidth = Math.min(rect.width, 300);
     this.activeDisplayHandlerDropdown = displayId;
     this.handlerDropdownSearch = '';
   }
