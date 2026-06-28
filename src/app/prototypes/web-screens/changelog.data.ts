@@ -2,6 +2,26 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.33',
+    date: '2026-06-28',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Звуки — Настройка терминалов',
+        pageRoute: '/prototype/web-screens/sounds-terminals',
+        items: [
+          'Добавлены экземпляры Arrivals как аудиоустройства в выпадающем списке',
+          'При выборе Arrivals раскрывается дерево дисплеев с назначением обработчиков событий',
+          'Индикаторы «Онлайн» / «Офлайн» для дисплеев и экземпляров Arrivals',
+          'Кнопка «Обновить» для ручного обновления списка дисплеев',
+          'Поиск по ресторану и терминалу учитывает имена дисплеев Arrivals',
+          'Сохранение привязок обработчиков к дисплеям Arrivals',
+          'Сообщения обратной связи: успех/ошибка сохранения, загрузка дисплеев',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.32',
     date: '2026-06-11',
     status: 'unreleased',

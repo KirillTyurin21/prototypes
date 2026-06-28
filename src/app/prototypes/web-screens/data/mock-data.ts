@@ -16,6 +16,7 @@ import {
   SoundFolder,
   SoundFile,
   GenerationQueueItem,
+  ArrivalsDevice,
 } from '../types';
 
 /** Секции бокового меню Web */
@@ -801,13 +802,70 @@ export const AUDIO_DEVICES: string[] = [
   'Device 2',
 ];
 
+/** Все доступные аудиоустройства, включая виртуальные (Arrivals) */
+export interface AudioDeviceOption {
+  label: string;
+  value: string;
+  type: 'physical' | 'arrivals';
+  moduleId?: number;
+  isOnline?: boolean;
+}
+
+export function getAudioDeviceOptions(arrivalsDevices: ArrivalsDevice[]): AudioDeviceOption[] {
+  const physical: AudioDeviceOption[] = AUDIO_DEVICES.map(d => ({
+    label: d,
+    value: d,
+    type: 'physical' as const,
+  }));
+
+  const arrivals: AudioDeviceOption[] = arrivalsDevices.map(a => ({
+    label: `Arrivals ${a.login}${a.isOnline ? '' : ' (офлайн)'}`,
+    value: `arrivals:${a.moduleId}`,
+    type: 'arrivals' as const,
+    moduleId: a.moduleId,
+    isOnline: a.isOnline,
+  }));
+
+  return [...physical, ...arrivals];
+}
+
+export const MOCK_ARRIVALS_DEVICES: ArrivalsDevice[] = [
+  {
+    moduleId: 21016318,
+    login: 'Касса-1',
+    isOnline: true,
+    displays: [
+      { id: 'disp-001', name: 'Кухня — Основной', isOnline: true, handlerIds: [1, 2], audioOutput: 'tv' },
+      { id: 'disp-002', name: 'Кухня — Гриль', isOnline: true, handlerIds: [1], audioOutput: 'tv' },
+      { id: 'disp-003', name: 'Выдача', isOnline: true, handlerIds: [3, 4, 5], audioOutput: 'centralized' },
+    ],
+  },
+  {
+    moduleId: 21016319,
+    login: 'Касса-2',
+    isOnline: true,
+    displays: [
+      { id: 'disp-004', name: 'Доставка — Экран 1', isOnline: true, handlerIds: [9, 10], audioOutput: 'tv' },
+      { id: 'disp-005', name: 'Доставка — Экран 2', isOnline: false, handlerIds: [11], audioOutput: 'tv' },
+    ],
+  },
+  {
+    moduleId: 21016320,
+    login: 'Касса-3',
+    isOnline: false,
+    displays: [
+      { id: 'disp-006', name: 'Зал — Основной', isOnline: false, handlerIds: [], audioOutput: 'tv' },
+    ],
+  },
+];
+
 export const MOCK_SOUND_TERMINAL_GROUPS: SoundTerminalGroup[] = [
   {
     id: 1,
     name: 'Торг. предприятие',
     terminalCount: 2,
     terminals: [
-      { id: 101, name: '127.0.0.1', lastActivity: '2026-05-06 07:12:06', handlerIds: [1, 2, 3], audioDevice: 'Динамики (High Definition Audio Device)' },
+      { id: 101, name: '127.0.0.1', lastActivity: '2026-05-06 07:12:06', handlerIds: [1, 2, 3], audioDevice: 'arrivals:21016318', arrivalsDeviceId: 21016318 },
       { id: 102, name: '192.168.1.10', lastActivity: '2026-05-05 18:30:22', handlerIds: [1], audioDevice: 'Не выбрано' },
     ],
   },
@@ -816,7 +874,7 @@ export const MOCK_SOUND_TERMINAL_GROUPS: SoundTerminalGroup[] = [
     name: 'Ресторан «Центральный»',
     terminalCount: 3,
     terminals: [
-      { id: 201, name: '10.0.0.5', lastActivity: '2026-05-06 09:45:11', handlerIds: [1, 9, 10, 11, 12], audioDevice: 'Device 1' },
+      { id: 201, name: '10.0.0.5', lastActivity: '2026-05-06 09:45:11', handlerIds: [1, 9, 10, 11, 12], audioDevice: 'arrivals:21016319', arrivalsDeviceId: 21016319 },
       { id: 202, name: '10.0.0.6', lastActivity: '2026-05-04 14:20:00', handlerIds: [], audioDevice: 'Не выбрано' },
       { id: 203, name: '10.0.0.7', lastActivity: '2026-05-06 10:00:00', handlerIds: [13], audioDevice: 'Device 2' },
     ],

@@ -375,6 +375,28 @@ export interface SoundTerminal {
   lastActivity: string;
   handlerIds: number[];
   audioDevice: string;
+  /** moduleId выбранного Arrivals (или undefined если выбрано физическое устройство) */
+  arrivalsDeviceId?: number;
+}
+
+/* -- Arrivals как аудиоустройство (DigitalVoice + Arrivals) -- */
+
+export interface ArrivalsDevice {
+  moduleId: number;
+  login: string;
+  isOnline: boolean;
+  displays: ArrivalsDisplay[];
+  /** Временные состояния UI */
+  displaysLoading?: boolean;
+  displaysError?: boolean;
+}
+
+export interface ArrivalsDisplay {
+  id: string;
+  name: string;
+  isOnline: boolean;
+  handlerIds: number[];
+  audioOutput: 'tv' | 'centralized';
 }
 
 /* ── Generation Queue ── */
