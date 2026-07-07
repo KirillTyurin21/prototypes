@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CsDataService } from '../cs-data.service';
-import { CSRestaurant, CSTerminalV2, TerminalScreenshot, TerminalScreenNode } from '../cs-types';
+import { CSRestaurant, CSTerminalV2, TerminalScreenshot } from '../cs-types';
 import { IconsModule } from '@/shared/icons.module';
 import { CsTreeNodeComponent } from '../components/cs-tree-node.component';
 
@@ -53,8 +53,6 @@ import { CsTreeNodeComponent } from '../components/cs-tree-node.component';
               [campaignOptions]="dataService.campaignOptions"
               [hintOptions]="dataService.hintOptions"
               (toggleTerminal)="toggleTerminal($event)"
-              (addPanel)="addAdvertisePanel(restaurant.id, $event)"
-              (removePanel)="removeAdvertisePanel(restaurant.id, $event)"
               (campaignChange)="onCampaignChange(restaurant.id, $event)"
               (themeChange)="onTreeThemeChange(restaurant.id, $event)"
             ></app-cs-tree-node>
@@ -192,32 +190,6 @@ export class CsTerminalsScreenComponent {
   onPageClick(_event: Event): void { }
 
   // ─── Tree operations ───────────────────────
-
-  addAdvertisePanel(restaurantId: number, event: { terminalId: number; screenId: number }): void {
-    const terminal = this.findTerminal(event.terminalId);
-    if (!terminal?.screens) return;
-    const screen = terminal.screens.find(s => s.id === event.screenId);
-    if (!screen) return;
-    const nextNum = screen.advertisePanels.length + 1;
-    screen.advertisePanels.push({
-      id: Date.now(),
-      name: `Advertise панель ${nextNum}`,
-      campaignId: null,
-      campaignName: undefined,
-    });
-    this.dataService.markTerminalChanged(restaurantId, terminal.id);
-  }
-
-  removeAdvertisePanel(restaurantId: number, event: { terminalId: number; screenId: number; panelId: number }): void {
-    const terminal = this.findTerminal(event.terminalId);
-    if (!terminal?.screens) return;
-    const screen = terminal.screens.find(s => s.id === event.screenId);
-    if (!screen) return;
-    screen.advertisePanels = screen.advertisePanels.filter(p => p.id !== event.panelId);
-    // Renumber remaining panels
-    screen.advertisePanels.forEach((p, i) => { p.name = `Advertise панель ${i + 1}`; });
-    this.dataService.markTerminalChanged(restaurantId, terminal.id);
-  }
 
   onCampaignChange(restaurantId: number, event: { terminalId: number; screenId: number; panelId: number; campaignId: number | null }): void {
     const terminal = this.findTerminal(event.terminalId);

@@ -53,8 +53,6 @@ export type CsTreeNode =
               [campaignOptions]="campaignOptions"
               [hintOptions]="hintOptions"
               (toggleTerminal)="toggleTerminal.emit($event)"
-              (addPanel)="addPanel.emit($event)"
-              (removePanel)="removePanel.emit($event)"
               (campaignChange)="campaignChange.emit($event)"
               (themeChange)="themeChange.emit($event)"
             ></app-cs-tree-node>
@@ -96,8 +94,6 @@ export type CsTreeNode =
             [campaignOptions]="campaignOptions"
             [hintOptions]="hintOptions"
             (toggleTerminal)="toggleTerminal.emit($event)"
-            (addPanel)="addPanel.emit($event)"
-            (removePanel)="removePanel.emit($event)"
             (campaignChange)="campaignChange.emit($event)"
             (themeChange)="themeChange.emit($event)"
           ></app-cs-tree-node>
@@ -143,22 +139,13 @@ export type CsTreeNode =
                 <option [ngValue]="null">Выбрать кампанию</option>
                 <option *ngFor="let opt of campaignOptions" [ngValue]="opt.id">{{ opt.name }}</option>
               </select>
-              <button class="tree-remove-btn" (click)="removePanel.emit({ terminalId: node.terminalId, screenId: node.screen.id, panelId: panel.id }); $event.stopPropagation()" title="Удалить панель">
-                <lucide-icon name="x" [size]="14"></lucide-icon>
-              </button>
             </div>
           </div>
           <!-- Empty state -->
           <div class="tree-row tree-row--empty" *ngIf="node.screen.advertisePanels.length === 0" [style.padding-left.px]="(level + 1) * 24">
             <span class="tree-label tree-label--empty">Нет Advertise-панелей</span>
           </div>
-          <!-- Add panel button -->
-          <div class="tree-row tree-row--add" [style.padding-left.px]="(level + 1) * 24">
-            <button class="tree-add-btn" (click)="addPanel.emit({ terminalId: node.terminalId, screenId: node.screen.id }); $event.stopPropagation()">
-              <lucide-icon name="plus" [size]="14"></lucide-icon>
-              <span>Добавить Advertise-панель</span>
-            </button>
-          </div>
+
         </div>
       </ng-container>
     </div>
@@ -181,8 +168,7 @@ export type CsTreeNode =
     .tree-row--hint-option { padding: 4px 12px; cursor: default; border-bottom: none; }
     .tree-row--hint-option:hover { background: transparent; }
     .tree-row--panel { padding: 7px 12px; }
-    .tree-row--add { padding: 8px 12px; border-bottom: none; cursor: default; }
-    .tree-row--add:hover { background: transparent; }
+
     .tree-row--empty { padding: 12px; cursor: default; }
     .tree-row--empty:hover { background: transparent; }
 
@@ -228,21 +214,6 @@ export type CsTreeNode =
     }
     .tree-action-btn:hover { background: #f5f5f5; color: #424242; }
 
-    .tree-add-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 5px 14px; font-size: 13px; font-family: 'Roboto', sans-serif;
-      color: #1976d2; background: transparent; border: 1px dashed rgba(25,118,210,.4);
-      border-radius: 4px; cursor: pointer; transition: all .15s;
-    }
-    .tree-add-btn:hover { background: #e3f2fd; border-color: #1976d2; }
-
-    .tree-remove-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px; border-radius: 50%; border: none;
-      background: transparent; cursor: pointer; color: #bdbdbd; transition: all .15s;
-    }
-    .tree-remove-btn:hover { background: #ffebee; color: #c62828; }
-
     .cs-checkbox-wrap { display: inline-flex; align-items: center; cursor: pointer; }
     .cs-checkbox {
       appearance: none; -webkit-appearance: none; width: 18px; height: 18px;
@@ -267,8 +238,6 @@ export class CsTreeNodeComponent {
   @Input() hintOptions: { id: number; name: string }[] = [];
 
   @Output() toggleTerminal = new EventEmitter<number>();
-  @Output() addPanel = new EventEmitter<{ terminalId: number; screenId: number }>();
-  @Output() removePanel = new EventEmitter<{ terminalId: number; screenId: number; panelId: number }>();
   @Output() campaignChange = new EventEmitter<{ terminalId: number; screenId: number; panelId: number; campaignId: number | null }>();
   @Output() themeChange = new EventEmitter<{ terminalId: number; screenId: number; themeId: number | null }>();
 
