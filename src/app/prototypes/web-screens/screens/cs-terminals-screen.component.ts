@@ -51,7 +51,6 @@ import { CsTreeNodeComponent } from '../components/cs-tree-node.component';
               [expandedNodes]="expandedNodes"
               [themeOptions]="dataService.themeOptions"
               [campaignOptions]="dataService.campaignOptions"
-              [hintOptions]="dataService.hintOptions"
               (toggleTerminal)="toggleTerminal($event)"
               (campaignChange)="onCampaignChange(restaurant.id, $event)"
               (themeChange)="onTreeThemeChange(restaurant.id, $event)"
