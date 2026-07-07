@@ -31,8 +31,6 @@ export type CsTreeNode =
             <span class="tree-badge" [class.online]="node.data.isOnline" [class.offline]="!node.data.isOnline">
               {{ node.data.isOnline ? 'online' : 'offline' }}
             </span>
-            <span class="tree-version">{{ node.data.pluginVersion }}</span>
-            <span class="tree-unsaved" *ngIf="node.data.hasUnsavedChanges">⚡</span>
           </div>
           <div class="tree-row-right">
             <button class="tree-action-btn" *ngIf="node.data.supportsScreenshot && node.data.isOnline" title="Скриншот">
@@ -193,8 +191,7 @@ export type CsTreeNode =
     .tree-badge.online { background: #e8f5e9; color: #2e7d32; }
     .tree-badge.offline { background: #fbe9e7; color: #c62828; }
 
-    .tree-version { font-size: 12px; color: #9e9e9e; }
-    .tree-unsaved { font-size: 14px; color: #ff9800; }
+
     .tree-count { font-size: 13px; color: #9e9e9e; }
 
     .tree-children { }
