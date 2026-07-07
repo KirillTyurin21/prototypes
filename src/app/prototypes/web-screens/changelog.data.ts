@@ -2,6 +2,25 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.34',
+    date: '2026-07-08',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Электронная очередь — Настройка терминалов',
+        pageRoute: '/prototype/web-screens/cs-terminals',
+        items: [
+          'Древовидная структура вместо плоской таблицы: терминал → экран → тема → Advertise-панели',
+          'Поддержка нескольких Advertise-панелей на одну тему',
+          'Назначение кампании на уровне каждой Advertise-панели',
+          'Кнопка «Добавить Advertise-панель» с автонумерацией',
+          'Убрана строка «Привязка по умолчанию» (дублирование с деревом)',
+          'Обратная совместимость: существующие настройки отображаются как узлы дерева',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.33',
     date: '2026-06-29',
     status: 'released',

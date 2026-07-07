@@ -2,7 +2,7 @@ import {
   CSControl, ControlElement, CSTheme, ThemeElement, HintAreaSettings,
   Hint, CSTerminal, Campaign, HintAssignment, Discount, ProductNode,
   CSTerminalV2, CSRestaurant, ThemeOption, CampaignOption, HintOption,
-  TerminalGroupOption,
+  TerminalGroupOption, AdvertisePanelNode, TerminalScreenNode,
 } from '../cs-types';
 
 // ═══════════════════════════════════════════════
@@ -324,6 +324,15 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 1, campaignIds: [1, 2], hintIds: [1, 2, 4], terminalGroupIds: [1, 3],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: false,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 1, themeName: 'Основная тема кофейни',
+            advertisePanels: [
+              { id: 1, name: 'Advertise панель 1', campaignId: 1, campaignName: 'Весенняя акция' },
+              { id: 2, name: 'Advertise панель 2', campaignId: 2, campaignName: 'Новинки меню' },
+            ],
+          },
+        ],
       },
       {
         id: 102, name: 'Касса 2 (Терраса)', ip: '192.168.1.11',
@@ -332,6 +341,14 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 1, campaignIds: [1], hintIds: [1, 3], terminalGroupIds: [1, 5],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: true,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 1, themeName: 'Основная тема кофейни',
+            advertisePanels: [
+              { id: 1, name: 'Advertise панель 1', campaignId: 1, campaignName: 'Весенняя акция' },
+            ],
+          },
+        ],
       },
       {
         id: 103, name: 'Касса 3 (Бар)', ip: '192.168.1.12',
@@ -340,6 +357,12 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 3, campaignIds: [], hintIds: [], terminalGroupIds: [2],
         isOnline: false, pluginVersion: '1.8.0', supportsScreenshot: false,
         hasUnsavedChanges: false,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 3, themeName: 'Минимальная тема',
+            advertisePanels: [],
+          },
+        ],
       },
     ],
   },
@@ -356,6 +379,16 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 4, campaignIds: [1, 2], hintIds: [1, 2, 3], terminalGroupIds: [1],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: false,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 4, themeName: 'Тема 3',
+            advertisePanels: [
+              { id: 1, name: 'Advertise панель 1', campaignId: 1, campaignName: 'Весенняя акция' },
+              { id: 2, name: 'Advertise панель 2', campaignId: 2, campaignName: 'Новинки меню' },
+              { id: 3, name: 'Advertise панель 3', campaignId: 3, campaignName: 'Программа лояльности' },
+            ],
+          },
+        ],
       },
       {
         id: 202, name: 'Терминал 2 (Доставка)', ip: '85.140.93.35',
@@ -364,6 +397,14 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 2, campaignIds: [3], hintIds: [4, 5], terminalGroupIds: [4],
         isOnline: true, pluginVersion: '2.2.0', supportsScreenshot: true,
         hasUnsavedChanges: true,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 2, themeName: 'Акционная тема',
+            advertisePanels: [
+              { id: 1, name: 'Advertise панель 1', campaignId: 3, campaignName: 'Программа лояльности' },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -380,6 +421,15 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 2, campaignIds: [2, 3], hintIds: [1, 2, 3, 4, 5], terminalGroupIds: [1, 2, 3],
         isOnline: true, pluginVersion: '2.3.1', supportsScreenshot: true,
         hasUnsavedChanges: false,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 2, themeName: 'Акционная тема',
+            advertisePanels: [
+              { id: 1, name: 'Advertise панель 1', campaignId: 2, campaignName: 'Новинки меню' },
+              { id: 2, name: 'Advertise панель 2', campaignId: 3, campaignName: 'Программа лояльности' },
+            ],
+          },
+        ],
       },
       {
         id: 302, name: 'Касса 2 (Веранда)', ip: '10.0.0.51',
@@ -388,6 +438,12 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
         themeId: 3, campaignIds: [], hintIds: [], terminalGroupIds: [],
         isOnline: false, pluginVersion: '2.1.0', supportsScreenshot: true,
         hasUnsavedChanges: false,
+        screens: [
+          {
+            id: 1, name: 'Основной экран', themeId: 3, themeName: 'Минимальная тема',
+            advertisePanels: [],
+          },
+        ],
       },
     ],
   },

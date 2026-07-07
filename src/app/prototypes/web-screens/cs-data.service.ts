@@ -60,6 +60,23 @@ export class CsDataService {
       }
     }
 
+    // Миграция: добавить screens если отсутствует (Multiple Advertise)
+    for (const r of this.restaurants) {
+      for (const t of r.terminals) {
+        if (!t.screens || t.screens.length === 0) {
+          t.screens = [{
+            id: 1,
+            name: 'Основной экран',
+            themeId: t.themeId,
+            themeName: this.themeOptions.find(o => o.id === t.themeId)?.name ?? '',
+            advertisePanels: t.campaignIds.length > 0
+              ? [{ id: 1, name: 'Advertise панель 1', campaignId: t.campaignIds[0], campaignName: this.campaignOptions.find(o => o.id === t.campaignIds[0])?.name ?? '' }]
+              : [],
+          }];
+        }
+      }
+    }
+
     this.themeOptions = THEME_OPTIONS;
     this.campaignOptions = CAMPAIGN_OPTIONS;
     this.hintOptions = HINT_OPTIONS;

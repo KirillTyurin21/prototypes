@@ -181,6 +181,23 @@ export interface TerminalGroupOption {
 
 // ─── Терминалы V2 (расширенные — для экрана настроек дисплея) ───
 
+/** Динамический объект — Advertise-панель */
+export interface AdvertisePanelNode {
+  id: number;
+  name: string;               // «Advertise панель 1»
+  campaignId: number | null;  // ID выбранной кампании
+  campaignName?: string;      // Кэшированное имя (для отображения)
+}
+
+/** Экран терминала (может быть несколько в будущем) */
+export interface TerminalScreenNode {
+  id: number;
+  name: string;               // «Основной экран», «Доп. экран»
+  themeId: number | null;     // ID выбранной темы
+  themeName?: string;
+  advertisePanels: AdvertisePanelNode[];
+}
+
 export interface CSTerminalV2 {
   id: number;
   name: string;
@@ -195,6 +212,8 @@ export interface CSTerminalV2 {
   pluginVersion: string;
   supportsScreenshot: boolean;
   hasUnsavedChanges: boolean;
+  /** Экраны терминала с деревом динамических объектов */
+  screens?: TerminalScreenNode[];
 }
 
 export interface CSRestaurant {
