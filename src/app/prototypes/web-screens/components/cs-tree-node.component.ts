@@ -87,7 +87,7 @@ export type CsTreeNode =
           <div class="tree-row-left" [style.padding-left.px]="level * 24">
             <lucide-icon [name]="isExpanded('theme-' + node.screen.id) ? 'chevron-down' : 'chevron-right'" [size]="14" class="tree-chevron"></lucide-icon>
             <lucide-icon name="palette" [size]="16" class="tree-icon tree-icon--dim"></lucide-icon>
-            <span class="tree-label">Тема:</span>
+            <span class="tree-label">Тема: {{ node.screen.themeName }}</span>
           </div>
           <div class="tree-row-right">
             <select
