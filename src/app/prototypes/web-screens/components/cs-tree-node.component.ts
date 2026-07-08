@@ -65,8 +65,18 @@ export type CsTreeNode =
             </div>
           </div>
           <div class="tree-children" *ngIf="isExpanded('hints-' + node.data.id)">
-            <div class="tree-row tree-row--hint-option" *ngFor="let hint of getHintNames(node.data)" [style.padding-left.px]="(level + 2) * 24">
-              <span class="tree-label tree-label--small">{{ hint }}</span>
+            <label class="tree-row tree-row--hint-option" *ngFor="let opt of hintOptions" [style.padding-left.px]="(level + 2) * 24" (click)="$event.stopPropagation()">
+              <input type="checkbox" class="cs-checkbox cs-checkbox--small" [checked]="node.data.hintIds.includes(opt.id)" (change)="toggleHint.emit({ terminalId: node.data.id, hintId: opt.id })" />
+              <span class="tree-label tree-label--small">{{ opt.name }}</span>
+            </label>
+            <div class="tree-row tree-row--hint-option" *ngIf="hintOptions.length === 0" [style.padding-left.px]="(level + 2) * 24">
+              <span class="tree-label tree-label--empty">Нет доступных подсказок</span>
+            </div>
+            <div class="tree-row tree-row--hint-clear" *ngIf="node.data.hintIds.length > 0" [style.padding-left.px]="(level + 2) * 24">
+              <button class="tree-clear-btn" (click)="clearHints.emit({ terminalId: node.data.id }); $event.stopPropagation()">
+                <lucide-icon name="x" [size]="12"></lucide-icon>
+                <span>Сбросить все</span>
+              </button>
             </div>
           </div>
         </div>
@@ -164,8 +174,9 @@ export type CsTreeNode =
     .tree-row--terminal:hover { background: #f0f4f8; }
     .tree-row--panel { padding: 7px 12px; }
     .tree-row--hints { padding: 7px 12px; border-bottom-style: dashed; }
-    .tree-row--hint-option { padding: 4px 12px; cursor: default; border-bottom: none; }
-    .tree-row--hint-option:hover { background: transparent; }
+    .tree-row--hint-option { padding: 4px 12px; cursor: pointer; border-bottom: none; display: flex; align-items: center; gap: 6px; }
+    .tree-row--hint-option:hover { background: #f5f8fc; }
+    .tree-row--hint-clear { padding: 4px 12px; border-bottom: none; }
 
     .tree-row--empty { padding: 12px; cursor: default; }
     .tree-row--empty:hover { background: transparent; }
@@ -210,6 +221,14 @@ export type CsTreeNode =
     }
     .tree-action-btn:hover { background: #f5f5f5; color: #424242; }
 
+    .tree-clear-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; font-size: 12px; font-family: 'Roboto', sans-serif;
+      color: #757575; background: none; border: none; cursor: pointer;
+      border-radius: 4px; transition: all .15s;
+    }
+    .tree-clear-btn:hover { background: #f5f5f5; color: #424242; }
+
     .cs-checkbox-wrap { display: inline-flex; align-items: center; cursor: pointer; }
     .cs-checkbox {
       appearance: none; -webkit-appearance: none; width: 18px; height: 18px;
@@ -222,6 +241,8 @@ export type CsTreeNode =
       content: ''; position: absolute; top: 1px; left: 5px; width: 5px; height: 9px;
       border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
     }
+    .cs-checkbox--small { width: 16px; height: 16px; }
+    .cs-checkbox--small:checked::after { top: 0px; left: 4px; width: 4px; height: 8px; }
   `],
 })
 export class CsTreeNodeComponent {
@@ -236,6 +257,8 @@ export class CsTreeNodeComponent {
   @Output() toggleTerminal = new EventEmitter<number>();
   @Output() campaignChange = new EventEmitter<{ terminalId: number; screenId: number; panelId: number; campaignId: number | null }>();
   @Output() themeChange = new EventEmitter<{ terminalId: number; screenId: number; themeId: number | null }>();
+  @Output() toggleHint = new EventEmitter<{ terminalId: number; hintId: number }>();
+  @Output() clearHints = new EventEmitter<{ terminalId: number }>();
 
   screenToNode(screen: TerminalScreenNode, terminalId: number): CsTreeNode {
     return { kind: 'screen', data: screen, terminalId };
@@ -251,12 +274,6 @@ export class CsTreeNodeComponent {
 
   toggleExpand(key: string): void {
     this.expandedNodes.has(key) ? this.expandedNodes.delete(key) : this.expandedNodes.add(key);
-  }
-
-  getHintNames(terminal: CSTerminalV2): string[] {
-    return terminal.hintIds
-      .map(id => this.hintOptions.find(o => o.id === id)?.name)
-      .filter(Boolean) as string[];
   }
 
 }

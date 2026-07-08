@@ -55,6 +55,8 @@ import { CsTreeNodeComponent } from '../components/cs-tree-node.component';
               (toggleTerminal)="toggleTerminal($event)"
               (campaignChange)="onCampaignChange(restaurant.id, $event)"
               (themeChange)="onTreeThemeChange(restaurant.id, $event)"
+              (toggleHint)="toggleHint(restaurant.id, $event)"
+              (clearHints)="clearHints(restaurant.id, $event)"
             ></app-cs-tree-node>
           </div>
           <!-- Empty state for filtered terminals -->
@@ -212,6 +214,21 @@ export class CsTerminalsScreenComponent {
     screen.themeName = event.themeId ? this.dataService.themeOptions.find(o => o.id === event.themeId)?.name : undefined;
     // Update legacy field for backward compatibility
     terminal.themeId = event.themeId;
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  toggleHint(restaurantId: number, event: { terminalId: number; hintId: number }): void {
+    const terminal = this.findTerminal(event.terminalId);
+    if (!terminal) return;
+    const idx = terminal.hintIds.indexOf(event.hintId);
+    idx >= 0 ? terminal.hintIds.splice(idx, 1) : terminal.hintIds.push(event.hintId);
+    this.dataService.markTerminalChanged(restaurantId, terminal.id);
+  }
+
+  clearHints(restaurantId: number, event: { terminalId: number }): void {
+    const terminal = this.findTerminal(event.terminalId);
+    if (!terminal) return;
+    terminal.hintIds = [];
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
 
