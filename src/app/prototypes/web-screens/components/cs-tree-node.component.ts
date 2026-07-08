@@ -9,7 +9,8 @@ export type CsTreeNode =
   | { kind: 'terminal'; data: CSTerminalV2 }
   | { kind: 'screen'; data: TerminalScreenNode; terminalId: number }
   | { kind: 'theme'; screen: TerminalScreenNode; terminalId: number; themeOptions: { id: number; name: string }[] }
-  | { kind: 'advertise-panel'; panel: AdvertisePanelNode; screenId: number; terminalId: number; campaignOptions: { id: number; name: string }[] };
+  | { kind: 'advertise-panel'; panel: AdvertisePanelNode; screenId: number; terminalId: number; campaignOptions: { id: number; name: string }[] }
+  | { kind: 'hints'; terminal: CSTerminalV2; hintOptions: { id: number; name: string }[] };
 
 @Component({
   selector: 'app-cs-tree-node',
@@ -48,11 +49,26 @@ export type CsTreeNode =
               [expandedNodes]="expandedNodes"
               [themeOptions]="themeOptions"
               [campaignOptions]="campaignOptions"
+              [hintOptions]="hintOptions"
               (toggleTerminal)="toggleTerminal.emit($event)"
               (campaignChange)="campaignChange.emit($event)"
               (themeChange)="themeChange.emit($event)"
             ></app-cs-tree-node>
           </ng-container>
+          <!-- Hints -->
+          <div class="tree-row tree-row--hints" (click)="toggleExpand('hints-' + node.data.id)">
+            <div class="tree-row-left" [style.padding-left.px]="(level + 1) * 24">
+              <lucide-icon [name]="isExpanded('hints-' + node.data.id) ? 'chevron-down' : 'chevron-right'" [size]="14" class="tree-chevron"></lucide-icon>
+              <lucide-icon name="wand-2" [size]="16" class="tree-icon"></lucide-icon>
+              <span class="tree-label">Подсказки</span>
+              <span class="tree-count">({{ node.data.hintIds.length }})</span>
+            </div>
+          </div>
+          <div class="tree-children" *ngIf="isExpanded('hints-' + node.data.id)">
+            <div class="tree-row tree-row--hint-option" *ngFor="let hint of getHintNames(node.data)" [style.padding-left.px]="(level + 2) * 24">
+              <span class="tree-label tree-label--small">{{ hint }}</span>
+            </div>
+          </div>
         </div>
       </ng-container>
 
@@ -74,6 +90,7 @@ export type CsTreeNode =
             [expandedNodes]="expandedNodes"
             [themeOptions]="themeOptions"
             [campaignOptions]="campaignOptions"
+            [hintOptions]="hintOptions"
             (toggleTerminal)="toggleTerminal.emit($event)"
             (campaignChange)="campaignChange.emit($event)"
             (themeChange)="themeChange.emit($event)"
@@ -146,6 +163,9 @@ export type CsTreeNode =
     .tree-row--terminal { padding: 10px 12px; background: #fafafa; border-bottom: 1px solid rgba(0,0,0,.08); }
     .tree-row--terminal:hover { background: #f0f4f8; }
     .tree-row--panel { padding: 7px 12px; }
+    .tree-row--hints { padding: 7px 12px; border-bottom-style: dashed; }
+    .tree-row--hint-option { padding: 4px 12px; cursor: default; border-bottom: none; }
+    .tree-row--hint-option:hover { background: transparent; }
 
     .tree-row--empty { padding: 12px; cursor: default; }
     .tree-row--empty:hover { background: transparent; }
@@ -161,6 +181,7 @@ export type CsTreeNode =
     .tree-sep { color: #bdbdbd; margin: 0 2px; }
 
     .tree-label { font-size: 14px; color: rgba(0,0,0,.87); }
+    .tree-label--small { font-size: 13px; color: #616161; }
     .tree-label--empty { font-size: 13px; color: #bdbdbd; font-style: italic; }
 
     .tree-badge {
@@ -169,6 +190,8 @@ export type CsTreeNode =
     }
     .tree-badge.online { background: #e8f5e9; color: #2e7d32; }
     .tree-badge.offline { background: #fbe9e7; color: #c62828; }
+
+    .tree-count { font-size: 13px; color: #9e9e9e; }
 
     .tree-children { }
 
@@ -208,6 +231,7 @@ export class CsTreeNodeComponent {
   @Input() expandedNodes = new Set<string>();
   @Input() themeOptions: { id: number; name: string }[] = [];
   @Input() campaignOptions: { id: number; name: string }[] = [];
+  @Input() hintOptions: { id: number; name: string }[] = [];
 
   @Output() toggleTerminal = new EventEmitter<number>();
   @Output() campaignChange = new EventEmitter<{ terminalId: number; screenId: number; panelId: number; campaignId: number | null }>();
@@ -227,6 +251,12 @@ export class CsTreeNodeComponent {
 
   toggleExpand(key: string): void {
     this.expandedNodes.has(key) ? this.expandedNodes.delete(key) : this.expandedNodes.add(key);
+  }
+
+  getHintNames(terminal: CSTerminalV2): string[] {
+    return terminal.hintIds
+      .map(id => this.hintOptions.find(o => o.id === id)?.name)
+      .filter(Boolean) as string[];
   }
 
 }
