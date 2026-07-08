@@ -8,7 +8,6 @@ import { CSTerminalV2, TerminalScreenNode, AdvertisePanelNode } from '../cs-type
 export type CsTreeNode =
   | { kind: 'terminal'; data: CSTerminalV2 }
   | { kind: 'screen'; data: TerminalScreenNode; terminalId: number }
-  | { kind: 'theme'; screen: TerminalScreenNode; terminalId: number; themeOptions: { id: number; name: string }[] }
   | { kind: 'advertise-panel'; panel: AdvertisePanelNode; screenId: number; terminalId: number; campaignOptions: { id: number; name: string }[] }
   | { kind: 'hints'; terminal: CSTerminalV2; hintOptions: { id: number; name: string }[] };
 
@@ -47,12 +46,10 @@ export type CsTreeNode =
               [level]="level + 1"
               [selectedIds]="selectedIds"
               [expandedNodes]="expandedNodes"
-              [themeOptions]="themeOptions"
               [campaignOptions]="campaignOptions"
               [hintOptions]="hintOptions"
               (toggleTerminal)="toggleTerminal.emit($event)"
               (campaignChange)="campaignChange.emit($event)"
-              (themeChange)="themeChange.emit($event)"
             ></app-cs-tree-node>
           </ng-container>
           <!-- Hints -->
@@ -90,47 +87,14 @@ export type CsTreeNode =
             <lucide-icon name="monitor" [size]="16" class="tree-icon tree-icon--dim"></lucide-icon>
             <span class="tree-label">Экран «{{ node.data.name }}»</span>
           </div>
+          <div class="tree-row-right">
+            <lucide-icon name="palette" [size]="14" class="tree-icon tree-icon--dim"></lucide-icon>
+            <span class="tree-label tree-label--theme">{{ node.data.themeName }}</span>
+          </div>
         </div>
         <div class="tree-children" *ngIf="isExpanded('screen-' + node.data.id)">
-          <!-- Theme -->
-          <app-cs-tree-node
-            [node]="themeToNode(node.data, node.terminalId)"
-            [level]="level + 1"
-            [selectedIds]="selectedIds"
-            [expandedNodes]="expandedNodes"
-            [themeOptions]="themeOptions"
-            [campaignOptions]="campaignOptions"
-            [hintOptions]="hintOptions"
-            (toggleTerminal)="toggleTerminal.emit($event)"
-            (campaignChange)="campaignChange.emit($event)"
-            (themeChange)="themeChange.emit($event)"
-          ></app-cs-tree-node>
-        </div>
-      </ng-container>
-
-      <!-- THEME -->
-      <ng-container *ngIf="node.kind === 'theme'">
-        <div class="tree-row tree-row--theme" (click)="toggleExpand('theme-' + node.screen.id)">
-          <div class="tree-row-left" [style.padding-left.px]="level * 24">
-            <lucide-icon [name]="isExpanded('theme-' + node.screen.id) ? 'chevron-down' : 'chevron-right'" [size]="14" class="tree-chevron"></lucide-icon>
-            <lucide-icon name="palette" [size]="16" class="tree-icon tree-icon--dim"></lucide-icon>
-            <span class="tree-label">Тема: {{ node.screen.themeName }}</span>
-          </div>
-          <div class="tree-row-right">
-            <select
-              class="tree-select"
-              [ngModel]="node.screen.themeId"
-              (ngModelChange)="themeChange.emit({ terminalId: node.terminalId, screenId: node.screen.id, themeId: $event })"
-              (click)="$event.stopPropagation()"
-            >
-              <option [ngValue]="null">Выбрать</option>
-              <option *ngFor="let opt of themeOptions" [ngValue]="opt.id">{{ opt.name }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="tree-children" *ngIf="isExpanded('theme-' + node.screen.id)">
           <!-- Advertise panels -->
-          <div class="tree-row tree-row--panel" *ngFor="let panel of node.screen.advertisePanels">
+          <div class="tree-row tree-row--panel" *ngFor="let panel of node.data.advertisePanels">
             <div class="tree-row-left" [style.padding-left.px]="(level + 1) * 24">
               <span class="tree-connector">├─</span>
               <lucide-icon name="megaphone" [size]="16" class="tree-icon tree-icon--accent"></lucide-icon>
@@ -141,7 +105,7 @@ export type CsTreeNode =
               <select
                 class="tree-select"
                 [ngModel]="panel.campaignId"
-                (ngModelChange)="campaignChange.emit({ terminalId: node.terminalId, screenId: node.screen.id, panelId: panel.id, campaignId: $event })"
+                (ngModelChange)="campaignChange.emit({ terminalId: node.terminalId, screenId: node.data.id, panelId: panel.id, campaignId: $event })"
                 (click)="$event.stopPropagation()"
               >
                 <option [ngValue]="null">Выбрать кампанию</option>
@@ -150,10 +114,9 @@ export type CsTreeNode =
             </div>
           </div>
           <!-- Empty state -->
-          <div class="tree-row tree-row--empty" *ngIf="node.screen.advertisePanels.length === 0" [style.padding-left.px]="(level + 1) * 24">
+          <div class="tree-row tree-row--empty" *ngIf="node.data.advertisePanels.length === 0" [style.padding-left.px]="(level + 1) * 24">
             <span class="tree-label tree-label--empty">Нет Advertise-панелей</span>
           </div>
-
         </div>
       </ng-container>
     </div>
@@ -193,6 +156,7 @@ export type CsTreeNode =
 
     .tree-label { font-size: 14px; color: rgba(0,0,0,.87); }
     .tree-label--small { font-size: 13px; color: #616161; }
+    .tree-label--theme { font-size: 13px; color: #757575; }
     .tree-label--empty { font-size: 13px; color: #bdbdbd; font-style: italic; }
 
     .tree-badge {
@@ -250,22 +214,16 @@ export class CsTreeNodeComponent {
   @Input() level = 0;
   @Input() selectedIds = new Set<number>();
   @Input() expandedNodes = new Set<string>();
-  @Input() themeOptions: { id: number; name: string }[] = [];
   @Input() campaignOptions: { id: number; name: string }[] = [];
   @Input() hintOptions: { id: number; name: string }[] = [];
 
   @Output() toggleTerminal = new EventEmitter<number>();
   @Output() campaignChange = new EventEmitter<{ terminalId: number; screenId: number; panelId: number; campaignId: number | null }>();
-  @Output() themeChange = new EventEmitter<{ terminalId: number; screenId: number; themeId: number | null }>();
   @Output() toggleHint = new EventEmitter<{ terminalId: number; hintId: number }>();
   @Output() clearHints = new EventEmitter<{ terminalId: number }>();
 
   screenToNode(screen: TerminalScreenNode, terminalId: number): CsTreeNode {
     return { kind: 'screen', data: screen, terminalId };
-  }
-
-  themeToNode(screen: TerminalScreenNode, terminalId: number): CsTreeNode {
-    return { kind: 'theme', screen, terminalId, themeOptions: this.themeOptions };
   }
 
   isExpanded(key: string): boolean {

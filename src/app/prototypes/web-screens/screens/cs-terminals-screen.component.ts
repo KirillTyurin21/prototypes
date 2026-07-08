@@ -49,12 +49,10 @@ import { CsTreeNodeComponent } from '../components/cs-tree-node.component';
               [level]="0"
               [selectedIds]="selectedTerminals"
               [expandedNodes]="expandedNodes"
-              [themeOptions]="dataService.themeOptions"
               [campaignOptions]="dataService.campaignOptions"
               [hintOptions]="dataService.hintOptions"
               (toggleTerminal)="toggleTerminal($event)"
               (campaignChange)="onCampaignChange(restaurant.id, $event)"
-              (themeChange)="onTreeThemeChange(restaurant.id, $event)"
               (toggleHint)="toggleHint(restaurant.id, $event)"
               (clearHints)="clearHints(restaurant.id, $event)"
             ></app-cs-tree-node>
@@ -202,18 +200,6 @@ export class CsTerminalsScreenComponent {
     if (!panel) return;
     panel.campaignId = event.campaignId;
     panel.campaignName = event.campaignId ? this.dataService.campaignOptions.find(c => c.id === event.campaignId)?.name : undefined;
-    this.dataService.markTerminalChanged(restaurantId, terminal.id);
-  }
-
-  onTreeThemeChange(restaurantId: number, event: { terminalId: number; screenId: number; themeId: number | null }): void {
-    const terminal = this.findTerminal(event.terminalId);
-    if (!terminal?.screens) return;
-    const screen = terminal.screens.find(s => s.id === event.screenId);
-    if (!screen) return;
-    screen.themeId = event.themeId;
-    screen.themeName = event.themeId ? this.dataService.themeOptions.find(o => o.id === event.themeId)?.name : undefined;
-    // Update legacy field for backward compatibility
-    terminal.themeId = event.themeId;
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
 
