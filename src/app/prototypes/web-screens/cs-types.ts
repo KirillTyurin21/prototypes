@@ -354,12 +354,20 @@ export interface ThemeElementInfo {
   name: string;
   /** ID выбранной кампании (null — не выбрана) */
   campaignId: number | null;
+  /** ID выбранных кампаний (мультивыбор) */
+  campaignIds?: number[];
   /** Название выбранной кампании */
   campaignName?: string;
   /** Уникальный идентификатор элемента (поле ID, напр. T585) */
   elementId: string;
   /** Теги элемента (через запятую, напр. «welcome, promo») */
   tags: string;
+  /** ID терминала-источника (для обратной синхронизации) */
+  sourceTerminalId?: number;
+  /** ID экрана-источника (для обратной синхронизации) */
+  sourceScreenId?: number;
+  /** ID панели-источника (для обратной синхронизации) */
+  sourcePanelId?: number;
 }
 
 /** Страничка темы с размещёнными на ней динамическими элементами */

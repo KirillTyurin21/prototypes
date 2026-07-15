@@ -5,11 +5,12 @@ import { CsDataService } from '../cs-data.service';
 import { CSRestaurant, CSTerminalV2, TerminalTableRow, TerminalRowKind, TerminalScreenshot, TerminalThemeStructure, ThemeElementInfo, HintAssignmentInfo } from '../cs-types';
 import { IconsModule } from '@/shared/icons.module';
 import { CsTableRowComponent } from '../components/cs-table-row.component';
+import { CsComboboxComponent } from '../components/cs-combobox.component';
 
 @Component({
   selector: 'app-cs-terminals-screen',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule, CsTableRowComponent],
+  imports: [CommonModule, FormsModule, IconsModule, CsTableRowComponent, CsComboboxComponent],
   template: `
     <!-- Toast -->
     <div
@@ -199,11 +200,38 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                   *ngFor="let row of getVisibleRows(restaurant); trackBy: trackByRowId"
                   class="cs-tr-b"
                   [class.cs-tr-b--active]="activePanelTerminalId === row.id"
+                  [class.cs-tr-b--computer]="row.kind === 'computer'"
+                  [class.cs-tr-b--display]="row.kind === 'display'"
+                  [class.cs-tr-b--advertise]="row.kind === 'advertise'"
                   (click)="openPanelB(row)"
                 >
                   <!-- Terminal name + icon -->
                   <td class="cs-td cs-td--name-b">
                     <div class="cs-terminal-info">
+                      <!-- Checkbox -->
+                      <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
+                        <input
+                          type="checkbox"
+                          class="cs-checkbox"
+                          [checked]="selectedRowIds.has(row.id)"
+                          (change)="toggleRowSelect(row.id)"
+                        />
+                      </label>
+                      <!-- Chevron for computer rows (tree expand/collapse) -->
+                      <button
+                        *ngIf="row.kind === 'computer'"
+                        type="button"
+                        class="cs-tree-chevron"
+                        (click)="toggleComputerExpand(row.id); $event.stopPropagation()"
+                        [attr.title]="collapsedComputers.has(row.id) ? 'Развернуть' : 'Свернуть'"
+                      >
+                        <lucide-icon
+                          [name]="collapsedComputers.has(row.id) ? 'chevron-right' : 'chevron-down'"
+                          [size]="18"
+                        ></lucide-icon>
+                      </button>
+                      <!-- Spacer for non-computer rows -->
+                      <span *ngIf="row.kind !== 'computer'" class="cs-tree-chevron-spacer"></span>
                       <lucide-icon
                         [name]="getTerminalIconB(row)"
                         [size]="row.kind === 'computer' ? 22 : 18"
@@ -217,19 +245,72 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                           class="cs-terminal-kind-badge"
                           [class.cs-kind-badge--kiosk]="row.kind === 'computer'"
                           [class.cs-kind-badge--display]="row.kind === 'display'"
-                        >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : '' }}</span>
+                          [class.cs-kind-badge--advertise]="row.kind === 'advertise'"
+                        >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : row.kind === 'advertise' ? 'Рекламный баннер' : '' }}</span>
                       </div>
+                      <!-- Online/offline dot (computer only) -->
+                      <span
+                        *ngIf="row.kind === 'computer'"
+                        class="cs-status-dot"
+                        [class.cs-status-dot--online]="row.isOnline"
+                        [class.cs-status-dot--offline]="!row.isOnline"
+                        [title]="row.isOnline ? 'Онлайн' : 'Офлайн'"
+                      ></span>
                     </div>
                   </td>
                   <!-- Theme -->
-                  <td class="cs-td cs-td--theme-b">
-                    <span class="cs-theme-value">{{ row.themeName || '—' }}</span>
+                  <td class="cs-td cs-td--theme-b" (click)="$event.stopPropagation()">
+                    <app-cs-combobox
+                      *ngIf="row.kind !== 'advertise'"
+                      placeholder="Выбрать"
+                      [options]="dataService.themeOptions"
+                      [value]="row.themeId"
+                      displayKey="name"
+                      valueKey="id"
+                      (valueChange)="onThemeChange(restaurant.id, { rowId: row.id, themeId: $event })"
+                    ></app-cs-combobox>
+                    <span *ngIf="row.kind === 'advertise'" class="cs-theme-value">{{ row.campaignNames?.join(', ') || '—' }}</span>
                   </td>
-                  <!-- Settings icon -->
+                  <!-- Actions -->
                   <td class="cs-td cs-td--actions-b">
-                    <button class="cs-icon-btn" (click)="openPanelB(row); $event.stopPropagation()" title="Настройки">
-                      <lucide-icon name="settings" [size]="18"></lucide-icon>
-                    </button>
+                    <div class="cs-actions-group">
+                      <!-- Computer row: add screen button -->
+                      <button
+                        *ngIf="row.kind === 'computer'"
+                        class="cs-icon-btn"
+                        (click)="onAddScreen(row.id); $event.stopPropagation()"
+                        title="Добавить экран"
+                      >
+                        <lucide-icon name="plus-circle" [size]="20"></lucide-icon>
+                      </button>
+                      <!-- Display row actions: screenshot + delete -->
+                      <ng-container *ngIf="row.kind === 'display'">
+                        <button
+                          *ngIf="row.supportsScreenshot"
+                          class="cs-icon-btn"
+                          (click)="onRequestScreenshot(restaurant, row.id); $event.stopPropagation()"
+                          title="Скриншот"
+                          [disabled]="screenshotLoadingId === row.parentComputerId"
+                        >
+                          <lucide-icon
+                            [name]="screenshotLoadingId === row.parentComputerId ? 'loader-2' : 'camera'"
+                            [size]="18"
+                            [class.cs-spin]="screenshotLoadingId === row.parentComputerId"
+                          ></lucide-icon>
+                        </button>
+                        <button
+                          class="cs-icon-btn cs-icon-btn--danger"
+                          (click)="onDeleteRow(restaurant.id, row.id); $event.stopPropagation()"
+                          title="Удалить"
+                        >
+                          <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+                        </button>
+                      </ng-container>
+                      <!-- Settings button (all rows) -->
+                      <button class="cs-icon-btn" (click)="openPanelB(row); $event.stopPropagation()" title="Настройки">
+                        <lucide-icon name="settings" [size]="18"></lucide-icon>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -307,6 +388,38 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
             </div>
           </div>
 
+          <!-- Terminal Groups section -->
+          <div class="cs-panel-config">
+            <div class="cs-panel-config-header">
+              <lucide-icon name="layers" [size]="16" class="cs-config-icon"></lucide-icon>
+              <span class="cs-panel-config-title">Терминальные группы</span>
+            </div>
+            <app-cs-combobox
+              placeholder="Выбрать группы"
+              [options]="dataService.terminalGroupOptions"
+              [value]="panelTerminalGroupIds"
+              [multi]="true"
+              displayKey="name"
+              valueKey="id"
+              (valueChange)="onPanelTerminalGroupsChange($event)"
+            ></app-cs-combobox>
+          </div>
+
+          <!-- Settings section -->
+          <div class="cs-panel-config">
+            <div class="cs-panel-config-header">
+              <lucide-icon name="settings" [size]="16" class="cs-config-icon"></lucide-icon>
+              <span class="cs-panel-config-title">Настройки</span>
+            </div>
+            <app-cs-combobox
+              placeholder="Выбрать"
+              [options]="settingsOptions"
+              [value]="null"
+              displayKey="name"
+              valueKey="id"
+            ></app-cs-combobox>
+          </div>
+
           <!-- Panel Body: Theme Pages -->
           <div class="cs-panel-body">
             <div class="cs-panel-section" *ngFor="let page of panelStructure.pages; let last = last">
@@ -328,29 +441,18 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                     <span class="cs-el-name">{{ el.name }}</span>
                   </div>
 
-                  <!-- Campaign selector -->
+                  <!-- Campaign selector (multi) -->
                   <div class="cs-el-row">
                     <label class="cs-el-label">Кампания</label>
-                    <select class="cs-el-select" [value]="el.campaignId || ''" (change)="onPanelCampaignChange(el, $event)">
-                      <option value="">Не выбрана</option>
-                      <option
-                        *ngFor="let c of dataService.campaignOptions"
-                        [value]="c.id"
-                        [selected]="el.campaignId === c.id"
-                      >{{ c.name }}</option>
-                    </select>
-                  </div>
-
-                  <!-- ID + Tags row -->
-                  <div class="cs-el-row cs-el-row--compact">
-                    <div class="cs-el-field">
-                      <label class="cs-el-label">ID</label>
-                      <input type="text" class="cs-el-input cs-el-input--id" [value]="el.elementId" (input)="onPanelElementIdChange(el, $event)" />
-                    </div>
-                    <div class="cs-el-field cs-el-field--grow">
-                      <label class="cs-el-label">Теги</label>
-                      <input type="text" class="cs-el-input" [value]="el.tags" (input)="onPanelTagsChange(el, $event)" placeholder="тег1, тег2" />
-                    </div>
+                    <app-cs-combobox
+                      placeholder="Выбрать кампанию"
+                      [options]="dataService.campaignOptions"
+                      [value]="el.campaignIds"
+                      [multi]="true"
+                      displayKey="name"
+                      valueKey="id"
+                      (valueChange)="onPanelCampaignChange(el, $event)"
+                    ></app-cs-combobox>
                   </div>
                 </div>
 
@@ -428,16 +530,41 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                   <tr
                     class="cs-tr-c"
                     [class.cs-tr-c--expanded]="expandedRowIdsC.has(row.id)"
-                    (click)="toggleRowC(row)"
+                    [class.cs-tr-c--computer]="row.kind === 'computer'"
+                    [class.cs-tr-c--display]="row.kind === 'display'"
+                    [class.cs-tr-c--advertise]="row.kind === 'advertise'"
                   >
+                    <!-- Chevron column: tree-collapse for computer, detail-expand for display/advertise -->
                     <td class="cs-td cs-td--chevron-c">
-                      <lucide-icon
-                        [name]="expandedRowIdsC.has(row.id) ? 'chevron-down' : 'chevron-right'"
-                        [size]="18"
-                        class="cs-c-chevron"
-                      ></lucide-icon>
+                      <!-- Checkbox -->
+                      <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
+                        <input
+                          type="checkbox"
+                          class="cs-checkbox"
+                          [checked]="selectedRowIds.has(row.id)"
+                          (change)="toggleRowSelect(row.id)"
+                        />
+                      </label>
+                      <!-- Computer: tree expand/collapse -->
+                      <ng-container *ngIf="row.kind === 'computer'; else detailChevron">
+                        <lucide-icon
+                          [name]="collapsedComputers.has(row.id) ? 'chevron-right' : 'chevron-down'"
+                          [size]="18"
+                          class="cs-c-chevron cs-c-chevron--tree"
+                          (click)="toggleComputerExpand(row.id); $event.stopPropagation()"
+                        ></lucide-icon>
+                      </ng-container>
+                      <!-- Display/Advertise: detail expand -->
+                      <ng-template #detailChevron>
+                        <lucide-icon
+                          [name]="expandedRowIdsC.has(row.id) ? 'chevron-down' : 'chevron-right'"
+                          [size]="18"
+                          class="cs-c-chevron"
+                          (click)="toggleRowC(row); $event.stopPropagation()"
+                        ></lucide-icon>
+                      </ng-template>
                     </td>
-                    <td class="cs-td cs-td--name-c">
+                    <td class="cs-td cs-td--name-c" (click)="row.kind === 'computer' ? toggleComputerExpand(row.id) : toggleRowC(row)">
                       <div class="cs-terminal-info">
                         <lucide-icon
                           [name]="getTerminalIconB(row)"
@@ -452,17 +579,70 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                             class="cs-terminal-kind-badge"
                             [class.cs-kind-badge--kiosk]="row.kind === 'computer'"
                             [class.cs-kind-badge--display]="row.kind === 'display'"
-                          >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : '' }}</span>
+                            [class.cs-kind-badge--advertise]="row.kind === 'advertise'"
+                          >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : row.kind === 'advertise' ? 'Рекламный баннер' : '' }}</span>
                         </div>
+                        <!-- Online/offline dot (computer only) -->
+                        <span
+                          *ngIf="row.kind === 'computer'"
+                          class="cs-status-dot"
+                          [class.cs-status-dot--online]="row.isOnline"
+                          [class.cs-status-dot--offline]="!row.isOnline"
+                          [title]="row.isOnline ? 'Онлайн' : 'Офлайн'"
+                        ></span>
                       </div>
                     </td>
-                    <td class="cs-td cs-td--theme-c">
-                      <span class="cs-theme-value">{{ row.themeName || '—' }}</span>
+                    <td class="cs-td cs-td--theme-c" (click)="$event.stopPropagation()">
+                      <app-cs-combobox
+                        *ngIf="row.kind !== 'advertise'"
+                        placeholder="Выбрать"
+                        [options]="dataService.themeOptions"
+                        [value]="row.themeId"
+                        displayKey="name"
+                        valueKey="id"
+                        (valueChange)="onThemeChange(restaurant.id, { rowId: row.id, themeId: $event })"
+                      ></app-cs-combobox>
+                      <span *ngIf="row.kind === 'advertise'" class="cs-theme-value">{{ row.campaignNames?.join(', ') || '—' }}</span>
                     </td>
                     <td class="cs-td cs-td--actions-c">
-                      <button class="cs-icon-btn" (click)="toggleRowC(row); $event.stopPropagation()" title="Настройки">
-                        <lucide-icon name="settings" [size]="18"></lucide-icon>
-                      </button>
+                      <div class="cs-actions-group">
+                        <!-- Computer: add screen -->
+                        <button
+                          *ngIf="row.kind === 'computer'"
+                          class="cs-icon-btn"
+                          (click)="onAddScreen(row.id); $event.stopPropagation()"
+                          title="Добавить экран"
+                        >
+                          <lucide-icon name="plus-circle" [size]="20"></lucide-icon>
+                        </button>
+                        <!-- Display: screenshot + delete -->
+                        <ng-container *ngIf="row.kind === 'display'">
+                          <button
+                            *ngIf="row.supportsScreenshot"
+                            class="cs-icon-btn"
+                            (click)="onRequestScreenshot(restaurant, row.id); $event.stopPropagation()"
+                            title="Скриншот"
+                            [disabled]="screenshotLoadingId === row.parentComputerId"
+                          >
+                            <lucide-icon
+                              [name]="screenshotLoadingId === row.parentComputerId ? 'loader-2' : 'camera'"
+                              [size]="18"
+                              [class.cs-spin]="screenshotLoadingId === row.parentComputerId"
+                            ></lucide-icon>
+                          </button>
+                          <button
+                            class="cs-icon-btn cs-icon-btn--danger"
+                            (click)="onDeleteRow(restaurant.id, row.id); $event.stopPropagation()"
+                            title="Удалить"
+                          >
+                            <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+                          </button>
+                        </ng-container>
+                        <!-- Settings -->
+                        <button class="cs-icon-btn" (click)="toggleRowC(row); $event.stopPropagation()" title="Настройки">
+                          <lucide-icon name="settings" [size]="18"></lucide-icon>
+                        </button>
+                      </div>
                     </td>
                   </tr>
 
@@ -493,6 +673,37 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                             </ng-template>
                           </div>
 
+                          <!-- Terminal Groups + Settings -->
+                          <div class="cs-c-config-row">
+                            <div class="cs-c-config-item">
+                              <div class="cs-c-config-label">
+                                <lucide-icon name="layers" [size]="13"></lucide-icon>
+                                <span>Терминальные группы</span>
+                              </div>
+                              <app-cs-combobox
+                                placeholder="Выбрать группы"
+                                [options]="dataService.terminalGroupOptions"
+                                [value]="row.terminalGroupIds"
+                                [multi]="true"
+                                displayKey="name"
+                                valueKey="id"
+                              ></app-cs-combobox>
+                            </div>
+                            <div class="cs-c-config-item">
+                              <div class="cs-c-config-label">
+                                <lucide-icon name="settings" [size]="13"></lucide-icon>
+                                <span>Настройки</span>
+                              </div>
+                              <app-cs-combobox
+                                placeholder="Выбрать"
+                                [options]="settingsOptions"
+                                [value]="null"
+                                displayKey="name"
+                                valueKey="id"
+                              ></app-cs-combobox>
+                            </div>
+                          </div>
+
                           <div class="cs-c-detail-section" *ngFor="let page of struct.pages; let last = last">
                             <div class="cs-c-page-header">
                               <lucide-icon name="file" [size]="16" class="cs-c-page-icon"></lucide-icon>
@@ -509,20 +720,17 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                                   <span>{{ el.name }}</span>
                                 </div>
                                 <div class="cs-c-el-fields">
-                                  <div class="cs-c-el-field">
+                                  <div class="cs-c-el-field cs-c-el-field--full">
                                     <label>Кампания</label>
-                                    <select class="cs-el-select" [value]="el.campaignId || ''" (change)="onPanelCampaignChange(el, $event)">
-                                      <option value="">Не выбрана</option>
-                                      <option *ngFor="let c of dataService.campaignOptions" [value]="c.id" [selected]="el.campaignId === c.id">{{ c.name }}</option>
-                                    </select>
-                                  </div>
-                                  <div class="cs-c-el-field cs-c-el-field--sm">
-                                    <label>ID</label>
-                                    <input type="text" class="cs-el-input cs-el-input--id" [value]="el.elementId" (input)="onPanelElementIdChange(el, $event)" />
-                                  </div>
-                                  <div class="cs-c-el-field cs-c-el-field--grow">
-                                    <label>Теги</label>
-                                    <input type="text" class="cs-el-input" [value]="el.tags" (input)="onPanelTagsChange(el, $event)" placeholder="тег1, тег2" />
+                                    <app-cs-combobox
+                                      placeholder="Выбрать кампанию"
+                                      [options]="dataService.campaignOptions"
+                                      [value]="el.campaignIds"
+                                      [multi]="true"
+                                      displayKey="name"
+                                      valueKey="id"
+                                      (valueChange)="onPanelCampaignChange(el, $event)"
+                                    ></app-cs-combobox>
                                   </div>
                                 </div>
                               </div>
@@ -594,9 +802,36 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                   class="cs-d-card"
                   *ngFor="let row of getVisibleRows(restaurant); trackBy: trackByRowId"
                   [class.cs-d-card--selected]="selectedTerminalIdD === row.id"
+                  [class.cs-d-card--computer]="row.kind === 'computer'"
+                  [class.cs-d-card--display]="row.kind === 'display'"
+                  [class.cs-d-card--advertise]="row.kind === 'advertise'"
                   (click)="selectTerminalD(row)"
                 >
                   <div class="cs-d-card-left">
+                    <!-- Checkbox -->
+                    <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
+                      <input
+                        type="checkbox"
+                        class="cs-checkbox"
+                        [checked]="selectedRowIds.has(row.id)"
+                        (change)="toggleRowSelect(row.id)"
+                      />
+                    </label>
+                    <!-- Tree chevron for computer rows -->
+                    <button
+                      *ngIf="row.kind === 'computer'"
+                      type="button"
+                      class="cs-d-tree-chevron"
+                      (click)="toggleComputerExpand(row.id); $event.stopPropagation()"
+                      [attr.title]="collapsedComputers.has(row.id) ? 'Развернуть' : 'Свернуть'"
+                    >
+                      <lucide-icon
+                        [name]="collapsedComputers.has(row.id) ? 'chevron-right' : 'chevron-down'"
+                        [size]="16"
+                      ></lucide-icon>
+                    </button>
+                    <!-- Spacer for non-computer rows -->
+                    <span *ngIf="row.kind !== 'computer'" class="cs-d-tree-spacer"></span>
                     <lucide-icon
                       [name]="getTerminalIconB(row)"
                       [size]="row.kind === 'computer' ? 22 : 18"
@@ -611,10 +846,58 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                           class="cs-terminal-kind-badge cs-kind-badge--sm"
                           [class.cs-kind-badge--kiosk]="row.kind === 'computer'"
                           [class.cs-kind-badge--display]="row.kind === 'display'"
-                        >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : '' }}</span>
+                          [class.cs-kind-badge--advertise]="row.kind === 'advertise'"
+                        >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : row.kind === 'advertise' ? 'Рекламный баннер' : '' }}</span>
+                        <!-- Online/offline dot (computer only) -->
+                        <span
+                          *ngIf="row.kind === 'computer'"
+                          class="cs-status-dot"
+                          [class.cs-status-dot--online]="row.isOnline"
+                          [class.cs-status-dot--offline]="!row.isOnline"
+                          [title]="row.isOnline ? 'Онлайн' : 'Офлайн'"
+                        ></span>
                       </div>
-                      <span class="cs-d-card-theme">{{ row.themeName || 'Без темы' }}</span>
+                      <div class="cs-d-card-theme-row" (click)="$event.stopPropagation()">
+                        <app-cs-combobox
+                          *ngIf="row.kind !== 'advertise'"
+                          placeholder="Тема"
+                          [options]="dataService.themeOptions"
+                          [value]="row.themeId"
+                          displayKey="name"
+                          valueKey="id"
+                          (valueChange)="onThemeChange(restaurant.id, { rowId: row.id, themeId: $event })"
+                        ></app-cs-combobox>
+                        <span *ngIf="row.kind === 'advertise'" class="cs-d-card-theme">{{ row.campaignNames?.join(', ') || 'Без кампании' }}</span>
+                      </div>
                     </div>
+                  </div>
+                  <!-- Actions -->
+                  <div class="cs-d-card-actions">
+                    <button
+                      *ngIf="row.kind === 'computer'"
+                      class="cs-icon-btn"
+                      (click)="onAddScreen(row.id); $event.stopPropagation()"
+                      title="Добавить экран"
+                    >
+                      <lucide-icon name="plus-circle" [size]="18"></lucide-icon>
+                    </button>
+                    <ng-container *ngIf="row.kind === 'display'">
+                      <button
+                        *ngIf="row.supportsScreenshot"
+                        class="cs-icon-btn"
+                        (click)="onRequestScreenshot(restaurant, row.id); $event.stopPropagation()"
+                        title="Скриншот"
+                      >
+                        <lucide-icon name="camera" [size]="18"></lucide-icon>
+                      </button>
+                      <button
+                        class="cs-icon-btn cs-icon-btn--danger"
+                        (click)="onDeleteRow(restaurant.id, row.id); $event.stopPropagation()"
+                        title="Удалить"
+                      >
+                        <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+                      </button>
+                    </ng-container>
                   </div>
                   <lucide-icon name="chevron-right" [size]="16" class="cs-d-card-arrow"></lucide-icon>
                 </div>
@@ -675,6 +958,38 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
               </ng-template>
             </div>
 
+            <!-- Terminal Groups + Settings -->
+            <div class="cs-d-config-row">
+              <div class="cs-d-config-item">
+                <div class="cs-d-config-label">
+                  <lucide-icon name="layers" [size]="14"></lucide-icon>
+                  <span>Терминальные группы</span>
+                </div>
+                <app-cs-combobox
+                  placeholder="Выбрать группы"
+                  [options]="dataService.terminalGroupOptions"
+                  [value]="selectedTerminalGroupIdsD"
+                  [multi]="true"
+                  displayKey="name"
+                  valueKey="id"
+                  (valueChange)="onDTerminalGroupsChange($event)"
+                ></app-cs-combobox>
+              </div>
+              <div class="cs-d-config-item">
+                <div class="cs-d-config-label">
+                  <lucide-icon name="settings" [size]="14"></lucide-icon>
+                  <span>Настройки</span>
+                </div>
+                <app-cs-combobox
+                  placeholder="Выбрать"
+                  [options]="settingsOptions"
+                  [value]="null"
+                  displayKey="name"
+                  valueKey="id"
+                ></app-cs-combobox>
+              </div>
+            </div>
+
             <!-- Pages -->
             <div class="cs-d-body">
               <div class="cs-d-section" *ngFor="let page of selectedStructureD.pages; let last = last">
@@ -693,20 +1008,17 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
                       <span>{{ el.name }}</span>
                     </div>
                     <div class="cs-d-el-fields">
-                      <div class="cs-d-el-field">
+                      <div class="cs-d-el-field cs-d-el-field--full">
                         <label>Кампания</label>
-                        <select class="cs-el-select" [value]="el.campaignId || ''" (change)="onPanelCampaignChange(el, $event)">
-                          <option value="">Не выбрана</option>
-                          <option *ngFor="let c of dataService.campaignOptions" [value]="c.id" [selected]="el.campaignId === c.id">{{ c.name }}</option>
-                        </select>
-                      </div>
-                      <div class="cs-d-el-field cs-d-el-field--sm">
-                        <label>ID</label>
-                        <input type="text" class="cs-el-input cs-el-input--id" [value]="el.elementId" (input)="onPanelElementIdChange(el, $event)" />
-                      </div>
-                      <div class="cs-d-el-field cs-d-el-field--grow">
-                        <label>Теги</label>
-                        <input type="text" class="cs-el-input" [value]="el.tags" (input)="onPanelTagsChange(el, $event)" placeholder="тег1, тег2" />
+                        <app-cs-combobox
+                          placeholder="Выбрать кампанию"
+                          [options]="dataService.campaignOptions"
+                          [value]="el.campaignIds"
+                          [multi]="true"
+                          displayKey="name"
+                          valueKey="id"
+                          (valueChange)="onPanelCampaignChange(el, $event)"
+                        ></app-cs-combobox>
                       </div>
                     </div>
                   </div>
@@ -1200,7 +1512,16 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     .cs-table--variant-b { table-layout: auto; }
     .cs-th--name-b { min-width: 240px; }
     .cs-th--theme-b { min-width: 200px; }
-    .cs-th--actions-b { min-width: 60px; width: 60px; }
+    .cs-th--actions-b { min-width: 60px; width: 120px; }
+
+    .cs-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      justify-content: flex-end;
+    }
+
+    .cs-icon-btn--danger:hover { color: #d32f2f; background: #ffebee; }
 
     .cs-tr-b {
       cursor: pointer;
@@ -1210,6 +1531,34 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     .cs-tr-b:hover { background: #f5f5f5; }
     .cs-tr-b--active { background: #e3f2fd; }
     .cs-tr-b--active:hover { background: #bbdefb; }
+
+    /* Tree indentation for display and advertise rows */
+    .cs-tr-b--display .cs-td--name-b { padding-left: 44px; }
+    .cs-tr-b--advertise .cs-td--name-b { padding-left: 68px; }
+
+    /* Tree chevron button */
+    .cs-tree-chevron {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #757575;
+      border-radius: 4px;
+      transition: all .15s;
+      flex-shrink: 0;
+      padding: 0;
+      margin: 0;
+    }
+    .cs-tree-chevron:hover { background: #e0e0e0; color: #424242; }
+    .cs-tree-chevron-spacer {
+      display: inline-block;
+      width: 28px;
+      flex-shrink: 0;
+    }
 
     .cs-td { padding: 0 12px; font-size: 14px; color: rgba(0,0,0,.87); vertical-align: middle; }
     .cs-td--name-b { }
@@ -1253,6 +1602,10 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     .cs-kind-badge--display {
       background: #fff3e0;
       color: #e65100;
+    }
+    .cs-kind-badge--advertise {
+      background: #f3e5f5;
+      color: #7b1fa2;
     }
     .cs-kind-badge--sm { font-size: 9px; padding: 0 5px; }
 
@@ -1487,6 +1840,36 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       opacity: 0.5;
     }
 
+    /* ─── Variant B: Panel config (Terminal Groups, Settings) ─── */
+    .cs-panel-config {
+      padding: 10px 20px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    .cs-panel-config-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .cs-config-icon { color: #757575; flex-shrink: 0; }
+    .cs-panel-config-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #424242;
+    }
+
+    /* Status dot */
+    .cs-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-left: 4px;
+    }
+    .cs-status-dot--online { background: #4caf50; }
+    .cs-status-dot--offline { background: #bdbdbd; }
+
     /* ─── Variant C: Expandable Rows ─── */
     .cs-c-toolbar {
       display: flex;
@@ -1527,6 +1910,18 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     .cs-tr-c:hover { background: #f5f5f5; }
     .cs-tr-c--expanded { background: #e3f2fd; }
     .cs-tr-c--expanded:hover { background: #bbdefb; }
+
+    /* Tree indentation for display and advertise rows */
+    .cs-tr-c--display .cs-td--name-c { padding-left: 44px; }
+    .cs-tr-c--advertise .cs-td--name-c { padding-left: 68px; }
+
+    /* Tree chevron (computer rows) */
+    .cs-c-chevron--tree {
+      cursor: pointer;
+      color: #757575;
+      transition: color .15s;
+    }
+    .cs-c-chevron--tree:hover { color: #424242; }
 
     .cs-td--chevron-c { text-align: center; vertical-align: middle; padding: 0 6px; }
     .cs-c-chevron { color: #757575; transition: transform .2s; }
@@ -1607,6 +2002,7 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     }
     .cs-c-el-field--sm { width: 90px; }
     .cs-c-el-field--grow { flex: 1; min-width: 140px; }
+    .cs-c-el-field--full { flex: 1; min-width: 200px; }
 
     .cs-c-empty {
       font-size: 13px;
@@ -1674,6 +2070,27 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       font-size: 12px;
       color: #9e9e9e;
       font-style: italic;
+    }
+
+    /* ─── Variant C: Config row (Terminal Groups + Settings) ─── */
+    .cs-c-config-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .cs-c-config-item {
+      flex: 1;
+      min-width: 200px;
+    }
+    .cs-c-config-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #616161;
+      margin-bottom: 4px;
     }
 
     /* ─── Variant D: Persistent Split View ─── */
@@ -1761,6 +2178,33 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       background: #e3f2fd;
       border-left-color: #1976d2;
     }
+    /* Tree indentation for child cards */
+    .cs-d-card--display { padding-left: 40px; }
+    .cs-d-card--advertise { padding-left: 64px; }
+
+    /* Tree chevron in left panel */
+    .cs-d-tree-chevron {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #757575;
+      border-radius: 4px;
+      transition: all .15s;
+      flex-shrink: 0;
+      padding: 0;
+      margin: 0;
+    }
+    .cs-d-tree-chevron:hover { background: #e0e0e0; color: #424242; }
+    .cs-d-tree-spacer {
+      display: inline-block;
+      width: 24px;
+      flex-shrink: 0;
+    }
     .cs-d-card-left {
       display: flex;
       align-items: center;
@@ -1792,6 +2236,16 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .cs-d-card-theme-row {
+      margin-top: 2px;
+      max-width: 180px;
+    }
+    .cs-d-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
     }
     .cs-d-card-arrow { color: #bdbdbd; flex-shrink: 0; }
 
@@ -1896,6 +2350,7 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     }
     .cs-d-el-field--sm { width: 90px; }
     .cs-d-el-field--grow { flex: 1; min-width: 140px; }
+    .cs-d-el-field--full { flex: 1; min-width: 200px; }
     .cs-d-el-empty {
       font-size: 13px;
       color: #9e9e9e;
@@ -1965,6 +2420,29 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       font-size: 13px;
       color: #9e9e9e;
       font-style: italic;
+    }
+
+    /* ─── Variant D: Config row (Terminal Groups + Settings) ─── */
+    .cs-d-config-row {
+      display: flex;
+      gap: 16px;
+      padding: 12px 24px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .cs-d-config-item {
+      flex: 1;
+      min-width: 200px;
+    }
+    .cs-d-config-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #616161;
+      margin-bottom: 4px;
     }
 
     /* Empty State */
@@ -2066,6 +2544,12 @@ export class CsTerminalsScreenComponent {
   // ─── Variant B: Slide-out Panel State ───
   activePanelTerminalId: number | null = null;
   panelStructure: TerminalThemeStructure | null = null;
+  panelTerminalGroupIds: number[] = [];
+
+  /** Обработчик изменения терминальных групп в панели */
+  onPanelTerminalGroupsChange(ids: number[]): void {
+    this.panelTerminalGroupIds = [...ids];
+  }
 
   // ─── Variant C: Expandable Rows State ───
   expandedRowIdsC = new Set<number>();
@@ -2074,6 +2558,11 @@ export class CsTerminalsScreenComponent {
   // ─── Variant D: Split View State ───
   selectedTerminalIdD: number | null = null;
   selectedStructureD: TerminalThemeStructure | null = null;
+  selectedTerminalGroupIdsD: number[] = [];
+
+  onDTerminalGroupsChange(ids: number[]): void {
+    this.selectedTerminalGroupIdsD = [...ids];
+  }
 
   /** Кэш для предотвращения пересоздания DOM при Change Detection */
   private _cacheBuster = 0;
@@ -2436,13 +2925,30 @@ export class CsTerminalsScreenComponent {
   }
 
   /** Обработчик смены кампании в панели */
-  onPanelCampaignChange(el: ThemeElementInfo, event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const val = select.value;
-    el.campaignId = val ? Number(val) : null;
-    el.campaignName = val
-      ? this.dataService.campaignOptions.find(c => c.id === Number(val))?.name ?? ''
+  onPanelCampaignChange(el: ThemeElementInfo, ids: number[]): void {
+    el.campaignIds = [...ids];
+    el.campaignId = ids.length > 0 ? ids[0] : null;
+    el.campaignName = ids.length > 0
+      ? ids.map(id => this.dataService.campaignOptions.find(c => c.id === id)?.name).filter(Boolean).join(', ')
       : '';
+
+    // Синхронизируем обратно в исходные данные
+    if (el.sourceTerminalId != null && el.sourceScreenId != null && el.sourcePanelId != null) {
+      const terminal = this.findTerminal(el.sourceTerminalId);
+      if (terminal?.screens) {
+        const screen = terminal.screens.find(s => s.id === el.sourceScreenId);
+        if (screen) {
+          const panel = screen.advertisePanels.find(p => p.id === el.sourcePanelId);
+          if (panel) {
+            panel.campaignIds = [...ids];
+            panel.campaignNames = ids
+              .map(id => this.dataService.campaignOptions.find(c => c.id === id)?.name)
+              .filter((n): n is string => !!n);
+            this.invalidateCache();
+          }
+        }
+      }
+    }
   }
 
   /** Обработчик изменения ID элемента в панели */

@@ -414,11 +414,15 @@ export class CsDataService {
             kind: 'advertise',
             name: panel.name,
             campaignId,
+            campaignIds: [...(panel.campaignIds ?? [])],
             campaignName,
             elementId: 'T' + (580 + panel.id),
             tags: panel.name.toLowerCase().includes('привет') ? 'welcome' :
                   panel.name.toLowerCase().includes('акци') ? 'promo' :
                   panel.name.toLowerCase().includes('спасиб') ? 'thanks' : '',
+            sourceTerminalId: terminal.id,
+            sourceScreenId: screen.id,
+            sourcePanelId: panel.id,
           });
         }
 
