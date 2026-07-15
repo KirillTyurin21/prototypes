@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, TerminalTableRow, ThemeOption, CampaignOption, HintOption, TerminalGroupOption } from './cs-types';
+import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, TerminalTableRow, ThemeOption, CampaignOption, HintOption, TerminalGroupOption, TerminalThemeStructure, ThemePageInfo, ThemeElementInfo, HintAssignmentInfo } from './cs-types';
 import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS, CS_RESTAURANTS, THEME_OPTIONS, CAMPAIGN_OPTIONS, HINT_OPTIONS, TERMINAL_GROUP_OPTIONS } from './data/cs-mock-data';
 import { StorageService } from '@/shared/storage.service';
 
@@ -370,5 +370,131 @@ export class CsDataService {
   getThemeName(themeId: number | null): string {
     if (!themeId) return '—';
     return this.themeOptions.find(t => t.id === themeId)?.name ?? '—';
+  }
+
+  // ─── Структура темы для новых вариантов (B/C/D) ───
+
+  /**
+   * Возвращает структуру темы для выбранного терминала:
+   * странички + размещённые на них Advertise-панели и рекомендации.
+   * Пока использует мок-данные.
+   */
+  getTerminalThemeStructure(terminalId: number): TerminalThemeStructure | null {
+    // Ищем терминал по всем ресторанам
+    let terminal: CSTerminalV2 | undefined;
+    for (const r of this.restaurants) {
+      const t = r.terminals.find(t => t.id === terminalId);
+      if (t) { terminal = t; break; }
+    }
+    if (!terminal) return null;
+
+    const themeId = terminal.themeId;
+    const themeName = this.getThemeName(themeId);
+
+    // Определяем тип терминала: если есть screens — display (менюборд), иначе kiosk
+    const hasScreens = (terminal.screens ?? []).length > 0;
+    const terminalKind: 'kiosk' | 'display' = hasScreens ? 'display' : 'kiosk';
+
+    // Мок-данные: генерируем странички темы на основе экранов терминала
+    const pages: ThemePageInfo[] = [];
+
+    if (terminalKind === 'display' && terminal.screens) {
+      // Для менюбордов: каждый screen = страничка темы
+      for (const screen of terminal.screens) {
+        const elements: ThemeElementInfo[] = [];
+        const panels = screen.advertisePanels ?? [];
+
+        for (const panel of panels) {
+          const campaignId = (panel.campaignIds && panel.campaignIds.length > 0) ? panel.campaignIds[0] : null;
+          const campaignName = campaignId
+            ? this.campaignOptions.find(c => c.id === campaignId)?.name ?? ''
+            : '';
+          elements.push({
+            id: elements.length + 1,
+            kind: 'advertise',
+            name: panel.name,
+            campaignId,
+            campaignName,
+            elementId: 'T' + (580 + panel.id),
+            tags: panel.name.toLowerCase().includes('привет') ? 'welcome' :
+                  panel.name.toLowerCase().includes('акци') ? 'promo' :
+                  panel.name.toLowerCase().includes('спасиб') ? 'thanks' : '',
+          });
+        }
+
+        // Добавляем мок-рекомендацию на каждую вторую страничку
+        if (screen.id % 2 === 0) {
+          elements.push({
+            id: elements.length + 1,
+            kind: 'recommendation',
+            name: 'Рекомендация Upsell',
+            campaignId: 101,
+            campaignName: 'Рекомендации',
+            elementId: 'R10' + screen.id,
+            tags: 'upsell',
+          });
+        }
+
+        pages.push({
+          id: screen.id,
+          name: screen.name,
+          elements,
+        });
+      }
+    }
+
+    // Если страничек нет (киоск без screens или пустой) — добавляем дефолтные мок-странички
+    if (pages.length === 0) {
+      pages.push(
+        {
+          id: 1,
+          name: 'Заглавная',
+          elements: [
+            { id: 1, kind: 'advertise', name: 'Advertise панель «Приветственная»', campaignId: 201, campaignName: 'Акция бургер', elementId: 'T585', tags: 'welcome' },
+            { id: 2, kind: 'advertise', name: 'Advertise панель «Акции»', campaignId: 202, campaignName: 'Скидки дня', elementId: 'T586', tags: 'promo' },
+          ],
+        },
+        {
+          id: 2,
+          name: 'Меню',
+          elements: [
+            { id: 3, kind: 'recommendation', name: 'Рекомендация «Upsell»', campaignId: 101, campaignName: 'Рекомендации', elementId: 'R102', tags: 'upsell' },
+          ],
+        },
+        {
+          id: 3,
+          name: 'Завершение',
+          elements: [
+            { id: 4, kind: 'advertise', name: 'Advertise панель «Спасибо»', campaignId: 203, campaignName: 'Спасибо за заказ', elementId: 'T587', tags: 'thanks' },
+          ],
+        },
+      );
+    }
+
+    // Собираем назначенные подсказки
+    const hints: HintAssignmentInfo[] = (terminal.hintIds ?? []).map(hintId => {
+      const hintOpt = this.hintOptions.find(h => h.id === hintId);
+      const hintData = this.hints.find(h => h.id === hintId);
+      return {
+        id: hintId,
+        name: hintOpt?.name ?? ('Подсказка #' + hintId),
+        status: hintData?.status ?? 'active',
+      };
+    });
+    // Если подсказок нет — добавляем мок-подсказку для демонстрации поля
+    if (hints.length === 0 && terminalKind === 'kiosk') {
+      hints.push({ id: 1, name: 'Скидка на бургеры', status: 'active' });
+      hints.push({ id: 3, name: 'Счастливые часы', status: 'scheduled' });
+    }
+
+    return {
+      terminalId: terminal.id,
+      terminalName: terminal.name,
+      terminalKind,
+      themeId,
+      themeName,
+      pages,
+      hints,
+    };
   }
 }

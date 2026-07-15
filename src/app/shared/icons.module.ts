@@ -187,6 +187,9 @@ import {
   // Element grouping accordion
   Layers,
   Paintbrush,
+  // Variant switcher (cs-terminals)
+  PanelRight,
+  ChevronsDownUp,
 } from 'lucide-angular';
 
 /**
@@ -381,6 +384,9 @@ const icons = {
   // Element grouping accordion
   Layers,
   Paintbrush,
+  // Variant switcher (cs-terminals)
+  PanelRight,
+  ChevronsDownUp,
 };
 
 @NgModule({

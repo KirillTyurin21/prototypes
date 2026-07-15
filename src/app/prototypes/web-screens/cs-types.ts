@@ -339,6 +339,67 @@ export const SHARED_ELEMENTS: ElementTypeOption[] = [
   { type: 'foreign-product-description', name: 'Описание (иностр.)', description: 'Описание на другом языке', isTextual: true },
 ];
 
+// ─── Структура темы для настроек терминалов (Варианты B/C/D) ───
+
+/** Тип динамического элемента на страничке темы */
+export type ThemeElementKind = 'advertise' | 'recommendation';
+
+/** Динамический элемент на страничке темы */
+export interface ThemeElementInfo {
+  /** Уникальный ID элемента */
+  id: number;
+  /** Тип: advertise-панель или рекомендация (upsell) */
+  kind: ThemeElementKind;
+  /** Название элемента (напр. «Advertise панель 1», «Рекомендация Upsell») */
+  name: string;
+  /** ID выбранной кампании (null — не выбрана) */
+  campaignId: number | null;
+  /** Название выбранной кампании */
+  campaignName?: string;
+  /** Уникальный идентификатор элемента (поле ID, напр. T585) */
+  elementId: string;
+  /** Теги элемента (через запятую, напр. «welcome, promo») */
+  tags: string;
+}
+
+/** Страничка темы с размещёнными на ней динамическими элементами */
+export interface ThemePageInfo {
+  /** Уникальный ID странички */
+  id: number;
+  /** Название странички (напр. «Заглавная», «Меню», «Завершение») */
+  name: string;
+  /** Динамические элементы, размещённые на этой страничке */
+  elements: ThemeElementInfo[];
+}
+
+/** Информация о назначенной подсказке */
+export interface HintAssignmentInfo {
+  /** ID подсказки */
+  id: number;
+  /** Название подсказки */
+  name: string;
+  /** Статус подсказки */
+  status: 'active' | 'scheduled' | 'expired';
+}
+
+/** Полная структура темы для выбранного терминала */
+export interface TerminalThemeStructure {
+  /** ID терминала */
+  terminalId: number;
+  /** Название терминала */
+  terminalName: string;
+  /** Тип терминала: kiosk (киоск) или display (экран менюборда) */
+  terminalKind: 'kiosk' | 'display';
+  /** ID темы */
+  themeId: number | null;
+  /** Название темы */
+  themeName: string;
+  /** Странички темы с динамическими элементами */
+  pages: ThemePageInfo[];
+  /** Назначенные подсказки (отдельно от страничек темы) */
+  hints: HintAssignmentInfo[];
+}
+
 /** Уникальные элементы анимации */
 export const ANIMATION_ONLY_ELEMENTS: ElementTypeOption[] = [
   { type: 'last-added-dish', name: 'Последнее блюдо', description: 'Последнее добавленное в заказ', isTextual: true },
