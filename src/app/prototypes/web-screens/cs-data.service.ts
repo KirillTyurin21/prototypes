@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, ThemeOption, CampaignOption, HintOption, TerminalGroupOption } from './cs-types';
+import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, TerminalTableRow, ThemeOption, CampaignOption, HintOption, TerminalGroupOption } from './cs-types';
 import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS, CS_RESTAURANTS, THEME_OPTIONS, CAMPAIGN_OPTIONS, HINT_OPTIONS, TERMINAL_GROUP_OPTIONS } from './data/cs-mock-data';
 import { StorageService } from '@/shared/storage.service';
 
@@ -199,6 +199,56 @@ export class CsDataService {
   }
 
   // ─── Настройки дисплея V2 ─────────────────────
+
+  /**
+   * Преобразует терминалы ресторана в плоский список строк таблицы.
+   * Каждый CSTerminalV2 → computer-строка, каждый TerminalScreenNode → display-строка.
+   * Display-строки идут сразу после своей computer-строки (группировка).
+   */
+  getTableRows(restaurantId: number): TerminalTableRow[] {
+    const restaurant = this.restaurants.find(r => r.id === restaurantId);
+    if (!restaurant) return [];
+
+    const rows: TerminalTableRow[] = [];
+
+    for (const terminal of restaurant.terminals) {
+      // Computer-строка (касса)
+      const computerRow: TerminalTableRow = {
+        kind: 'computer',
+        id: terminal.id,
+        name: terminal.name,
+        themeId: terminal.themeId,
+        themeName: this.getThemeName(terminal.themeId),
+        terminalGroupIds: [...terminal.terminalGroupIds],
+        advertisePanels: [],
+        ip: terminal.ip,
+        isOnline: terminal.isOnline,
+        pluginVersion: terminal.pluginVersion,
+        expanded: true,
+      };
+      rows.push(computerRow);
+
+      // Display-строки (экраны) — дочерние для computer
+      const screens = terminal.screens ?? [];
+      for (const screen of screens) {
+        const displayRow: TerminalTableRow = {
+          kind: 'display',
+          id: terminal.id * 1000 + screen.id,  // уникальный ID: terminalId * 1000 + screenId
+          name: screen.name,
+          themeId: screen.themeId,
+          themeName: screen.themeName ?? this.getThemeName(screen.themeId),
+          terminalGroupIds: [],
+          advertisePanels: screen.advertisePanels.map(p => ({ ...p })),
+          parentComputerId: terminal.id,
+          supportsScreenshot: terminal.supportsScreenshot,
+          hasUnsavedChanges: terminal.hasUnsavedChanges,
+        };
+        rows.push(displayRow);
+      }
+    }
+
+    return rows;
+  }
 
   updateRestaurants(restaurants: CSRestaurant[]): void {
     this.restaurants = [...restaurants];

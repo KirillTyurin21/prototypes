@@ -250,6 +250,59 @@ export interface HintOption {
   name: string;
 }
 
+// ─── Табличное представление (Настройка терминалов) ───
+
+/** Тип строки в таблице терминалов */
+export type TerminalRowKind = 'computer' | 'display';
+
+/**
+ * Плоская строка таблицы «Настройка терминалов».
+ * Computer-строки (кассы) могут сворачиваться/разворачиваться,
+ * скрывая/показывая дочерние display-строки (экраны).
+ */
+export interface TerminalTableRow {
+  /** Тип строки: касса (computer) или экран (display) */
+  kind: TerminalRowKind;
+
+  /** Уникальный ID строки (для чекбоксов, сворачивания) */
+  id: number;
+
+  /** Отображаемое имя */
+  name: string;
+
+  // ─── Общие поля ───
+
+  /** ID выбранной темы (null — не выбрана) */
+  themeId: number | null;
+  /** Кэшированное имя темы */
+  themeName?: string;
+
+  /** ID выбранных терминальных групп */
+  terminalGroupIds: number[];
+
+  // ─── Поля computer ───
+
+  /** IP-адрес (только для computer) */
+  ip?: string;
+  /** Онлайн-статус (только для computer) */
+  isOnline?: boolean;
+  /** Версия плагина (только для computer) */
+  pluginVersion?: string;
+  /** Развёрнута ли computer-строка (показывать дочерние display) */
+  expanded?: boolean;
+
+  // ─── Поля display ───
+
+  /** ID родительской computer-строки (если экран привязан к кассе) */
+  parentComputerId?: number | null;
+  /** Advertise-панели с кампаниями (только для display, множественные — доработка) */
+  advertisePanels: AdvertisePanelNode[];
+  /** Поддерживает ли скриншоты */
+  supportsScreenshot?: boolean;
+  /** Есть ли несохранённые изменения */
+  hasUnsavedChanges?: boolean;
+}
+
 // ─── Элементы для dropdown ───────────────────
 
 export interface ElementTypeOption {
