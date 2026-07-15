@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CsDataService } from '../cs-data.service';
-import { CSRestaurant, CSTerminalV2, TerminalTableRow, TerminalScreenshot } from '../cs-types';
+import { CSRestaurant, CSTerminalV2, TerminalTableRow, TerminalRowKind, TerminalScreenshot } from '../cs-types';
 import { IconsModule } from '@/shared/icons.module';
 import { CsTableRowComponent } from '../components/cs-table-row.component';
 
@@ -47,17 +47,17 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       <div class="cs-controls-row">
         <div class="cs-search-group">
           <label class="cs-search-label">Поиск по ресторану</label>
-          <input type="text" class="cs-search-input" placeholder="Поиск по ресторану" [(ngModel)]="searchRestaurant" />
+          <input type="text" class="cs-search-input" placeholder="Поиск по ресторану" [(ngModel)]="searchRestaurant" (ngModelChange)="invalidateCache()" />
         </div>
         <div class="cs-search-group">
           <label class="cs-search-label">Поиск по терминалу</label>
-          <input type="text" class="cs-search-input" placeholder="Поиск по терминалу" [(ngModel)]="searchTerminal" />
+          <input type="text" class="cs-search-input" placeholder="Поиск по терминалу" [(ngModel)]="searchTerminal" (ngModelChange)="invalidateCache()" />
         </div>
         <button class="cs-btn cs-btn-system" (click)="showSystemSettingsModal = true">Системные настройки</button>
       </div>
 
       <!-- Restaurants accordions -->
-      <div class="cs-accordion" *ngFor="let restaurant of getFilteredRestaurants()">
+      <div class="cs-accordion" *ngFor="let restaurant of filteredRestaurants; trackBy: trackByRestaurantId">
         <div class="cs-accordion-header" (click)="toggleRestaurant(restaurant.id)">
           <span class="cs-accordion-name">{{ restaurant.name }}</span>
           <div class="cs-accordion-right">
@@ -98,7 +98,7 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
               </thead>
               <tbody>
                 <tr
-                  *ngFor="let row of getVisibleRows(restaurant)"
+                  *ngFor="let row of getVisibleRows(restaurant); trackBy: trackByRowId"
                   app-cs-table-row
                   [row]="row"
                   [selected]="selectedRowIds.has(row.id)"
@@ -128,7 +128,7 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
       </div>
 
       <!-- No restaurants -->
-      <div *ngIf="getFilteredRestaurants().length === 0" class="cs-no-data">
+      <div *ngIf="filteredRestaurants.length === 0" class="cs-no-data">
         <lucide-icon name="monitor" [size]="48" class="cs-no-data-icon"></lucide-icon>
         <p class="cs-no-data-text">{{ searchRestaurant || searchTerminal ? 'Ничего не найдено' : 'Нет подключённых ресторанов' }}</p>
       </div>
@@ -345,13 +345,13 @@ import { CsTableRowComponent } from '../components/cs-table-row.component';
     .cs-accordion-chevron { color: #9e9e9e; }
     .cs-accordion-body {
       border-top: 1px solid rgba(0, 0, 0, 0.12);
-      overflow-x: auto;
+      overflow: visible;
       padding: 0;
     }
 
     /* ─── Table ─── */
     .cs-table-wrap {
-      overflow-x: auto;
+      overflow: visible;
     }
     .cs-table {
       width: 100%;
@@ -536,16 +536,57 @@ export class CsTerminalsScreenComponent {
   /** Заглушка для селекта «Настройки» (будет наполнено позже) */
   settingsOptions: { id: number; name: string }[] = [];
 
+  /** Кэш для предотвращения пересоздания DOM при Change Detection */
+  private _cacheBuster = 0;
+  private _cacheBuiltAt = -1;
+  private _filteredRestaurantsCache: CSRestaurant[] = [];
+  private _visibleRowsCache = new Map<number, TerminalTableRow[]>();
+  private _rowCountCache = new Map<number, number>();
+
   constructor() {
     const restaurants = this.dataService.restaurants;
     if (restaurants.length > 0) this.expandedRestaurants.add(restaurants[0].id);
   }
 
   // ═══════════════════════════════════════════
-  // Фильтрация и получение строк
+  // Кэширование строк (критично: без кэша *ngFor пересоздаёт DOM)
   // ═══════════════════════════════════════════
 
-  getFilteredRestaurants(): CSRestaurant[] {
+  invalidateCache(): void { this._cacheBuster++; }
+  private _invalidateCache(): void { this._cacheBuster++; }
+
+  private _ensureCache(): void {
+    if (this._cacheBuiltAt === this._cacheBuster) return;
+    this._filteredRestaurantsCache = this._computeFiltered();
+    this._visibleRowsCache.clear();
+    this._rowCountCache.clear();
+    for (const r of this._filteredRestaurantsCache) {
+      const rows = this._computeVisible(r);
+      this._visibleRowsCache.set(r.id, rows);
+      this._rowCountCache.set(r.id, rows.length);
+    }
+    this._cacheBuiltAt = this._cacheBuster;
+  }
+
+  get filteredRestaurants(): CSRestaurant[] {
+    this._ensureCache();
+    return this._filteredRestaurantsCache;
+  }
+
+  getVisibleRows(restaurant: CSRestaurant): TerminalTableRow[] {
+    this._ensureCache();
+    return this._visibleRowsCache.get(restaurant.id) ?? [];
+  }
+
+  getRowCount(restaurant: CSRestaurant): number {
+    this._ensureCache();
+    return this._rowCountCache.get(restaurant.id) ?? 0;
+  }
+
+  trackByRestaurantId(_i: number, r: CSRestaurant): number { return r.id; }
+  trackByRowId(_i: number, row: TerminalTableRow): number { return row.id; }
+
+  private _computeFiltered(): CSRestaurant[] {
     let list = this.dataService.restaurants;
     if (this.searchRestaurant) {
       const q = this.searchRestaurant.toLowerCase();
@@ -563,25 +604,19 @@ export class CsTerminalsScreenComponent {
     return list;
   }
 
-  /** Все строки таблицы для ресторана */
-  getTableRows(restaurant: CSRestaurant): TerminalTableRow[] {
-    return this.dataService.getTableRows(restaurant.id);
-  }
-
-  /** Только видимые строки (скрыты дочерние display свёрнутых computer) */
-  getVisibleRows(restaurant: CSRestaurant): TerminalTableRow[] {
-    const allRows = this.getTableRows(restaurant);
+  private _computeVisible(restaurant: CSRestaurant): TerminalTableRow[] {
+    const allRows = this.dataService.getTableRows(restaurant.id);
+    for (const row of allRows) {
+      if (row.kind === 'computer') {
+        row.expanded = !this.collapsedComputers.has(row.id);
+      }
+    }
     if (this.collapsedComputers.size === 0) return allRows;
-
     return allRows.filter(row => {
       if (row.kind === 'computer') return true;
       if (row.parentComputerId == null) return true;
       return !this.collapsedComputers.has(row.parentComputerId);
     });
-  }
-
-  getRowCount(restaurant: CSRestaurant): number {
-    return this.getVisibleRows(restaurant).length;
   }
 
   // ═══════════════════════════════════════════
@@ -624,18 +659,12 @@ export class CsTerminalsScreenComponent {
   // ═══════════════════════════════════════════
 
   toggleComputerExpand(computerId: number): void {
-    this.collapsedComputers.has(computerId)
-      ? this.collapsedComputers.delete(computerId)
-      : this.collapsedComputers.add(computerId);
-    // Обновляем expanded в данных для иконки стрелки
-    for (const r of this.dataService.restaurants) {
-      for (const t of r.terminals) {
-        if (t.id === computerId) {
-          // Найдём соответствующую строку и инвертируем expanded
-          break;
-        }
-      }
+    if (this.collapsedComputers.has(computerId)) {
+      this.collapsedComputers.delete(computerId);
+    } else {
+      this.collapsedComputers.add(computerId);
     }
+    this._invalidateCache();
   }
 
   // ═══════════════════════════════════════════
@@ -659,6 +688,7 @@ export class CsTerminalsScreenComponent {
           : undefined;
       }
     }
+    this._invalidateCache();
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
 
@@ -666,19 +696,20 @@ export class CsTerminalsScreenComponent {
     // Терминальные группы — пока без сохранения (заглушка)
   }
 
-  onCampaignChange(restaurantId: number, event: { rowId: number; panelId: number; campaignId: number | null }): void {
+  onCampaignChange(restaurantId: number, event: { rowId: number; panelId: number; campaignIds: number[] }): void {
     const parsed = this.parseRowId(event.rowId);
-    if (!parsed || parsed.kind !== 'display') return;
+    if (!parsed || parsed.kind !== 'advertise') return;
     const terminal = this.findTerminal(parsed.terminalId);
     if (!terminal?.screens) return;
     const screen = terminal.screens.find(s => s.id === parsed.screenId);
     if (!screen) return;
-    const panel = screen.advertisePanels.find(p => p.id === event.panelId);
+    const panel = screen.advertisePanels.find(p => p.id === parsed.panelId);
     if (!panel) return;
-    panel.campaignId = event.campaignId;
-    panel.campaignName = event.campaignId
-      ? this.dataService.campaignOptions.find(c => c.id === event.campaignId)?.name
-      : undefined;
+    panel.campaignIds = [...event.campaignIds];
+    panel.campaignNames = event.campaignIds
+      .map(id => this.dataService.campaignOptions.find(c => c.id === id)?.name)
+      .filter((n): n is string => !!n);
+    this._invalidateCache();
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
   }
 
@@ -708,6 +739,7 @@ export class CsTerminalsScreenComponent {
     if (!terminal?.screens) return;
     terminal.screens = terminal.screens.filter(s => s.id !== parsed.screenId);
     this.selectedRowIds.delete(rowId);
+    this._invalidateCache();
     this.dataService.markTerminalChanged(restaurantId, terminal.id);
     this.showToastMessage('Экран удалён', 'success');
   }
@@ -722,9 +754,10 @@ export class CsTerminalsScreenComponent {
       name: 'Новый экран ' + (maxId + 1),
       themeId: terminal.themeId,
       themeName: this.dataService.getThemeName(terminal.themeId),
-      advertisePanels: [{ id: 1, name: 'Advertise панель 1', campaignId: null }],
+      advertisePanels: [{ id: 1, name: 'Advertise панель 1', campaignIds: [], campaignNames: [] }],
     };
     terminal.screens.push(newScreen);
+    this._invalidateCache();
     this.showToastMessage('Экран добавлен к «' + terminal.name + '»', 'success');
   }
 
@@ -785,16 +818,20 @@ export class CsTerminalsScreenComponent {
   // ═══════════════════════════════════════════
 
   /**
-   * Разбирает составной ID строки обратно в terminalId и screenId.
-   * computer-строки: rowId === terminalId
-   * display-строки: rowId === terminalId * 1000 + screenId
+   * Разбирает составной ID строки обратно в terminalId, screenId и panelId.
+   * computer:  rowId === terminalId
+   * display:   rowId === terminalId * 1000 + screenId
+   * advertise: rowId === terminalId * 10000 + screenId * 100 + panelId
    */
-  private parseRowId(rowId: number): { kind: 'computer' | 'display'; terminalId: number; screenId?: number } | null {
+  private parseRowId(rowId: number): { kind: TerminalRowKind; terminalId: number; screenId?: number; panelId?: number } | null {
     for (const r of this.dataService.restaurants) {
       for (const t of r.terminals) {
         if (rowId === t.id) return { kind: 'computer', terminalId: t.id };
         for (const s of (t.screens ?? [])) {
           if (rowId === t.id * 1000 + s.id) return { kind: 'display', terminalId: t.id, screenId: s.id };
+          for (const p of (s.advertisePanels ?? [])) {
+            if (rowId === t.id * 10000 + s.id * 100 + p.id) return { kind: 'advertise', terminalId: t.id, screenId: s.id, panelId: p.id };
+          }
         }
       }
     }

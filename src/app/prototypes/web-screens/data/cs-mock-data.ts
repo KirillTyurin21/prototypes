@@ -328,8 +328,8 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
           {
             id: 1, name: 'Основной экран', themeId: 1, themeName: 'Основная тема кофейни',
             advertisePanels: [
-              { id: 1, name: 'Advertise панель 1', campaignId: 1, campaignName: 'Весенняя акция' },
-              { id: 2, name: 'Advertise панель 2', campaignId: 2, campaignName: 'Новинки меню' },
+              { id: 1, name: 'Advertise панель 1', campaignIds: [1], campaignNames: ['Весенняя акция'] },
+              { id: 2, name: 'Advertise панель 2', campaignIds: [2], campaignNames: ['Новинки меню'] },
             ],
           },
         ],
@@ -345,7 +345,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
           {
             id: 1, name: 'Основной экран', themeId: 1, themeName: 'Основная тема кофейни',
             advertisePanels: [
-              { id: 1, name: 'Advertise панель 1', campaignId: 1, campaignName: 'Весенняя акция' },
+              { id: 1, name: 'Advertise панель 1', campaignIds: [1], campaignNames: ['Весенняя акция'] },
             ],
           },
         ],
@@ -383,9 +383,9 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
           {
             id: 1, name: 'Основной экран', themeId: 4, themeName: 'Тема 3',
             advertisePanels: [
-              { id: 1, name: 'Advertise панель 1', campaignId: 1, campaignName: 'Весенняя акция' },
-              { id: 2, name: 'Advertise панель 2', campaignId: 2, campaignName: 'Новинки меню' },
-              { id: 3, name: 'Advertise панель 3', campaignId: 3, campaignName: 'Программа лояльности' },
+              { id: 1, name: 'Advertise панель 1', campaignIds: [1], campaignNames: ['Весенняя акция'] },
+              { id: 2, name: 'Advertise панель 2', campaignIds: [2], campaignNames: ['Новинки меню'] },
+              { id: 3, name: 'Advertise панель 3', campaignIds: [3], campaignNames: ['Программа лояльности'] },
             ],
           },
         ],
@@ -401,7 +401,7 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
           {
             id: 1, name: 'Основной экран', themeId: 2, themeName: 'Акционная тема',
             advertisePanels: [
-              { id: 1, name: 'Advertise панель 1', campaignId: 3, campaignName: 'Программа лояльности' },
+              { id: 1, name: 'Advertise панель 1', campaignIds: [3], campaignNames: ['Программа лояльности'] },
             ],
           },
         ],
@@ -425,8 +425,8 @@ export const CS_RESTAURANTS: CSRestaurant[] = [
           {
             id: 1, name: 'Основной экран', themeId: 2, themeName: 'Акционная тема',
             advertisePanels: [
-              { id: 1, name: 'Advertise панель 1', campaignId: 2, campaignName: 'Новинки меню' },
-              { id: 2, name: 'Advertise панель 2', campaignId: 3, campaignName: 'Программа лояльности' },
+              { id: 1, name: 'Advertise панель 1', campaignIds: [2], campaignNames: ['Новинки меню'] },
+              { id: 2, name: 'Advertise панель 2', campaignIds: [3], campaignNames: ['Программа лояльности'] },
             ],
           },
         ],

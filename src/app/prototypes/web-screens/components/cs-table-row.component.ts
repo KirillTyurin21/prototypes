@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 import { CsComboboxComponent } from './cs-combobox.component';
-import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
+import { TerminalTableRow } from '../cs-types';
 
 /**
  * Строка таблицы «Настройка терминалов».
@@ -19,7 +19,7 @@ import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
   imports: [CommonModule, FormsModule, IconsModule, CsComboboxComponent],
   template: `
     <!-- Колонка 1: Кассовый аппарат -->
-    <td class="cs-col cs-col--name">
+    <td class="cs-col cs-col--name" [class.cs-col--advertise-indent]="row.kind === 'advertise'">
       <div class="cs-name-cell">
         <!-- Чекбокс -->
         <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
@@ -44,14 +44,26 @@ import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
             [size]="18"
           ></lucide-icon>
         </button>
-        <!-- Заглушка для display строк (выравнивание) -->
-        <span *ngIf="row.kind === 'display'" class="cs-expand-spacer"></span>
+
+        <!-- Заглушка для display/advertise строк (выравнивание) -->
+        <span *ngIf="row.kind !== 'computer'" class="cs-expand-spacer"></span>
+
+        <!-- Доп. отступ для advertise -->
+        <span *ngIf="row.kind === 'advertise'" class="cs-advertise-indent-spacer"></span>
 
         <!-- Иконка типа -->
         <lucide-icon
+          *ngIf="row.kind !== 'advertise'"
           [name]="row.kind === 'computer' ? 'computer' : 'monitor'"
           [size]="18"
           class="cs-type-icon"
+        ></lucide-icon>
+        <!-- Иконка advertise -->
+        <lucide-icon
+          *ngIf="row.kind === 'advertise'"
+          name="radio"
+          [size]="16"
+          class="cs-type-icon cs-type-icon--advertise"
         ></lucide-icon>
 
         <!-- Имя -->
@@ -82,6 +94,7 @@ import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
     <!-- Колонка 2: Тема -->
     <td class="cs-col cs-col--theme">
       <app-cs-combobox
+        *ngIf="row.kind !== 'advertise'"
         placeholder="Выбрать"
         [options]="themeOptions"
         [value]="row.themeId"
@@ -94,6 +107,7 @@ import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
     <!-- Колонка 3: Терминальные группы -->
     <td class="cs-col cs-col--groups">
       <app-cs-combobox
+        *ngIf="row.kind !== 'advertise'"
         placeholder="Выбрать"
         [options]="terminalGroupOptions"
         [value]="row.terminalGroupIds"
@@ -104,33 +118,33 @@ import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
       ></app-cs-combobox>
     </td>
 
-    <!-- Колонка 4: Кампании (Advertise-панели) -->
+    <!-- Колонка 4: Кампании -->
     <td class="cs-col cs-col--campaigns">
       <!-- Computer: нет кампаний -->
       <span *ngIf="row.kind === 'computer'" class="cs-cell-empty">—</span>
 
-      <!-- Display: по одному combobox на каждую Advertise-панель -->
-      <div *ngIf="row.kind === 'display'" class="cs-advertise-panels">
-        <div
-          *ngFor="let panel of row.advertisePanels"
-          class="cs-advertise-panel-row"
-        >
-          <app-cs-combobox
-            [placeholder]="panel.name"
-            [options]="campaignOptions"
-            [value]="panel.campaignId"
-            displayKey="name"
-            valueKey="id"
-            (valueChange)="onCampaignChange(panel, $event)"
-          ></app-cs-combobox>
-        </div>
-        <span *ngIf="row.advertisePanels.length === 0" class="cs-cell-empty">Нет панелей</span>
-      </div>
+      <!-- Display: количество панелей -->
+      <span *ngIf="row.kind === 'display'" class="cs-panel-count">
+        {{ (row.advertisePanelCount ?? 0) === 0 ? '—' : (row.advertisePanelCount === 1 ? '1 панель' : row.advertisePanelCount + ' панели') }}
+      </span>
+
+      <!-- Advertise: мультивыбор кампании -->
+      <app-cs-combobox
+        *ngIf="row.kind === 'advertise'"
+        [placeholder]="'Выбрать кампанию'"
+        [options]="campaignOptions"
+        [value]="row.campaignIds"
+        [multi]="true"
+        displayKey="name"
+        valueKey="id"
+        (valueChange)="onCampaignChangeForAdvertise($event)"
+      ></app-cs-combobox>
     </td>
 
     <!-- Колонка 5: Настройки -->
     <td class="cs-col cs-col--settings">
       <app-cs-combobox
+        *ngIf="row.kind !== 'advertise'"
         placeholder="Выбрать"
         [options]="settingsOptions"
         [value]="null"
@@ -326,14 +340,22 @@ import { TerminalTableRow, AdvertisePanelNode } from '../cs-types';
       padding: 0 8px;
     }
 
-    /* ─── Advertise panels ─── */
-    .cs-advertise-panels {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    /* ─── Advertise row styles ─── */
+    .cs-col--advertise-indent {
+      padding-left: 48px !important;
     }
-    .cs-advertise-panel-row {
-      display: flex;
+    .cs-advertise-indent-spacer {
+      width: 16px;
+      flex-shrink: 0;
+    }
+    .cs-type-icon--advertise {
+      color: #9e9e9e;
+      opacity: 0.7;
+    }
+    .cs-panel-count {
+      font-size: 13px;
+      color: #757575;
+      padding: 0 8px;
     }
 
     /* ─── Action buttons ─── */
@@ -387,7 +409,7 @@ export class CsTableRowComponent {
   /** Изменение групп */
   @Output() terminalGroupsChange = new EventEmitter<{ rowId: number; groupIds: number[] }>();
   /** Изменение кампании */
-  @Output() campaignChange = new EventEmitter<{ rowId: number; panelId: number; campaignId: number | null }>();
+  @Output() campaignChange = new EventEmitter<{ rowId: number; panelId: number; campaignIds: number[] }>();
   /** Запрос скриншота */
   @Output() requestScreenshot = new EventEmitter<number>();
   /** Удаление строки */
@@ -405,7 +427,7 @@ export class CsTableRowComponent {
     this.terminalGroupsChange.emit({ rowId: this.row.id, groupIds: value });
   }
 
-  onCampaignChange(panel: AdvertisePanelNode, value: number | null): void {
-    this.campaignChange.emit({ rowId: this.row.id, panelId: panel.id, campaignId: value });
+  onCampaignChangeForAdvertise(value: number[]): void {
+    this.campaignChange.emit({ rowId: this.row.id, panelId: this.row.advertisePanelId!, campaignIds: value });
   }
 }

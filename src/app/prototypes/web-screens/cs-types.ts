@@ -185,8 +185,8 @@ export interface TerminalGroupOption {
 export interface AdvertisePanelNode {
   id: number;
   name: string;               // «Advertise панель 1»
-  campaignId: number | null;  // ID выбранной кампании
-  campaignName?: string;      // Кэшированное имя (для отображения)
+  campaignIds: number[];      // ID выбранных кампаний (мультивыбор)
+  campaignNames?: string[];   // Кэшированные имена (для отображения)
 }
 
 /** Экран терминала (может быть несколько в будущем) */
@@ -253,15 +253,15 @@ export interface HintOption {
 // ─── Табличное представление (Настройка терминалов) ───
 
 /** Тип строки в таблице терминалов */
-export type TerminalRowKind = 'computer' | 'display';
+export type TerminalRowKind = 'computer' | 'display' | 'advertise';
 
 /**
  * Плоская строка таблицы «Настройка терминалов».
  * Computer-строки (кассы) могут сворачиваться/разворачиваться,
- * скрывая/показывая дочерние display-строки (экраны).
+ * скрывая/показывая дочерние display-строки (экраны) и advertise-строки (панели).
  */
 export interface TerminalTableRow {
-  /** Тип строки: касса (computer) или экран (display) */
+  /** Тип строки: касса (computer), экран (display) или Advertise-панель (advertise) */
   kind: TerminalRowKind;
 
   /** Уникальный ID строки (для чекбоксов, сворачивания) */
@@ -288,19 +288,32 @@ export interface TerminalTableRow {
   isOnline?: boolean;
   /** Версия плагина (только для computer) */
   pluginVersion?: string;
-  /** Развёрнута ли computer-строка (показывать дочерние display) */
+  /** Развёрнута ли computer-строка (показывать дочерние) */
   expanded?: boolean;
 
   // ─── Поля display ───
 
   /** ID родительской computer-строки (если экран привязан к кассе) */
   parentComputerId?: number | null;
-  /** Advertise-панели с кампаниями (только для display, множественные — доработка) */
-  advertisePanels: AdvertisePanelNode[];
+  /** Количество Advertise-панелей (для отображения в колонке «Кампании») */
+  advertisePanelCount?: number;
   /** Поддерживает ли скриншоты */
   supportsScreenshot?: boolean;
   /** Есть ли несохранённые изменения */
   hasUnsavedChanges?: boolean;
+
+  // ─── Поля advertise ───
+
+  /** ID родительской display-строки */
+  parentDisplayId?: number;
+  /** ID AdvertisePanelNode */
+  advertisePanelId?: number;
+  /** ID выбранных кампаний (мультивыбор) */
+  campaignIds?: number[];
+  /** Кэшированные имена кампаний */
+  campaignNames?: string[];
+  /** Устарело: оставлено для обратной совместимости */
+  advertisePanels: AdvertisePanelNode[];
 }
 
 // ─── Элементы для dropdown ───────────────────

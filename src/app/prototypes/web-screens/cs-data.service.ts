@@ -70,9 +70,32 @@ export class CsDataService {
             themeId: t.themeId,
             themeName: this.themeOptions.find(o => o.id === t.themeId)?.name ?? '',
             advertisePanels: t.campaignIds.length > 0
-              ? [{ id: 1, name: 'Advertise панель 1', campaignId: t.campaignIds[0], campaignName: this.campaignOptions.find(o => o.id === t.campaignIds[0])?.name ?? '' }]
+              ? t.campaignIds.map((cid, idx) => ({
+                  id: idx + 1,
+                  name: 'Advertise панель ' + (idx + 1),
+                  campaignIds: [cid],
+                  campaignNames: [this.campaignOptions.find(o => o.id === cid)?.name ?? ''],
+                }))
               : [],
           }];
+        }
+      }
+    }
+
+    // Миграция: campaignId → campaignIds (мультивыбор кампаний, 2026-07-15)
+    for (const r of this.restaurants) {
+      for (const t of r.terminals) {
+        for (const s of (t.screens ?? [])) {
+          for (const p of s.advertisePanels) {
+            if ((p as any).campaignId !== undefined && !p.campaignIds) {
+              const oldId = (p as any).campaignId;
+              const oldName = (p as any).campaignName;
+              p.campaignIds = oldId != null ? [oldId] : [];
+              p.campaignNames = oldName ? [oldName] : [];
+              delete (p as any).campaignId;
+              delete (p as any).campaignName;
+            }
+          }
         }
       }
     }
@@ -231,19 +254,40 @@ export class CsDataService {
       // Display-строки (экраны) — дочерние для computer
       const screens = terminal.screens ?? [];
       for (const screen of screens) {
+        const displayId = terminal.id * 1000 + screen.id;
+        const panels = screen.advertisePanels ?? [];
         const displayRow: TerminalTableRow = {
           kind: 'display',
-          id: terminal.id * 1000 + screen.id,  // уникальный ID: terminalId * 1000 + screenId
+          id: displayId,
           name: screen.name,
           themeId: screen.themeId,
           themeName: screen.themeName ?? this.getThemeName(screen.themeId),
           terminalGroupIds: [],
-          advertisePanels: screen.advertisePanels.map(p => ({ ...p })),
+          advertisePanels: [],
+          advertisePanelCount: panels.length,
           parentComputerId: terminal.id,
           supportsScreenshot: terminal.supportsScreenshot,
           hasUnsavedChanges: terminal.hasUnsavedChanges,
         };
         rows.push(displayRow);
+
+        // Advertise-строки (панели) — под экраном
+        for (const panel of panels) {
+          const advertiseRow: TerminalTableRow = {
+            kind: 'advertise',
+            id: terminal.id * 10000 + screen.id * 100 + panel.id,
+            name: panel.name,
+            themeId: null,
+            terminalGroupIds: [],
+            advertisePanels: [],
+            parentComputerId: terminal.id,
+            parentDisplayId: displayId,
+            advertisePanelId: panel.id,
+            campaignIds: [...(panel.campaignIds ?? [])],
+            campaignNames: [...(panel.campaignNames ?? [])],
+          };
+          rows.push(advertiseRow);
+        }
       }
     }
 

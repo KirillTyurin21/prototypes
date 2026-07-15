@@ -1,88 +1,95 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconsModule } from '@/shared/icons.module';
 
 /**
- * Кастомный combobox в стиле Material Design (как в реальном Web).
- * Поддерживает одиночный и множественный выбор, поиск, кнопку очистки.
+ * Кастомный combobox в стиле Material Design.
+ * Поддерживает одиночный и множественный выбор (multi).
  *
  * Использование:
  * <app-cs-combobox
  *   placeholder="Выбрать"
  *   [options]="themeOptions"
- *   [(value)]="selectedThemeId"
- *   [multi]="false"
+ *   [value]="selectedIds"
+ *   [multi]="true"
  *   displayKey="name"
  *   valueKey="id"
+ *   (valueChange)="onChange($event)"
  * ></app-cs-combobox>
+ *
+ * При multi=true value ожидается как number[].
+ * При multi=false value ожидается как number | null.
  */
 @Component({
   selector: 'app-cs-combobox',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="combobox" [class.combobox--open]="isOpen" [class.combobox--has-value]="hasValue()" [class.combobox--multi]="multi">
-      <!-- Trigger -->
+    <div class="cs-select-wrap" [class.cs-select-wrap--open]="isOpen" [class.cs-select-wrap--has-value]="hasValue()">
+      <!-- Триггер -->
       <button
         type="button"
-        class="combobox-trigger"
-        (click)="toggle($event)"
-        (keydown)="onTriggerKeydown($event)"
-        [attr.aria-expanded]="isOpen"
+        class="cs-select-trigger"
+        (click)="toggle()"
+        [title]="getDisplayText()"
       >
-        <span class="combobox-text" [class.combobox-text--placeholder]="!hasValue()">
-          {{ displayText() }}
+        <span class="cs-select-text" [class.cs-select-text--placeholder]="!hasValue()">
+          {{ getDisplayText() }}
         </span>
-        <lucide-icon
-          [name]="isOpen ? 'chevron-up' : 'chevron-down'"
-          [size]="16"
-          class="combobox-chevron"
-        ></lucide-icon>
+        <span class="cs-select-arrow">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 6L8 10L12 6" stroke="#9e9e9e" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
       </button>
 
-      <!-- Clear button -->
+      <!-- Кнопка очистки -->
       <button
         *ngIf="hasValue()"
         type="button"
-        class="combobox-clear"
-        (click)="clear($event)"
+        class="cs-select-clear"
+        (click)="clear(); $event.stopPropagation()"
         title="Очистить"
       >
-        <lucide-icon name="x" [size]="14"></lucide-icon>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 3L11 11M11 3L3 11" stroke="#9e9e9e" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
       </button>
 
-      <!-- Dropdown -->
-      <div class="combobox-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
-        <!-- Search -->
-        <div class="combobox-search" *ngIf="options.length > 5">
-          <lucide-icon name="search" [size]="14" class="combobox-search-icon"></lucide-icon>
+      <!-- Выпадающий список -->
+      <div class="cs-select-dropdown" *ngIf="isOpen">
+        <!-- Поиск (при >5 опций) -->
+        <div class="cs-select-search" *ngIf="options.length > 5">
           <input
-            #searchInput
             type="text"
-            class="combobox-search-input"
+            class="cs-select-search-input"
             placeholder="Поиск..."
             [(ngModel)]="searchText"
             (click)="$event.stopPropagation()"
           />
         </div>
-        <!-- Options -->
-        <div class="combobox-options">
+
+        <!-- Список опций -->
+        <div class="cs-select-options">
           <div
-            *ngFor="let opt of filteredOptions()"
-            class="combobox-option"
-            [class.combobox-option--selected]="isSelected(opt)"
-            (click)="selectOption(opt)"
+            *ngFor="let opt of filteredOptions"
+            class="cs-select-option"
+            [class.cs-select-option--selected]="isSelected(opt)"
+            [class.cs-select-option--multi]="multi"
+            (click)="toggleOption(opt); $event.stopPropagation()"
           >
-            <lucide-icon
-              *ngIf="multi"
-              [name]="isSelected(opt) ? 'check-square' : 'square'"
-              [size]="16"
-              class="combobox-option-check"
-            ></lucide-icon>
-            <span>{{ getDisplay(opt) }}</span>
+            <!-- Чекбокс для multi -->
+            <label class="cs-checkbox-wrap" *ngIf="multi" (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                class="cs-checkbox"
+                [checked]="isSelected(opt)"
+                (change)="toggleOption(opt)"
+              />
+            </label>
+            <span class="cs-select-option-label">{{ displayKey ? opt[displayKey] : opt }}</span>
           </div>
-          <div *ngIf="filteredOptions().length === 0" class="combobox-option combobox-option--empty">
+          <div *ngIf="filteredOptions.length === 0" class="cs-select-no-results">
             Ничего не найдено
           </div>
         </div>
@@ -90,26 +97,20 @@ import { IconsModule } from '@/shared/icons.module';
     </div>
   `,
   styles: [`
-    :host {
-      display: inline-block;
-      position: relative;
-    }
+    :host { display: inline-block; width: 100%; }
 
-    .combobox {
+    .cs-select-wrap {
       position: relative;
       display: inline-flex;
       align-items: center;
-      min-width: 120px;
-    }
-
-    /* ─── Trigger button ─── */
-    .combobox-trigger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 2px;
       width: 100%;
-      min-width: 100px;
+    }
+
+    /* ─── Trigger ─── */
+    .cs-select-trigger {
+      display: flex;
+      align-items: center;
+      width: 100%;
       height: 34px;
       padding: 0 28px 0 8px;
       font-family: 'Roboto', sans-serif;
@@ -121,140 +122,172 @@ import { IconsModule } from '@/shared/icons.module';
       cursor: pointer;
       transition: border-color .15s, box-shadow .15s;
       text-align: left;
-      white-space: nowrap;
-      position: relative;
+      outline: none;
+      gap: 0;
     }
-    .combobox-trigger:hover {
-      border-color: rgba(0, 0, 0, 0.4);
-    }
-    .combobox--open .combobox-trigger {
+    .cs-select-trigger:hover { border-color: rgba(0, 0, 0, 0.4); }
+    .cs-select-wrap--open .cs-select-trigger {
       border-color: #1976d2;
       box-shadow: 0 0 0 1px #1976d2;
     }
+    .cs-select-wrap--has-value .cs-select-trigger {
+      padding-right: 52px;
+    }
 
-    .combobox-text {
+    .cs-select-text {
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      line-height: 1.4;
+      line-height: 1.3;
     }
-    .combobox-text--placeholder {
+    .cs-select-text--placeholder {
       color: #9e9e9e;
     }
 
-    .combobox-chevron {
-      color: #9e9e9e;
-      flex-shrink: 0;
-      transition: transform .15s;
-    }
-
-    /* ─── Clear button ─── */
-    .combobox-clear {
+    .cs-select-arrow {
       position: absolute;
-      right: 4px;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .cs-select-wrap--open .cs-select-arrow svg {
+      transform: rotate(180deg);
+    }
+
+    /* ─── Clear ─── */
+    .cs-select-clear {
+      position: absolute;
+      right: 24px;
       top: 50%;
       transform: translateY(-50%);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border: none;
       background: none;
       cursor: pointer;
-      color: #9e9e9e;
       border-radius: 50%;
-      transition: all .15s;
       padding: 0;
-      z-index: 2;
+      z-index: 1;
+      transition: all .15s;
     }
-    .combobox-clear:hover {
-      background: #e0e0e0;
-      color: #424242;
-    }
+    .cs-select-clear:hover { background: #e0e0e0; }
+    .cs-select-clear:hover svg path { stroke: #424242; }
 
     /* ─── Dropdown ─── */
-    .combobox-dropdown {
+    .cs-select-dropdown {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
-      min-width: 100%;
-      margin-top: 4px;
+      margin-top: 2px;
       background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
       z-index: 50;
+      min-width: 100%;
+      max-height: 280px;
       overflow: hidden;
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
     }
 
-    /* ─── Search ─── */
-    .combobox-search {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 10px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    }
-    .combobox-search-icon {
-      color: #9e9e9e;
+    .cs-select-search {
+      padding: 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       flex-shrink: 0;
     }
-    .combobox-search-input {
-      flex: 1;
-      border: none;
-      outline: none;
-      font-family: 'Roboto', sans-serif;
+    .cs-select-search-input {
+      width: 100%;
+      padding: 6px 8px;
       font-size: 13px;
-      color: rgba(0, 0, 0, 0.87);
-      background: transparent;
+      font-family: 'Roboto', sans-serif;
+      border: 1px solid rgba(0, 0, 0, 0.23);
+      border-radius: 4px;
+      outline: none;
+      box-sizing: border-box;
     }
-    .combobox-search-input::placeholder {
-      color: #bdbdbd;
+    .cs-select-search-input:focus {
+      border-color: #1976d2;
     }
 
-    /* ─── Options ─── */
-    .combobox-options {
-      max-height: 240px;
+    .cs-select-options {
       overflow-y: auto;
+      flex: 1;
     }
-    .combobox-option {
+
+    .cs-select-option {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
+      cursor: pointer;
       font-size: 13px;
       font-family: 'Roboto', sans-serif;
       color: rgba(0, 0, 0, 0.87);
-      cursor: pointer;
       transition: background .1s;
-      white-space: nowrap;
+      min-height: 34px;
+    }
+    .cs-select-option:hover { background: #f5f5f5; }
+    .cs-select-option--selected { background: #e3f2fd; }
+    .cs-select-option--selected:hover { background: #bbdefb; }
+
+    .cs-select-option-label {
+      flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .combobox-option:hover {
-      background: #f5f5f5;
+
+    .cs-select-no-results {
+      padding: 16px;
+      text-align: center;
+      color: #9e9e9e;
+      font-size: 13px;
     }
-    .combobox-option--selected {
-      background: #e3f2fd;
-      color: #1565c0;
-    }
-    .combobox-option--empty {
-      color: #bdbdbd;
-      cursor: default;
-      font-style: italic;
-    }
-    .combobox-option--empty:hover {
-      background: transparent;
-    }
-    .combobox-option-check {
-      color: #757575;
+
+    /* ─── Checkbox (внутри дропдауна) ─── */
+    .cs-checkbox-wrap {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
       flex-shrink: 0;
     }
-    .combobox-option--selected .combobox-option-check {
-      color: #1976d2;
+    .cs-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.38);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      background: #fff;
+      transition: all .15s;
+      margin: 0;
+    }
+    .cs-checkbox:checked {
+      background: #1976d2;
+      border-color: #1976d2;
+    }
+    .cs-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 5px;
+      height: 9px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
     }
   `],
 })
@@ -271,47 +304,30 @@ export class CsComboboxComponent {
   isOpen = false;
   searchText = '';
 
-  private elementRef = inject(ElementRef);
+  constructor(private el: ElementRef) {}
 
-  // ─── Public API ───
+  // ─── Внешний клик → закрыть ───
 
-  toggle(event: MouseEvent): void {
-    event.stopPropagation();
-    this.isOpen = !this.isOpen;
-    if (this.isOpen) {
-      this.searchText = '';
-      setTimeout(() => {
-        const inp = this.elementRef.nativeElement.querySelector('.combobox-search-input');
-        if (inp) (inp as HTMLInputElement).focus();
-      }, 50);
-    }
-  }
-
-  clear(event: MouseEvent): void {
-    event.stopPropagation();
-    this.value = this.multi ? [] : null;
-    this.valueChange.emit(this.value);
-  }
-
-  selectOption(opt: any): void {
-    const optValue = this.valueKey ? opt[this.valueKey] : opt;
-    if (this.multi) {
-      const arr: any[] = Array.isArray(this.value) ? [...this.value] : [];
-      const idx = arr.indexOf(optValue);
-      if (idx >= 0) {
-        arr.splice(idx, 1);
-      } else {
-        arr.push(optValue);
-      }
-      this.value = arr;
-    } else {
-      this.value = optValue;
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.el.nativeElement.contains(event.target)) {
       this.isOpen = false;
+      this.searchText = '';
     }
-    this.valueChange.emit(this.value);
   }
 
-  // ─── Display ───
+  // ─── Фильтрация опций ───
+
+  get filteredOptions(): any[] {
+    if (!this.searchText) return this.options;
+    const q = this.searchText.toLowerCase();
+    return this.options.filter(o => {
+      const label = (this.displayKey ? o[this.displayKey] : o) ?? '';
+      return String(label).toLowerCase().includes(q);
+    });
+  }
+
+  // ─── Значение ───
 
   hasValue(): boolean {
     if (this.multi) {
@@ -320,78 +336,76 @@ export class CsComboboxComponent {
     return this.value !== null && this.value !== undefined && this.value !== '';
   }
 
-  displayText(): string {
+  getDisplayText(): string {
     if (!this.hasValue()) return this.placeholder;
 
     if (this.multi && Array.isArray(this.value)) {
       if (this.value.length === 1) {
-        const found = this.findOption(this.value[0]);
-        return found ? this.getDisplay(found) : String(this.value[0]);
+        return this.getOptionName(this.value[0]);
       }
-      const first = this.findOption(this.value[0]);
-      const label = first ? this.getDisplay(first) : String(this.value[0]);
-      return `${label} (+ ${this.value.length - 1} ${this.pluralize(this.value.length - 1)})`;
+      // «Выбрано N» или перечисление
+      return this.value.length + ' выбрано';
     }
 
-    const found = this.findOption(this.value);
-    return found ? this.getDisplay(found) : String(this.value ?? '');
+    // Одиночный выбор
+    return this.getOptionName(this.value);
   }
 
-  getDisplay(opt: any): string {
-    if (typeof opt === 'string' || typeof opt === 'number') return String(opt);
-    return opt[this.displayKey] ?? String(opt);
+  private getOptionName(val: any): string {
+    if (val === null || val === undefined) return this.placeholder;
+    if (this.valueKey) {
+      const opt = this.options.find(o => o[this.valueKey] === val);
+      return opt ? (this.displayKey ? opt[this.displayKey] : String(opt)) : String(val);
+    }
+    return String(val);
   }
-
-  // ─── Selection ───
 
   isSelected(opt: any): boolean {
-    const optValue = this.valueKey ? opt[this.valueKey] : opt;
+    const optVal = this.valueKey ? opt[this.valueKey] : opt;
+    if (this.multi && Array.isArray(this.value)) {
+      return this.value.includes(optVal);
+    }
+    return this.value === optVal;
+  }
+
+  // ─── Действия ───
+
+  toggle(): void {
+    this.isOpen = !this.isOpen;
+    if (!this.isOpen) this.searchText = '';
+  }
+
+  toggleOption(opt: any): void {
+    const optVal = this.valueKey ? opt[this.valueKey] : opt;
+
     if (this.multi) {
-      return Array.isArray(this.value) && this.value.includes(optValue);
-    }
-    return this.value === optValue;
-  }
-
-  // ─── Filtering ───
-
-  filteredOptions(): any[] {
-    if (!this.searchText) return this.options;
-    const q = this.searchText.toLowerCase();
-    return this.options.filter(o => this.getDisplay(o).toLowerCase().includes(q));
-  }
-
-  // ─── Keyboard ───
-
-  onTriggerKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.isOpen = !this.isOpen;
-    }
-  }
-
-  // ─── Close on outside click ───
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (this.isOpen && !this.elementRef.nativeElement.contains(event.target)) {
+      const arr: number[] = Array.isArray(this.value) ? [...this.value] : [];
+      const idx = arr.indexOf(optVal);
+      if (idx >= 0) {
+        arr.splice(idx, 1);
+      } else {
+        arr.push(optVal);
+      }
+      this.value = arr;
+      this.valueChange.emit(arr);
+    } else {
+      // Одиночный выбор
+      this.value = optVal;
+      this.valueChange.emit(optVal);
       this.isOpen = false;
+      this.searchText = '';
     }
   }
 
-  // ─── Helpers ───
-
-  private findOption(value: any): any | undefined {
-    return this.options.find(o => {
-      const optValue = this.valueKey ? o[this.valueKey] : o;
-      return optValue === value;
-    });
-  }
-
-  private pluralize(n: number): string {
-    const m10 = n % 10, m100 = n % 100;
-    if (m100 >= 11 && m100 <= 19) return 'других';
-    if (m10 === 1) return 'другой';
-    if (m10 >= 2 && m10 <= 4) return 'другие';
-    return 'других';
+  clear(): void {
+    if (this.multi) {
+      this.value = [];
+      this.valueChange.emit([]);
+    } else {
+      this.value = null;
+      this.valueChange.emit(null);
+    }
+    this.isOpen = false;
+    this.searchText = '';
   }
 }
