@@ -382,16 +382,6 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
                         (valueChange)="onPanelCampaignChange(el, $event)"
                       ></app-cs-combobox>
                     </div>
-                    <div class="cs-b-el-row cs-b-el-row--compact" *ngIf="el.elementId || el.tags">
-                      <div class="cs-b-el-field">
-                        <label class="cs-b-el-label">ID</label>
-                        <input type="text" class="cs-el-input cs-el-input--id" [value]="el.elementId" (input)="onPanelElementIdChange(el, $event)" />
-                      </div>
-                      <div class="cs-b-el-field cs-b-el-field--grow">
-                        <label class="cs-b-el-label">Теги</label>
-                        <input type="text" class="cs-el-input" [value]="el.tags" (input)="onPanelTagsChange(el, $event)" placeholder="тег1, тег2" />
-                      </div>
-                    </div>
                   </div>
                 </div>
 
