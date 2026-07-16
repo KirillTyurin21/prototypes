@@ -1035,7 +1035,6 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
       background: transparent;
       min-height: 100%;
       font-family: 'Roboto', sans-serif;
-      position: relative;
     }
 
     /* ─── Toolbar ─── */
@@ -1548,19 +1547,22 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
 
     /* ─── Variant B: Slide-out Panel ─── */
     .cs-panel-overlay {
-      position: absolute;
-      inset: 0;
+      position: fixed;
+      top: 0;
+      left: 15rem;
+      right: 0;
+      bottom: 0;
       background: rgba(0,0,0,.35);
       z-index: 90;
       animation: cs-overlay-in .2s ease-out;
     }
     .cs-slide-panel {
-      position: absolute;
+      position: fixed;
       top: 0;
       right: 0;
       width: 440px;
       max-width: 90vw;
-      height: 100%;
+      height: 100vh;
       background: #fff;
       box-shadow: -4px 0 24px rgba(0,0,0,.15);
       z-index: 91;
