@@ -245,9 +245,16 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
                       ></span>
                     </div>
                   </td>
-                  <!-- Theme (readonly per meeting Z3) -->
-                  <td class="cs-td cs-td--theme-b">
-                    <span class="cs-theme-value">{{ row.themeName || '—' }}</span>
+                  <!-- Theme (editable combobox) -->
+                  <td class="cs-td cs-td--theme-b" (click)="$event.stopPropagation()">
+                    <app-cs-combobox
+                      placeholder="Выбрать"
+                      [options]="dataService.themeOptions"
+                      [value]="row.themeId"
+                      displayKey="name"
+                      valueKey="id"
+                      (valueChange)="onThemeChange(restaurant.id, { rowId: row.id, themeId: $event })"
+                    ></app-cs-combobox>
                   </td>
                   <!-- Actions -->
                   <td class="cs-td cs-td--actions-b">
