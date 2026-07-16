@@ -176,7 +176,7 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
         <div class="cs-accordion-header" (click)="toggleRestaurant(restaurant.id)">
           <span class="cs-accordion-name">{{ restaurant.name }}</span>
           <div class="cs-accordion-right">
-            <span class="cs-accordion-count">{{ getRowCount(restaurant) }} {{ getTerminalWord(getRowCount(restaurant)) }}</span>
+            <span class="cs-accordion-count">{{ getKioskCountB(restaurant) }} {{ getTerminalWord(getKioskCountB(restaurant)) }}</span>
             <lucide-icon
               [name]="expandedRestaurants.has(restaurant.id) ? 'chevron-up' : 'chevron-down'"
               [size]="20"
@@ -190,19 +190,29 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
             <table class="cs-table cs-table--variant-b">
               <thead>
                 <tr class="cs-table-header-row">
-                  <th class="cs-th cs-th--name-b">Терминал</th>
+                  <th class="cs-th cs-th--name-b">
+                    <div class="cs-th-content">
+                      <label class="cs-checkbox-wrap" (click)="$event.stopPropagation()">
+                        <input
+                          type="checkbox"
+                          class="cs-checkbox"
+                          [checked]="areAllKiosksSelectedB(restaurant)"
+                          (change)="toggleAllKiosksB(restaurant)"
+                        />
+                      </label>
+                      <span>Киоск</span>
+                    </div>
+                  </th>
                   <th class="cs-th cs-th--theme-b">Тема</th>
                   <th class="cs-th cs-th--actions-b"></th>
                 </tr>
               </thead>
               <tbody>
+                <ng-container *ngFor="let row of getVisibleRows(restaurant); trackBy: trackByRowId">
                 <tr
-                  *ngFor="let row of getVisibleRows(restaurant); trackBy: trackByRowId"
+                  *ngIf="row.kind === 'computer'"
                   class="cs-tr-b"
                   [class.cs-tr-b--active]="activePanelTerminalId === row.id"
-                  [class.cs-tr-b--computer]="row.kind === 'computer'"
-                  [class.cs-tr-b--display]="row.kind === 'display'"
-                  [class.cs-tr-b--advertise]="row.kind === 'advertise'"
                   (click)="openPanelB(row)"
                 >
                   <!-- Terminal name + icon -->
@@ -217,40 +227,17 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
                           (change)="toggleRowSelect(row.id)"
                         />
                       </label>
-                      <!-- Chevron for computer rows (tree expand/collapse) -->
-                      <button
-                        *ngIf="row.kind === 'computer'"
-                        type="button"
-                        class="cs-tree-chevron"
-                        (click)="toggleComputerExpand(row.id); $event.stopPropagation()"
-                        [attr.title]="collapsedComputers.has(row.id) ? 'Развернуть' : 'Свернуть'"
-                      >
-                        <lucide-icon
-                          [name]="collapsedComputers.has(row.id) ? 'chevron-right' : 'chevron-down'"
-                          [size]="18"
-                        ></lucide-icon>
-                      </button>
-                      <!-- Spacer for non-computer rows -->
-                      <span *ngIf="row.kind !== 'computer'" class="cs-tree-chevron-spacer"></span>
                       <lucide-icon
-                        [name]="getTerminalIconB(row)"
-                        [size]="row.kind === 'computer' ? 22 : 18"
-                        [class.cs-icon--kiosk]="row.kind === 'computer'"
-                        [class.cs-icon--display]="row.kind === 'display'"
-                        [class.cs-icon--advertise]="row.kind === 'advertise'"
+                        name="monitor"
+                        [size]="22"
+                        class="cs-icon--kiosk"
                       ></lucide-icon>
                       <div class="cs-terminal-name-group">
                         <span class="cs-terminal-name">{{ row.name }}</span>
-                        <span
-                          class="cs-terminal-kind-badge"
-                          [class.cs-kind-badge--kiosk]="row.kind === 'computer'"
-                          [class.cs-kind-badge--display]="row.kind === 'display'"
-                          [class.cs-kind-badge--advertise]="row.kind === 'advertise'"
-                        >{{ row.kind === 'computer' ? 'Киоск' : row.kind === 'display' ? 'Экран' : row.kind === 'advertise' ? 'Рекламный баннер' : '' }}</span>
+                        <span class="cs-terminal-kind-badge cs-kind-badge--kiosk">Киоск</span>
                       </div>
-                      <!-- Online/offline dot (computer only) -->
+                      <!-- Online/offline dot -->
                       <span
-                        *ngIf="row.kind === 'computer'"
                         class="cs-status-dot"
                         [class.cs-status-dot--online]="row.isOnline"
                         [class.cs-status-dot--offline]="!row.isOnline"
@@ -258,61 +245,29 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
                       ></span>
                     </div>
                   </td>
-                  <!-- Theme -->
-                  <td class="cs-td cs-td--theme-b" (click)="$event.stopPropagation()">
-                    <app-cs-combobox
-                      *ngIf="row.kind !== 'advertise'"
-                      placeholder="Выбрать"
-                      [options]="dataService.themeOptions"
-                      [value]="row.themeId"
-                      displayKey="name"
-                      valueKey="id"
-                      (valueChange)="onThemeChange(restaurant.id, { rowId: row.id, themeId: $event })"
-                    ></app-cs-combobox>
-                    <span *ngIf="row.kind === 'advertise'" class="cs-theme-value">{{ row.campaignNames?.join(', ') || '—' }}</span>
+                  <!-- Theme (readonly per meeting Z3) -->
+                  <td class="cs-td cs-td--theme-b">
+                    <span class="cs-theme-value">{{ row.themeName || '—' }}</span>
                   </td>
                   <!-- Actions -->
                   <td class="cs-td cs-td--actions-b">
                     <div class="cs-actions-group">
-                      <!-- Computer row: add screen button -->
+                      <!-- Add screen button -->
                       <button
-                        *ngIf="row.kind === 'computer'"
                         class="cs-icon-btn"
                         (click)="onAddScreen(row.id); $event.stopPropagation()"
                         title="Добавить экран"
                       >
                         <lucide-icon name="plus-circle" [size]="20"></lucide-icon>
                       </button>
-                      <!-- Display row actions: screenshot + delete -->
-                      <ng-container *ngIf="row.kind === 'display'">
-                        <button
-                          *ngIf="row.supportsScreenshot"
-                          class="cs-icon-btn"
-                          (click)="onRequestScreenshot(restaurant, row.id); $event.stopPropagation()"
-                          title="Скриншот"
-                          [disabled]="screenshotLoadingId === row.parentComputerId"
-                        >
-                          <lucide-icon
-                            [name]="screenshotLoadingId === row.parentComputerId ? 'loader-2' : 'camera'"
-                            [size]="18"
-                            [class.cs-spin]="screenshotLoadingId === row.parentComputerId"
-                          ></lucide-icon>
-                        </button>
-                        <button
-                          class="cs-icon-btn cs-icon-btn--danger"
-                          (click)="onDeleteRow(restaurant.id, row.id); $event.stopPropagation()"
-                          title="Удалить"
-                        >
-                          <lucide-icon name="trash-2" [size]="18"></lucide-icon>
-                        </button>
-                      </ng-container>
-                      <!-- Settings button (all rows) -->
+                      <!-- Settings button -->
                       <button class="cs-icon-btn" (click)="openPanelB(row); $event.stopPropagation()" title="Настройки">
                         <lucide-icon name="settings" [size]="18"></lucide-icon>
                       </button>
                     </div>
                   </td>
                 </tr>
+                </ng-container>
               </tbody>
             </table>
           </div>
@@ -354,41 +309,21 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
             </button>
           </div>
 
-          <!-- Theme selector -->
+          <!-- Theme selector (editable in panel per meeting Z3) -->
           <div class="cs-panel-theme">
             <span class="cs-panel-theme-label">Тема:</span>
-            <span class="cs-panel-theme-value">{{ panelStructure.themeName }}</span>
-            <button class="cs-btn cs-btn-sm cs-btn-outline">Сменить</button>
+            <app-cs-combobox
+              class="cs-panel-theme-combo"
+              placeholder="Выбрать тему"
+              [options]="dataService.themeOptions"
+              [value]="panelThemeId"
+              displayKey="name"
+              valueKey="id"
+              (valueChange)="onPanelThemeChange($event)"
+            ></app-cs-combobox>
           </div>
 
-          <!-- Hints section (separate from pages) -->
-          <div class="cs-panel-hints">
-            <div class="cs-panel-hints-header">
-              <lucide-icon name="lightbulb" [size]="16" class="cs-hints-icon"></lucide-icon>
-              <span class="cs-panel-hints-title">Подсказки</span>
-              <span class="cs-panel-hints-count">{{ panelStructure.hints.length }}</span>
-            </div>
-            <div class="cs-panel-hints-list" *ngIf="panelStructure.hints.length > 0; else noHintsB">
-              <div class="cs-hint-chip" *ngFor="let hint of panelStructure.hints">
-                <span class="cs-hint-chip-name">{{ hint.name }}</span>
-                <span
-                  class="cs-hint-chip-status"
-                  [class.cs-hint-status--active]="hint.status === 'active'"
-                  [class.cs-hint-status--scheduled]="hint.status === 'scheduled'"
-                  [class.cs-hint-status--expired]="hint.status === 'expired'"
-                >{{ hint.status === 'active' ? 'Активна' : hint.status === 'scheduled' ? 'Запланирована' : 'Истекла' }}</span>
-              </div>
-            </div>
-            <ng-template #noHintsB>
-              <div class="cs-panel-hints-empty">Нет назначенных подсказок</div>
-            </ng-template>
-            <div class="cs-panel-hints-add">
-              <input type="text" class="cs-el-input" placeholder="Добавить подсказку..." disabled />
-              <button class="cs-btn cs-btn-sm cs-btn-outline" disabled>+</button>
-            </div>
-          </div>
-
-          <!-- Terminal Groups section -->
+          <!-- Terminal Groups section (at kiosk level per meeting Z8) -->
           <div class="cs-panel-config">
             <div class="cs-panel-config-header">
               <lucide-icon name="layers" [size]="16" class="cs-config-icon"></lucide-icon>
@@ -405,65 +340,69 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
             ></app-cs-combobox>
           </div>
 
-          <!-- Settings section -->
-          <div class="cs-panel-config">
-            <div class="cs-panel-config-header">
-              <lucide-icon name="settings" [size]="16" class="cs-config-icon"></lucide-icon>
-              <span class="cs-panel-config-title">Настройки</span>
-            </div>
-            <app-cs-combobox
-              placeholder="Выбрать"
-              [options]="settingsOptions"
-              [value]="null"
-              displayKey="name"
-              valueKey="id"
-            ></app-cs-combobox>
-          </div>
-
-          <!-- Panel Body: Theme Pages -->
+          <!-- Panel Body: Theme Pages Accordion -->
           <div class="cs-panel-body">
-            <div class="cs-panel-section" *ngFor="let page of panelStructure.pages; let last = last">
-              <!-- Page header -->
-              <div class="cs-panel-page-header">
-                <lucide-icon name="file" [size]="16" class="cs-page-icon"></lucide-icon>
-                <span class="cs-panel-page-name">{{ page.name }}</span>
-              </div>
+            <ng-container *ngIf="getPanelFilteredPages().length > 0; else noPagesB">
+              <div class="cs-b-page" *ngFor="let page of getPanelFilteredPages(); let last = last">
+                <!-- Page header (click to expand/collapse) -->
+                <div
+                  class="cs-b-page-header"
+                  (click)="togglePanelPageB(page.id); $event.stopPropagation()"
+                >
+                  <lucide-icon
+                    [name]="expandedPageIdsB.has(page.id) ? 'chevron-down' : 'chevron-right'"
+                    [size]="16"
+                    class="cs-b-page-chevron"
+                  ></lucide-icon>
+                  <lucide-icon name="file" [size]="16" class="cs-b-page-icon"></lucide-icon>
+                  <span class="cs-b-page-name">{{ page.name }}</span>
+                  <span class="cs-b-page-count">({{ page.elements.length }})</span>
+                </div>
 
-              <!-- Elements on this page -->
-              <div class="cs-panel-elements">
-                <div class="cs-panel-element" *ngFor="let el of page.elements">
-                  <div class="cs-el-header">
-                    <lucide-icon
-                      [name]="el.kind === 'advertise' ? 'megaphone' : 'lightbulb'"
-                      [size]="16"
-                      class="cs-el-type-icon"
-                    ></lucide-icon>
-                    <span class="cs-el-name">{{ el.name }}</span>
-                  </div>
-
-                  <!-- Campaign selector (multi) -->
-                  <div class="cs-el-row">
-                    <label class="cs-el-label">Кампания</label>
-                    <app-cs-combobox
-                      placeholder="Выбрать кампанию"
-                      [options]="dataService.campaignOptions"
-                      [value]="el.campaignIds"
-                      [multi]="true"
-                      displayKey="name"
-                      valueKey="id"
-                      (valueChange)="onPanelCampaignChange(el, $event)"
-                    ></app-cs-combobox>
+                <!-- Page elements (expanded) -->
+                <div class="cs-b-page-elements" *ngIf="expandedPageIdsB.has(page.id)">
+                  <div class="cs-b-el" *ngFor="let el of page.elements">
+                    <div class="cs-b-el-header">
+                      <lucide-icon
+                        [name]="el.kind === 'advertise' ? 'megaphone' : 'lightbulb'"
+                        [size]="15"
+                        class="cs-b-el-type-icon"
+                      ></lucide-icon>
+                      <span class="cs-b-el-name">{{ el.name }}</span>
+                    </div>
+                    <div class="cs-b-el-row">
+                      <label class="cs-b-el-label">Кампания</label>
+                      <app-cs-combobox
+                        placeholder="Выбрать кампанию"
+                        [options]="dataService.campaignOptions"
+                        [value]="el.campaignIds"
+                        [multi]="true"
+                        displayKey="name"
+                        valueKey="id"
+                        (valueChange)="onPanelCampaignChange(el, $event)"
+                      ></app-cs-combobox>
+                    </div>
+                    <div class="cs-b-el-row cs-b-el-row--compact" *ngIf="el.elementId || el.tags">
+                      <div class="cs-b-el-field">
+                        <label class="cs-b-el-label">ID</label>
+                        <input type="text" class="cs-el-input cs-el-input--id" [value]="el.elementId" (input)="onPanelElementIdChange(el, $event)" />
+                      </div>
+                      <div class="cs-b-el-field cs-b-el-field--grow">
+                        <label class="cs-b-el-label">Теги</label>
+                        <input type="text" class="cs-el-input" [value]="el.tags" (input)="onPanelTagsChange(el, $event)" placeholder="тег1, тег2" />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <!-- No elements on this page -->
-                <div *ngIf="page.elements.length === 0" class="cs-panel-empty-page">
-                  <span>Нет динамических элементов</span>
-                </div>
+                <div class="cs-b-page-divider" *ngIf="!last"></div>
               </div>
-
-              <div class="cs-panel-divider" *ngIf="!last"></div>
-            </div>
+            </ng-container>
+            <ng-template #noPagesB>
+              <div class="cs-panel-empty-page">
+                <span>Нет страничек с динамическими элементами</span>
+              </div>
+            </ng-template>
           </div>
         </ng-container>
       </div>
@@ -1765,6 +1704,80 @@ import { CsComboboxComponent } from '../components/cs-combobox.component';
       margin: 16px 0;
     }
 
+    /* ─── Variant B: Panel Theme Combo ─── */
+    .cs-panel-theme-combo {
+      flex: 1;
+      max-width: 280px;
+    }
+
+    /* ─── Variant B: Page Accordion ─── */
+    .cs-b-page {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .cs-b-page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .cs-b-page-header:hover { background: #f5f5f5; }
+    .cs-b-page-chevron { color: #757575; flex-shrink: 0; transition: transform .15s; }
+    .cs-b-page-icon { color: #9e9e9e; flex-shrink: 0; }
+    .cs-b-page-name { font-size: 13px; font-weight: 500; color: #424242; flex: 1; }
+    .cs-b-page-count { font-size: 12px; color: #9e9e9e; font-weight: 400; }
+
+    .cs-b-page-elements {
+      border-top: 1px solid #e0e0e0;
+      padding: 12px;
+      background: #fafafa;
+    }
+    .cs-b-el {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .cs-b-el:last-child { margin-bottom: 0; }
+    .cs-b-el-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .cs-b-el-type-icon { color: #9e9e9e; flex-shrink: 0; }
+    .cs-b-el-name { font-size: 13px; font-weight: 500; color: #424242; }
+    .cs-b-el-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .cs-b-el-row:last-child { margin-bottom: 0; }
+    .cs-b-el-row--compact { }
+    .cs-b-el-label {
+      font-size: 12px;
+      color: #757575;
+      width: 60px;
+      flex-shrink: 0;
+    }
+    .cs-b-el-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cs-b-el-field--grow { flex: 1; }
+    .cs-b-page-divider {
+      display: none;
+    }
+
     /* ─── Variant B: Hints section ─── */
     .cs-panel-hints {
       padding: 12px 20px;
@@ -2544,12 +2557,9 @@ export class CsTerminalsScreenComponent {
   // ─── Variant B: Slide-out Panel State ───
   activePanelTerminalId: number | null = null;
   panelStructure: TerminalThemeStructure | null = null;
+  panelThemeId: number | null = null;
   panelTerminalGroupIds: number[] = [];
-
-  /** Обработчик изменения терминальных групп в панели */
-  onPanelTerminalGroupsChange(ids: number[]): void {
-    this.panelTerminalGroupIds = [...ids];
-  }
+  expandedPageIdsB = new Set<number>();
 
   // ─── Variant C: Expandable Rows State ───
   expandedRowIdsC = new Set<number>();
@@ -2907,21 +2917,74 @@ export class CsTerminalsScreenComponent {
     return 'megaphone';
   }
 
-  /** Открыть панель для выбранной строки */
+  /** Открыть панель для выбранной строки (только киоски) */
   openPanelB(row: TerminalTableRow): void {
-    // Для computer-строк используем id как terminalId,
-    // для display-строк берём parentComputerId
-    const terminalId = row.kind === 'display' && row.parentComputerId
-      ? row.parentComputerId
-      : row.id;
+    const terminalId = row.id;
     this.activePanelTerminalId = row.id;
     this.panelStructure = this.dataService.getTerminalThemeStructure(terminalId);
+    this.panelThemeId = row.themeId ?? null;
+    this.panelTerminalGroupIds = row.terminalGroupIds ?? [];
+    this.expandedPageIdsB.clear();
   }
 
   /** Закрыть панель */
   closePanelB(): void {
     this.activePanelTerminalId = null;
     this.panelStructure = null;
+    this.panelThemeId = null;
+    this.expandedPageIdsB.clear();
+  }
+
+  /** Смена темы в панели */
+  onPanelThemeChange(themeId: number | null): void {
+    if (this.panelStructure) {
+      this.panelStructure.themeName = themeId
+        ? this.dataService.themeOptions.find(o => o.id === themeId)?.name ?? '—'
+        : '—';
+    }
+    this.panelThemeId = themeId;
+  }
+
+  /** Терминальные группы в панели */
+  onPanelTerminalGroupsChange(groupIds: number[]): void {
+    this.panelTerminalGroupIds = groupIds;
+  }
+
+  /** Отфильтрованные странички (только с динам. элементами) */
+  getPanelFilteredPages(): TerminalThemeStructure['pages'] {
+    if (!this.panelStructure) return [];
+    return this.panelStructure.pages.filter(p => p.elements.length > 0);
+  }
+
+  /** Переключить раскрытие странички в панели B */
+  togglePanelPageB(pageId: number): void {
+    if (this.expandedPageIdsB.has(pageId)) {
+      this.expandedPageIdsB.delete(pageId);
+    } else {
+      this.expandedPageIdsB.add(pageId);
+    }
+  }
+
+  /** Количество видимых киосков для ресторана (Variant B) */
+  getKioskCountB(restaurant: CSRestaurant): number {
+    return this.getVisibleRows(restaurant).filter(r => r.kind === 'computer').length;
+  }
+
+  /** Все ли киоски ресторана выбраны */
+  areAllKiosksSelectedB(restaurant: CSRestaurant): boolean {
+    const kiosks = this.getVisibleRows(restaurant).filter(r => r.kind === 'computer');
+    if (kiosks.length === 0) return false;
+    return kiosks.every(r => this.selectedRowIds.has(r.id));
+  }
+
+  /** Выбрать/снять все киоски ресторана */
+  toggleAllKiosksB(restaurant: CSRestaurant): void {
+    const kiosks = this.getVisibleRows(restaurant).filter(r => r.kind === 'computer');
+    if (this.areAllKiosksSelectedB(restaurant)) {
+      kiosks.forEach(r => this.selectedRowIds.delete(r.id));
+    } else {
+      kiosks.forEach(r => this.selectedRowIds.add(r.id));
+    }
   }
 
   /** Обработчик смены кампании в панели */
