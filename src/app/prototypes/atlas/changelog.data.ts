@@ -4,7 +4,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '3.0',
     date: '2026-07-17',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         items: ['Редизайн в стиле Comet: custom shell, split panel, монолитный detail screen'],
