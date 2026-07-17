@@ -15,7 +15,7 @@ import {
 } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
-import { PaymentIntegration, AccountType } from '../types';
+import { PaymentIntegration, AccountType, RestaurantNode } from '../types';
 import { MOCK_INTEGRATIONS, MOCK_CHAIN_RESTAURANTS, MOCK_RMS_RESTAURANT } from '../data/mock-data';
 import { RestaurantTreeComponent } from '../components/restaurant-tree.component';
 import { OperationCategoryListComponent } from '../components/operation-category-list.component';
@@ -122,6 +122,10 @@ import { PaymentTypeSummaryComponent } from '../components/payment-type-summary.
                 [restaurants]="restaurantTree"
                 mode="view">
               </app-restaurant-tree>
+              <p *ngIf="customSettingsCount > 0" class="text-xs text-amber-600 mt-3 flex items-center gap-1">
+                <lucide-icon name="info" [size]="12"></lucide-icon>
+                {{ customSettingsCount }} ресторанов имеют индивидуальные настройки операций и реквизитов
+              </p>
             </ui-card-content>
           </ui-card>
 
@@ -194,6 +198,18 @@ export class AtlasIntegrationDetailComponent implements OnInit {
     return this.integration?.connectedRestaurantIds?.length ?? 0;
   }
 
+  get customSettingsCount(): number {
+    let count = 0;
+    const collect = (nodes: RestaurantNode[]): void => {
+      for (const n of nodes) {
+        if (!n.children && n.isConnected && n.useCustomSettings) count++;
+        if (n.children) collect(n.children);
+      }
+    };
+    collect(this.restaurantTree);
+    return count;
+  }
+
   get breadcrumbs(): { label: string; onClick?: () => void }[] {
     return [
       { label: 'Платёжные системы', onClick: () => this.router.navigate(['/prototype/atlas']) },
@@ -230,6 +246,8 @@ export class AtlasIntegrationDetailComponent implements OnInit {
       cat.allowed = false;
     }
     this.storage.save('atlas', 'integrations', allIntegrations);
+    // Clear saved restaurant settings
+    this.storage.save('atlas', this.integrationId + '_restaurants', null);
     this.integration = target;
     this.buildRestaurantTree();
     this.showDisconnectConfirm = false;
@@ -237,13 +255,23 @@ export class AtlasIntegrationDetailComponent implements OnInit {
 
   private buildRestaurantTree(): void {
     const connectedIds = new Set(this.integration?.connectedRestaurantIds ?? []);
-    this.restaurantTree = JSON.parse(JSON.stringify(MOCK_CHAIN_RESTAURANTS));
-    const markConnected = (nodes: any[]): void => {
-      for (const n of nodes) {
-        n.isConnected = connectedIds.has(n.id);
-        if (n.children) markConnected(n.children);
-      }
-    };
-    markConnected(this.restaurantTree);
+
+    // Try loading saved restaurant tree with per-restaurant settings
+    const savedTree = this.storage.load<RestaurantNode[]>('atlas', this.integrationId + '_restaurants', null as any);
+
+    if (savedTree && Array.isArray(savedTree) && savedTree.length > 0) {
+      // Use saved tree (already has per-restaurant settings)
+      this.restaurantTree = savedTree;
+    } else {
+      // Fallback: fresh tree from mock
+      this.restaurantTree = JSON.parse(JSON.stringify(MOCK_CHAIN_RESTAURANTS));
+      const markConnected = (nodes: any[]): void => {
+        for (const n of nodes) {
+          n.isConnected = connectedIds.has(n.id);
+          if (n.children) markConnected(n.children);
+        }
+      };
+      markConnected(this.restaurantTree);
+    }
   }
 }

@@ -155,21 +155,62 @@ import { PaymentTypeSummaryComponent } from '../components/payment-type-summary.
 
       <!-- STEP 3: Operations -->
       <div *ngIf="currentStep === 3">
+        <!-- Restaurant selector (if multiple selected) -->
+        <div *ngIf="selectedRestaurantList.length > 1" class="mb-4">
+          <label class="block text-xs font-medium text-gray-500 mb-2">Настроить операции для:</label>
+          <div class="flex flex-wrap gap-1">
+            <button
+              (click)="selectRestaurant('all')"
+              class="px-3 py-1.5 text-xs rounded-md transition-colors border"
+              [class.bg-gray-900]="selectedRestaurantId === 'all'"
+              [class.text-white]="selectedRestaurantId === 'all'"
+              [class.border-gray-300]="selectedRestaurantId !== 'all'"
+              [class.text-gray-600]="selectedRestaurantId !== 'all'"
+              [class.hover:bg-gray-50]="selectedRestaurantId !== 'all'">
+              Все рестораны ({{ selectedRestaurantCount }})
+            </button>
+            <button
+              *ngFor="let r of selectedRestaurantList"
+              (click)="selectRestaurant(r.id)"
+              class="px-3 py-1.5 text-xs rounded-md transition-colors border truncate max-w-[200px]"
+              [class.bg-gray-900]="selectedRestaurantId === r.id"
+              [class.text-white]="selectedRestaurantId === r.id"
+              [class.border-gray-300]="selectedRestaurantId !== r.id"
+              [class.text-gray-600]="selectedRestaurantId !== r.id"
+              [class.hover:bg-gray-50]="selectedRestaurantId !== r.id"
+              [title]="r.name">
+              {{ r.name }}
+              <span
+                *ngIf="isRestaurantCustomized(r.id)"
+                class="ml-1 text-[10px]"
+                [class.text-amber-300]="selectedRestaurantId === r.id"
+                [class.text-amber-500]="selectedRestaurantId !== r.id">⚙</span>
+            </button>
+          </div>
+          <p *ngIf="selectedRestaurantId !== 'all'" class="text-xs text-amber-600 mt-1.5">
+            Настройки применяются только к выбранному ресторану
+          </p>
+          <p *ngIf="selectedRestaurantId === 'all'" class="text-xs text-gray-400 mt-1.5">
+            Одинаковые настройки для всех выбранных ресторанов
+          </p>
+        </div>
+
         <ui-card>
           <ui-card-content>
-            <h2 class="text-base font-semibold text-gray-900 mb-1">Какие операции разрешить?</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-1">
+              {{ selectedRestaurantId === 'all' ? 'Какие операции разрешить?' : 'Операции для «' + getRestaurantName(selectedRestaurantId) + '»' }}
+            </h2>
             <p class="text-sm text-gray-500 mb-4">
               Отметьте категории операций, которые {{ integration?.name }} может выполнять.
-              Плагин на терминале будет опрашивать эти разрешения и действовать соответственно.
             </p>
 
             <app-operation-category-list
-              [categories]="wizardCategories"
+              [categories]="currentEditingCategories"
               mode="edit"
               (categoryToggle)="toggleCategory($event)">
             </app-operation-category-list>
 
-            <p *ngIf="allowedCategoryCount === 0" class="text-xs text-amber-600 mt-3">
+            <p *ngIf="currentEditingHasNoAllowed" class="text-xs text-amber-600 mt-3">
               Выберите хотя бы одну категорию операций
             </p>
           </ui-card-content>
@@ -179,16 +220,47 @@ import { PaymentTypeSummaryComponent } from '../components/payment-type-summary.
           <ui-button variant="ghost" (click)="cancelWizard()">Отмена</ui-button>
           <div class="flex gap-2">
             <ui-button variant="outline" (click)="prevStep()">Назад</ui-button>
-            <ui-button [disabled]="allowedCategoryCount === 0" (click)="nextStep()">Далее</ui-button>
+            <ui-button [disabled]="!hasAnyCategoryAllowed" (click)="nextStep()">Далее</ui-button>
           </div>
         </div>
       </div>
 
       <!-- STEP 4: Credentials (conditional) -->
       <div *ngIf="currentStep === 4 && hasRequiredFields">
+        <!-- Restaurant selector (if multiple selected) -->
+        <div *ngIf="selectedRestaurantList.length > 1" class="mb-4">
+          <label class="block text-xs font-medium text-gray-500 mb-2">Настроить реквизиты для:</label>
+          <div class="flex flex-wrap gap-1">
+            <button
+              (click)="selectRestaurant('all')"
+              class="px-3 py-1.5 text-xs rounded-md transition-colors border"
+              [class.bg-gray-900]="selectedRestaurantId === 'all'"
+              [class.text-white]="selectedRestaurantId === 'all'"
+              [class.border-gray-300]="selectedRestaurantId !== 'all'"
+              [class.text-gray-600]="selectedRestaurantId !== 'all'"
+              [class.hover:bg-gray-50]="selectedRestaurantId !== 'all'">
+              Все рестораны
+            </button>
+            <button
+              *ngFor="let r of selectedRestaurantList"
+              (click)="selectRestaurant(r.id)"
+              class="px-3 py-1.5 text-xs rounded-md transition-colors border truncate max-w-[200px]"
+              [class.bg-gray-900]="selectedRestaurantId === r.id"
+              [class.text-white]="selectedRestaurantId === r.id"
+              [class.border-gray-300]="selectedRestaurantId !== r.id"
+              [class.text-gray-600]="selectedRestaurantId !== r.id"
+              [class.hover:bg-gray-50]="selectedRestaurantId !== r.id"
+              [title]="r.name">
+              {{ r.name }}
+            </button>
+          </div>
+        </div>
+
         <ui-card>
           <ui-card-content>
-            <h2 class="text-base font-semibold text-gray-900 mb-1">Реквизиты подключения</h2>
+            <h2 class="text-base font-semibold text-gray-900 mb-1">
+              {{ selectedRestaurantId === 'all' ? 'Реквизиты подключения' : 'Реквизиты для «' + getRestaurantName(selectedRestaurantId) + '»' }}
+            </h2>
             <p class="text-sm text-gray-500 mb-4">
               Введите данные, необходимые для подключения к {{ integration?.name }}.
             </p>
@@ -203,7 +275,7 @@ import { PaymentTypeSummaryComponent } from '../components/payment-type-summary.
                   <input
                     [type]="field.type === 'password' && !showPassword ? 'password' : 'text'"
                     [placeholder]="field.placeholder || ''"
-                    [(ngModel)]="credentials[field.key]"
+                    [(ngModel)]="currentEditingCredentials[field.key]"
                     class="w-full h-9 px-3 pr-9 text-sm border border-gray-300 rounded-md bg-white
                            placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10
                            focus:border-gray-400 transition-all" />
@@ -266,6 +338,10 @@ import { PaymentTypeSummaryComponent } from '../components/payment-type-summary.
               <div *ngIf="hasRequiredFields" class="flex justify-between py-1.5 border-b border-gray-100">
                 <span class="text-gray-500">Реквизиты</span>
                 <span class="font-medium text-gray-900">заполнены</span>
+              </div>
+              <div *ngIf="customSettingsCount > 0" class="flex justify-between py-1.5 border-b border-gray-100">
+                <span class="text-gray-500">Индивидуальные настройки</span>
+                <span class="font-medium text-amber-700">{{ customSettingsCount }} ресторанов</span>
               </div>
             </div>
 
@@ -346,6 +422,7 @@ export class AtlasConnectWizardComponent implements OnInit {
   wizardRestaurants: RestaurantNode[] = [];
   wizardCategories: OperationCategory[] = [];
   credentials: Record<string, string> = {};
+  selectedRestaurantId: string | 'all' = 'all';
   showPassword = false;
 
   // UI state
@@ -401,6 +478,55 @@ export class AtlasConnectWizardComponent implements OnInit {
     return this.allowedCategories.length;
   }
 
+  /** List of selected (checked) restaurant leaf nodes */
+  get selectedRestaurantList(): { id: string; name: string }[] {
+    const result: { id: string; name: string }[] = [];
+    const collect = (nodes: RestaurantNode[]): void => {
+      for (const n of nodes) {
+        if (!n.children && n.isConnected) result.push({ id: n.id, name: n.name });
+        if (n.children) collect(n.children);
+      }
+    };
+    collect(this.wizardRestaurants);
+    return result;
+  }
+
+  /** Categories currently being edited (global or per-restaurant) */
+  get currentEditingCategories(): OperationCategory[] {
+    if (this.selectedRestaurantId === 'all') return this.wizardCategories;
+    const restaurant = this.findRestaurant(this.selectedRestaurantId);
+    if (!restaurant) return this.wizardCategories;
+    // Lazy-init custom categories from global template
+    if (!restaurant.customOperationCategories) {
+      restaurant.customOperationCategories = this.wizardCategories.map(c => ({ ...c }));
+    }
+    return restaurant.customOperationCategories;
+  }
+
+  /** Credentials currently being edited (global or per-restaurant) */
+  get currentEditingCredentials(): Record<string, string> {
+    if (this.selectedRestaurantId === 'all') return this.credentials;
+    const restaurant = this.findRestaurant(this.selectedRestaurantId);
+    if (!restaurant) return this.credentials;
+    if (!restaurant.customCredentials) {
+      restaurant.customCredentials = { ...this.credentials };
+    }
+    return restaurant.customCredentials;
+  }
+
+  /** Count of restaurants with custom (non-global) settings */
+  get customSettingsCount(): number {
+    let count = 0;
+    const collect = (nodes: RestaurantNode[]): void => {
+      for (const n of nodes) {
+        if (!n.children && n.isConnected && n.useCustomSettings) count++;
+        if (n.children) collect(n.children);
+      }
+    };
+    collect(this.wizardRestaurants);
+    return count;
+  }
+
   get breadcrumbs(): { label: string; onClick?: () => void }[] {
     return [
       { label: 'Платёжные системы', onClick: () => this.router.navigate(['/prototype/atlas']) },
@@ -433,8 +559,67 @@ export class AtlasConnectWizardComponent implements OnInit {
   }
 
   toggleCategory(categoryId: string): void {
-    const cat = this.wizardCategories.find(c => c.id === categoryId);
-    if (cat) cat.allowed = !cat.allowed;
+    const categories = this.currentEditingCategories;
+    const cat = categories.find(c => c.id === categoryId);
+    if (!cat) return;
+    cat.allowed = !cat.allowed;
+
+    // If editing per-restaurant, mark it as custom
+    if (this.selectedRestaurantId !== 'all') {
+      const restaurant = this.findRestaurant(this.selectedRestaurantId);
+      if (restaurant) {
+        restaurant.useCustomSettings = true;
+      }
+    }
+  }
+
+  selectRestaurant(id: string | 'all'): void {
+    this.selectedRestaurantId = id;
+  }
+
+  isRestaurantCustomized(restaurantId: string): boolean {
+    const r = this.findRestaurant(restaurantId);
+    return !!(r && r.useCustomSettings);
+  }
+
+  getRestaurantName(restaurantId: string): string {
+    const r = this.findRestaurant(restaurantId);
+    return r ? r.name : '';
+  }
+
+  /** Check if any restaurant (or global) has at least one category allowed */
+  get hasAnyCategoryAllowed(): boolean {
+    // Check global
+    if (this.wizardCategories.some(c => c.allowed)) return true;
+    // Check per-restaurant
+    const checkNodes = (nodes: RestaurantNode[]): boolean => {
+      for (const n of nodes) {
+        if (n.customOperationCategories?.some(c => c.allowed)) return true;
+        if (n.children && checkNodes(n.children)) return true;
+      }
+      return false;
+    };
+    return checkNodes(this.wizardRestaurants);
+  }
+
+  /** True if the currently edited categories list has items but none allowed */
+  get currentEditingHasNoAllowed(): boolean {
+    const cats = this.currentEditingCategories;
+    return cats.length > 0 && !cats.some(c => c.allowed);
+  }
+
+  private findRestaurant(id: string): RestaurantNode | null {
+    const find = (nodes: RestaurantNode[]): RestaurantNode | null => {
+      for (const n of nodes) {
+        if (n.id === id) return n;
+        if (n.children) {
+          const found = find(n.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return find(this.wizardRestaurants);
   }
 
   onRestaurantChange(restaurants: RestaurantNode[]): void {
@@ -443,12 +628,26 @@ export class AtlasConnectWizardComponent implements OnInit {
 
   isCredentialsValid(): boolean {
     if (!this.integration) return false;
-    for (const field of this.integration.requiredFields) {
-      if (field.required && !this.credentials[field.key]?.trim()) {
-        return false;
+    // Check all selected restaurants have credentials (global or custom)
+    const checkNode = (nodes: RestaurantNode[]): boolean => {
+      for (const n of nodes) {
+        if (!n.children && n.isConnected) {
+          const creds = n.useCustomSettings && n.customCredentials ? n.customCredentials : this.credentials;
+          for (const field of this.integration!.requiredFields) {
+            if (field.required && !creds[field.key]?.trim()) return false;
+          }
+        }
+        if (n.children && !checkNode(n.children)) return false;
+      }
+      return true;
+    };
+    // If 'all' is selected, check global credentials first
+    if (this.selectedRestaurantId === 'all') {
+      for (const field of this.integration.requiredFields) {
+        if (field.required && !this.credentials[field.key]?.trim()) return false;
       }
     }
-    return true;
+    return checkNode(this.wizardRestaurants);
   }
 
   nextStep(): void {
@@ -512,17 +711,21 @@ export class AtlasConnectWizardComponent implements OnInit {
     target.status = 'connected';
     target.operationCategories = this.wizardCategories.map(c => ({ ...c }));
 
-    // Collect connected restaurant IDs
+    // Collect connected restaurant IDs + save per-restaurant settings
     const ids: string[] = [];
-    const collectIds = (nodes: RestaurantNode[]): void => {
+    const saveNodeSettings = (nodes: RestaurantNode[]): void => {
       for (const n of nodes) {
-        if (!n.children && n.isConnected) ids.push(n.id);
-        if (n.children) collectIds(n.children);
+        if (!n.children && n.isConnected) {
+          ids.push(n.id);
+        }
+        if (n.children) saveNodeSettings(n.children);
       }
     };
-    collectIds(this.wizardRestaurants);
+    saveNodeSettings(this.wizardRestaurants);
     target.connectedRestaurantIds = ids;
 
+    // Save restaurant tree with per-restaurant settings to storage
+    this.storage.save('atlas', this.integrationId + '_restaurants', this.wizardRestaurants);
     this.storage.save('atlas', 'integrations', allIntegrations);
     this.showSuccessModal = false;
     this.router.navigate(['/prototype/atlas', this.integrationId]);

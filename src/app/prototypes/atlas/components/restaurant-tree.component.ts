@@ -55,6 +55,14 @@ import { RestaurantNode, FlatTreeItem } from '../types';
           {{ item.name }}
         </span>
 
+        <!-- Custom settings badge -->
+        <span
+          *ngIf="!item.isGroup && item.useCustomSettings && item.checked"
+          class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium shrink-0 hidden sm:inline"
+          title="Индивидуальные настройки">
+          индив.
+        </span>
+
         <!-- Address (only for restaurants) -->
         <span *ngIf="!item.isGroup" class="text-xs text-gray-400 hidden sm:inline shrink-0">
           {{ item.address }}
@@ -169,6 +177,13 @@ export class RestaurantTreeComponent implements OnInit, OnChanges {
         depth,
         checked: node.isConnected,
         childrenIds,
+        useCustomSettings: node.useCustomSettings || false,
+        allowedCategoryCount: node.customOperationCategories
+          ? node.customOperationCategories.filter(c => c.allowed).length
+          : undefined,
+        totalCategoryCount: node.customOperationCategories
+          ? node.customOperationCategories.length
+          : undefined,
       });
 
       if (hasChildren) {

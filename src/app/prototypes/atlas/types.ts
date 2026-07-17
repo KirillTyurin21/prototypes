@@ -34,6 +34,12 @@ export interface RestaurantNode {
   address: string;
   children?: RestaurantNode[];
   isConnected: boolean;
+  /** Индивидуальные настройки операций (если отличаются от глобальных) */
+  customOperationCategories?: OperationCategory[];
+  /** Индивидуальные реквизиты (если отличаются от глобальных) */
+  customCredentials?: Record<string, string>;
+  /** Использовать индивидуальные настройки вместо глобальных */
+  useCustomSettings?: boolean;
 }
 
 // === Тип оплаты (превью) ===
@@ -77,4 +83,7 @@ export interface FlatTreeItem {
   depth: number;
   checked: boolean;
   childrenIds?: string[];
+  useCustomSettings?: boolean;
+  allowedCategoryCount?: number;
+  totalCategoryCount?: number;
 }
