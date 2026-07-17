@@ -297,7 +297,22 @@ type DetailMode = 'view' | 'connect' | 'edit';
                       <ui-card-title>Операции</ui-card-title>
                     </ui-card-header>
                     <ui-card-content>
-                      <!-- EDIT MODE: checkboxes -->
+                      <!-- NOT customized: show inherited notice -->
+                      <ng-container *ngIf="!r.useCustomSettings">
+                        <ui-alert variant="info" class="mb-3">
+                          Этот ресторан использует <strong>общие настройки</strong>.
+                          <button (click)="selectedRestaurantId = null" class="underline text-blue-600 hover:text-blue-800 ml-1 text-xs">
+                            Показать общие настройки
+                          </button>
+                        </ui-alert>
+                        <p class="text-xs text-gray-500">
+                          Разрешённые операции (наследуются):
+                          <span class="font-medium text-gray-700">
+                            {{ inheritedCategoriesSummary }}
+                          </span>
+                        </p>
+                      </ng-container>
+                      <!-- EDIT MODE: checkboxes (only for customized) -->
                       <div *ngIf="r.useCustomSettings && perRestaurantEditMode" class="space-y-2">
                         <div *ngFor="let cat of getRestaurantCategories(r)"
                           class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
@@ -310,8 +325,8 @@ type DetailMode = 'view' | 'connect' | 'edit';
                           <ui-checkbox [checked]="cat.allowed" (checkedChange)="cat.allowed = $event"></ui-checkbox>
                         </div>
                       </div>
-                      <!-- VIEW MODE: static icons -->
-                      <div *ngIf="!r.useCustomSettings || !perRestaurantEditMode" class="space-y-2">
+                      <!-- VIEW MODE: static icons (only for customized) -->
+                      <div *ngIf="r.useCustomSettings && !perRestaurantEditMode" class="space-y-2">
                         <div *ngFor="let cat of getRestaurantCategories(r)"
                           class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
                           [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
@@ -622,6 +637,13 @@ export class AtlasDetailScreenComponent implements OnInit {
   get connectedCount(): number { return this.integration?.connectedRestaurantIds?.length ?? 0; }
   get totalRestaurantCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
   get customSettingsCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children && x.useCustomSettings) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
+
+  /** Summary of inherited (global) allowed categories for display */
+  get inheritedCategoriesSummary(): string {
+    const cats = this.integration?.operationCategories || [];
+    const allowed = cats.filter(c => c.allowed).map(c => c.label);
+    return allowed.length > 0 ? allowed.join(', ') : 'нет разрешённых операций';
+  }
 
   get hasWizRequiredFields(): boolean { return (this.integration?.requiredFields?.length ?? 0) > 0; }
   get totalWizSteps(): number { return this.hasWizRequiredFields ? 5 : 4; }
