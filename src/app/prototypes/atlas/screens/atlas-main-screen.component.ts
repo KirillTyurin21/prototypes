@@ -25,11 +25,11 @@ import { MOCK_INTEGRATIONS } from '../data/mock-data';
         <div class="flex items-center gap-2 ml-6">
           <span class="text-xs text-gray-400">Режим:</span>
           <div class="flex rounded-md border border-gray-300 overflow-hidden">
-            <button (click)="accountType = 'chain'"
+            <button (click)="setAccountType('chain')"
               class="px-3 py-1 text-xs transition-colors"
               [class.bg-gray-900]="accountType === 'chain'" [class.text-white]="accountType === 'chain'"
               [class.text-gray-600]="accountType !== 'chain'" [class.hover:bg-gray-100]="accountType !== 'chain'">Чейн (15)</button>
-            <button (click)="accountType = 'rms'"
+            <button (click)="setAccountType('rms')"
               class="px-3 py-1 text-xs transition-colors border-l border-gray-300"
               [class.bg-gray-900]="accountType === 'rms'" [class.text-white]="accountType === 'rms'"
               [class.text-gray-600]="accountType !== 'rms'" [class.hover:bg-gray-100]="accountType !== 'rms'">RMS (1)</button>
@@ -110,7 +110,15 @@ export class AtlasMainScreenComponent implements OnInit {
   showDisconnectConfirm = false;
   disconnectTarget: PaymentIntegration | null = null;
 
-  ngOnInit(): void { this.integrations = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS); }
+  ngOnInit(): void {
+    this.integrations = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
+    this.accountType = this.storage.load('atlas', 'accountType', 'chain' as AccountType);
+  }
+
+  setAccountType(type: AccountType): void {
+    this.accountType = type;
+    this.storage.save('atlas', 'accountType', type);
+  }
   openDetail(id: string): void { this.router.navigate(['/prototype/atlas', id]); }
 
   quickDisconnect(id: string): void {

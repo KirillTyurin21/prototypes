@@ -41,17 +41,27 @@ type DetailMode = 'view' | 'connect' | 'edit';
         <div class="flex items-center gap-2 ml-6">
           <span class="text-xs text-gray-400">Режим:</span>
           <div class="flex rounded-md border border-gray-300 overflow-hidden">
-            <button (click)="accountType = 'chain'; onAccountTypeChange()"
+            <button (click)="setAccountType('chain')"
               class="px-3 py-1 text-xs transition-colors"
               [class.bg-gray-900]="accountType === 'chain'" [class.text-white]="accountType === 'chain'"
               [class.text-gray-600]="accountType !== 'chain'">Чейн (15)</button>
-            <button (click)="accountType = 'rms'; onAccountTypeChange()"
+            <button (click)="setAccountType('rms')"
               class="px-3 py-1 text-xs transition-colors border-l border-gray-300"
               [class.bg-gray-900]="accountType === 'rms'" [class.text-white]="accountType === 'rms'"
               [class.text-gray-600]="accountType !== 'rms'">RMS (1)</button>
           </div>
         </div>
-        <div class="ml-auto flex items-center gap-2">
+        <div class="ml-auto flex items-center gap-3">
+          <!-- License toggle -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-gray-400">Лицензия:</span>
+            <button (click)="hasLicense = !hasLicense"
+              class="text-[10px] px-2 py-0.5 rounded border transition-colors"
+              [class.bg-green-50]="hasLicense" [class.border-green-300]="hasLicense" [class.text-green-700]="hasLicense"
+              [class.bg-gray-50]="!hasLicense" [class.border-gray-300]="!hasLicense" [class.text-gray-500]="!hasLicense">
+              {{ hasLicense ? 'Есть' : 'Нет' }}
+            </button>
+          </div>
           <button class="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700">
             <lucide-icon name="user" [size]="16"></lucide-icon>
             <span>admin</span>
@@ -104,7 +114,8 @@ type DetailMode = 'view' | 'connect' | 'edit';
               </div>
             </div>
             <div class="flex gap-2 shrink-0">
-              <ui-button *ngIf="!isConnected && detailMode === 'view'" (click)="startConnect()">Подключить</ui-button>
+              <ui-button *ngIf="!isConnected && detailMode === 'view' && hasLicense" (click)="startConnect()">Подключить</ui-button>
+              <ui-button *ngIf="!isConnected && detailMode === 'view' && !hasLicense" [disabled]="true" title="Требуется лицензия">Подключить</ui-button>
               <ui-button *ngIf="isConnected && detailMode === 'view'" variant="outline" (click)="startEdit()">Изменить</ui-button>
               <ui-button *ngIf="isConnected && detailMode === 'view'" variant="danger" (click)="showDisconnectConfirm = true">Отключить</ui-button>
               <ui-button *ngIf="detailMode !== 'view'" variant="ghost" (click)="cancelFlow()">Отмена</ui-button>
@@ -122,7 +133,12 @@ type DetailMode = 'view' | 'connect' | 'edit';
               <lucide-icon name="plug" [size]="48" class="text-gray-300 mx-auto mb-4"></lucide-icon>
               <p class="text-gray-500 text-sm mb-2">Система не подключена</p>
               <p class="text-gray-400 text-xs mb-4">Нажмите «Подключить», чтобы начать интеграцию с {{ integration?.name }}.</p>
-              <ui-button (click)="startConnect()">Начать подключение</ui-button>
+              <ui-alert *ngIf="!hasLicense" variant="warning" class="mb-4 text-left">
+                Для подключения требуется лицензия на использование {{ integration?.name }}.
+                Обратитесь к поставщику для получения лицензии.
+              </ui-alert>
+              <ui-button *ngIf="hasLicense" (click)="startConnect()">Начать подключение</ui-button>
+              <ui-button *ngIf="!hasLicense" [disabled]="true">Требуется лицензия</ui-button>
             </div>
           </div>
 
@@ -223,6 +239,43 @@ type DetailMode = 'view' | 'connect' | 'edit';
                   <ui-alert *ngIf="customSettingsCount > 0" variant="info">
                     {{ customSettingsCount }} ресторанов имеют индивидуальные настройки. Выберите ресторан в дереве слева для просмотра.
                   </ui-alert>
+
+                  <!-- Plugin status panel -->
+                  <ui-card>
+                    <ui-card-header>
+                      <ui-card-title>
+                        <button (click)="showPluginPanel = !showPluginPanel"
+                          class="flex items-center gap-2 text-left w-full text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                          <lucide-icon [name]="showPluginPanel ? 'chevron-down' : 'chevron-right'" [size]="16"></lucide-icon>
+                          Состояние плагина Front
+                        </button>
+                      </ui-card-title>
+                    </ui-card-header>
+                    <ui-card-content *ngIf="showPluginPanel">
+                      <div class="space-y-3">
+                        <p class="text-xs text-gray-500">
+                          Плагин на терминале опрашивает сервер каждые 60 сек. Статус интеграции определяет видимость типов оплат для кассира.
+                        </p>
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-md border"
+                          [class.bg-green-50]="pluginStatus === 'active'" [class.border-green-200]="pluginStatus === 'active'"
+                          [class.bg-gray-50]="pluginStatus !== 'active'" [class.border-gray-200]="pluginStatus !== 'active'">
+                          <div class="w-2.5 h-2.5 rounded-full" [class.bg-green-500]="pluginStatus === 'active'" [class.bg-gray-400]="pluginStatus !== 'active'"></div>
+                          <span class="text-sm font-mono">{{ pluginStatus }}</span>
+                          <span class="text-xs text-gray-400">— {{ pluginStatus === 'active' ? 'типы оплат видны' : 'типы оплат скрыты' }}</span>
+                        </div>
+                        <div class="flex gap-2">
+                          <button (click)="simulatePlugin('active')"
+                            class="px-2.5 py-1 text-[11px] rounded border transition-colors"
+                            [class.bg-green-50]="pluginStatus === 'active'" [class.border-green-300]="pluginStatus === 'active'"
+                            [class.border-gray-200]="pluginStatus !== 'active'">→ active</button>
+                          <button (click)="simulatePlugin('inactive')"
+                            class="px-2.5 py-1 text-[11px] rounded border transition-colors"
+                            [class.bg-gray-100]="pluginStatus === 'inactive'" [class.border-gray-300]="pluginStatus === 'inactive'"
+                            [class.border-gray-200]="pluginStatus !== 'inactive'">→ inactive</button>
+                        </div>
+                      </div>
+                    </ui-card-content>
+                  </ui-card>
                 </div>
               </div>
 
@@ -410,10 +463,14 @@ type DetailMode = 'view' | 'connect' | 'edit';
                   <div class="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-96 overflow-y-auto">
                     <ng-container *ngFor="let item of wizFlatRestaurantList">
                       <div *ngIf="item.isGroup"
-                        class="flex items-center gap-2 px-3 py-2 bg-gray-50"
-                        [style.padding-left.px]="8 + item.depth * 16">
+                        class="flex items-center gap-2 px-3 py-2 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                        [style.padding-left.px]="8 + item.depth * 16"
+                        (click)="wizToggleGroup(item)">
                         <lucide-icon name="folder" [size]="14" class="text-gray-400 shrink-0"></lucide-icon>
                         <span class="text-sm font-medium text-gray-700 flex-1">{{ item.name }}</span>
+                        <lucide-icon *ngIf="wizIsGroupFullyChecked(item)" name="check-square" [size]="14" class="text-green-600 shrink-0"></lucide-icon>
+                        <lucide-icon *ngIf="wizIsGroupPartial(item)" name="minus-square" [size]="14" class="text-amber-500 shrink-0"></lucide-icon>
+                        <lucide-icon *ngIf="!wizIsGroupFullyChecked(item) && !wizIsGroupPartial(item)" name="square" [size]="14" class="text-gray-300 shrink-0"></lucide-icon>
                       </div>
                       <div *ngIf="!item.isGroup"
                         class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50"
@@ -439,8 +496,18 @@ type DetailMode = 'view' | 'connect' | 'edit';
                       [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
                       <lucide-icon [name]="cat.iconName" [size]="20" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
                       <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
+                        <div class="flex items-center gap-1">
+                          <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
+                          <button (click)="wizTooltipCat = wizTooltipCat === cat.id ? '' : cat.id"
+                            class="text-gray-400 hover:text-gray-600 transition-colors" type="button"
+                            [title]="'Что входит в категорию «' + cat.label + '»'">
+                            <lucide-icon name="info" [size]="14"></lucide-icon>
+                          </button>
+                        </div>
                         <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
+                        <p *ngIf="wizTooltipCat === cat.id" class="text-xs text-gray-600 mt-1.5 px-2 py-1.5 bg-gray-100 rounded">
+                          {{ getTooltipText(cat.id) }}
+                        </p>
                       </div>
                       <ui-checkbox [checked]="cat.allowed" (checkedChange)="cat.allowed = $event"></ui-checkbox>
                     </div>
@@ -483,7 +550,8 @@ type DetailMode = 'view' | 'connect' | 'edit';
 
                 <!-- Wizard navigation -->
                 <div class="flex justify-between mt-8 pt-4 border-t border-gray-200">
-                  <ui-button variant="ghost" (click)="cancelFlow()">Отмена</ui-button>
+                  <ui-button *ngIf="connectStep === 1" variant="ghost" class="text-red-500" (click)="goBack()">Отказаться</ui-button>
+                  <ui-button *ngIf="connectStep > 1" variant="ghost" (click)="cancelFlow()">Отмена</ui-button>
                   <div class="flex gap-2">
                     <ui-button *ngIf="connectStep > 1" variant="outline" (click)="wizPrev()">Назад</ui-button>
                     <ui-button *ngIf="connectStep < totalWizSteps" [disabled]="!canWizNext" (click)="wizNext()">Далее</ui-button>
@@ -522,6 +590,7 @@ export class AtlasDetailScreenComponent implements OnInit {
   integration: PaymentIntegration | null = null;
   integrationId = '';
   accountType: AccountType = 'chain';
+  hasLicense = true;  // demo toggle
 
   // View state
   detailMode: DetailMode = 'view';
@@ -539,10 +608,13 @@ export class AtlasDetailScreenComponent implements OnInit {
   wizShowPwd = false;
   wizSubmitting = false;
   wizFlatRestaurantList: WizFlatItem[] = [];
+  wizTooltipCat = '';
 
   // UI
   showDisconnectConfirm = false;
   toastMessage = '';
+  showPluginPanel = false;
+  pluginStatus: 'active' | 'inactive' = 'active';
 
   // --- Computed ---
 
@@ -572,6 +644,7 @@ export class AtlasDetailScreenComponent implements OnInit {
   // --- Init ---
 
   ngOnInit(): void {
+    this.accountType = this.storage.load('atlas', 'accountType', 'chain' as AccountType);
     this.integrationId = this.route.snapshot.params['integrationId'];
     const all = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
     this.integration = all.find(i => i.id === this.integrationId) || null;
@@ -701,7 +774,7 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   startEdit(): void {
     this.detailMode = 'edit';
-    this.connectStep = 1;
+    this.connectStep = 2;  // skip consent for edit
     this.wizConsent = true;
     this.wizCategories = (this.integration?.operationCategories || []).map(c => ({ ...c }));
     this.wizCredentials = {};
@@ -712,6 +785,16 @@ export class AtlasDetailScreenComponent implements OnInit {
     this.detailMode = 'view';
     this.selectedRestaurantId = null;
     this.buildTree();
+  }
+
+  getTooltipText(catId: string): string {
+    const map: Record<string, string> = {
+      payments: 'Создание платежей, возврат платежей, проверка статуса оплаты, работа с фискальными чеками.',
+      menu: 'Чтение меню ресторана, получение категорий и блюд, передача внешнего меню в систему партнёра.',
+      stoplists: 'Управление стоп-листами: добавление и удаление блюд из стоп-листа, синхронизация доступности.',
+      discounts: 'Применение скидок к заказам, расчёт суммы скидки, проверка условий акции.',
+    };
+    return map[catId] || 'Детальное описание операций для этой категории.';
   }
 
   // --- Wizard tree ---
@@ -735,6 +818,40 @@ export class AtlasDetailScreenComponent implements OnInit {
   wizToggleRestaurant(item: WizFlatItem): void { item.checked = !item.checked; }
   wizSelectAll(): void { for (const i of this.wizFlatRestaurantList) i.checked = true; }
   wizDeselectAll(): void { for (const i of this.wizFlatRestaurantList) i.checked = false; }
+
+  wizToggleGroup(group: WizFlatItem): void {
+    // Toggle all children of this group in the flat list
+    let inGroup = false;
+    const newState = !this.wizIsGroupFullyChecked(group);
+    for (const item of this.wizFlatRestaurantList) {
+      if (item.id === group.id) { inGroup = true; continue; }
+      if (inGroup && item.isGroup && item.depth <= group.depth) break; // next group at same/higher level
+      if (inGroup && !item.isGroup) item.checked = newState;
+    }
+  }
+
+  wizIsGroupFullyChecked(group: WizFlatItem): boolean {
+    const children = this.wizGetGroupChildren(group);
+    return children.length > 0 && children.every(c => c.checked);
+  }
+
+  wizIsGroupPartial(group: WizFlatItem): boolean {
+    const children = this.wizGetGroupChildren(group);
+    const someChecked = children.some(c => c.checked);
+    const allChecked = children.every(c => c.checked);
+    return someChecked && !allChecked;
+  }
+
+  private wizGetGroupChildren(group: WizFlatItem): WizFlatItem[] {
+    const result: WizFlatItem[] = [];
+    let inGroup = false;
+    for (const item of this.wizFlatRestaurantList) {
+      if (item.id === group.id) { inGroup = true; continue; }
+      if (inGroup && item.isGroup && item.depth <= group.depth) break;
+      if (inGroup && !item.isGroup) result.push(item);
+    }
+    return result;
+  }
 
   wizNext(): void {
     if (this.connectStep === 3 && !this.hasWizRequiredFields) { this.connectStep = this.totalWizSteps; return; }
@@ -795,7 +912,18 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   // --- Account change ---
 
+  setAccountType(type: AccountType): void {
+    this.accountType = type;
+    this.storage.save('atlas', 'accountType', type);
+    this.onAccountTypeChange();
+  }
+
   onAccountTypeChange(): void { if (this.detailMode === 'view') this.buildTree(); else this.initWizTree(); }
+
+  simulatePlugin(status: 'active' | 'inactive'): void {
+    this.pluginStatus = status;
+    this.toast('Плагин: статус изменён на «' + status + '»');
+  }
 
   // --- Helpers ---
 
