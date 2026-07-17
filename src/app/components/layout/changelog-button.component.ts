@@ -137,6 +137,8 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/front-base/changelog.data');
       case 'sparrow':
         return import('../../prototypes/sparrow/changelog.data');
+      case 'atlas':
+        return import('../../prototypes/atlas/changelog.data');
       default:
         return Promise.reject('Unknown prototype');
     }

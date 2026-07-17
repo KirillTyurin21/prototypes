@@ -358,6 +358,7 @@ const icons = {
   AlignEndVertical,
   // Halyk Consent prototype
   Plug,
+  Unplug,
   ShieldCheck,
   Inbox,
   Undo2,
@@ -375,6 +376,8 @@ const icons = {
   Filter,
   CalendarCheck,
   Ban,
+  UtensilsCrossed,
+  Percent,
   // Sparrow notifications
   BellRing,
   // Sparrow backend panel

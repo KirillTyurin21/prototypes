@@ -112,5 +112,12 @@ export const PROTOTYPES: PrototypeEntry[] = [
     description: 'Плагин интеграции Front с внешним сервисом заказов кофейни',
     category: 'front',
   },
+  {
+    path: '/prototype/atlas',
+    label: 'Atlas — Подключение платежных систем',
+    icon: 'credit-card',
+    description: 'Управление подключением платёжных систем из Web: consent, дерево ресторанов, категории операций',
+    category: 'web',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];

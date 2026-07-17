@@ -117,6 +117,13 @@ export const routes: Routes = [
             m => m.SPARROW_ROUTES
           ),
       },
+      {
+        path: 'prototype/atlas',
+        loadChildren: () =>
+          import('./prototypes/atlas/atlas.routes').then(
+            m => m.ATLAS_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL
