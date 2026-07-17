@@ -1,59 +1,55 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { UiButtonComponent, UiSkeletonComponent } from '@/components/ui';
+import { UiButtonComponent, UiCardComponent, UiCardContentComponent, UiSkeletonComponent, UiStatusDotComponent, UiConfirmDialogComponent } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
 import { PaymentIntegration, AccountType } from '../types';
 import { MOCK_INTEGRATIONS } from '../data/mock-data';
-import { IntegrationCardComponent } from '../components/integration-card.component';
 
 @Component({
   selector: 'app-atlas-main-screen',
   standalone: true,
-  imports: [CommonModule, UiButtonComponent, UiSkeletonComponent, IntegrationCardComponent, IconsModule],
+  imports: [CommonModule, UiButtonComponent, UiCardComponent, UiCardContentComponent, UiSkeletonComponent, UiStatusDotComponent, UiConfirmDialogComponent, IconsModule],
   template: `
-    <!-- Account type toggle -->
-    <div class="flex items-center gap-3 px-6 py-2.5 bg-gray-50 border-b border-gray-200">
-      <span class="text-xs text-gray-500">Режим просмотра:</span>
-      <div class="flex rounded-md border border-gray-300 overflow-hidden">
-        <button
-          (click)="accountType = 'chain'"
-          class="px-3 py-1 text-xs transition-colors"
-          [class.bg-gray-900]="accountType === 'chain'"
-          [class.text-white]="accountType === 'chain'"
-          [class.text-gray-600]="accountType !== 'chain'"
-          [class.hover:bg-gray-100]="accountType !== 'chain'">
-          Чейн (15 ресторанов)
-        </button>
-        <button
-          (click)="accountType = 'rms'"
-          class="px-3 py-1 text-xs transition-colors border-l border-gray-300"
-          [class.bg-gray-900]="accountType === 'rms'"
-          [class.text-white]="accountType === 'rms'"
-          [class.text-gray-600]="accountType !== 'rms'"
-          [class.hover:bg-gray-100]="accountType !== 'rms'">
-          RMS (1 ресторан)
-        </button>
+    <header class="border-b border-gray-200 bg-white">
+      <div class="flex h-14 items-center gap-4 px-4">
+        <div class="flex items-center gap-2">
+          <svg width="60" height="24" viewBox="0 0 60 24" fill="none" class="text-[#E94B35]">
+            <path d="M0 0H8V24H0V0Z" fill="currentColor" />
+            <path d="M12 0H20V24H12V0Z" fill="currentColor" />
+            <path d="M28 7L32 0H40L36 7H44V17H36L40 24H32L28 17V7Z" fill="currentColor" />
+            <path d="M52 0C56.4183 0 60 3.58172 60 8V16C60 20.4183 56.4183 24 52 24C47.5817 24 44 20.4183 44 16V8C44 3.58172 47.5817 0 52 0Z" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="flex items-center gap-2 ml-6">
+          <span class="text-xs text-gray-400">Режим:</span>
+          <div class="flex rounded-md border border-gray-300 overflow-hidden">
+            <button (click)="accountType = 'chain'"
+              class="px-3 py-1 text-xs transition-colors"
+              [class.bg-gray-900]="accountType === 'chain'" [class.text-white]="accountType === 'chain'"
+              [class.text-gray-600]="accountType !== 'chain'" [class.hover:bg-gray-100]="accountType !== 'chain'">Чейн (15)</button>
+            <button (click)="accountType = 'rms'"
+              class="px-3 py-1 text-xs transition-colors border-l border-gray-300"
+              [class.bg-gray-900]="accountType === 'rms'" [class.text-white]="accountType === 'rms'"
+              [class.text-gray-600]="accountType !== 'rms'" [class.hover:bg-gray-100]="accountType !== 'rms'">RMS (1)</button>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <button class="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-gray-100 transition-colors text-sm text-gray-700">
+            <lucide-icon name="user" [size]="16"></lucide-icon>
+            <span>admin</span>
+          </button>
+        </div>
       </div>
-      <span class="ml-auto text-xs text-gray-400">
-        <lucide-icon name="info" [size]="12" class="inline-block mr-1 -mt-0.5"></lucide-icon>
-        Демонстрация контекста: {{ accountType === 'chain' ? 'управляющий сетью' : 'менеджер ресторана' }}
-      </span>
-    </div>
+    </header>
 
-    <!-- Page header -->
     <div class="px-6 py-5">
-      <h1 class="text-xl font-semibold text-gray-900">Подключение платёжных систем</h1>
-      <p class="text-sm text-gray-500 mt-1">
-        Выберите платёжную систему для подключения. При наличии лицензии вы можете быстро подключить сервис
-        к вашим ресторанам — тип оплаты и скидка будут созданы автоматически.
-      </p>
+      <h1 class="text-2xl font-semibold text-gray-900">Подключение платёжных систем</h1>
+      <p class="text-sm text-gray-500 mt-1">Выберите платёжную систему для подключения. Тип оплаты и скидка будут созданы автоматически.</p>
     </div>
 
-    <!-- Content -->
     <div class="px-6 pb-8 max-w-3xl">
-      <!-- Loading -->
       <div *ngIf="integrations.length === 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div *ngFor="let _ of [0, 1]" class="border border-gray-200 rounded-lg p-5 space-y-3">
           <div class="flex items-center gap-3">
@@ -67,23 +63,40 @@ import { IntegrationCardComponent } from '../components/integration-card.compone
         </div>
       </div>
 
-      <!-- Cards -->
       <div *ngIf="integrations.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-        <app-integration-card
-          *ngFor="let integration of integrations; trackBy: trackById"
-          [integration]="integration"
-          [accountType]="accountType"
-          (connect)="navigateToConnect($event)"
-          (openDetail)="navigateToDetail($event)"
-          (disconnect)="quickDisconnect($event)">
-        </app-integration-card>
+        <ui-card *ngFor="let it of integrations; trackBy: trackById" [hoverable]="true" (cardClick)="openDetail(it.id)">
+          <ui-card-content>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0" [class]="it.logoColor">{{ it.logoLetter }}</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-sm truncate text-gray-900">{{ it.name }}</p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <ui-status-dot [color]="it.status === 'connected' ? 'green' : 'gray'" [pulse]="false"></ui-status-dot>
+                  <span class="text-xs" [class.text-green-600]="it.status === 'connected'" [class.text-gray-400]="it.status !== 'connected'">{{ it.status === 'connected' ? 'Подключен' : 'Не подключен' }}</span>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="it.status === 'connected'" class="mt-3 pt-3 border-t border-gray-100">
+              <p class="text-xs text-gray-500">Подключено ТП: {{ it.connectedRestaurantIds.length }}</p>
+            </div>
+            <div class="flex gap-2 mt-3" (click)="$event.stopPropagation()">
+              <ui-button *ngIf="it.status !== 'connected'" size="sm" (click)="openDetail(it.id)">Подключить</ui-button>
+              <ui-button *ngIf="it.status === 'connected'" size="sm" variant="outline" (click)="openDetail(it.id)">Настроить</ui-button>
+              <ui-button *ngIf="it.status === 'connected'" size="sm" variant="ghost" class="text-red-500" (click)="quickDisconnect(it.id); $event.stopPropagation()">Отключить</ui-button>
+            </div>
+          </ui-card-content>
+        </ui-card>
       </div>
     </div>
 
-    <!-- Toast -->
-    <div
-      *ngIf="toastMessage"
-      class="fixed bottom-6 right-6 z-50 bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 max-w-sm animate-slide-up">
+    <ui-confirm-dialog
+      [open]="showDisconnectConfirm" title="Отключить {{ disconnectTarget?.name }}?"
+      message="Тип оплаты и скидка будут отключены для всех ресторанов."
+      confirmText="Отключить" variant="danger"
+      (confirmed)="confirmDisconnect()" (cancelled)="showDisconnectConfirm = false">
+    </ui-confirm-dialog>
+
+    <div *ngIf="toastMessage" class="fixed bottom-6 right-6 z-50 bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 max-w-sm animate-slide-up">
       <p class="text-sm font-medium text-gray-900">{{ toastMessage }}</p>
     </div>
   `,
@@ -91,41 +104,32 @@ import { IntegrationCardComponent } from '../components/integration-card.compone
 export class AtlasMainScreenComponent implements OnInit {
   private router = inject(Router);
   private storage = inject(StorageService);
-
   integrations: PaymentIntegration[] = [];
   accountType: AccountType = 'chain';
   toastMessage = '';
+  showDisconnectConfirm = false;
+  disconnectTarget: PaymentIntegration | null = null;
 
-  ngOnInit(): void {
-    this.integrations = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
+  ngOnInit(): void { this.integrations = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS); }
+  openDetail(id: string): void { this.router.navigate(['/prototype/atlas', id]); }
+
+  quickDisconnect(id: string): void {
+    this.disconnectTarget = this.integrations.find(i => i.id === id) || null;
+    this.showDisconnectConfirm = true;
   }
 
-  navigateToConnect(integrationId: string): void {
-    this.router.navigate(['/prototype/atlas', integrationId, 'connect']);
-  }
-
-  navigateToDetail(integrationId: string): void {
-    this.router.navigate(['/prototype/atlas', integrationId]);
-  }
-
-  quickDisconnect(integrationId: string): void {
-    const integration = this.integrations.find(i => i.id === integrationId);
-    if (!integration) return;
-    integration.status = 'disconnected';
-    integration.connectedRestaurantIds = [];
-    for (const cat of integration.operationCategories) {
-      cat.allowed = false;
-    }
-    this.persist();
-    this.toastMessage = integration.name + ' отключен';
-    setTimeout(() => { this.toastMessage = ''; }, 2500);
-  }
-
-  trackById(_: number, item: PaymentIntegration): string {
-    return item.id;
-  }
-
-  private persist(): void {
+  confirmDisconnect(): void {
+    if (!this.disconnectTarget) return;
+    this.disconnectTarget.status = 'disconnected';
+    this.disconnectTarget.connectedRestaurantIds = [];
+    for (const cat of this.disconnectTarget.operationCategories) cat.allowed = false;
     this.storage.save('atlas', 'integrations', this.integrations);
+    this.storage.save('atlas', this.disconnectTarget.id + '_restaurants', null);
+    this.showDisconnectConfirm = false;
+    this.toastMessage = this.disconnectTarget.name + ' отключен';
+    setTimeout(() => { this.toastMessage = ''; }, 2500);
+    this.disconnectTarget = null;
   }
+
+  trackById(_: number, item: PaymentIntegration): string { return item.id; }
 }

@@ -2,9 +2,51 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
-    version: '1.0',
+    version: '3.0',
     date: '2026-07-17',
     status: 'unreleased',
+    changes: [
+      {
+        items: ['Редизайн в стиле Comet: custom shell, split panel, монолитный detail screen'],
+      },
+      {
+        page: 'Список платёжных систем',
+        pageRoute: '/prototype/atlas',
+        items: [
+          'Собственный header (Comet-style) с переключателем Чейн/RMS',
+          'Инлайн-карточки систем (без отдельных компонентов)',
+          'Быстрое отключение с подтверждением',
+        ],
+      },
+      {
+        page: 'Страница интеграции',
+        pageRoute: '/prototype/atlas/kaspi',
+        items: [
+          'Split panel: дерево ресторанов слева + детали справа (Comet-паттерн)',
+          'Статус-иконки в дереве: зелёный (подключен), оранжевый (индив.), серый (не подключен)',
+          'Per-restaurant настройки: клик по ресторану → индивидуальные операции/реквизиты',
+          'Кнопки «Настроить индивидуально» / «Сбросить к общим»',
+          'Встроенный мастер подключения (5 шагов) внутри страницы, без отдельного маршрута',
+          'Степпер в левой панели на время connect/edit',
+          'Редактирование существующего подключения (edit mode)',
+        ],
+      },
+    ],
+  },
+  {
+    version: '2.0',
+    date: '2026-07-17',
+    status: 'released',
+    changes: [
+      {
+        items: ['Per-restaurant настройки: разные операции и реквизиты для разных ТП'],
+      },
+    ],
+  },
+  {
+    version: '1.0',
+    date: '2026-07-17',
+    status: 'released',
     changes: [
       {
         items: ['Создан прототип: управление подключением платёжных систем из Web (перенос с Front)'],

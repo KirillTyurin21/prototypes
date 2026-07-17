@@ -16,15 +16,8 @@ export const ATLAS_ROUTES: Routes = [
       {
         path: ':integrationId',
         loadComponent: () =>
-          import('./screens/atlas-integration-detail.component').then(
-            m => m.AtlasIntegrationDetailComponent,
-          ),
-      },
-      {
-        path: ':integrationId/connect',
-        loadComponent: () =>
-          import('./screens/atlas-connect-wizard.component').then(
-            m => m.AtlasConnectWizardComponent,
+          import('./screens/atlas-detail-screen.component').then(
+            m => m.AtlasDetailScreenComponent,
           ),
       },
     ],
