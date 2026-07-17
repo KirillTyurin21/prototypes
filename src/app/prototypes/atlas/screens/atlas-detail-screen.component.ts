@@ -286,10 +286,23 @@ type DetailMode = 'view' | 'connect' | 'edit';
                     <div class="flex items-center gap-2">
                       <h2 class="text-xl font-semibold text-gray-900">{{ r.name }}</h2>
                       <ui-badge *ngIf="r.useCustomSettings" variant="warning">Индивидуальные</ui-badge>
-                      <ui-badge *ngIf="!r.useCustomSettings" variant="default">Наследует общие</ui-badge>
+                      <ui-badge *ngIf="!r.useCustomSettings && r.isConnected" variant="default">Наследует общие</ui-badge>
+                      <ui-badge *ngIf="!r.isConnected" variant="default">Не подключен</ui-badge>
                     </div>
                     <p class="text-sm text-gray-500 mt-1">{{ r.address }}</p>
                   </div>
+
+                  <!-- NOT CONNECTED: empty state -->
+                  <div *ngIf="!r.isConnected" class="text-center py-8">
+                    <lucide-icon name="circle" [size]="40" class="text-gray-300 mx-auto mb-3"></lucide-icon>
+                    <p class="text-gray-500 text-sm">Ресторан не подключен к {{ integration?.name }}</p>
+                    <p class="text-gray-400 text-xs mt-1">
+                      Нажмите «{{ isConnected ? 'Изменить' : 'Подключить' }}» и выберите этот ресторан в списке, чтобы активировать интеграцию.
+                    </p>
+                  </div>
+
+                  <!-- CONNECTED: operations, credentials, actions -->
+                  <ng-container *ngIf="r.isConnected">
 
                   <!-- Operations for this restaurant -->
                   <ui-card>
@@ -392,6 +405,7 @@ type DetailMode = 'view' | 'connect' | 'edit';
                       Сбросить к общим
                     </ui-button>
                   </div>
+                  </ng-container>
                 </div>
               </div>
             </div>
