@@ -14,8 +14,8 @@ import { OperationCategory } from '../types';
         *ngFor="let cat of categories; trackBy: trackById"
         class="flex items-start gap-3 px-4 py-3 border border-gray-200 rounded-lg transition-colors"
         [class.bg-gray-50]="mode === 'view' && !cat.allowed"
-        [class.border-green-200]="cat.allowed"
-        [class.bg-green-50/30]="cat.allowed">
+        [class.bg-green-50]="cat.allowed"
+        [class.border-green-200]="cat.allowed">
 
         <lucide-icon
           [name]="cat.iconName"

@@ -190,6 +190,10 @@ import {
   // Variant switcher (cs-terminals)
   PanelRight,
   ChevronsDownUp,
+  // Atlas prototype
+  Unplug,
+  UtensilsCrossed,
+  Percent,
 } from 'lucide-angular';
 
 /**
