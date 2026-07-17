@@ -131,7 +131,12 @@ type DetailMode = 'view' | 'connect' | 'edit';
             <!-- Left: Restaurant Tree -->
             <div class="w-96 border-r border-gray-200 overflow-y-auto shrink-0">
               <div class="p-4">
-                <h2 class="mb-4 text-sm font-semibold text-gray-500">Структура торговых предприятий</h2>
+                <h2 class="mb-1 text-sm font-semibold text-gray-500">
+                  {{ accountType === 'rms' ? 'Ваше торговое предприятие' : 'Структура торговых предприятий' }}
+                </h2>
+                <p *ngIf="accountType === 'rms'" class="text-xs text-gray-400 mb-3">
+                  Режим RMS — показано только ваше ТП
+                </p>
                 <div *ngIf="flatRestaurantList.length === 0" class="py-8 text-center text-sm text-gray-400">Нет ресторанов</div>
                 <div class="space-y-1">
                   <ng-container *ngFor="let item of flatRestaurantList">
@@ -533,13 +538,31 @@ export class AtlasDetailScreenComponent implements OnInit {
     const saved = this.storage.load<RestaurantNode[]>('atlas', this.integrationId + '_restaurants', null as any);
     if (saved && Array.isArray(saved) && saved.length > 0) {
       this.restaurantTree = saved;
+      // Filter tree for RMS: only keep the connected restaurant
+      if (this.accountType === 'rms') {
+        this.restaurantTree = this.filterRmsTree(saved);
+      }
     } else {
       const connectedIds = new Set(this.integration?.connectedRestaurantIds ?? []);
-      this.restaurantTree = JSON.parse(JSON.stringify(MOCK_CHAIN_RESTAURANTS));
+      const source = this.accountType === 'rms' ? MOCK_RMS_RESTAURANT : MOCK_CHAIN_RESTAURANTS;
+      this.restaurantTree = JSON.parse(JSON.stringify(source));
       const mark = (ns: any[]) => { for (const n of ns) { n.isConnected = connectedIds.has(n.id); if (n.children) mark(n.children); } };
       mark(this.restaurantTree);
     }
     this.rebuildFlatList();
+  }
+
+  /** For RMS: extract only the single restaurant (no groups, no hierarchy) */
+  private filterRmsTree(saved: RestaurantNode[]): RestaurantNode[] {
+    const findLeaf = (ns: RestaurantNode[]): RestaurantNode | null => {
+      for (const n of ns) {
+        if (!n.children) return n;
+        if (n.children) { const r = findLeaf(n.children); if (r) return r; }
+      }
+      return null;
+    };
+    const leaf = findLeaf(saved);
+    return leaf ? [{ ...leaf, children: undefined }] : saved;
   }
 
   rebuildFlatList(): void {
