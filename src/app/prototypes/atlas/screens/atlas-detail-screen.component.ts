@@ -244,7 +244,21 @@ type DetailMode = 'view' | 'connect' | 'edit';
                       <ui-card-title>Операции</ui-card-title>
                     </ui-card-header>
                     <ui-card-content>
-                      <div class="space-y-2">
+                      <!-- EDIT MODE: checkboxes -->
+                      <div *ngIf="r.useCustomSettings && perRestaurantEditMode" class="space-y-2">
+                        <div *ngFor="let cat of getRestaurantCategories(r)"
+                          class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
+                          [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
+                          <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
+                          <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
+                          </div>
+                          <ui-checkbox [checked]="cat.allowed" (checkedChange)="cat.allowed = $event"></ui-checkbox>
+                        </div>
+                      </div>
+                      <!-- VIEW MODE: static icons -->
+                      <div *ngIf="!r.useCustomSettings || !perRestaurantEditMode" class="space-y-2">
                         <div *ngFor="let cat of getRestaurantCategories(r)"
                           class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
                           [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
@@ -261,10 +275,24 @@ type DetailMode = 'view' | 'connect' | 'edit';
                   </ui-card>
 
                   <!-- Credentials for this restaurant -->
-                  <ui-card *ngIf="r.useCustomSettings && r.customCredentials && (r.customCredentials | keyvalue).length > 0">
+                  <ui-card *ngIf="r.useCustomSettings && integration?.requiredFields?.length">
                     <ui-card-header><ui-card-title>Реквизиты</ui-card-title></ui-card-header>
                     <ui-card-content>
-                      <div class="space-y-2 text-sm">
+                      <!-- EDIT MODE: input fields -->
+                      <div *ngIf="perRestaurantEditMode" class="space-y-3">
+                        <div *ngFor="let field of integration?.requiredFields || []">
+                          <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}<span *ngIf="field.required" class="text-red-500 ml-0.5">*</span></label>
+                          <input [type]="field.type === 'password' ? 'password' : 'text'"
+                            [placeholder]="field.placeholder || ''"
+                            [(ngModel)]="r.customCredentials![field.key]"
+                            class="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white
+                              placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10
+                              focus:border-gray-400 transition-all font-mono" />
+                          <p *ngIf="field.helpText" class="text-xs text-gray-400 mt-1">{{ field.helpText }}</p>
+                        </div>
+                      </div>
+                      <!-- VIEW MODE: static text -->
+                      <div *ngIf="!perRestaurantEditMode" class="space-y-2 text-sm">
                         <div *ngFor="let field of integration?.requiredFields || []" class="flex justify-between py-1 border-b border-gray-100">
                           <span class="text-gray-500">{{ field.label }}</span>
                           <span class="font-mono text-gray-900">{{ field.type === 'password' ? '****' : (r.customCredentials?.[field.key] || '—') }}</span>
@@ -275,8 +303,26 @@ type DetailMode = 'view' | 'connect' | 'edit';
 
                   <!-- Actions -->
                   <div class="flex gap-2">
-                    <ui-button *ngIf="!r.useCustomSettings" variant="outline" size="sm" (click)="enableCustomSettings(r)">Настроить индивидуально</ui-button>
-                    <ui-button *ngIf="r.useCustomSettings" variant="ghost" size="sm" class="text-red-500" (click)="resetToGlobal(r)">Сбросить к общим настройкам</ui-button>
+                    <!-- Not customized yet -->
+                    <ui-button *ngIf="!r.useCustomSettings" variant="outline" size="sm" (click)="enableCustomSettings(r)">
+                      Настроить индивидуально
+                    </ui-button>
+                    <!-- Customized, viewing -->
+                    <ui-button *ngIf="r.useCustomSettings && !perRestaurantEditMode" variant="outline" size="sm" (click)="perRestaurantEditMode = true">
+                      <lucide-icon name="pencil" [size]="14" class="mr-1"></lucide-icon>
+                      Редактировать
+                    </ui-button>
+                    <!-- Customized, editing -->
+                    <ng-container *ngIf="r.useCustomSettings && perRestaurantEditMode">
+                      <ui-button size="sm" (click)="saveCustomSettings(r)">
+                        <lucide-icon name="save" [size]="14" class="mr-1"></lucide-icon>
+                        Сохранить
+                      </ui-button>
+                      <ui-button variant="ghost" size="sm" (click)="cancelCustomEdit()">Отмена</ui-button>
+                    </ng-container>
+                    <ui-button *ngIf="r.useCustomSettings" variant="ghost" size="sm" class="text-red-500 ml-auto" (click)="resetToGlobal(r)">
+                      Сбросить к общим
+                    </ui-button>
                   </div>
                 </div>
               </div>
@@ -480,6 +526,7 @@ export class AtlasDetailScreenComponent implements OnInit {
   // View state
   detailMode: DetailMode = 'view';
   selectedRestaurantId: string | null = null;
+  perRestaurantEditMode = false;
   restaurantTree: RestaurantNode[] = [];
   flatRestaurantList: FlatItem[] = [];
   expandedGroups = new Set<string>();
@@ -590,6 +637,7 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   selectRestaurant(id: string): void {
     this.selectedRestaurantId = this.selectedRestaurantId === id ? null : id;
+    this.perRestaurantEditMode = false;
   }
 
   getRestaurant(id: string): RestaurantNode | null {
@@ -609,15 +657,28 @@ export class AtlasDetailScreenComponent implements OnInit {
     r.customOperationCategories = (this.integration?.operationCategories || []).map(c => ({ ...c }));
     r.customCredentials = { ...(this.integration?.requiredFields?.reduce((acc, f) => ({ ...acc, [f.key]: '' }), {}) || {}) };
     r.useCustomSettings = true;
+    this.perRestaurantEditMode = true;
     this.persistTree();
     this.rebuildFlatList();
     this.toast('Индивидуальные настройки включены для «' + r.name + '»');
+  }
+
+  saveCustomSettings(r: RestaurantNode): void {
+    this.perRestaurantEditMode = false;
+    this.persistTree();
+    this.rebuildFlatList();
+    this.toast('Настройки «' + r.name + '» сохранены');
+  }
+
+  cancelCustomEdit(): void {
+    this.perRestaurantEditMode = false;
   }
 
   resetToGlobal(r: RestaurantNode): void {
     r.customOperationCategories = undefined;
     r.customCredentials = undefined;
     r.useCustomSettings = false;
+    this.perRestaurantEditMode = false;
     this.persistTree();
     this.rebuildFlatList();
     this.toast('Настройки «' + r.name + '» сброшены к общим');
