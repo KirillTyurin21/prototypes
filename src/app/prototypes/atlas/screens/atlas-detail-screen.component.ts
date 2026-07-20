@@ -4,17 +4,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   UiButtonComponent, UiCardComponent, UiCardHeaderComponent, UiCardTitleComponent, UiCardContentComponent,
-  UiInputComponent, UiCheckboxComponent, UiStatusDotComponent, UiConfirmDialogComponent,
+  UiCheckboxComponent, UiStatusDotComponent, UiConfirmDialogComponent,
   UiAlertComponent, UiDividerComponent, UiBadgeComponent,
 } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
 import {
-  PaymentIntegration, OperationCategory, RestaurantNode, FieldConfig, AccountType,
+  PaymentIntegration, OperationCategory, RestaurantNode, AccountType,
 } from '../types';
 import { MOCK_INTEGRATIONS, MOCK_CHAIN_RESTAURANTS, MOCK_RMS_RESTAURANT } from '../data/mock-data';
 
-type DetailMode = 'view' | 'connect' | 'edit';
+type DetailMode = 'view' | 'connect';
 
 @Component({
   selector: 'app-atlas-detail-screen',
@@ -22,7 +22,7 @@ type DetailMode = 'view' | 'connect' | 'edit';
   imports: [
     CommonModule, FormsModule,
     UiButtonComponent, UiCardComponent, UiCardHeaderComponent, UiCardTitleComponent, UiCardContentComponent,
-    UiInputComponent, UiCheckboxComponent, UiStatusDotComponent, UiConfirmDialogComponent,
+    UiCheckboxComponent, UiStatusDotComponent, UiConfirmDialogComponent,
     UiAlertComponent, UiDividerComponent, UiBadgeComponent,
     IconsModule,
   ],
@@ -30,14 +30,6 @@ type DetailMode = 'view' | 'connect' | 'edit';
     <!-- Header (Comet-style) -->
     <header class="border-b border-gray-200 bg-white">
       <div class="flex h-14 items-center gap-4 px-4">
-        <div class="flex items-center gap-2">
-          <svg width="60" height="24" viewBox="0 0 60 24" fill="none" class="text-[#E94B35]">
-            <path d="M0 0H8V24H0V0Z" fill="currentColor" />
-            <path d="M12 0H20V24H12V0Z" fill="currentColor" />
-            <path d="M28 7L32 0H40L36 7H44V17H36L40 24H32L28 17V7Z" fill="currentColor" />
-            <path d="M52 0C56.4183 0 60 3.58172 60 8V16C60 20.4183 56.4183 24 52 24C47.5817 24 44 20.4183 44 16V8C44 3.58172 47.5817 0 52 0Z" fill="currentColor" />
-          </svg>
-        </div>
         <div class="flex items-center gap-2 ml-6">
           <span class="text-xs text-gray-400">Режим:</span>
           <div class="flex rounded-md border border-gray-300 overflow-hidden">
@@ -116,7 +108,6 @@ type DetailMode = 'view' | 'connect' | 'edit';
             <div class="flex gap-2 shrink-0">
               <ui-button *ngIf="!isConnected && detailMode === 'view' && hasLicense" (click)="startConnect()">Подключить</ui-button>
               <ui-button *ngIf="!isConnected && detailMode === 'view' && !hasLicense" [disabled]="true" title="Требуется лицензия">Подключить</ui-button>
-              <ui-button *ngIf="isConnected && detailMode === 'view'" variant="outline" (click)="startEdit()">Изменить</ui-button>
               <ui-button *ngIf="isConnected && detailMode === 'view'" variant="danger" (click)="showDisconnectConfirm = true">Отключить</ui-button>
               <ui-button *ngIf="detailMode !== 'view'" variant="ghost" (click)="cancelFlow()">Отмена</ui-button>
             </div>
@@ -292,56 +283,24 @@ type DetailMode = 'view' | 'connect' | 'edit';
                     <p class="text-sm text-gray-500 mt-1">{{ r.address }}</p>
                   </div>
 
-                  <!-- NOT CONNECTED: empty state -->
-                  <div *ngIf="!r.isConnected" class="text-center py-8">
-                    <lucide-icon name="circle" [size]="40" class="text-gray-300 mx-auto mb-3"></lucide-icon>
-                    <p class="text-gray-500 text-sm">Ресторан не подключен к {{ integration?.name }}</p>
-                    <p class="text-gray-400 text-xs mt-1">
-                      Нажмите «{{ isConnected ? 'Изменить' : 'Подключить' }}» и выберите этот ресторан в списке, чтобы активировать интеграцию.
-                    </p>
-                  </div>
+                  <!-- NOT CONNECTED: warning + inline connect -->
+                  <ui-alert *ngIf="!r.isConnected" variant="warning" class="mb-4">
+                    Этот ресторан не подключен к {{ integration?.name }}.
+                    <button (click)="connectRestaurant(r)" class="underline text-blue-600 hover:text-blue-800 ml-1 text-sm font-medium">
+                      Подключить ресторан
+                    </button>
+                  </ui-alert>
 
-                  <!-- CONNECTED: operations, credentials, actions -->
-                  <ng-container *ngIf="r.isConnected">
-
-                  <!-- Operations for this restaurant -->
+                  <!-- Operations (read-only for disconnected, editable for connected) -->
                   <ui-card>
                     <ui-card-header>
                       <ui-card-title>Операции</ui-card-title>
                     </ui-card-header>
                     <ui-card-content>
-                      <!-- NOT customized: show inherited notice -->
-                      <ng-container *ngIf="!r.useCustomSettings">
-                        <ui-alert variant="info" class="mb-3">
-                          Этот ресторан использует <strong>общие настройки</strong>.
-                          <button (click)="selectedRestaurantId = null" class="underline text-blue-600 hover:text-blue-800 ml-1 text-xs">
-                            Показать общие настройки
-                          </button>
-                        </ui-alert>
-                        <p class="text-xs text-gray-500">
-                          Разрешённые операции (наследуются):
-                          <span class="font-medium text-gray-700">
-                            {{ inheritedCategoriesSummary }}
-                          </span>
-                        </p>
-                      </ng-container>
-                      <!-- EDIT MODE: checkboxes (only for customized) -->
-                      <div *ngIf="r.useCustomSettings && perRestaurantEditMode" class="space-y-2">
+                      <!-- DISCONNECTED: static icons (settings don't apply yet) -->
+                      <div *ngIf="!r.isConnected" class="space-y-2">
                         <div *ngFor="let cat of getRestaurantCategories(r)"
-                          class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
-                          [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
-                          <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
-                          <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
-                            <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
-                          </div>
-                          <ui-checkbox [checked]="cat.allowed" (checkedChange)="cat.allowed = $event"></ui-checkbox>
-                        </div>
-                      </div>
-                      <!-- VIEW MODE: static icons (only for customized) -->
-                      <div *ngIf="r.useCustomSettings && !perRestaurantEditMode" class="space-y-2">
-                        <div *ngFor="let cat of getRestaurantCategories(r)"
-                          class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
+                          class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg opacity-60"
                           [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
                           <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
                           <div class="flex-1">
@@ -352,60 +311,52 @@ type DetailMode = 'view' | 'connect' | 'edit';
                           <lucide-icon *ngIf="!cat.allowed" name="x" [size]="16" class="text-gray-300 shrink-0"></lucide-icon>
                         </div>
                       </div>
+                      <!-- CONNECTED: editable checkboxes -->
+                      <div *ngIf="r.isConnected" class="space-y-2">
+                        <div *ngFor="let cat of getRestaurantCategories(r)"
+                          class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
+                          [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
+                          <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
+                          <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
+                          </div>
+                          <ui-checkbox [checked]="cat.allowed" (checkedChange)="onCategoryToggle(r, cat, $event)"></ui-checkbox>
+                        </div>
+                      </div>
                     </ui-card-content>
                   </ui-card>
 
-                  <!-- Credentials for this restaurant -->
-                  <ui-card *ngIf="r.useCustomSettings && integration?.requiredFields?.length">
+                  <!-- Credentials (only for connected restaurants) -->
+                  <ui-card *ngIf="r.isConnected && integration?.requiredFields?.length">
                     <ui-card-header><ui-card-title>Реквизиты</ui-card-title></ui-card-header>
                     <ui-card-content>
-                      <!-- EDIT MODE: input fields -->
-                      <div *ngIf="perRestaurantEditMode" class="space-y-3">
+                      <div class="space-y-3">
                         <div *ngFor="let field of integration?.requiredFields || []">
                           <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}<span *ngIf="field.required" class="text-red-500 ml-0.5">*</span></label>
                           <input [type]="field.type === 'password' ? 'password' : 'text'"
                             [placeholder]="field.placeholder || ''"
-                            [(ngModel)]="r.customCredentials![field.key]"
+                            [ngModel]="r.customCredentials?.[field.key] || ''"
+                            (ngModelChange)="onCredentialChange(r, field.key, $event)"
                             class="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white
                               placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10
                               focus:border-gray-400 transition-all font-mono" />
                           <p *ngIf="field.helpText" class="text-xs text-gray-400 mt-1">{{ field.helpText }}</p>
                         </div>
                       </div>
-                      <!-- VIEW MODE: static text -->
-                      <div *ngIf="!perRestaurantEditMode" class="space-y-2 text-sm">
-                        <div *ngFor="let field of integration?.requiredFields || []" class="flex justify-between py-1 border-b border-gray-100">
-                          <span class="text-gray-500">{{ field.label }}</span>
-                          <span class="font-mono text-gray-900">{{ field.type === 'password' ? '****' : (r.customCredentials?.[field.key] || '—') }}</span>
-                        </div>
-                      </div>
                     </ui-card-content>
                   </ui-card>
 
-                  <!-- Actions -->
-                  <div class="flex gap-2">
-                    <!-- Not customized yet -->
-                    <ui-button *ngIf="!r.useCustomSettings" variant="outline" size="sm" (click)="enableCustomSettings(r)">
-                      Настроить индивидуально
+                  <!-- Actions (only for connected restaurants) -->
+                  <div *ngIf="r.isConnected" class="flex gap-2">
+                    <ui-button size="sm" (click)="saveCustomSettings(r)">
+                      <lucide-icon name="save" [size]="14" class="mr-1"></lucide-icon>
+                      Сохранить
                     </ui-button>
-                    <!-- Customized, viewing -->
-                    <ui-button *ngIf="r.useCustomSettings && !perRestaurantEditMode" variant="outline" size="sm" (click)="perRestaurantEditMode = true">
-                      <lucide-icon name="pencil" [size]="14" class="mr-1"></lucide-icon>
-                      Редактировать
-                    </ui-button>
-                    <!-- Customized, editing -->
-                    <ng-container *ngIf="r.useCustomSettings && perRestaurantEditMode">
-                      <ui-button size="sm" (click)="saveCustomSettings(r)">
-                        <lucide-icon name="save" [size]="14" class="mr-1"></lucide-icon>
-                        Сохранить
-                      </ui-button>
-                      <ui-button variant="ghost" size="sm" (click)="cancelCustomEdit()">Отмена</ui-button>
-                    </ng-container>
                     <ui-button *ngIf="r.useCustomSettings" variant="ghost" size="sm" class="text-red-500 ml-auto" (click)="resetToGlobal(r)">
                       Сбросить к общим
                     </ui-button>
                   </div>
-                  </ng-container>
                 </div>
               </div>
             </div>
@@ -415,12 +366,12 @@ type DetailMode = 'view' | 'connect' | 'edit';
         <!-- ======================================== -->
         <!-- MODE: CONNECT / EDIT                     -->
         <!-- ======================================== -->
-        <ng-container *ngIf="detailMode === 'connect' || detailMode === 'edit'">
+        <ng-container *ngIf="detailMode === 'connect'">
           <div class="flex flex-1 min-h-0">
             <!-- Left: Stepper -->
             <div class="w-64 border-r border-gray-200 overflow-y-auto shrink-0 bg-gray-50/30">
               <div class="p-4">
-                <h2 class="mb-4 text-sm font-semibold text-gray-500">{{ detailMode === 'connect' ? 'Мастер подключения' : 'Редактирование' }}</h2>
+                <h2 class="mb-4 text-sm font-semibold text-gray-500">Мастер подключения</h2>
                 <div class="space-y-1">
                   <div *ngFor="let step of wizardStepLabels; let i = index"
                     class="flex items-center gap-2 px-2 py-1.5 rounded text-sm"
@@ -596,6 +547,15 @@ type DetailMode = 'view' | 'connect' | 'edit';
       </div>
     </div>
 
+    <!-- Unsaved changes confirm -->
+    <ui-confirm-dialog
+      [open]="showUnsavedConfirm" title="Несохранённые изменения"
+      message="У вас есть несохранённые изменения для выбранного ресторана. Сохранить перед переходом?"
+      confirmText="Сохранить и перейти" variant="primary"
+      cancelText="Продолжить без сохранения"
+      (confirmed)="saveUnsavedAndSwitch()" (cancelled)="discardUnsavedAndSwitch()">
+    </ui-confirm-dialog>
+
     <!-- Disconnect Confirm -->
     <ui-confirm-dialog
       [open]="showDisconnectConfirm" title="Отключить {{ integration?.name }}?"
@@ -624,10 +584,11 @@ export class AtlasDetailScreenComponent implements OnInit {
   // View state
   detailMode: DetailMode = 'view';
   selectedRestaurantId: string | null = null;
-  perRestaurantEditMode = false;
   restaurantTree: RestaurantNode[] = [];
   flatRestaurantList: FlatItem[] = [];
   expandedGroups = new Set<string>();
+  /** Ресторан, для которого есть несохранённые изменения */
+  dirtyRestaurantId: string | null = null;
 
   // Connect/Edit wizard state
   connectStep = 1;
@@ -641,6 +602,8 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   // UI
   showDisconnectConfirm = false;
+  showUnsavedConfirm = false;
+  pendingRestaurantId: string | null = null;
   toastMessage = '';
   showPluginPanel = false;
   pluginStatus: 'active' | 'inactive' = 'active';
@@ -651,13 +614,6 @@ export class AtlasDetailScreenComponent implements OnInit {
   get connectedCount(): number { return this.integration?.connectedRestaurantIds?.length ?? 0; }
   get totalRestaurantCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
   get customSettingsCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children && x.useCustomSettings) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
-
-  /** Summary of inherited (global) allowed categories for display */
-  get inheritedCategoriesSummary(): string {
-    const cats = this.integration?.operationCategories || [];
-    const allowed = cats.filter(c => c.allowed).map(c => c.label);
-    return allowed.length > 0 ? allowed.join(', ') : 'нет разрешённых операций';
-  }
 
   get hasWizRequiredFields(): boolean { return (this.integration?.requiredFields?.length ?? 0) > 0; }
   get totalWizSteps(): number { return this.hasWizRequiredFields ? 5 : 4; }
@@ -745,8 +701,14 @@ export class AtlasDetailScreenComponent implements OnInit {
   }
 
   selectRestaurant(id: string): void {
+    // If switching away from a dirty restaurant, prompt to save
+    if (this.dirtyRestaurantId && this.dirtyRestaurantId !== id) {
+      this.pendingRestaurantId = id;
+      this.showUnsavedConfirm = true;
+      return;
+    }
     this.selectedRestaurantId = this.selectedRestaurantId === id ? null : id;
-    this.perRestaurantEditMode = false;
+    this.dirtyRestaurantId = null;
   }
 
   getRestaurant(id: string): RestaurantNode | null {
@@ -762,57 +724,109 @@ export class AtlasDetailScreenComponent implements OnInit {
     return this.integration?.operationCategories || [];
   }
 
-  enableCustomSettings(r: RestaurantNode): void {
+  /** Вызывается при изменении чекбокса категории для ресторана */
+  onCategoryToggle(r: RestaurantNode, cat: OperationCategory, checked: boolean): void {
+    // Auto-activate custom settings on first change
+    if (!r.useCustomSettings) {
+      this.enableCustomSettingsSilent(r);
+    }
+    // Find the correct category reference after potential auto-activation
+    const targetCat = (r.customOperationCategories || this.integration?.operationCategories || [])
+      .find(c => c.id === cat.id);
+    if (targetCat) {
+      targetCat.allowed = checked;
+    }
+    this.dirtyRestaurantId = r.id;
+  }
+
+  /** Вызывается при изменении реквизита для ресторана */
+  onCredentialChange(r: RestaurantNode, key: string, value: string): void {
+    if (!r.useCustomSettings) {
+      this.enableCustomSettingsSilent(r);
+    }
+    if (!r.customCredentials) r.customCredentials = {};
+    r.customCredentials[key] = value;
+    this.dirtyRestaurantId = r.id;
+  }
+
+  /** Включить индивидуальные настройки без toast-уведомления (без персистенции) */
+  private enableCustomSettingsSilent(r: RestaurantNode): void {
     r.customOperationCategories = (this.integration?.operationCategories || []).map(c => ({ ...c }));
     r.customCredentials = { ...(this.integration?.requiredFields?.reduce((acc, f) => ({ ...acc, [f.key]: '' }), {}) || {}) };
     r.useCustomSettings = true;
-    this.perRestaurantEditMode = true;
-    this.persistTree();
     this.rebuildFlatList();
-    this.toast('Индивидуальные настройки включены для «' + r.name + '»');
   }
 
   saveCustomSettings(r: RestaurantNode): void {
-    this.perRestaurantEditMode = false;
+    this.dirtyRestaurantId = null;
     this.persistTree();
     this.rebuildFlatList();
-    this.toast('Настройки «' + r.name + '» сохранены');
+    this.toast('Настройки «' + r.name + '» сохранены и отправлены в плагин');
   }
 
-  cancelCustomEdit(): void {
-    this.perRestaurantEditMode = false;
+  /** Обработка нажатия «Продолжить без сохранения» в диалоге несохранённых изменений */
+  discardUnsavedAndSwitch(): void {
+    this.showUnsavedConfirm = false;
+    const targetId = this.pendingRestaurantId;
+    this.pendingRestaurantId = null;
+    // Revert dirty restaurant's custom settings by reloading tree
+    if (this.dirtyRestaurantId) {
+      this.buildTree();
+      this.dirtyRestaurantId = null;
+    }
+    this.selectedRestaurantId = this.selectedRestaurantId === targetId ? null : targetId;
+  }
+
+  /** Обработка нажатия «Сохранить» в диалоге несохранённых изменений */
+  saveUnsavedAndSwitch(): void {
+    this.showUnsavedConfirm = false;
+    const dirtyR = this.dirtyRestaurantId ? this.getRestaurant(this.dirtyRestaurantId) : null;
+    if (dirtyR) {
+      this.saveCustomSettings(dirtyR);
+    }
+    const targetId = this.pendingRestaurantId;
+    this.pendingRestaurantId = null;
+    this.selectedRestaurantId = this.selectedRestaurantId === targetId ? null : targetId;
   }
 
   resetToGlobal(r: RestaurantNode): void {
     r.customOperationCategories = undefined;
     r.customCredentials = undefined;
     r.useCustomSettings = false;
-    this.perRestaurantEditMode = false;
+    this.dirtyRestaurantId = null;
     this.persistTree();
     this.rebuildFlatList();
     this.toast('Настройки «' + r.name + '» сброшены к общим');
+  }
+
+  /** Подключить отдельный ресторан к интеграции (inline action) */
+  connectRestaurant(r: RestaurantNode): void {
+    if (!this.integration) return;
+    r.isConnected = true;
+    // Add to integration's connected list if not already there
+    if (!this.integration.connectedRestaurantIds.includes(r.id)) {
+      this.integration.connectedRestaurantIds = [...this.integration.connectedRestaurantIds, r.id];
+      const all = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
+      const t = all.find(i => i.id === this.integrationId);
+      if (t) t.connectedRestaurantIds = this.integration.connectedRestaurantIds;
+      this.storage.save('atlas', 'integrations', all);
+    }
+    this.persistTree();
+    this.rebuildFlatList();
+    this.toast('Ресторан «' + r.name + '» подключен к ' + this.integration.name);
   }
 
   // --- Navigation ---
 
   goBack(): void { this.router.navigate(['/prototype/atlas']); }
 
-  // --- Connect / Edit Flow ---
+  // --- Connect Flow ---
 
   startConnect(): void {
     this.detailMode = 'connect';
     this.connectStep = 1;
     this.wizConsent = false;
     this.wizCategories = (this.integration?.operationCategories || []).map(c => ({ ...c, allowed: false }));
-    this.wizCredentials = {};
-    this.initWizTree();
-  }
-
-  startEdit(): void {
-    this.detailMode = 'edit';
-    this.connectStep = 2;  // skip consent for edit
-    this.wizConsent = true;
-    this.wizCategories = (this.integration?.operationCategories || []).map(c => ({ ...c }));
     this.wizCredentials = {};
     this.initWizTree();
   }

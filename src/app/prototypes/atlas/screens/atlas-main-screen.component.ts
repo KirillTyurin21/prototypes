@@ -14,14 +14,6 @@ import { MOCK_INTEGRATIONS } from '../data/mock-data';
   template: `
     <header class="border-b border-gray-200 bg-white">
       <div class="flex h-14 items-center gap-4 px-4">
-        <div class="flex items-center gap-2">
-          <svg width="60" height="24" viewBox="0 0 60 24" fill="none" class="text-[#E94B35]">
-            <path d="M0 0H8V24H0V0Z" fill="currentColor" />
-            <path d="M12 0H20V24H12V0Z" fill="currentColor" />
-            <path d="M28 7L32 0H40L36 7H44V17H36L40 24H32L28 17V7Z" fill="currentColor" />
-            <path d="M52 0C56.4183 0 60 3.58172 60 8V16C60 20.4183 56.4183 24 52 24C47.5817 24 44 20.4183 44 16V8C44 3.58172 47.5817 0 52 0Z" fill="currentColor" />
-          </svg>
-        </div>
         <div class="flex items-center gap-2 ml-6">
           <span class="text-xs text-gray-400">Режим:</span>
           <div class="flex rounded-md border border-gray-300 overflow-hidden">

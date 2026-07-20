@@ -172,6 +172,7 @@ import {
   // POS Orders module
   Truck,
   Minus,
+  MinusSquare,
   Banknote,
   ChevronsUp,
   MoreVertical,
@@ -374,6 +375,7 @@ const icons = {
   // POS Orders module
   Truck,
   Minus,
+  MinusSquare,
   Banknote,
   ChevronsUp,
   MoreVertical,
