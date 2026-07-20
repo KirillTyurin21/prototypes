@@ -291,28 +291,13 @@ type DetailMode = 'view' | 'connect';
                     </button>
                   </ui-alert>
 
-                  <!-- Operations (read-only for disconnected, editable for connected) -->
+                  <!-- Operations (always editable checkboxes) -->
                   <ui-card>
                     <ui-card-header>
                       <ui-card-title>Операции</ui-card-title>
                     </ui-card-header>
                     <ui-card-content>
-                      <!-- DISCONNECTED: static icons (settings don't apply yet) -->
-                      <div *ngIf="!r.isConnected" class="space-y-2">
-                        <div *ngFor="let cat of getRestaurantCategories(r)"
-                          class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg opacity-60"
-                          [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
-                          <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
-                          <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
-                            <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
-                          </div>
-                          <lucide-icon *ngIf="cat.allowed" name="check" [size]="16" class="text-green-500 shrink-0"></lucide-icon>
-                          <lucide-icon *ngIf="!cat.allowed" name="x" [size]="16" class="text-gray-300 shrink-0"></lucide-icon>
-                        </div>
-                      </div>
-                      <!-- CONNECTED: editable checkboxes -->
-                      <div *ngIf="r.isConnected" class="space-y-2">
+                      <div class="space-y-2">
                         <div *ngFor="let cat of getRestaurantCategories(r)"
                           class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
                           [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
@@ -327,8 +312,8 @@ type DetailMode = 'view' | 'connect';
                     </ui-card-content>
                   </ui-card>
 
-                  <!-- Credentials (only for connected restaurants) -->
-                  <ui-card *ngIf="r.isConnected && integration?.requiredFields?.length">
+                  <!-- Credentials -->
+                  <ui-card *ngIf="integration?.requiredFields?.length">
                     <ui-card-header><ui-card-title>Реквизиты</ui-card-title></ui-card-header>
                     <ui-card-content>
                       <div class="space-y-3">
@@ -347,8 +332,8 @@ type DetailMode = 'view' | 'connect';
                     </ui-card-content>
                   </ui-card>
 
-                  <!-- Actions (only for connected restaurants) -->
-                  <div *ngIf="r.isConnected" class="flex gap-2">
+                  <!-- Actions -->
+                  <div class="flex gap-2">
                     <ui-button size="sm" (click)="saveCustomSettings(r)">
                       <lucide-icon name="save" [size]="14" class="mr-1"></lucide-icon>
                       Сохранить
@@ -758,6 +743,10 @@ export class AtlasDetailScreenComponent implements OnInit {
   }
 
   saveCustomSettings(r: RestaurantNode): void {
+    // Auto-connect if not connected
+    if (!r.isConnected) {
+      this.connectRestaurant(r);
+    }
     this.dirtyRestaurantId = null;
     this.persistTree();
     this.rebuildFlatList();
