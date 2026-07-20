@@ -283,12 +283,9 @@ type DetailMode = 'view' | 'connect';
                     <p class="text-sm text-gray-500 mt-1">{{ r.address }}</p>
                   </div>
 
-                  <!-- NOT CONNECTED: warning + inline connect -->
+                  <!-- NOT CONNECTED: warning -->
                   <ui-alert *ngIf="!r.isConnected" variant="warning" class="mb-4">
-                    Этот ресторан не подключен к {{ integration?.name }}.
-                    <button (click)="connectRestaurant(r)" class="underline text-blue-600 hover:text-blue-800 ml-1 text-sm font-medium">
-                      Подключить ресторан
-                    </button>
+                    Этот ресторан не подключен к {{ integration?.name }}. Настройте операции ниже и нажмите «Сохранить», чтобы подключить ресторан.
                   </ui-alert>
 
                   <!-- Operations (always editable checkboxes) -->
@@ -706,6 +703,10 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   getRestaurantCategories(r: RestaurantNode): OperationCategory[] {
     if (r.useCustomSettings && r.customOperationCategories) return r.customOperationCategories;
+    // For disconnected restaurants, show categories as unchecked
+    if (!r.isConnected) {
+      return (this.integration?.operationCategories || []).map(c => ({ ...c, allowed: false }));
+    }
     return this.integration?.operationCategories || [];
   }
 
