@@ -4,7 +4,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '3.2',
     date: '2026-07-21',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Страница интеграции (Kaspi)',
