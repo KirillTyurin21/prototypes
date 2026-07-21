@@ -422,21 +422,13 @@ type DetailMode = 'view' | 'connect';
                   <ui-alert variant="info" class="mb-4">
                     Банк <strong>{{ integration?.name }}</strong> получит доступ к следующим операциям:
                   </ui-alert>
-                  <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-3 mb-4">
-                    <!-- Пункт 1: Платёжные операции -->
-                    <div class="flex items-start gap-3">
-                      <lucide-icon name="credit-card" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
+                  <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-2 mb-4">
+                    <div *ngFor="let cat of integration?.operationCategories || []"
+                      class="flex items-start gap-3">
+                      <lucide-icon [name]="cat.iconName" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
                       <div>
-                        <p class="text-sm font-medium text-gray-900">Платёжные операции</p>
-                        <p class="text-xs text-gray-500">Создание и возврат платежей через Kaspi QR</p>
-                      </div>
-                    </div>
-                    <!-- Пункт 2: Создание заказов доставки и самовывоза -->
-                    <div class="flex items-start gap-3">
-                      <lucide-icon name="package" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
-                      <div>
-                        <p class="text-sm font-medium text-gray-900">Создание заказов доставки и самовывоза</p>
-                        <p class="text-xs text-gray-500">Работа с меню, стоп-листами, создание заказов доставки и самовывоза</p>
+                        <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
+                        <p class="text-xs text-gray-500">{{ cat.description }}</p>
                       </div>
                     </div>
                   </div>
@@ -451,6 +443,14 @@ type DetailMode = 'view' | 'connect';
                         <p class="text-xs text-gray-500 mt-0.5">{{ integration?.paymentType?.fiscal ? 'Фискальный' : 'Нефискальный' }} &middot; Кнопка: «{{ integration?.paymentType?.buttonLabel }}»</p>
                       </div>
                     </div>
+                    <ui-divider *ngIf="integration?.paymentType && integration?.discount"></ui-divider>
+                    <div *ngIf="integration?.discount" class="flex items-start gap-3">
+                      <lucide-icon name="percent" [size]="18" class="text-orange-500 mt-0.5 shrink-0"></lucide-icon>
+                      <div>
+                        <p class="text-sm font-medium">Скидка «{{ integration?.discount?.name }}»</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ integration?.discount?.percent }}% &middot; Привязана к «{{ integration?.discount?.linkedToPaymentType }}»</p>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Consent checkbox -->
@@ -461,11 +461,12 @@ type DetailMode = 'view' | 'connect';
                         (ngModelChange)="wizConsent = $event"
                         class="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20" />
                       <span class="text-sm text-gray-700">
-                        Я принимаю условия подключения к {{ integration?.name }}. Подтверждаю, что ознакомлен с перечнем операций, к которым банк получает доступ, и даю согласие на автоматическое создание типа оплаты.
+                        Я принимаю условия подключения к {{ integration?.name }}. Подтверждаю, что ознакомлен с перечнем операций, к которым банк получает доступ, и даю согласие на автоматическое создание типа оплаты<ng-container *ngIf="integration?.discount"> и скидки</ng-container>.
                       </span>
                     </label>
                   </div>
 
+                  <ui-alert variant="info">Плагин на терминале Front получит настройки при следующем опросе (до 60 сек).</ui-alert>
                 </div>
 
                 <!-- Wizard navigation -->
