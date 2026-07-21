@@ -136,9 +136,9 @@ type DetailMode = 'view' | 'connect';
           <!-- Подключен — split panel -->
           <div *ngIf="isConnected" class="flex flex-1 min-h-0">
             <!-- Left: Restaurant Tree -->
-            <div class="w-96 border-r border-gray-200 overflow-y-auto shrink-0">
+            <div class="w-96 border-r border-gray-200 overflow-y-auto shrink-0" (click)="onTreePanelClick($event)">
               <div class="p-4">
-                <h2 class="mb-1 text-sm font-semibold text-gray-500">
+                <h2 class="mb-1 text-sm font-semibold text-gray-500" (click)="selectedRestaurantId = null" style="cursor: default">
                   {{ accountType === 'rms' ? 'Ваше торговое предприятие' : 'Структура торговых предприятий' }}
                 </h2>
                 <p *ngIf="accountType === 'rms'" class="text-xs text-gray-400 mb-3">
@@ -195,8 +195,6 @@ type DetailMode = 'view' | 'connect';
                             <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
                             <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
                           </div>
-                          <lucide-icon *ngIf="cat.allowed" name="check" [size]="16" class="text-green-500 shrink-0"></lucide-icon>
-                          <lucide-icon *ngIf="!cat.allowed" name="x" [size]="16" class="text-gray-300 shrink-0"></lucide-icon>
                         </div>
                       </div>
                     </ui-card-content>
@@ -230,43 +228,6 @@ type DetailMode = 'view' | 'connect';
                   <ui-alert *ngIf="customSettingsCount > 0" variant="info">
                     {{ customSettingsCount }} ресторанов имеют индивидуальные настройки. Выберите ресторан в дереве слева для просмотра.
                   </ui-alert>
-
-                  <!-- Plugin status panel -->
-                  <ui-card>
-                    <ui-card-header>
-                      <ui-card-title>
-                        <button (click)="showPluginPanel = !showPluginPanel"
-                          class="flex items-center gap-2 text-left w-full text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-                          <lucide-icon [name]="showPluginPanel ? 'chevron-down' : 'chevron-right'" [size]="16"></lucide-icon>
-                          Состояние плагина Front
-                        </button>
-                      </ui-card-title>
-                    </ui-card-header>
-                    <ui-card-content *ngIf="showPluginPanel">
-                      <div class="space-y-3">
-                        <p class="text-xs text-gray-500">
-                          Плагин на терминале опрашивает сервер каждые 60 сек. Статус интеграции определяет видимость типов оплат для кассира.
-                        </p>
-                        <div class="flex items-center gap-2 px-3 py-2 rounded-md border"
-                          [class.bg-green-50]="pluginStatus === 'active'" [class.border-green-200]="pluginStatus === 'active'"
-                          [class.bg-gray-50]="pluginStatus !== 'active'" [class.border-gray-200]="pluginStatus !== 'active'">
-                          <div class="w-2.5 h-2.5 rounded-full" [class.bg-green-500]="pluginStatus === 'active'" [class.bg-gray-400]="pluginStatus !== 'active'"></div>
-                          <span class="text-sm font-mono">{{ pluginStatus }}</span>
-                          <span class="text-xs text-gray-400">— {{ pluginStatus === 'active' ? 'типы оплат видны' : 'типы оплат скрыты' }}</span>
-                        </div>
-                        <div class="flex gap-2">
-                          <button (click)="simulatePlugin('active')"
-                            class="px-2.5 py-1 text-[11px] rounded border transition-colors"
-                            [class.bg-green-50]="pluginStatus === 'active'" [class.border-green-300]="pluginStatus === 'active'"
-                            [class.border-gray-200]="pluginStatus !== 'active'">→ active</button>
-                          <button (click)="simulatePlugin('inactive')"
-                            class="px-2.5 py-1 text-[11px] rounded border transition-colors"
-                            [class.bg-gray-100]="pluginStatus === 'inactive'" [class.border-gray-300]="pluginStatus === 'inactive'"
-                            [class.border-gray-200]="pluginStatus !== 'inactive'">→ inactive</button>
-                        </div>
-                      </div>
-                    </ui-card-content>
-                  </ui-card>
                 </div>
               </div>
 
@@ -283,27 +244,27 @@ type DetailMode = 'view' | 'connect';
                     <p class="text-sm text-gray-500 mt-1">{{ r.address }}</p>
                   </div>
 
-                  <!-- NOT CONNECTED: warning -->
-                  <ui-alert *ngIf="!r.isConnected" variant="warning" class="mb-4">
-                    Этот ресторан не подключен к {{ integration?.name }}. Настройте операции ниже и нажмите «Сохранить», чтобы подключить ресторан.
+                  <!-- NOT CONNECTED: info -->
+                  <ui-alert *ngIf="!r.isConnected" variant="info" class="mb-4">
+                    Ресторан не подключён к {{ integration?.name }}. Операции будут недоступны до подключения через мастер.
                   </ui-alert>
 
-                  <!-- Operations (always editable checkboxes) -->
+                  <!-- Operations (read-only) -->
                   <ui-card>
                     <ui-card-header>
-                      <ui-card-title>Операции</ui-card-title>
+                      <ui-card-title>Разрешённые операции</ui-card-title>
                     </ui-card-header>
                     <ui-card-content>
                       <div class="space-y-2">
                         <div *ngFor="let cat of getRestaurantCategories(r)"
                           class="flex items-start gap-3 px-3 py-2 border border-gray-200 rounded-lg"
-                          [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
-                          <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
+                          [class.border-green-200]="r.isConnected && cat.allowed" [class.bg-green-50]="r.isConnected && cat.allowed"
+                          [class.opacity-50]="!r.isConnected">
+                          <lucide-icon [name]="cat.iconName" [size]="18" class="shrink-0 mt-0.5" [class.text-green-600]="r.isConnected && cat.allowed" [class.text-gray-400]="!r.isConnected || !cat.allowed"></lucide-icon>
                           <div class="flex-1">
                             <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
                             <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
                           </div>
-                          <ui-checkbox [checked]="cat.allowed" (checkedChange)="onCategoryToggle(r, cat, $event)"></ui-checkbox>
                         </div>
                       </div>
                     </ui-card-content>
@@ -331,9 +292,9 @@ type DetailMode = 'view' | 'connect';
 
                   <!-- Actions -->
                   <div class="flex gap-2">
-                    <ui-button size="sm" (click)="saveCustomSettings(r)">
-                      <lucide-icon name="save" [size]="14" class="mr-1"></lucide-icon>
-                      Сохранить
+                    <ui-button *ngIf="!r.isConnected" size="sm" (click)="connectRestaurant(r)">
+                      <lucide-icon name="plug" [size]="14" class="mr-1"></lucide-icon>
+                      Подключить
                     </ui-button>
                     <ui-button *ngIf="r.useCustomSettings" variant="ghost" size="sm" class="text-red-500 ml-auto" (click)="resetToGlobal(r)">
                       Сбросить к общим
@@ -379,41 +340,8 @@ type DetailMode = 'view' | 'connect';
             <div class="flex-1 overflow-y-auto bg-white p-6">
               <div class="max-w-xl">
 
-                <!-- Step 1: Consent -->
-                <div *ngIf="connectStep === 1">
-                  <h2 class="text-lg font-semibold text-gray-900 mb-4">Согласие на подключение</h2>
-                  <ui-alert variant="info" class="mb-4">
-                    Вы даёте согласие на подключение к платёжному сервису <strong>{{ integration?.name }}</strong>.
-                    После подтверждения будет автоматически создан тип оплаты
-                    <ng-container *ngIf="integration?.discount">и связанная скидка</ng-container>.
-                  </ui-alert>
-
-                  <!-- Preview entities -->
-                  <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-3 mb-4">
-                    <h4 class="text-sm font-semibold text-gray-700">Будет создано автоматически</h4>
-                    <div *ngIf="integration?.paymentType" class="flex items-start gap-3">
-                      <lucide-icon name="credit-card" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
-                      <div>
-                        <p class="text-sm font-medium">Тип оплаты «{{ integration?.paymentType?.name }}»</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ integration?.paymentType?.fiscal ? 'Фискальный' : 'Нефискальный' }} &middot; Кнопка: «{{ integration?.paymentType?.buttonLabel }}»</p>
-                      </div>
-                    </div>
-                    <ui-divider *ngIf="integration?.paymentType && integration?.discount"></ui-divider>
-                    <div *ngIf="integration?.discount" class="flex items-start gap-3">
-                      <lucide-icon name="percent" [size]="18" class="text-orange-500 mt-0.5 shrink-0"></lucide-icon>
-                      <div>
-                        <p class="text-sm font-medium">Скидка «{{ integration?.discount?.name }}»</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ integration?.discount?.percent }}% &middot; Привязана к «{{ integration?.discount?.linkedToPaymentType }}»</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <ui-checkbox label="Я принимаю условия подключения и даю согласие на автоматическое создание типа оплаты"
-                    [checked]="wizConsent" (checkedChange)="wizConsent = $event"></ui-checkbox>
-                </div>
-
-                <!-- Step 2: Restaurants (skip for RMS) -->
-                <div *ngIf="connectStep === 2 && accountType === 'chain'">
+                <!-- Step 1: Выбор ресторанов (skip for RMS) -->
+                <div *ngIf="connectStep === 1 && accountType === 'chain'">
                   <h2 class="text-lg font-semibold text-gray-900 mb-1">Выберите рестораны</h2>
                   <p class="text-sm text-gray-500 mb-4">Отметьте рестораны для подключения. Можно выбрать все или отдельные для пилота.</p>
                   <div class="flex gap-2 mb-3">
@@ -444,40 +372,12 @@ type DetailMode = 'view' | 'connect';
                     </ng-container>
                   </div>
                 </div>
-                <div *ngIf="connectStep === 2 && accountType === 'rms'" class="text-center py-12">
+                <div *ngIf="connectStep === 1 && accountType === 'rms'" class="text-center py-12">
                   <p class="text-sm text-gray-500">У вас одно торговое предприятие — подключение будет выполнено для него автоматически.</p>
                 </div>
 
-                <!-- Step 3: Operations -->
-                <div *ngIf="connectStep === 3">
-                  <h2 class="text-lg font-semibold text-gray-900 mb-1">Какие операции разрешить?</h2>
-                  <p class="text-sm text-gray-500 mb-4">Отметьте категории операций, которые {{ integration?.name }} может выполнять.</p>
-                  <div class="space-y-2">
-                    <div *ngFor="let cat of wizCategories"
-                      class="flex items-start gap-3 px-4 py-3 border border-gray-200 rounded-lg"
-                      [class.border-green-200]="cat.allowed" [class.bg-green-50]="cat.allowed">
-                      <lucide-icon [name]="cat.iconName" [size]="20" class="shrink-0 mt-0.5" [class.text-green-600]="cat.allowed" [class.text-gray-400]="!cat.allowed"></lucide-icon>
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1">
-                          <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
-                          <button (click)="wizTooltipCat = wizTooltipCat === cat.id ? '' : cat.id"
-                            class="text-gray-400 hover:text-gray-600 transition-colors" type="button"
-                            [title]="'Что входит в категорию «' + cat.label + '»'">
-                            <lucide-icon name="info" [size]="14"></lucide-icon>
-                          </button>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ cat.description }}</p>
-                        <p *ngIf="wizTooltipCat === cat.id" class="text-xs text-gray-600 mt-1.5 px-2 py-1.5 bg-gray-100 rounded">
-                          {{ getTooltipText(cat.id) }}
-                        </p>
-                      </div>
-                      <ui-checkbox [checked]="cat.allowed" (checkedChange)="cat.allowed = $event"></ui-checkbox>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Step 4: Credentials (conditional) -->
-                <div *ngIf="connectStep === 4 && hasWizRequiredFields">
+                <!-- Step 2: Credentials (conditional) -->
+                <div *ngIf="connectStep === 2 && hasWizRequiredFields">
                   <h2 class="text-lg font-semibold text-gray-900 mb-1">Реквизиты подключения</h2>
                   <p class="text-sm text-gray-500 mb-4">Введите данные для подключения к {{ integration?.name }}.</p>
                   <div class="space-y-4">
@@ -498,26 +398,84 @@ type DetailMode = 'view' | 'connect';
                   </div>
                 </div>
 
-                <!-- Step 5: Confirmation -->
+                <!-- Final step: Подтверждение + Согласие -->
                 <div *ngIf="connectStep === totalWizSteps">
                   <h2 class="text-lg font-semibold text-gray-900 mb-4">Подтверждение подключения</h2>
+
+                  <!-- Summary info -->
                   <div class="space-y-2 text-sm mb-4">
-                    <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-500">Система</span><span class="font-medium">{{ integration?.name }}</span></div>
-                    <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-500">Рестораны</span><span class="font-medium">{{ accountType === 'rms' ? '1 (RMS)' : 'выбрано ' + wizSelectedCount + ' из ' + wizTotalCount }}</span></div>
-                    <div class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-500">Операции</span><span class="font-medium">{{ wizAllowedCatLabels }}</span></div>
-                    <div *ngIf="hasWizRequiredFields" class="flex justify-between py-1.5 border-b border-gray-100"><span class="text-gray-500">Реквизиты</span><span class="font-medium text-green-600">заполнены</span></div>
+                    <div class="flex justify-between py-1.5 border-b border-gray-100">
+                      <span class="text-gray-500">Система</span>
+                      <span class="font-medium">{{ integration?.name }}</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-gray-100">
+                      <span class="text-gray-500">Рестораны</span>
+                      <span class="font-medium">{{ accountType === 'rms' ? '1 (RMS)' : 'выбрано ' + wizSelectedCount + ' из ' + wizTotalCount }}</span>
+                    </div>
+                    <div *ngIf="hasWizRequiredFields" class="flex justify-between py-1.5 border-b border-gray-100">
+                      <span class="text-gray-500">Реквизиты</span>
+                      <span class="font-medium text-green-600">заполнены</span>
+                    </div>
                   </div>
-                  <ui-alert variant="info">После подтверждения будет автоматически создан тип оплаты<ng-container *ngIf="integration?.discount"> и скидка</ng-container>. Плагин на терминале Front получит настройки при следующем опросе (до 60 сек).</ui-alert>
+
+                  <!-- Access scopes (read-only, informational) -->
+                  <ui-alert variant="info" class="mb-4">
+                    Банк <strong>{{ integration?.name }}</strong> получит доступ к следующим операциям:
+                  </ui-alert>
+                  <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-2 mb-4">
+                    <div *ngFor="let cat of integration?.operationCategories || []"
+                      class="flex items-start gap-3">
+                      <lucide-icon [name]="cat.iconName" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">{{ cat.label }}</p>
+                        <p class="text-xs text-gray-500">{{ cat.description }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Preview created entities -->
+                  <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-3 mb-4">
+                    <h4 class="text-sm font-semibold text-gray-700">Будет создано автоматически</h4>
+                    <div *ngIf="integration?.paymentType" class="flex items-start gap-3">
+                      <lucide-icon name="credit-card" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
+                      <div>
+                        <p class="text-sm font-medium">Тип оплаты «{{ integration?.paymentType?.name }}»</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ integration?.paymentType?.fiscal ? 'Фискальный' : 'Нефискальный' }} &middot; Кнопка: «{{ integration?.paymentType?.buttonLabel }}»</p>
+                      </div>
+                    </div>
+                    <ui-divider *ngIf="integration?.paymentType && integration?.discount"></ui-divider>
+                    <div *ngIf="integration?.discount" class="flex items-start gap-3">
+                      <lucide-icon name="percent" [size]="18" class="text-orange-500 mt-0.5 shrink-0"></lucide-icon>
+                      <div>
+                        <p class="text-sm font-medium">Скидка «{{ integration?.discount?.name }}»</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ integration?.discount?.percent }}% &middot; Привязана к «{{ integration?.discount?.linkedToPaymentType }}»</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Consent checkbox -->
+                  <div class="mb-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                      <input type="checkbox"
+                        [ngModel]="wizConsent"
+                        (ngModelChange)="wizConsent = $event"
+                        class="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20" />
+                      <span class="text-sm text-gray-700">
+                        Я принимаю условия подключения к {{ integration?.name }}. Подтверждаю, что ознакомлен с перечнем операций, к которым банк получает доступ, и даю согласие на автоматическое создание типа оплаты<ng-container *ngIf="integration?.discount"> и скидки</ng-container>.
+                      </span>
+                    </label>
+                  </div>
+
+                  <ui-alert variant="info">Плагин на терминале Front получит настройки при следующем опросе (до 60 сек).</ui-alert>
                 </div>
 
                 <!-- Wizard navigation -->
                 <div class="flex justify-between mt-8 pt-4 border-t border-gray-200">
-                  <ui-button *ngIf="connectStep === 1" variant="ghost" class="text-red-500" (click)="goBack()">Отказаться</ui-button>
-                  <ui-button *ngIf="connectStep > 1" variant="ghost" (click)="cancelFlow()">Отмена</ui-button>
+                  <ui-button variant="ghost" (click)="cancelFlow()">Отмена</ui-button>
                   <div class="flex gap-2">
                     <ui-button *ngIf="connectStep > 1" variant="outline" (click)="wizPrev()">Назад</ui-button>
                     <ui-button *ngIf="connectStep < totalWizSteps" [disabled]="!canWizNext" (click)="wizNext()">Далее</ui-button>
-                    <ui-button *ngIf="connectStep === totalWizSteps" [loading]="wizSubmitting" (click)="wizSubmit()">Подтвердить и подключить</ui-button>
+                    <ui-button *ngIf="connectStep === totalWizSteps" [disabled]="!canWizNext" [loading]="wizSubmitting" (click)="wizSubmit()">Подтвердить и подключить</ui-button>
                   </div>
                 </div>
 
@@ -528,15 +486,6 @@ type DetailMode = 'view' | 'connect';
 
       </div>
     </div>
-
-    <!-- Unsaved changes confirm -->
-    <ui-confirm-dialog
-      [open]="showUnsavedConfirm" title="Несохранённые изменения"
-      message="У вас есть несохранённые изменения для выбранного ресторана. Сохранить перед переходом?"
-      confirmText="Сохранить и перейти" variant="primary"
-      cancelText="Продолжить без сохранения"
-      (confirmed)="saveUnsavedAndSwitch()" (cancelled)="discardUnsavedAndSwitch()">
-    </ui-confirm-dialog>
 
     <!-- Disconnect Confirm -->
     <ui-confirm-dialog
@@ -569,26 +518,19 @@ export class AtlasDetailScreenComponent implements OnInit {
   restaurantTree: RestaurantNode[] = [];
   flatRestaurantList: FlatItem[] = [];
   expandedGroups = new Set<string>();
-  /** Ресторан, для которого есть несохранённые изменения */
-  dirtyRestaurantId: string | null = null;
 
   // Connect/Edit wizard state
   connectStep = 1;
   wizConsent = false;
-  wizCategories: OperationCategory[] = [];
   wizCredentials: Record<string, string> = {};
   wizShowPwd = false;
   wizSubmitting = false;
   wizFlatRestaurantList: WizFlatItem[] = [];
-  wizTooltipCat = '';
 
   // UI
   showDisconnectConfirm = false;
-  showUnsavedConfirm = false;
-  pendingRestaurantId: string | null = null;
   toastMessage = '';
-  showPluginPanel = false;
-  pluginStatus: 'active' | 'inactive' = 'active';
+
 
   // --- Computed ---
 
@@ -598,20 +540,18 @@ export class AtlasDetailScreenComponent implements OnInit {
   get customSettingsCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children && x.useCustomSettings) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
 
   get hasWizRequiredFields(): boolean { return (this.integration?.requiredFields?.length ?? 0) > 0; }
-  get totalWizSteps(): number { return this.hasWizRequiredFields ? 5 : 4; }
-  get wizardStepLabels(): string[] { const l = ['Согласие', 'Рестораны', 'Операции']; if (this.hasWizRequiredFields) l.push('Реквизиты'); l.push('Подтверждение'); return l; }
+  get totalWizSteps(): number { return this.hasWizRequiredFields ? 3 : 2; }
+  get wizardStepLabels(): string[] { const l = ['Рестораны']; if (this.hasWizRequiredFields) l.push('Реквизиты'); l.push('Подтверждение'); return l; }
   get wizSelectedCount(): number { return this.wizFlatRestaurantList.filter(i => !i.isGroup && i.checked).length; }
   get wizTotalCount(): number { return this.wizFlatRestaurantList.filter(i => !i.isGroup).length; }
-  get wizAllowedCatLabels(): string { const a = this.wizCategories.filter(c => c.allowed).map(c => c.label); return a.length > 0 ? a.join(', ') : 'не выбраны'; }
 
   get canWizNext(): boolean {
-    if (this.connectStep === 1) return this.wizConsent;
-    if (this.connectStep === 2) return this.accountType === 'rms' || this.wizSelectedCount > 0;
-    if (this.connectStep === 3) return this.wizCategories.some(c => c.allowed);
-    if (this.connectStep === 4 && this.hasWizRequiredFields) {
+    if (this.connectStep === 1) return this.accountType === 'rms' || this.wizSelectedCount > 0;
+    if (this.connectStep === 2 && this.hasWizRequiredFields) {
       for (const f of this.integration?.requiredFields || []) { if (f.required && !this.wizCredentials[f.key]?.trim()) return false; }
       return true;
     }
+    if (this.connectStep === this.totalWizSteps) return this.wizConsent;
     return true;
   }
 
@@ -679,18 +619,20 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   toggleGroup(id: string): void {
     if (this.expandedGroups.has(id)) this.expandedGroups.delete(id); else this.expandedGroups.add(id);
+    this.selectedRestaurantId = null;
     this.rebuildFlatList();
   }
 
   selectRestaurant(id: string): void {
-    // If switching away from a dirty restaurant, prompt to save
-    if (this.dirtyRestaurantId && this.dirtyRestaurantId !== id) {
-      this.pendingRestaurantId = id;
-      this.showUnsavedConfirm = true;
-      return;
-    }
     this.selectedRestaurantId = this.selectedRestaurantId === id ? null : id;
-    this.dirtyRestaurantId = null;
+  }
+
+  /** Клик в пустое место дерева — сброс выбора ресторана */
+  onTreePanelClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('button')) {
+      this.selectedRestaurantId = null;
+    }
   }
 
   getRestaurant(id: string): RestaurantNode | null {
@@ -702,88 +644,32 @@ export class AtlasDetailScreenComponent implements OnInit {
   }
 
   getRestaurantCategories(r: RestaurantNode): OperationCategory[] {
-    if (r.useCustomSettings && r.customOperationCategories) return r.customOperationCategories;
-    // For disconnected restaurants, show categories as unchecked
-    if (!r.isConnected) {
-      return (this.integration?.operationCategories || []).map(c => ({ ...c, allowed: false }));
-    }
-    return this.integration?.operationCategories || [];
+    return (this.integration?.operationCategories || []).map(c => ({
+      ...c,
+      allowed: r.isConnected ? c.allowed : false,
+    }));
   }
 
-  /** Вызывается при изменении чекбокса категории для ресторана */
-  onCategoryToggle(r: RestaurantNode, cat: OperationCategory, checked: boolean): void {
-    // Auto-activate custom settings on first change
-    if (!r.useCustomSettings) {
-      this.enableCustomSettingsSilent(r);
-    }
-    // Find the correct category reference after potential auto-activation
-    const targetCat = (r.customOperationCategories || this.integration?.operationCategories || [])
-      .find(c => c.id === cat.id);
-    if (targetCat) {
-      targetCat.allowed = checked;
-    }
-    this.dirtyRestaurantId = r.id;
-  }
-
-  /** Вызывается при изменении реквизита для ресторана */
+  /** Вызывается при изменении реквизита для ресторана — автосохранение */
   onCredentialChange(r: RestaurantNode, key: string, value: string): void {
     if (!r.useCustomSettings) {
       this.enableCustomSettingsSilent(r);
     }
     if (!r.customCredentials) r.customCredentials = {};
     r.customCredentials[key] = value;
-    this.dirtyRestaurantId = r.id;
+    this.persistTree();
   }
 
-  /** Включить индивидуальные настройки без toast-уведомления (без персистенции) */
+  /** Включить индивидуальные настройки (реквизиты) без toast-уведомления */
   private enableCustomSettingsSilent(r: RestaurantNode): void {
-    r.customOperationCategories = (this.integration?.operationCategories || []).map(c => ({ ...c }));
     r.customCredentials = { ...(this.integration?.requiredFields?.reduce((acc, f) => ({ ...acc, [f.key]: '' }), {}) || {}) };
     r.useCustomSettings = true;
     this.rebuildFlatList();
   }
 
-  saveCustomSettings(r: RestaurantNode): void {
-    // Auto-connect if not connected
-    if (!r.isConnected) {
-      this.connectRestaurant(r);
-    }
-    this.dirtyRestaurantId = null;
-    this.persistTree();
-    this.rebuildFlatList();
-    this.toast('Настройки «' + r.name + '» сохранены и отправлены в плагин');
-  }
-
-  /** Обработка нажатия «Продолжить без сохранения» в диалоге несохранённых изменений */
-  discardUnsavedAndSwitch(): void {
-    this.showUnsavedConfirm = false;
-    const targetId = this.pendingRestaurantId;
-    this.pendingRestaurantId = null;
-    // Revert dirty restaurant's custom settings by reloading tree
-    if (this.dirtyRestaurantId) {
-      this.buildTree();
-      this.dirtyRestaurantId = null;
-    }
-    this.selectedRestaurantId = this.selectedRestaurantId === targetId ? null : targetId;
-  }
-
-  /** Обработка нажатия «Сохранить» в диалоге несохранённых изменений */
-  saveUnsavedAndSwitch(): void {
-    this.showUnsavedConfirm = false;
-    const dirtyR = this.dirtyRestaurantId ? this.getRestaurant(this.dirtyRestaurantId) : null;
-    if (dirtyR) {
-      this.saveCustomSettings(dirtyR);
-    }
-    const targetId = this.pendingRestaurantId;
-    this.pendingRestaurantId = null;
-    this.selectedRestaurantId = this.selectedRestaurantId === targetId ? null : targetId;
-  }
-
   resetToGlobal(r: RestaurantNode): void {
-    r.customOperationCategories = undefined;
     r.customCredentials = undefined;
     r.useCustomSettings = false;
-    this.dirtyRestaurantId = null;
     this.persistTree();
     this.rebuildFlatList();
     this.toast('Настройки «' + r.name + '» сброшены к общим');
@@ -816,7 +702,6 @@ export class AtlasDetailScreenComponent implements OnInit {
     this.detailMode = 'connect';
     this.connectStep = 1;
     this.wizConsent = false;
-    this.wizCategories = (this.integration?.operationCategories || []).map(c => ({ ...c, allowed: false }));
     this.wizCredentials = {};
     this.initWizTree();
   }
@@ -827,15 +712,7 @@ export class AtlasDetailScreenComponent implements OnInit {
     this.buildTree();
   }
 
-  getTooltipText(catId: string): string {
-    const map: Record<string, string> = {
-      payments: 'Создание платежей, возврат платежей, проверка статуса оплаты, работа с фискальными чеками.',
-      menu: 'Чтение меню ресторана, получение категорий и блюд, передача внешнего меню в систему партнёра.',
-      stoplists: 'Управление стоп-листами: добавление и удаление блюд из стоп-листа, синхронизация доступности.',
-      discounts: 'Применение скидок к заказам, расчёт суммы скидки, проверка условий акции.',
-    };
-    return map[catId] || 'Детальное описание операций для этой категории.';
-  }
+
 
   // --- Wizard tree ---
 
@@ -894,12 +771,12 @@ export class AtlasDetailScreenComponent implements OnInit {
   }
 
   wizNext(): void {
-    if (this.connectStep === 3 && !this.hasWizRequiredFields) { this.connectStep = this.totalWizSteps; return; }
+    if (this.connectStep === 1 && !this.hasWizRequiredFields) { this.connectStep = this.totalWizSteps; return; }
     if (this.connectStep < this.totalWizSteps) this.connectStep++;
   }
 
   wizPrev(): void {
-    if (this.connectStep === this.totalWizSteps && !this.hasWizRequiredFields) { this.connectStep = 3; return; }
+    if (this.connectStep === this.totalWizSteps && !this.hasWizRequiredFields) { this.connectStep = 1; return; }
     if (this.connectStep > 1) this.connectStep--;
   }
 
@@ -911,7 +788,6 @@ export class AtlasDetailScreenComponent implements OnInit {
       const t = all.find(i => i.id === this.integrationId);
       if (!t) return;
       t.status = 'connected';
-      t.operationCategories = this.wizCategories.map(c => ({ ...c }));
       const ids: string[] = [];
       for (const i of this.wizFlatRestaurantList) { if (!i.isGroup && i.checked) ids.push(i.id); }
       t.connectedRestaurantIds = ids;
@@ -959,11 +835,6 @@ export class AtlasDetailScreenComponent implements OnInit {
   }
 
   onAccountTypeChange(): void { if (this.detailMode === 'view') this.buildTree(); else this.initWizTree(); }
-
-  simulatePlugin(status: 'active' | 'inactive'): void {
-    this.pluginStatus = status;
-    this.toast('Плагин: статус изменён на «' + status + '»');
-  }
 
   // --- Helpers ---
 
