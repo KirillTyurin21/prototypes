@@ -238,7 +238,7 @@ type DetailMode = 'view' | 'connect';
                     <div class="flex items-center gap-2">
                       <h2 class="text-xl font-semibold text-gray-900">{{ r.name }}</h2>
                       <ui-badge *ngIf="r.useCustomSettings" variant="warning">Индивидуальные</ui-badge>
-                      <ui-badge *ngIf="!r.useCustomSettings && r.isConnected" variant="default">Наследует общие</ui-badge>
+                      <ui-badge *ngIf="!r.useCustomSettings && r.isConnected" variant="success">Подключен</ui-badge>
                       <ui-badge *ngIf="!r.isConnected" variant="default">Не подключен</ui-badge>
                     </div>
                     <p class="text-sm text-gray-500 mt-1">{{ r.address }}</p>
