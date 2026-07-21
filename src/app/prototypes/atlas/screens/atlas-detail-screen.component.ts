@@ -466,7 +466,6 @@ type DetailMode = 'view' | 'connect';
                     </label>
                   </div>
 
-                  <ui-alert variant="info">Плагин на терминале Front получит настройки при следующем опросе (до 60 сек).</ui-alert>
                 </div>
 
                 <!-- Wizard navigation -->
@@ -490,7 +489,7 @@ type DetailMode = 'view' | 'connect';
     <!-- Disconnect Confirm -->
     <ui-confirm-dialog
       [open]="showDisconnectConfirm" title="Отключить {{ integration?.name }}?"
-      message="Тип оплаты и скидка будут отключены для всех ресторанов."
+      message="Тип оплаты будет отключен для всех ресторанов."
       confirmText="Отключить" variant="danger"
       (confirmed)="confirmDisconnect()" (cancelled)="showDisconnectConfirm = false">
     </ui-confirm-dialog>

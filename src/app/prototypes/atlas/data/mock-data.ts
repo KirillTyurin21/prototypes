@@ -10,11 +10,10 @@ export const MOCK_INTEGRATIONS: PaymentIntegration[] = [
     connectedRestaurantIds: [],
     operationCategories: [
       { id: 'payments', label: 'Платёжные операции', description: 'Создание и возврат платежей через Kaspi QR', iconName: 'credit-card', allowed: false },
-      { id: 'menu', label: 'Работа с меню', description: 'Чтение меню ресторана для отображения в приложении Kaspi', iconName: 'utensils-crossed', allowed: false },
-      { id: 'stoplists', label: 'Работа со стоп-листами', description: 'Управление доступностью блюд через Kaspi', iconName: 'ban', allowed: false },
+      { id: 'orders', label: 'Создание заказов доставки и самовывоза', description: 'Работа с меню, стоп-листами, создание заказов доставки и самовывоза', iconName: 'shopping-cart', allowed: false },
     ],
     paymentType: { name: 'Kaspi QR', fiscal: true, buttonLabel: 'Kaspi QR' },
-    discount: { name: 'Kaspi Loyalty 5%', percent: 5, linkedToPaymentType: 'Kaspi QR' },
+    discount: null,
     requiredFields: [],
     licenseRequired: true,
   },

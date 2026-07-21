@@ -2,6 +2,27 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '3.2',
+    date: '2026-07-21',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Страница интеграции (Kaspi)',
+        pageRoute: '/prototype/atlas/kaspi',
+        items: [
+          'Объединены категории «Работа с меню» и «Работа со стоп-листами» → «Создание заказов доставки и самовывоза»',
+          'Убрана скидка Kaspi Loyalty 5% (временное упрощение)',
+          'Убран alert о плагине на терминале Front',
+        ],
+      },
+      {
+        items: [
+          'Убраны упоминания скидки из текстов на главном экране и в диалогах отключения',
+        ],
+      },
+    ],
+  },
+  {
     version: '3.1',
     date: '2026-07-20',
     status: 'released',

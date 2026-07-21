@@ -38,7 +38,7 @@ import { MOCK_INTEGRATIONS } from '../data/mock-data';
 
     <div class="px-6 py-5">
       <h1 class="text-2xl font-semibold text-gray-900">Подключение платёжных систем</h1>
-      <p class="text-sm text-gray-500 mt-1">Выберите платёжную систему для подключения. Тип оплаты и скидка будут созданы автоматически.</p>
+      <p class="text-sm text-gray-500 mt-1">Выберите платёжную систему для подключения. Тип оплаты будет создан автоматически.</p>
     </div>
 
     <div class="px-6 pb-8 max-w-3xl">
@@ -83,7 +83,7 @@ import { MOCK_INTEGRATIONS } from '../data/mock-data';
 
     <ui-confirm-dialog
       [open]="showDisconnectConfirm" title="Отключить {{ disconnectTarget?.name }}?"
-      message="Тип оплаты и скидка будут отключены для всех ресторанов."
+      message="Тип оплаты будет отключен для всех ресторанов."
       confirmText="Отключить" variant="danger"
       (confirmed)="confirmDisconnect()" (cancelled)="showDisconnectConfirm = false">
     </ui-confirm-dialog>
