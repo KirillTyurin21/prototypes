@@ -2,6 +2,29 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.38',
+    date: '2026-07-24',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Темы киоска',
+        pageRoute: '/prototype/web-screens/kiosk-themes',
+        items: [
+          'Добавлен раздел «Киоск» с редактором тем',
+          'Редактор тем Киоска: canvas, перетаскивание и ресайз элементов, 4 категории элементов (Стандартные, Контейнеры, Медиа, QR-коды)',
+        ],
+      },
+      {
+        page: 'Все редакторы тем и контролов',
+        items: [
+          'Группировка элементов по категориям с иконками и поиском во всех продуктах (Arrivals, Customer Screen, MenuBoard, Киоск)',
+          'Единая панель «Добавить элемент» с аккордеоном категорий, счётчиками и анимацией раскрытия',
+          'Поиск по названию элемента с фильтрацией категорий',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.37',
     date: '2026-07-16',
     status: 'released',

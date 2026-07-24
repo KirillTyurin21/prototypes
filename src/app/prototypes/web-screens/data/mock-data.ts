@@ -65,6 +65,13 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [],
   },
   {
+    title: 'Киоск',
+    icon: 'monitor',
+    items: [
+      { icon: '', label: 'Темы', route: 'kiosk-themes' },
+    ],
+  },
+  {
     title: 'Галерея',
     icon: 'image',
     route: 'gallery',
