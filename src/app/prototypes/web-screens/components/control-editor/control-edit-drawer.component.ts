@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UiInputComponent, UiConfirmDialogComponent } from '@/components/ui';
@@ -376,7 +376,7 @@ import { CS_CONTROL_HINTS_CATEGORIES } from '../../data/cs-control-hints-categor
     .elements-empty-hint { font-size: 11px; color: #ccc; }
   `],
 })
-export class ControlEditDrawerComponent {
+export class ControlEditDrawerComponent implements OnChanges {
   @Input() open = false;
   @Input() control: CSControl | null = null;
   @Input() availableElements: ElementTypeOption[] = [];
@@ -391,6 +391,17 @@ export class ControlEditDrawerComponent {
   addPaletteOpen = false;
   clearElementsDialogOpen = false;
   private nextElementId = 200;
+
+  controlCategories: any[] = [];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['control'] && this.control) {
+      const cats = this.control.type === 'hint'
+        ? CS_CONTROL_HINTS_CATEGORIES
+        : CS_CONTROL_STANDARD_CATEGORIES;
+      this.controlCategories = cats.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
+    }
+  }
 
   fontFamilies: string[] = ['Roboto', 'Arial', 'Open Sans', 'Montserrat', 'PT Sans', 'Inter'];
   borderTypes = [
@@ -410,13 +421,6 @@ export class ControlEditDrawerComponent {
 
   scaleX(val: number): number { return val * this.previewScale; }
   scaleY(val: number): number { return val * this.previewScale; }
-
-  get controlCategories() {
-    const cats = this.control?.type === 'hint'
-      ? CS_CONTROL_HINTS_CATEGORIES
-      : CS_CONTROL_STANDARD_CATEGORIES;
-    return cats.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
-  }
 
   addElementFromPalette(type: string): void {
     const opt = this.availableElements.find(el => el.type === type);

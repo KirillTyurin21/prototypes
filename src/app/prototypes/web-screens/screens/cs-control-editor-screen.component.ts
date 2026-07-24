@@ -272,12 +272,7 @@ export class CsControlEditorScreenComponent implements OnInit {
 
   PREVIEW_COLORS = ['#448aff', '#ff6d00', '#66bb6a', '#ab47bc', '#ef5350', '#26c6da', '#ffa726', '#78909c', '#ec407a', '#8d6e63'];
 
-  get controlCategories() {
-    const cats = this.control?.type === 'hint'
-      ? CS_CONTROL_HINTS_CATEGORIES
-      : CS_CONTROL_STANDARD_CATEGORIES;
-    return cats.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
-  }
+  controlCategories: any[] = [];
 
   get availableElements(): ElementTypeOption[] {
     return this.control?.type === 'hint' ? getHintElements() : getAnimationElements();
@@ -297,6 +292,14 @@ export class CsControlEditorScreenComponent implements OnInit {
       this.control = { id: id || Date.now(), name: 'Новый контрол', type: 'animation', elementsCount: 0, elements: [] };
     }
     this.nextElementId = Math.max(200, ...this.control.elements.map(e => e.id), 0) + 1;
+    this.initCategories();
+  }
+
+  private initCategories(): void {
+    const cats = this.control?.type === 'hint'
+      ? CS_CONTROL_HINTS_CATEGORIES
+      : CS_CONTROL_STANDARD_CATEGORIES;
+    this.controlCategories = cats.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
   }
 
   getBg(el: ControlElement): string {
