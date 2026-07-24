@@ -15,13 +15,14 @@ import { AreaElementInspectorComponent } from '../components/theme-editor/area-e
 import { OrderSimulatorComponent } from '../components/simulator/order-simulator.component';
 import { AreaEmulationHelper } from '../components/theme-editor/area-emulation.service';
 import { SimulatorHelper } from '../components/theme-editor/simulator.helper';
+import { ElementPaletteComponent } from '../components/element-palette/element-palette.component';
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
 @Component({
   selector: 'app-arrivals-theme-editor-screen',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent],
+  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent, ElementPaletteComponent],
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
@@ -60,31 +61,12 @@ type PanelView = 'theme' | 'add-element' | 'element';
             <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" [class.list-dragging]="listDragIndex === i" [class.list-drag-above]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! > i" [class.list-drag-below]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! < i" (click)="selectElementFromList(el.id)" (mousedown)="onListMouseDown(i, $event)"><span class="el-list-name">{{ el.name }}</span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
             <button class="btn-add-element" (click)="panelView = 'add-element'">Добавить элемент</button>
           </ng-container>
-          <ng-container *ngIf="panelView === 'add-element'">
-            <div class="add-element-header"><span class="add-element-title">Добавить элемент</span><button class="icon-btn-sm" (click)="panelView = 'theme'"><lucide-icon name="x" [size]="18"></lucide-icon></button></div>
-            <div class="search-elements">
-              <input type="text" class="search-elements-input" placeholder="Поиск элементов..." [(ngModel)]="searchElementsQuery" />
-              <lucide-icon *ngIf="!searchElementsQuery" name="search" [size]="16" class="search-elements-icon"></lucide-icon>
-              <button *ngIf="searchElementsQuery" class="search-elements-clear" (click)="searchElementsQuery = ''"><lucide-icon name="x" [size]="14"></lucide-icon></button>
-            </div>
-            <div *ngIf="searchElementsQuery && filteredCategories.length === 0" class="search-empty">Ничего не найдено</div>
-            <div class="element-categories">
-              <div *ngFor="let cat of filteredCategories" class="category-group">
-                <div class="category-header" (click)="toggleCategory(cat.id)">
-                  <lucide-icon [name]="cat.icon" [size]="18" class="category-icon"></lucide-icon>
-                  <span class="category-label">{{ cat.label }}</span>
-                  <span class="category-count">{{ cat.elements.length }}</span>
-                  <lucide-icon [name]="cat.collapsed ? 'chevron-down' : 'chevron-up'" [size]="16" class="category-chevron"></lucide-icon>
-                </div>
-                <div *ngIf="!cat.collapsed" class="category-elements">
-                  <div *ngFor="let el of cat.elements" class="element-item" (click)="addElement(el.type)">
-                    <lucide-icon [name]="el.icon" [size]="16" class="element-icon"></lucide-icon>
-                    <span>{{ el.label }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ng-container>
+          <app-element-palette
+            *ngIf="panelView === 'add-element'"
+            [categories]="themeCategories"
+            (elementSelected)="addElement($event)"
+            (closed)="panelView = 'theme'">
+          </app-element-palette>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
             <app-theme-element-inspector *ngIf="selectedElement.type !== 'area'" [element]="selectedElement"></app-theme-element-inspector>
@@ -146,41 +128,6 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .el-list-delete:hover { background: #ffebee; color: #e53935; }
     .btn-add-element { width: 100%; height: 40px; border: none; border-radius: 4px; background: #448aff; color: #fff; font-size: 14px; font-weight: 500; font-family: Roboto, sans-serif; cursor: pointer; margin-top: 8px; }
     .btn-add-element:hover { background: #2979ff; }
-    .add-element-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .add-element-title { font-size: 18px; font-weight: 500; color: #333; }
-    .icon-btn-sm { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 4px; background: transparent; color: #757575; cursor: pointer; }
-    .icon-btn-sm:hover { background: #f0f0f0; }
-    .element-type-list { display: flex; flex-direction: column; }
-    .element-type-item { padding: 12px 8px; font-size: 14px; color: #333; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
-    .element-type-item:hover { background: #f5f5f5; } .element-type-item:last-child { border-bottom: none; }
-    .element-type-separator { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #9e9e9e; padding: 12px 8px 6px; font-weight: 500; }
-
-    /* ── Element category accordion ── */
-    .element-categories { display: flex; flex-direction: column; }
-    .category-group { border-bottom: 1px solid #f0f0f0; }
-    .category-group:last-child { border-bottom: none; }
-    .category-header { display: flex; align-items: center; gap: 8px; padding: 10px 8px; cursor: pointer; user-select: none; transition: background 0.15s; }
-    .category-header:hover { background: #f5f5f5; }
-    .category-icon { color: #757575; flex-shrink: 0; }
-    .category-label { flex: 1; font-size: 14px; font-weight: 500; color: #333; }
-    .category-count { font-size: 12px; color: #9e9e9e; background: #f0f0f0; border-radius: 10px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
-    .category-chevron { color: #9e9e9e; flex-shrink: 0; transition: transform 0.2s ease; }
-
-    /* ── Search elements ── */
-    .search-elements { position: relative; margin-bottom: 12px; }
-    .search-elements-input { width: 100%; height: 34px; padding: 0 36px 0 36px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px; font-family: Roboto, sans-serif; color: #333; box-sizing: border-box; }
-    .search-elements-input:focus { outline: none; border-color: #448aff; }
-    .search-elements-icon { position: absolute; left: 10px; top: 9px; color: #9e9e9e; pointer-events: none; }
-    .search-elements-clear { position: absolute; right: 6px; top: 6px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: none; border-radius: 50%; background: transparent; color: #9e9e9e; cursor: pointer; }
-    .search-elements-clear:hover { background: #f0f0f0; color: #333; }
-    .search-empty { padding: 24px 0; text-align: center; font-size: 13px; color: #bdbdbd; }
-
-    .category-elements { display: flex; flex-direction: column; padding: 0 0 4px 0; animation: accordionIn 0.15s ease-out; }
-    @keyframes accordionIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-    .element-item { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 34px; font-size: 13px; color: #555; cursor: pointer; transition: background 0.12s; }
-    .element-item:hover { background: #e3f2fd; color: #1976d2; }
-    .element-icon { color: #9e9e9e; flex-shrink: 0; }
-    .element-item:hover .element-icon { color: #1976d2; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 24px; background: #333; color: #fff; border-radius: 6px; font-size: 14px; z-index: 9000; animation: toastIn 0.3s ease; }
     @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
   `],
@@ -243,26 +190,9 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     { type: 'price', label: 'Цена блюда' },
   ];
 
-  themeCategories: ElementCategory[] = JSON.parse(JSON.stringify(ARRIVALS_THEME_CATEGORIES));
-  searchElementsQuery = '';
+  themeCategories = ARRIVALS_THEME_CATEGORIES.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
 
-  get filteredCategories(): ElementCategory[] {
-    const q = this.searchElementsQuery.trim().toLowerCase();
-    if (!q) return this.themeCategories;
-    return this.themeCategories
-      .map(cat => ({
-        ...cat,
-        elements: cat.elements.filter(el => el.label.toLowerCase().includes(q)),
-      }))
-      .filter(cat => cat.elements.length > 0);
-  }
-
-  toggleCategory(id: string): void {
-    const cat = this.themeCategories.find(c => c.id === id);
-    if (cat) cat.collapsed = !cat.collapsed;
-  }
-
-  /* ── List drag reorder ── */
+  get selectedElement(): ArrivalsThemeElement | null {
   onListMouseDown(index: number, event: MouseEvent): void {
     if (event.button !== 0) return;
     const target = event.target as HTMLElement;

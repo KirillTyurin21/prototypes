@@ -15,6 +15,8 @@ import {
 } from '../cs-types';
 import { CsThemeInspectorComponent } from '../components/theme-editor/cs-theme-inspector.component';
 import { ElementTypeOption } from '../components/theme-editor/element-tree-panel.component';
+import { ElementPaletteComponent } from '../components/element-palette/element-palette.component';
+import { CS_THEME_CATEGORIES } from '../data/cs-theme-categories.data';
 
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -25,7 +27,7 @@ function deepClone<T>(obj: T): T {
   standalone: true,
   imports: [
     CommonModule, FormsModule, UiConfirmDialogComponent,
-    IconsModule, CsThemeInspectorComponent,
+    IconsModule, CsThemeInspectorComponent, ElementPaletteComponent,
   ],
   template: `
     <div class="editor-layout" *ngIf="theme">
@@ -139,20 +141,13 @@ function deepClone<T>(obj: T): T {
               <div *ngIf="theme.elements.length === 0" class="el-empty">Нет элементов</div>
             </div>
 
-            <!-- Add element flyout -->
-            <div *ngIf="showAddElement" class="add-el-flyout">
-              <div class="add-el-header">
-                <span>Добавить элемент</span>
-                <button class="icon-btn-sm" (click)="showAddElement = false">
-                  <lucide-icon name="x" [size]="18"></lucide-icon>
-                </button>
-              </div>
-              <div *ngFor="let opt of elementTypeOptions" class="add-el-option"
-                [class.disabled]="opt.disabled" (click)="addElement(opt); showAddElement = false">
-                <lucide-icon [name]="getElIcon(opt.type)" [size]="16"></lucide-icon>
-                <span>{{ opt.label }}</span>
-              </div>
-            </div>
+            <!-- Add element palette -->
+            <app-element-palette
+              *ngIf="showAddElement"
+              [categories]="themeCategories"
+              (elementSelected)="addElementFromPalette($event)"
+              (closed)="showAddElement = false">
+            </app-element-palette>
 
             <!-- Element inspector (when element selected) -->
             <ng-container *ngIf="selectedElement">
@@ -289,6 +284,7 @@ export class ThemeEditorScreenComponent implements OnInit {
   toastMessage = '';
   panelCollapsed = false;
   showAddElement = false;
+  themeCategories = CS_THEME_CATEGORIES.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
   private toastTimer: any;
   private nextElementId = 100;
 
@@ -375,6 +371,14 @@ export class ThemeEditorScreenComponent implements OnInit {
 
   toggleAddElement(): void {
     this.showAddElement = !this.showAddElement;
+  }
+
+  addElementFromPalette(type: string): void {
+    const opt = this.elementTypeOptions.find(o => o.type === type);
+    if (opt) {
+      this.addElement(opt);
+      this.showAddElement = false;
+    }
   }
 
   hasElementType(type: string): boolean {

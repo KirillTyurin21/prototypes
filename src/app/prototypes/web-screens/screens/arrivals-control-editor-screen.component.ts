@@ -11,6 +11,7 @@ import {
   ArrivalsControlStatusType,
   ArrivalsThemeElement,
   ArrivalsElementType,
+  ElementCategory,
 } from '../types';
 import { EditorCanvasComponent } from '../components/canvas/editor-canvas.component';
 import { CanvasElementComponent } from '../components/canvas/canvas-element.component';
@@ -25,6 +26,8 @@ import {
   INITIAL_ORDER_MOCK_ITEMS,
   EMU_ITEM_STATUSES,
 } from '../components/control-editor/element-defaults';
+import { ElementPaletteComponent } from '../components/element-palette/element-palette.component';
+import { ARRIVALS_CONTROL_CATEGORIES } from '../data/arrivals-control-categories.data';
 
 type PanelView = 'control' | 'add-element' | 'element';
 
@@ -55,6 +58,7 @@ const BALANCER_STATUSES = [
     ControlElementRendererComponent,
     ControlElementInspectorComponent,
     ControlEmulationPanelComponent,
+    ElementPaletteComponent,
   ],
   template: `
     <div class="editor-layout">
@@ -180,25 +184,13 @@ const BALANCER_STATUSES = [
             </button>
           </ng-container>
 
-          <!-- ──── VIEW: Add element picker ──── -->
-          <ng-container *ngIf="panelView === 'add-element'">
-            <div class="add-element-header">
-              <span class="add-element-title">Добавить элемент</span>
-              <button class="icon-btn-sm" (click)="panelView = 'control'">
-                <lucide-icon name="x" [size]="18"></lucide-icon>
-              </button>
-            </div>
-
-            <div class="element-type-list">
-              <div
-                *ngFor="let et of elementTypes"
-                class="element-type-item"
-                (click)="addElement(et.type)"
-              >
-                {{ et.label }}
-              </div>
-            </div>
-          </ng-container>
+          <!-- ──── VIEW: Add element palette ──── -->
+          <app-element-palette
+            *ngIf="panelView === 'add-element'"
+            [categories]="controlCategories"
+            (elementSelected)="addElement($event)"
+            (closed)="panelView = 'control'">
+          </app-element-palette>
 
           <!-- ──── VIEW: Element properties ──── -->
           <ng-container *ngIf="panelView === 'element' && selectedElement">
@@ -401,27 +393,6 @@ const BALANCER_STATUSES = [
     }
     .btn-add-element:hover { background: #2979ff; }
 
-    .add-element-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .add-element-title { font-size: 18px; font-weight: 500; color: #333; }
-    .icon-btn-sm {
-      display: flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px; border: none; border-radius: 4px;
-      background: transparent; color: #757575; cursor: pointer;
-    }
-    .icon-btn-sm:hover { background: #f0f0f0; }
-
-    .element-type-list { display: flex; flex-direction: column; }
-    .element-type-item {
-      padding: 12px 8px; font-size: 14px; color: #333;
-      border-bottom: 1px solid #f5f5f5; cursor: pointer;
-      transition: background 0.15s;
-    }
-    .element-type-item:hover { background: #f5f5f5; }
-    .element-type-item:last-child { border-bottom: none; }
-
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       padding: 10px 24px; background: #333; color: #fff;
@@ -461,6 +432,7 @@ export class ArrivalsControlEditorScreenComponent implements OnInit, OnDestroy {
   private newControlId: number | null = null;
 
   elementTypes = ELEMENT_TYPES;
+  controlCategories = ARRIVALS_CONTROL_CATEGORIES.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
   readonly emuItemStatuses = EMU_ITEM_STATUSES;
 
   orderMockItems: OrderMockItem[] = INITIAL_ORDER_MOCK_ITEMS.map(i => ({ ...i }));

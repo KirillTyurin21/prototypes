@@ -11,11 +11,14 @@ import {
   defaultBorder,
   defaultFont,
 } from '../../cs-types';
+import { ElementPaletteComponent } from '../../element-palette/element-palette.component';
+import { CS_CONTROL_STANDARD_CATEGORIES } from '../../data/cs-control-standard-categories.data';
+import { CS_CONTROL_HINTS_CATEGORIES } from '../../data/cs-control-hints-categories.data';
 
 @Component({
   selector: 'app-control-edit-drawer',
   standalone: true,
-  imports: [CommonModule, FormsModule, UiInputComponent, UiConfirmDialogComponent, IconsModule],
+  imports: [CommonModule, FormsModule, UiInputComponent, UiConfirmDialogComponent, IconsModule, ElementPaletteComponent],
   template: `
     <!-- Overlay -->
     <div *ngIf="open" class="drawer-overlay" (click)="cancel.emit()"></div>
@@ -86,22 +89,16 @@ import {
             <span class="elements-title">Элементы ({{ control.elements.length }})</span>
             <div class="elements-actions">
               <div class="add-element-wrapper">
-                <button class="app-btn app-btn-outline app-btn-sm" (click)="showDropdown = !showDropdown">
+                <button class="app-btn app-btn-outline app-btn-sm" (click)="addPaletteOpen = !addPaletteOpen">
                   <lucide-icon name="plus" [size]="14"></lucide-icon>
                   Добавить элемент
                 </button>
-                <div class="element-dropdown" *ngIf="showDropdown">
-                  <div class="element-dropdown-scroll">
-                    <div
-                      class="element-dropdown-item"
-                      *ngFor="let el of availableElements"
-                      (click)="addElement(el)"
-                    >
-                      <div class="element-dropdown-name">{{ el.name }}</div>
-                      <div class="element-dropdown-desc">{{ el.description }}</div>
-                    </div>
-                  </div>
-                </div>
+                <app-element-palette
+                  *ngIf="addPaletteOpen"
+                  [categories]="controlCategories"
+                  (elementSelected)="addElementFromPalette($event)"
+                  (closed)="addPaletteOpen = false">
+                </app-element-palette>
               </div>
               <button
                 class="app-btn app-btn-ghost app-btn-sm"
@@ -391,6 +388,7 @@ export class ControlEditDrawerComponent {
 
   expandedElementId: number | null = null;
   showDropdown = false;
+  addPaletteOpen = false;
   clearElementsDialogOpen = false;
   private nextElementId = 200;
 
@@ -412,6 +410,21 @@ export class ControlEditDrawerComponent {
 
   scaleX(val: number): number { return val * this.previewScale; }
   scaleY(val: number): number { return val * this.previewScale; }
+
+  get controlCategories() {
+    const cats = this.control?.type === 'hint'
+      ? CS_CONTROL_HINTS_CATEGORIES
+      : CS_CONTROL_STANDARD_CATEGORIES;
+    return cats.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
+  }
+
+  addElementFromPalette(type: string): void {
+    const opt = this.availableElements.find(el => el.type === type);
+    if (opt) {
+      this.addElement(opt);
+      this.addPaletteOpen = false;
+    }
+  }
 
   previewBgColor(elem: ControlElement): string {
     const bg = elem.settings.layout.bgColor;
