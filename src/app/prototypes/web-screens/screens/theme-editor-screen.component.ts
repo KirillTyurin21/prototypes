@@ -38,9 +38,8 @@ function deepClone<T>(obj: T): T {
       </div>
 
       <!-- Main: preview (left) + panel (right) -->
-      <div class="editor-body">
         <!-- LEFT: Preview -->
-        <div class="preview-column">
+        <div class="canvas-column">
           <!-- Closed mode overlay -->
           <div *ngIf="theme.screenMode === 'closed'" class="closed-mode-overlay">
             <lucide-icon name="alert-circle" [size]="56" class="closed-icon"></lucide-icon>
@@ -116,7 +115,7 @@ function deepClone<T>(obj: T): T {
 
             <!-- Elements divider + list -->
             <div class="section-divider">Элементы</div>
-            <button class="btn-add-el" (click)="toggleAddElement()">
+            <button class="btn-add-element" (click)="toggleAddElement()">
               <lucide-icon name="plus" [size]="14"></lucide-icon>
               Добавить элемент
             </button>
@@ -171,7 +170,6 @@ function deepClone<T>(obj: T): T {
             <button class="btn-back" (click)="navigateBack()">НАЗАД</button>
           </div>
         </div>
-      </div>
 
       <!-- Delete confirm -->
       <ui-confirm-dialog
@@ -188,16 +186,14 @@ function deepClone<T>(obj: T): T {
   `,
   styles: [`
     :host { display: block; font-family: Roboto, sans-serif; height: 100%; }
-    .editor-layout { display: flex; flex-direction: column; height: calc(100vh - 110px); margin: -20px -24px; position: relative; animation: fadeIn 0.2s ease-out; }
+    .editor-layout { display: flex; height: calc(100vh - 110px); margin: -20px -24px; font-family: Roboto, sans-serif; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .toast { position: fixed; top: 20px; right: 20px; z-index: 200; display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; background: #323232; color: #fff; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: toastIn 0.3s ease-out; }
     @keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
 
-    .editor-body { display: flex; flex: 1; overflow: hidden; }
-
-    /* ── Preview column (left) ── */
-    .preview-column { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; background: #e0e0e0; overflow: auto; padding: 32px; }
+    /* ── Preview column (left, canvas-style) ── */
+    .canvas-column { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; background: #e0e0e0; overflow: auto; padding: 16px; }
 
     .closed-mode-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; width: 100%; max-width: 600px; aspect-ratio: 16/9; background: #263238; border-radius: 8px; color: #fff; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .closed-icon { color: #ff9800; }
@@ -247,8 +243,8 @@ function deepClone<T>(obj: T): T {
     .section-divider::before, .section-divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 60px); height: 1px; background: #e0e0e0; }
     .section-divider::before { left: 0; } .section-divider::after { right: 0; }
 
-    .btn-add-el { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px dashed #bdbdbd; border-radius: 4px; background: none; font-size: 13px; color: #616161; cursor: pointer; width: 100%; margin-bottom: 12px; font-family: Roboto, sans-serif; }
-    .btn-add-el:hover { background: #f5f5f5; border-color: #9e9e9e; }
+    .btn-add-element { width: 100%; height: 40px; border: none; border-radius: 4px; background: #448aff; color: #fff; font-size: 14px; font-weight: 500; font-family: Roboto, sans-serif; cursor: pointer; margin-top: 8px; }
+    .btn-add-element:hover { background: #2979ff; }
 
     .element-list { display: flex; flex-direction: column; gap: 2px; }
     .el-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 4px; cursor: pointer; transition: background 0.1s; font-size: 13px; }
@@ -260,14 +256,6 @@ function deepClone<T>(obj: T): T {
     .el-btn:hover { color: #616161; background: rgba(0,0,0,0.05); }
     .el-del:hover { color: #f44336; }
     .el-empty { padding: 16px; text-align: center; color: #bdbdbd; font-size: 13px; }
-
-    .add-el-flyout { margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
-    .add-el-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #fafafa; font-size: 13px; font-weight: 500; border-bottom: 1px solid #e0e0e0; }
-    .icon-btn-sm { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; background: none; border-radius: 4px; cursor: pointer; color: #757575; }
-    .icon-btn-sm:hover { background: rgba(0,0,0,0.06); }
-    .add-el-option { display: flex; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; font-size: 13px; color: #424242; transition: background 0.1s; }
-    .add-el-option:hover { background: #f5f5f5; }
-    .add-el-option.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
   `],
 })
 export class ThemeEditorScreenComponent implements OnInit {

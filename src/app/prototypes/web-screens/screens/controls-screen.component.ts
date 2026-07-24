@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   UiTableComponent,
   TableCellDefDirective,
@@ -257,6 +258,7 @@ import { ControlEditDrawerComponent } from '../components/control-editor/control
 })
 export class ControlsScreenComponent implements OnInit {
   private dataService = inject(CsDataService);
+  private router = inject(Router);
 
   // State
   controls: CSControl[] = [];
@@ -345,7 +347,7 @@ export class ControlsScreenComponent implements OnInit {
 
   onDoubleClick(item: CSControl): void {
     this.selectedControl = item;
-    this.openEditDrawer();
+    this.navigateToEditor(item.id);
   }
 
   openTypeDialog(): void {
@@ -385,13 +387,11 @@ export class ControlsScreenComponent implements OnInit {
 
   openEditDrawer(): void {
     if (!this.selectedControl) return;
-    const source = this.controls.find(c => c.id === this.selectedControl!.id);
-    if (!source) return;
-    this.editingControl = source;
-    this.drawerControl = JSON.parse(JSON.stringify(source));
-    this.nameError = '';
-    this.availableElements = source.type === 'animation' ? getAnimationElements() : getHintElements();
-    this.drawerOpen = true;
+    this.navigateToEditor(this.selectedControl.id);
+  }
+
+  private navigateToEditor(id: number): void {
+    this.router.navigate(['/prototype/web-screens/cs-control-editor', id]);
   }
 
   confirmDelete(): void {

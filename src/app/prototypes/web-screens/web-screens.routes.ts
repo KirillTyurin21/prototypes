@@ -189,6 +189,13 @@ export const WEB_SCREENS_ROUTES: Routes = [
             m => m.KioskThemeEditorScreenComponent
           ),
       },
+      {
+        path: 'cs-control-editor/:id',
+        loadComponent: () =>
+          import('./screens/cs-control-editor-screen.component').then(
+            m => m.CsControlEditorScreenComponent
+          ),
+      },
     ],
   },
 ];
