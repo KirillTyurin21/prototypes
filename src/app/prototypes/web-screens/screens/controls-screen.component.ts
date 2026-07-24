@@ -356,33 +356,13 @@ export class ControlsScreenComponent implements OnInit {
 
   createControl(type: 'animation' | 'hint'): void {
     this.typeDialogOpen = false;
-    this.editingControl = null;
-
-    const elements: ControlElement[] = [];
-
-    if (type === 'hint') {
-      elements.push({
-        id: this.nextElementId++,
-        type: 'hint-banner',
-        name: 'Баннер подсказки',
-        isRequired: true,
-        settings: {
-          layout: defaultLayout({ x: 0, y: 0, width: 300, height: 200 }),
-          border: defaultBorder(),
-        },
-      });
-    }
-
-    this.drawerControl = {
-      id: 0,
-      name: '',
+    const newControl = this.dataService.addControl({
+      name: type === 'animation' ? 'Новая анимация' : 'Новая подсказка',
       type,
-      elementsCount: elements.length,
-      elements,
-    };
-    this.nameError = '';
-    this.availableElements = type === 'animation' ? getAnimationElements() : getHintElements();
-    this.drawerOpen = true;
+      elementsCount: 0,
+      elements: [],
+    });
+    this.navigateToEditor(newControl.id);
   }
 
   openEditDrawer(): void {
