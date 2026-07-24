@@ -1,19 +1,20 @@
 import { ElementCategory } from '../types';
 
 /**
- * Категории элементов темы для MenuBoard (Доска меню).
- * Иконки подобраны по библиотеке iiko frontend-common (Material Icons),
- * в прототипе используются Lucide-аналоги.
+ * MenuBoard — Темы (V2)
+ * 4 категории, 7 элементов.
+ * Источник: DS-Группировка-элементов-спецификация.md, раздел 3.7
  */
 export const MENUBOARD_THEME_CATEGORIES: ElementCategory[] = [
   {
-    id: 'basic',
-    label: 'Базовые',
+    id: 'standard',
+    label: 'Стандартные',
     icon: 'layers',
     collapsed: false,
     elements: [
       { type: 'text', label: 'Текст', icon: 'type' },
       { type: 'image', label: 'Изображение', icon: 'image' },
+      { type: 'rectangle' as any, label: 'Прямоугольник', icon: 'square' },
     ],
   },
   {
@@ -22,7 +23,7 @@ export const MENUBOARD_THEME_CATEGORIES: ElementCategory[] = [
     icon: 'layout-grid',
     collapsed: true,
     elements: [
-      { type: 'area', label: 'Область', icon: 'layout-grid' },
+      { type: 'area', label: 'Область контролов', icon: 'layout-grid' },
     ],
   },
   {
