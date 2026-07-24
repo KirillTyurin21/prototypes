@@ -188,7 +188,7 @@ const BALANCER_STATUSES = [
           <app-element-palette
             *ngIf="panelView === 'add-element'"
             [categories]="controlCategories"
-            (elementSelected)="addElement($event)"
+            (elementSelected)="addElement($any($event))"
             (closed)="panelView = 'control'">
           </app-element-palette>
 

@@ -64,7 +64,7 @@ type PanelView = 'theme' | 'add-element' | 'element';
           <app-element-palette
             *ngIf="panelView === 'add-element'"
             [categories]="themeCategories"
-            (elementSelected)="addElement($event)"
+            (elementSelected)="addElement($any($event))"
             (closed)="panelView = 'theme'">
           </app-element-palette>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
@@ -192,7 +192,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
 
   themeCategories = ARRIVALS_THEME_CATEGORIES.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
 
-  get selectedElement(): ArrivalsThemeElement | null {
+  /* ── List drag reorder ── */
   onListMouseDown(index: number, event: MouseEvent): void {
     if (event.button !== 0) return;
     const target = event.target as HTMLElement;

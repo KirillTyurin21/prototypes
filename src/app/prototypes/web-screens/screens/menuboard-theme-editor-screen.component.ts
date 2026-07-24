@@ -147,7 +147,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           <app-element-palette
             *ngIf="panelView === 'add-element'"
             [categories]="themeCategories"
-            (elementSelected)="addElement($event)"
+            (elementSelected)="addElement($any($event))"
             (closed)="panelView = 'theme'">
           </app-element-palette>
           <ng-container *ngIf="panelView === 'element' && selectedElement">

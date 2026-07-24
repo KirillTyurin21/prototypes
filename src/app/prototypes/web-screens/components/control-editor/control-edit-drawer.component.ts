@@ -11,7 +11,7 @@ import {
   defaultBorder,
   defaultFont,
 } from '../../cs-types';
-import { ElementPaletteComponent } from '../../element-palette/element-palette.component';
+import { ElementPaletteComponent } from '../element-palette/element-palette.component';
 import { CS_CONTROL_STANDARD_CATEGORIES } from '../../data/cs-control-standard-categories.data';
 import { CS_CONTROL_HINTS_CATEGORIES } from '../../data/cs-control-hints-categories.data';
 
