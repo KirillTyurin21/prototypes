@@ -36,8 +36,8 @@ export const KIOSK_THEME_CATEGORIES: PaletteCategory[] = [
     icon: 'layout-grid',
     collapsed: true,
     elements: [
-      { type: 'kiosk-controls-area', label: 'Область контрола', icon: 'layout-grid' },
-      { type: 'kiosk-hints-area', label: 'Область подсказок', icon: 'layout-grid' },
+      { type: 'kiosk-controls-area', label: 'Область контрола', icon: 'square' },
+      { type: 'kiosk-hints-area', label: 'Область подсказок', icon: 'square' },
     ],
   },
   {

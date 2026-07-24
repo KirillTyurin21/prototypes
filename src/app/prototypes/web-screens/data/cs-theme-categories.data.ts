@@ -64,7 +64,7 @@ export const CS_THEME_CATEGORIES: PaletteCategory[] = [
     icon: 'layout-grid',
     collapsed: true,
     elements: [
-      { type: 'controls-area', label: 'Область контролов', icon: 'layout-grid' },
+      { type: 'controls-area', label: 'Область контролов', icon: 'square' },
       { type: 'animation-window', label: 'Окно анимации', icon: 'panel-right-open' },
     ],
   },
