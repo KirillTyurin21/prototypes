@@ -175,6 +175,20 @@ export const WEB_SCREENS_ROUTES: Routes = [
             m => m.StubScreenComponent
           ),
       },
+      {
+        path: 'kiosk-themes',
+        loadComponent: () =>
+          import('./screens/kiosk-themes-screen.component').then(
+            m => m.KioskThemesScreenComponent
+          ),
+      },
+      {
+        path: 'kiosk-theme-editor/:id',
+        loadComponent: () =>
+          import('./screens/kiosk-theme-editor-screen.component').then(
+            m => m.KioskThemeEditorScreenComponent
+          ),
+      },
     ],
   },
 ];

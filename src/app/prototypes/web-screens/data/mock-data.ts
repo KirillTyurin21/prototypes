@@ -298,6 +298,14 @@ export const MOCK_ARRIVALS_THEMES: ArrivalsTheme[] = [
   { id: 105, name: 'Доставка (от 25-10-09)', resolution: '1024x768', screenMode: 'order-screen', elements: [] },
 ];
 
+/* ── Kiosk theme list ── */
+
+export const MOCK_KIOSK_LIST: ArrivalsThemeListItem[] = [
+  { id: 1, name: 'Стандартная (киоск)', itemType: 'theme', resolution: '1024x768', createdBy: 'Моя' },
+  { id: 2, name: 'Расширенный QR', itemType: 'theme', resolution: '1366x768', createdBy: 'Моя' },
+  { id: 3, name: 'Киоск — тёмная', itemType: 'theme', resolution: '1024x768', createdBy: 'Моя' },
+];
+
 /* ── Product catalog for Price element navigator ── */
 
 export const MOCK_PRODUCT_CATALOG: Record<string, ProductCatalogItem[]> = {
