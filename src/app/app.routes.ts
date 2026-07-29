@@ -124,6 +124,13 @@ export const routes: Routes = [
             m => m.ATLAS_ROUTES
           ),
       },
+      {
+        path: 'prototype/phoenix',
+        loadChildren: () =>
+          import('./prototypes/phoenix/phoenix.routes').then(
+            m => m.PHOENIX_ROUTES
+          ),
+      },
       // Добавляй новые прототипы здесь
 
       // Wildcard — перенаправление на главную для несуществующих URL

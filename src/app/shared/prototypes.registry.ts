@@ -119,5 +119,12 @@ export const PROTOTYPES: PrototypeEntry[] = [
     description: 'Управление подключением платёжных систем из Web: consent, дерево ресторанов, категории операций',
     category: 'web',
   },
+  {
+    path: '/prototype/phoenix',
+    label: 'Phoenix — Управление киосками',
+    icon: 'store',
+    description: 'Панель администрирования киосков самообслуживания: шаблоны настроек, темы, групповое управление',
+    category: 'web',
+  },
   // === Добавляй новые прототипы ВЫШЕ этой строки ===
 ];
