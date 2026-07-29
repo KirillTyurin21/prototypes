@@ -8,7 +8,7 @@ import { PosDialogComponent } from '@/components/pos-terminal';
  * Воспроизводит стандартный вид меню «ПЛАГИНЫ» из Front:
  * сетка 3×N кнопок с названиями + кнопка «Отмена» внизу.
  *
- * Единственный активный плагин — Beanshe: Заказы. Остальные ячейки пустые (заглушки).
+ * Единственный активный плагин — Sparrow: Заказы. Остальные ячейки пустые (заглушки).
  */
 @Component({
   selector: 'app-sparrow-plugins-menu',
@@ -25,11 +25,11 @@ import { PosDialogComponent } from '@/components/pos-terminal';
 
       <!-- Сетка плагинов 3 колонки -->
       <div class="grid grid-cols-3 border-l border-t border-gray-200">
-        <!-- Beanshe: Заказы — единственный активный -->
+        <!-- Sparrow: Заказы — единственный активный -->
         <button (click)="selectPlugin.emit('beanshe')"
                 class="py-5 px-3 text-center text-sm border-r border-b border-gray-200
                        hover:bg-blue-50 transition-colors cursor-pointer">
-          Beanshe: Заказы
+          Sparrow: Заказы
         </button>
 
         <!-- Пустые ячейки-заглушки (как на реальном терминале) -->

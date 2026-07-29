@@ -19,7 +19,7 @@ export class SimulatorHelper {
     'Пицца Маргарита', 'Бургер', 'Картофель фри', 'Тирамису', 'Чизкейк',
     'Солянка', 'Оливье', 'Греческий салат', 'Капучино', 'Лимонад',
   ];
-  private sources = ['Front', 'Яндекс.Еда', 'Delivery Club', 'Front'];
+  private sources = ['Front', 'Внешний сервис', 'Delivery Club', 'Front'];
   private statuses = ['Ожидает', 'Готовится', 'Готово', 'Подан', 'Выдача'];
 
   addOrder(): void {
@@ -99,7 +99,7 @@ export class SimulatorHelper {
       order.source = 'Front';
     } else {
       order.tableNumber = undefined;
-      order.source = newType === 'courier' ? 'Delivery Club' : 'Яндекс.Еда';
+      order.source = newType === 'courier' ? 'Delivery Club' : 'Внешний сервис';
     }
     this.orders = [...this.orders];
   }

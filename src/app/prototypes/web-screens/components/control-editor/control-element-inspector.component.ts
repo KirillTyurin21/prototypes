@@ -700,7 +700,7 @@ export class ControlElementInspectorComponent {
     { value: 'kiosk', label: 'Киоск (Kiosk)' },
     { value: 'website', label: 'Сайт (Website)' },
     { value: 'app', label: 'Мобильное приложение (App)' },
-    { value: 'yandex', label: 'Яндекс.Еда' },
+    { value: 'external', label: 'Внешний сервис' },
     { value: 'magnit', label: 'Магнит' },
   ];
 

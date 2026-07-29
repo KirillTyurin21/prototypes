@@ -47,7 +47,7 @@ export class ResetButtonComponent {
 
   showConfirm = false;
 
-  /** Текущий slug прототипа из URL (например 'pudu-admin') */
+  /** Текущий slug прототипа из URL (например 'eagle') */
   get currentSlug(): string | null {
     const match = this.router.url.match(/^\/prototype\/([^/?]+)/);
     return match ? match[1] : null;

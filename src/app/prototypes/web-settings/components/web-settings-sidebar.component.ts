@@ -212,13 +212,13 @@ export class WebSettingsSidebarComponent {
 
   standaloneItems = [
     { label: 'Профиль пользователя', icon: 'user' },
-    { label: 'Настройка iikoTransport', icon: 'arrow-left-right' },
+    { label: 'Настройка Transport API', icon: 'arrow-left-right' },
     { label: 'Редактор схемы зала', icon: 'layout-grid' },
     { label: 'Прогнозирование', icon: 'activity' },
     { label: 'Импорт данных', icon: 'upload' },
     { label: 'Рестораны', icon: 'store' },
     { label: 'Склад', icon: 'package' },
-    { label: 'Конфигуратор плагинов iikoFront', icon: 'puzzle' },
+    { label: 'Конфигуратор плагинов Front', icon: 'puzzle' },
     { label: 'Аналитика', icon: 'bar-chart-3' },
     { label: 'Переводы', icon: 'arrow-left-right' },
     { label: 'Оповещения', icon: 'bell' },

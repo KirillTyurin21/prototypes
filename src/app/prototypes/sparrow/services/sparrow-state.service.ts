@@ -139,7 +139,7 @@ export class SparrowStateService {
       order.completedAt = new Date().toISOString();
     }
 
-    // Маппинг статус → API-эндпоинт (из Beanshe API-справочника)
+    // Маппинг статус → API-эндпоинт (из API-справочника внешней системы)
     const endpointMap: Partial<Record<SparrowOrderStatus, string>> = {
       accepted: `/api/v2/barista/orders/${orderId}/accept/`,
       preparing: `/api/v2/barista/orders/${orderId}/preparing/`,
@@ -174,7 +174,7 @@ export class SparrowStateService {
     );
   }
 
-  /** Эмуляция: push-стоп-запрос от Beanshe (кейс 3, раздел 4.6) */
+  /** Эмуляция: push-стоп-запрос от внешней системы (кейс 3, раздел 4.6) */
   simulateStopPush(): void {
     // Выбираем случайный продукт, который НЕ на стопе и НЕ заблокирован Front
     const available = this.stopList.filter(s => !s.isStopped && !s.isStoppedInFront);

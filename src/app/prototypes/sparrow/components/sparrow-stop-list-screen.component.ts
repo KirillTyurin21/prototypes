@@ -9,7 +9,7 @@ import { SparrowStopListItem } from '../types';
  * Экран стоп-листа Sparrow.
  *
  * Полноэкранная замена контента окна плагина.
- * Показывает список продуктов Beanshe с toggle-переключателями.
+ * Показывает список продуктов с toggle-переключателями.
  *
  * Кейсы:
  * - Кейс 1 (ручной): бариста переключает toggle → API-лог
@@ -25,7 +25,7 @@ import { SparrowStopListItem } from '../types';
   template: `
     <div class="flex flex-col" style="height: 480px;">
 
-      <!-- Header (iiko style) -->
+      <!-- Header (Front style) -->
       <div class="flex items-center justify-center px-4 py-3"
            style="background: #333;">
         <span class="text-base font-semibold italic" style="color: #c8b560;">
@@ -97,7 +97,7 @@ import { SparrowStopListItem } from '../types';
         </div>
       </div>
 
-      <!-- Footer (iiko style: dark bar) -->
+      <!-- Footer (Front style: dark bar) -->
       <div class="flex items-center justify-end px-1"
            style="background: #2a2a2a; border-top: 1px solid #555;">
         <button (click)="back.emit()"

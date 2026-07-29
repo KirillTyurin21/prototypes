@@ -10,10 +10,10 @@ export const MOCK_PLUGINS: PluginEntry[] = [
     dialogCount: 11,
   },
   {
-    id: 'pudu-robots',
-    name: 'PUDU — Управление роботами',
+    id: 'robot-control',
+    name: 'Роботы — Управление роботами',
     description:
-      'Плагин POS-терминала для управления роботами PUDU: отправка меню, уборка посуды, QR-оплата, маркетинг-круиз.',
+      'Плагин POS-терминала для управления роботами: отправка меню, уборка посуды, QR-оплата, маркетинг-круиз.',
     icon: 'bot',
     dialogCount: 11,
     link: '/prototype/front-pudu-plugin',

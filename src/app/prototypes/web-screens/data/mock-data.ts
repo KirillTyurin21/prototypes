@@ -607,7 +607,7 @@ export const MOCK_ARRIVALS_ORDERS: ArrivalsOrderMock[] = [
   },
   {
     id: 3, orderNumber: '003', clientName: 'Анна Козлова',
-    status: 'Ожидает', orderType: 'pickup', source: 'Яндекс.Еда',
+    status: 'Ожидает', orderType: 'pickup', source: 'Внешний сервис',
     cookingStartTime: '14:25',
     items: [
       { name: 'Пицца Маргарита', qty: 1, status: 'Ожидает' },
@@ -667,7 +667,7 @@ export const MOCK_ARRIVALS_ORDERS: ArrivalsOrderMock[] = [
   },
   {
     id: 9, orderNumber: '009', clientName: 'Артём Белов',
-    status: 'Ожидает', orderType: 'courier', source: 'Яндекс.Еда',
+    status: 'Ожидает', orderType: 'courier', source: 'Внешний сервис',
     expectedDeliveryTime: '15:30',
     items: [
       { name: 'Пицца Маргарита', qty: 1, status: 'Ожидает' },

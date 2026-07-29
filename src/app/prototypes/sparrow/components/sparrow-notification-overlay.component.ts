@@ -32,7 +32,7 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
         <!-- ═══ Новый заказ ═══ -->
         <ng-container *ngIf="notification.type === 'new_order'">
           <div class="flex flex-col">
-            <!-- Header (iiko style) -->
+            <!-- Header (Front style) -->
             <div class="px-4 py-3 text-center" style="background: #333;">
               <span class="text-base font-semibold italic" style="color: #c8b560;">
                 Новый заказ
@@ -84,7 +84,7 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
               Ещё {{ queueSize }} {{ queueLabel }} в очереди
             </div>
 
-            <!-- Footer (iiko style: dark bar with bold white buttons) -->
+            <!-- Footer (Front style: dark bar with bold white buttons) -->
             <div class="flex" style="background: #2a2a2a; border-top: 1px solid #555;">
               <button (click)="onAccept()"
                       [disabled]="loading"
@@ -112,7 +112,7 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
         <!-- ═══ Не забрали ═══ -->
         <ng-container *ngIf="notification.type === 'not_picked_up'">
           <div class="flex flex-col">
-            <!-- Header (iiko style) -->
+            <!-- Header (Front style) -->
             <div class="px-4 py-3 text-center" style="background: #333;">
               <span class="text-base font-semibold italic" style="color: #c8b560;">
                 Заказ не забрали
@@ -144,7 +144,7 @@ import { SparrowNotification, SparrowOrder, STATUS_META } from '../types';
               Ещё {{ queueSize }} {{ queueLabel }} в очереди
             </div>
 
-            <!-- Footer (iiko style) -->
+            <!-- Footer (Front style) -->
             <div class="flex" style="background: #2a2a2a; border-top: 1px solid #555;">
               <button (click)="onPickedUp()"
                       [disabled]="loading"

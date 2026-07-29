@@ -30,7 +30,7 @@ type FilterStatus = 'all' | 'pending' | 'active' | 'rejected' | 'revoked';
     IconsModule,
   ],
   template: `
-    <!-- Header (iiko Web style) -->
+    <!-- Header (Web style) -->
     <header class="border-b border-gray-200 bg-white">
       <div class="flex h-14 items-center gap-4 px-4">
         <div class="flex items-center gap-2">

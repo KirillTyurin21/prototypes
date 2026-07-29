@@ -96,6 +96,6 @@ export class NeptuneSuccessDialogComponent {
   @Output() dialogClose = new EventEmitter<void>();
 
   get prechequeText(): string {
-    return `Списание MGS: ${this.amountDeducted} руб.`;
+    return `Списание по плагину: ${this.amountDeducted} руб.`;
   }
 }

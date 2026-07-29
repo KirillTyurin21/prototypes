@@ -52,7 +52,7 @@ import { SparrowTab } from '../types';
       <ng-template #ordersView>
         <div class="flex flex-col" style="height: 480px;">
 
-          <!-- ═══ Header (iiko style: dark bg, gold title) ═══ -->
+          <!-- ═══ Header (Front style: dark bg, gold title) ═══ -->
           <div class="flex items-center justify-between px-4 py-3"
                style="background: #333;">
             <span class="text-base font-semibold italic" style="color: #c8b560;">
@@ -80,7 +80,7 @@ import { SparrowTab } from '../types';
             {{ state.inlineMessage }}
           </div>
 
-          <!-- ═══ Tabs (iiko style: flat, minimal) ═══ -->
+          <!-- ═══ Tabs (Front style: flat, minimal) ═══ -->
           <div class="flex" style="background: #383838; border-bottom: 1px solid #555;">
             <button *ngFor="let tab of tabs"
                     (click)="onTabChange(tab.key)"
@@ -114,7 +114,7 @@ import { SparrowTab } from '../types';
             </app-sparrow-order-card>
           </div>
 
-          <!-- ═══ Footer (iiko style: dark bar with bold white buttons) ═══ -->
+          <!-- ═══ Footer (Front style: dark bar with bold white buttons) ═══ -->
           <div class="flex items-center justify-between px-1"
                style="background: #2a2a2a; border-top: 1px solid #555;">
             <button (click)="showStopListScreen = true"
