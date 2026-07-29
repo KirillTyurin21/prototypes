@@ -157,7 +157,7 @@ export class NeptuneConfigScreenComponent {
       title: 'Таймауты и retry',
       icon: 'clock',
       params: [
-        { name: 'requestTimeout', type: 'int', required: false, defaultValue: '30', description: 'Таймаут HTTP-запроса к MGS (секунды)' },
+        { name: 'requestTimeout', type: 'int', required: false, defaultValue: '30', description: 'Таймаут HTTP-запроса к Neptune (секунды)' },
         { name: 'retryCount', type: 'int', required: false, defaultValue: '3', description: 'Количество повторных попыток при сетевой ошибке' },
         { name: 'retryInterval', type: 'int', required: false, defaultValue: '2', description: 'Интервал между повторными попытками (секунды)' },
       ],
@@ -240,13 +240,13 @@ export class NeptuneConfigScreenComponent {
       ],
     },
     {
-      title: 'MGS-специфичные параметры',
+      title: 'Neptune-специфичные параметры',
       icon: 'database',
       params: [
         { name: 'point_service_id', type: 'int', required: true, defaultValue: '—', description: 'ID сервиса для ресторанного списания баллов', note: 'Уточнение' },
-        { name: 'RestaurantPointId', type: 'int', required: false, defaultValue: '4', description: 'ID типа баллов «Ресторан» в MGS' },
-        { name: 'ComplimentaryPointId', type: 'int', required: false, defaultValue: '0', description: 'ID типа баллов «Complimentary» в MGS' },
-        { name: 'hospitality_item', type: 'int', required: false, defaultValue: '2', description: 'Идентификатор объекта (ресторана) в MGS' },
+        { name: 'RestaurantPointId', type: 'int', required: false, defaultValue: '4', description: 'ID типа баллов «Ресторан» во внешней системе' },
+        { name: 'ComplimentaryPointId', type: 'int', required: false, defaultValue: '0', description: 'ID типа баллов «Complimentary» во внешней системе' },
+        { name: 'hospitality_item', type: 'int', required: false, defaultValue: '2', description: 'Идентификатор объекта (ресторана) во внешней системе' },
       ],
     },
     {

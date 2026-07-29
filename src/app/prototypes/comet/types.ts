@@ -1,8 +1,8 @@
 export interface Store {
   storeId: string;
   storeName: string;
-  hasYandexPayKey: boolean;
-  yandexPayKeyLastUpdatedUtc?: string;
+  hasPayKey: boolean;
+  payKeyLastUpdatedUtc?: string;
   terminalsConfigured: 'none' | 'partial' | 'full';
 }
 
@@ -13,12 +13,12 @@ export interface Organization {
 }
 
 export interface KeyDetails {
-  yandexPayKey: string | null;
+  payKey: string | null;
   lastUpdatedUtc: string | null;
   updatedByUserName: string | null;
 }
 
-export interface YpTerminal {
+export interface PayTerminal {
   terminalId: string;
   terminalName: string;
   accountKey: string | null;

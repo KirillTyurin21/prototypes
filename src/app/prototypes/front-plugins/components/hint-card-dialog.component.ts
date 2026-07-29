@@ -4,7 +4,7 @@ import { IconsModule } from '@/shared/icons.module';
 import { HintData } from '../data/hint-types';
 
 /**
- * Основной дизайн окна подсказки — в стилистике диалоговых окон iiko Front.
+ * Основной дизайн окна подсказки — в стилистике диалоговых окон Front.
  * Тёмный фон, прямые углы, жёлтые акценты, чёрные кнопки.
  *
  * buttonLayout:

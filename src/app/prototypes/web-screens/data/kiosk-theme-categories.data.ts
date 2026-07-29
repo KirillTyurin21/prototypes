@@ -58,7 +58,7 @@ export const KIOSK_THEME_CATEGORIES: PaletteCategory[] = [
       { type: 'kiosk-sample-qr', label: 'Пример QR', icon: 'qr-code' },
       { type: 'kiosk-tips-qr', label: 'QR для чаевых', icon: 'qr-code' },
       { type: 'kiosk-payment-qr', label: 'QR для оплаты', icon: 'qr-code' },
-      { type: 'kiosk-yandex-pay-qr', label: 'Yandex.Pay QR', icon: 'qr-code' },
+      { type: 'kiosk-external-pay-qr', label: 'Pay QR', icon: 'qr-code' },
       { type: 'kiosk-kaspi-qr', label: 'KASPI QR', icon: 'qr-code' },
     ],
   },

@@ -113,13 +113,13 @@ type PosScreen = 'main' | 'tables' | 'delivery-list' | 'order' | 'payment';
             (dialogClose)="showPluginsMenu = false">
           </app-sparrow-plugins-menu>
 
-          <!-- ═══ Окно плагина Beanshe (после выбора из меню) ═══ -->
+          <!-- ═══ Окно плагина Sparrow (после выбора из меню) ═══ -->
           <app-sparrow-plugin-dialog
             [open]="showPluginDialog"
             (dialogClose)="showPluginDialog = false">
           </app-sparrow-plugin-dialog>
 
-          <!-- ═══ Overlay закрытия заказа (плагин добавляет оплату + отправляет в Beanshe) ═══ -->
+          <!-- ═══ Overlay закрытия заказа (плагин добавляет оплату + отправляет во внешнюю систему) ═══ -->
           <pos-dialog *ngIf="showCloseOverlay"
                       [open]="true"
                       [closable]="false"
@@ -202,10 +202,10 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   closeErrorMessage = '';
   prefillPayment = false;
 
-  /** Кастомные типы оплаты: Beanshe как внешний тип под «Банковские карты» */
+  /** Кастомные типы оплаты: внешний тип под «Банковские карты» */
   sparrowPaymentMethods: PosPaymentMethod[] = [
     { id: 'cash', name: 'Наличные', type: 'cash' },
-    { id: 'beanshe', name: 'Банковские карты', displayName: 'Beanshe', type: 'bank-card' },
+    { id: 'beanshe', name: 'Банковские карты', displayName: 'Sparrow', type: 'bank-card' },
     { id: 'cashless', name: 'Безнал. расчет', type: 'cashless' },
     { id: 'no-revenue', name: 'Без выручки', type: 'no-revenue' },
   ];
@@ -330,7 +330,7 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
   }
 
   onPaymentComplete(): void {
-    // Повторная попытка: плагин снова пытается отправить в Beanshe
+    // Повторная попытка: плагин снова пытается отправить во внешнюю систему
     this._startCloseFlow();
   }
 
@@ -404,7 +404,7 @@ export class SparrowMainScreenComponent implements OnInit, OnDestroy {
 
   // ─── Close flow (плагин автозакрытия) ───────
 
-  /** Запуск флоу закрытия: overlay → добавить оплату → отправить в Beanshe → закрыть */
+  /** Запуск флоу закрытия: overlay → добавить оплату → отправить во внешнюю систему → закрыть */
   private _startCloseFlow(): void {
     this.showCloseOverlay = true;
     this.closeOverlayState = 'loading';

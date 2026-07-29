@@ -21,7 +21,7 @@ import {
   Organization,
   Store,
   KeyDetails,
-  YpTerminal,
+  PayTerminal,
   Account,
   OAuthState,
   Partner,
@@ -123,7 +123,7 @@ import {
         <!-- Page Header -->
         <div class="border-b border-gray-200 bg-white px-6 py-4 shrink-0">
           <div class="flex items-center justify-between gap-4">
-            <h1 class="text-2xl font-semibold text-gray-900">Яндекс.Пэй</h1>
+            <h1 class="text-2xl font-semibold text-gray-900">Comet Pay</h1>
             <div class="relative w-80">
               <lucide-icon
                 name="search"
@@ -181,19 +181,19 @@ import {
                       <span class="flex-1 text-left text-gray-700">{{ store.storeName }}</span>
                       <!-- Status Icon -->
                       <lucide-icon
-                        *ngIf="store.terminalsConfigured === 'full' && store.hasYandexPayKey"
+                        *ngIf="store.terminalsConfigured === 'full' && store.hasPayKey"
                         name="check-circle-2"
                         [size]="16"
                         class="shrink-0 text-green-600"
                       ></lucide-icon>
                       <lucide-icon
-                        *ngIf="store.terminalsConfigured === 'partial' && store.hasYandexPayKey"
+                        *ngIf="store.terminalsConfigured === 'partial' && store.hasPayKey"
                         name="alert-circle"
                         [size]="16"
                         class="shrink-0 text-orange-500"
                       ></lucide-icon>
                       <lucide-icon
-                        *ngIf="!store.hasYandexPayKey || store.terminalsConfigured === 'none'"
+                        *ngIf="!store.hasPayKey || store.terminalsConfigured === 'none'"
                         name="circle"
                         [size]="16"
                         class="shrink-0 text-gray-300"
@@ -212,7 +212,7 @@ import {
               *ngIf="!selectedStore && !isLoadingStore"
               class="flex h-full items-center justify-center text-gray-400 text-sm"
             >
-              Выберите ресторан в дереве слева, чтобы настроить ключ Яндекс.Пэй.
+              Выберите ресторан в дереве слева, чтобы настроить ключ Comet Pay.
             </div>
 
             <!-- Loading -->
@@ -225,17 +225,17 @@ import {
               <div class="max-w-2xl space-y-6">
                 <!-- Title -->
                 <div>
-                  <h2 class="text-xl font-semibold text-gray-900">Настройки Яндекс.Пэй</h2>
+                  <h2 class="text-xl font-semibold text-gray-900">Настройки Comet Pay</h2>
                   <p class="text-sm text-gray-500 mt-1">Ресторан: {{ selectedStore.storeName }}</p>
                 </div>
 
                 <!-- API Key Section -->
                 <div class="space-y-2">
-                  <label class="block text-sm font-medium text-gray-700">Ключ Яндекс.Пэй</label>
+                  <label class="block text-sm font-medium text-gray-700">Ключ Comet Pay</label>
                   <input
                     type="text"
                     [(ngModel)]="keyValue"
-                    placeholder="Введите ключ Яндекс.Пэй (например: yk_test_...)"
+                    placeholder="Введите ключ Comet Pay (например: yk_test_...)"
                     class="w-full h-9 px-3 text-sm font-mono border border-gray-300 rounded-md bg-white
                            placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
                            transition-all"
@@ -262,7 +262,7 @@ import {
                   </button>
                   <button
                     (click)="showDeleteDialog = true"
-                    [disabled]="!keyDetails?.yandexPayKey"
+                    [disabled]="!keyDetails?.payKey"
                     class="h-9 px-4 text-sm font-medium rounded-md transition-colors
                            border border-gray-300 bg-white text-gray-700 hover:bg-gray-50
                            disabled:opacity-50 disabled:cursor-not-allowed"
@@ -281,7 +281,7 @@ import {
                 </div>
 
                 <!-- Terminals & QR Tables Section (only when key exists) -->
-                <ng-container *ngIf="selectedStore.hasYandexPayKey">
+                <ng-container *ngIf="selectedStore.hasPayKey">
                   <div class="border-t border-gray-200 my-6"></div>
 
                   <!-- No terminals yet -->
@@ -421,20 +421,20 @@ import {
 
       <!-- OAuth-онбординг секция -->
       <div *ngIf="activeSection === 'onboarding'" class="flex-1 p-6 overflow-y-auto">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Онбординг Яндекс.Пэй</h2>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Онбординг Comet Pay</h2>
 
         <!-- Блок авторизации (не авторизован) -->
         <div *ngIf="!oauthState.isAuthorized && oauthSection !== 'connected'" class="bg-white rounded-lg border border-gray-200 p-8 text-center">
           <lucide-icon name="log-in" [size]="48" class="text-gray-300 mx-auto mb-4"></lucide-icon>
           <h3 class="text-lg font-medium text-gray-900 mb-2">Шаг 1: Авторизация</h3>
-          <p class="text-gray-500 mb-6">Авторизуйтесь через Яндекс ID, чтобы начать процесс онбординга:<br/>
+          <p class="text-gray-500 mb-6">Авторизуйтесь через учётную запись, чтобы начать процесс онбординга:<br/>
             <span class="text-sm text-gray-400">Авторизация → Организация → Заявка → Подключение</span>
           </p>
           <div class="flex items-center justify-center gap-4">
             <button (click)="startOAuth()"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
               <lucide-icon name="log-in" [size]="18"></lucide-icon>
-              Войти с Яндекс ID
+              Войти с учётной записью
             </button>
             <button (click)="oauthSection = 'connected'"
                     class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:underline transition-colors">
@@ -531,12 +531,12 @@ import {
               </button>
             </div>
 
-            <!-- Форма создания партнера (только ИНН — Яндекс резолвит остальное) -->
+            <!-- Форма создания партнера (только ИНН — провайдер резолвит остальное) -->
             <div *ngIf="showPartnerForm" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 animate-fade-in">
               <h4 class="font-medium text-gray-900 mb-1">Новая организация</h4>
               <p class="text-xs text-gray-400 mb-3">
                 <lucide-icon name="info" [size]="12" class="inline-block mr-1"></lucide-icon>
-                Введите ИНН — остальные реквизиты Яндекс заполнит автоматически из справочников.
+                Введите ИНН — остальные реквизиты провайдер заполнит автоматически из справочников.
               </p>
               <div class="flex items-end gap-3">
                 <div class="flex-1 max-w-xs">
@@ -807,12 +807,12 @@ import {
                 </div>
               </div>
 
-              <!-- Эмуляция действий Яндекс.Пэй (для демонстрации полного цикла) -->
+              <!-- Эмуляция действий провайдера (для демонстрации полного цикла) -->
               <div *ngIf="emulationMerchants.length > 0" class="mt-4 border-2 border-dashed border-amber-300 bg-amber-50/70 rounded-lg p-4">
                 <div class="flex items-center gap-2 mb-3">
                   <lucide-icon name="play-circle" [size]="16" class="text-amber-600"></lucide-icon>
-                  <span class="text-sm font-medium text-amber-800">Эмуляция Яндекс.Пэй</span>
-                  <span class="text-xs text-amber-500 ml-1">(действия на стороне Яндекса)</span>
+                  <span class="text-sm font-medium text-amber-800">Эмуляция провайдера</span>
+                  <span class="text-xs text-amber-500 ml-1">(действия на стороне провайдера)</span>
                 </div>
                 <div class="space-y-2">
                   <div *ngFor="let m of emulationMerchants"
@@ -890,7 +890,7 @@ import {
                   <h4 class="font-medium text-gray-900">{{ m.name }}</h4>
                   <span class="px-2 py-1 rounded-full text-xs font-medium text-green-600 bg-green-50">✓ Подключено</span>
                 </div>
-                <p class="text-sm text-gray-500 mb-3">Токен получен, торговая точка готова к приёму платежей через Яндекс.Пэй</p>
+                <p class="text-sm text-gray-500 mb-3">Токен получен, торговая точка готова к приёму платежей через Comet Pay</p>
                 <button (click)="goToSettings(m)"
                         class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">
                   <lucide-icon name="settings" [size]="16"></lucide-icon>
@@ -906,8 +906,8 @@ import {
     <!-- Delete Confirmation Dialog -->
     <ui-confirm-dialog
       [open]="showDeleteDialog"
-      title="Очистить ключ Яндекс.Пэй?"
-      [message]="'Очистить ключ Яндекс.Пэй для ресторана «' + (selectedStore?.storeName || '') + '»? Все привязки терминалов и табличка по умолчанию будут удалены.'"
+      title="Очистить ключ Comet Pay?"
+      [message]="'Очистить ключ Comet Pay для ресторана «' + (selectedStore?.storeName || '') + '»? Все привязки терминалов и табличка по умолчанию будут удалены.'"
       confirmText="Очистить"
       cancelText="Отмена"
       (confirmed)="handleClearKey()"
@@ -926,9 +926,9 @@ export class CometMainScreenComponent implements OnInit {
   originalKeyValue = '';
   errorMessage = '';
   searchQuery = '';
-  terminals: YpTerminal[] = [];
+  terminals: PayTerminal[] = [];
   accounts: Account[] = [];
-  autoConfiguredTerminals = new Map<string, YpTerminal[]>();
+  autoConfiguredTerminals = new Map<string, PayTerminal[]>();
   isLoadingAccounts = false;
   isLoadingStore = false;
   defaultAccountKey: string | null = null;
@@ -961,7 +961,7 @@ export class CometMainScreenComponent implements OnInit {
   oauthSection: 'partners' | 'merchants' | 'connected' = 'partners';
   partnerInnError = '';
 
-  // Форма партнера — только ИНН (остальное резолвит Яндекс)
+  // Форма партнера — только ИНН (остальное резолвит провайдер)
   newPartnerInn = '';
 
   // Мульти-заявка: массив торговых точек
@@ -973,7 +973,7 @@ export class CometMainScreenComponent implements OnInit {
     this.organizations = this.storage.load('comet', 'organizations', MOCK_ORGANIZATIONS);
 
     // Восстановить auto-configured терминалы
-    const savedAutoTerminals = this.storage.load<Record<string, YpTerminal[]> | null>('comet', 'autoTerminals', null);
+    const savedAutoTerminals = this.storage.load<Record<string, PayTerminal[]> | null>('comet', 'autoTerminals', null);
     if (savedAutoTerminals) {
       this.autoConfiguredTerminals = new Map(Object.entries(savedAutoTerminals));
     }
@@ -1037,23 +1037,23 @@ export class CometMainScreenComponent implements OnInit {
 
     await this.delay(300);
 
-    const mockKeyDetails: KeyDetails = store.hasYandexPayKey
+    const mockKeyDetails: KeyDetails = store.hasPayKey
       ? {
-          yandexPayKey: 'yk_test_1234567890abcdef',
+          payKey: 'yk_test_1234567890abcdef',
           lastUpdatedUtc: '2025-11-18T10:32:00Z',
           updatedByUserName: 'Администратор Иванов',
         }
       : {
-          yandexPayKey: null,
+          payKey: null,
           lastUpdatedUtc: null,
           updatedByUserName: null,
         };
 
     this.keyDetails = mockKeyDetails;
-    this.keyValue = mockKeyDetails.yandexPayKey || '';
-    this.originalKeyValue = mockKeyDetails.yandexPayKey || '';
+    this.keyValue = mockKeyDetails.payKey || '';
+    this.originalKeyValue = mockKeyDetails.payKey || '';
 
-    if (store.hasYandexPayKey) {
+    if (store.hasPayKey) {
       this.loadTerminalsAndAccounts(store.storeId);
     } else {
       this.terminals = [];
@@ -1097,7 +1097,7 @@ export class CometMainScreenComponent implements OnInit {
 
     const now = new Date().toISOString();
     this.keyDetails = {
-      yandexPayKey: this.keyValue,
+      payKey: this.keyValue,
       lastUpdatedUtc: now,
       updatedByUserName: 'Администратор Петров',
     };
@@ -1106,8 +1106,8 @@ export class CometMainScreenComponent implements OnInit {
 
     this.loadTerminalsAndAccounts(this.selectedStore.storeId);
 
-    this.updateStoreInOrgs(this.selectedStore.storeId, { hasYandexPayKey: true, terminalsConfigured: 'partial' });
-    this.selectedStore = { ...this.selectedStore, hasYandexPayKey: true, terminalsConfigured: 'partial' };
+    this.updateStoreInOrgs(this.selectedStore.storeId, { hasPayKey: true, terminalsConfigured: 'partial' });
+    this.selectedStore = { ...this.selectedStore, hasPayKey: true, terminalsConfigured: 'partial' };
 
     if (!keyChanged) {
       this.showToast('Изменения сохранены');
@@ -1122,7 +1122,7 @@ export class CometMainScreenComponent implements OnInit {
 
     this.keyValue = '';
     this.originalKeyValue = '';
-    this.keyDetails = { yandexPayKey: null, lastUpdatedUtc: null, updatedByUserName: null };
+    this.keyDetails = { payKey: null, lastUpdatedUtc: null, updatedByUserName: null };
     this.terminals = [];
     this.accounts = [];
     this.defaultAccountKey = null;
@@ -1132,10 +1132,10 @@ export class CometMainScreenComponent implements OnInit {
     this.autoConfiguredTerminals.delete(this.selectedStore.storeId);
     this.storage.save('comet', 'autoTerminals', Object.fromEntries(this.autoConfiguredTerminals));
 
-    this.updateStoreInOrgs(this.selectedStore.storeId, { hasYandexPayKey: false, terminalsConfigured: 'none' });
-    this.selectedStore = { ...this.selectedStore, hasYandexPayKey: false, terminalsConfigured: 'none' };
+    this.updateStoreInOrgs(this.selectedStore.storeId, { hasPayKey: false, terminalsConfigured: 'none' });
+    this.selectedStore = { ...this.selectedStore, hasPayKey: false, terminalsConfigured: 'none' };
 
-    this.showToast('Ключ Яндекс.Пэй очищен', 'Все привязки терминалов удалены');
+    this.showToast('Ключ Comet Pay очищен', 'Все привязки терминалов удалены');
     this.showDeleteDialog = false;
     this.persistOrganizations();
   }
@@ -1165,7 +1165,7 @@ export class CometMainScreenComponent implements OnInit {
       return t;
     });
 
-    const newStatus = this.calculateTerminalsConfigured(this.terminals, this.selectedStore.hasYandexPayKey);
+    const newStatus = this.calculateTerminalsConfigured(this.terminals, this.selectedStore.hasPayKey);
     this.updateStoreInOrgs(this.selectedStore.storeId, { terminalsConfigured: newStatus });
     this.selectedStore = { ...this.selectedStore, terminalsConfigured: newStatus };
 
@@ -1215,7 +1215,7 @@ export class CometMainScreenComponent implements OnInit {
   }
 
   private calculateTerminalsConfigured(
-    terminals: YpTerminal[],
+    terminals: PayTerminal[],
     hasKey: boolean,
   ): 'none' | 'partial' | 'full' {
     if (terminals.length === 0) return hasKey ? 'partial' : 'none';
@@ -1258,7 +1258,7 @@ export class CometMainScreenComponent implements OnInit {
     this.storage.save('comet', 'oauth_state', this.oauthState);
     this.loadPartners();
     this.loadMccCodes();
-    this.showToast('Авторизация успешна', 'Вы вошли через Яндекс ID');
+    this.showToast('Авторизация успешна', 'Вы вошли через учётную запись');
   }
 
   logoutOAuth(): void {
@@ -1518,7 +1518,7 @@ export class CometMainScreenComponent implements OnInit {
       merchant_id: merchantId,
       partner_id: this.selectedPartner?.partner_id || '',
       last_four: lastFour,
-      token_format: 'YANDEX_PAY',
+      token_format: 'PAY_TOKEN',
       created_at: new Date().toISOString(),
       token_value: 'ut_' + Math.random().toString(36).substring(2, 18),
     };
@@ -1571,7 +1571,7 @@ export class CometMainScreenComponent implements OnInit {
             merchant_id: m.merchant_id,
             partner_id: m.partner_id,
             last_four: Math.random().toString(36).substring(2, 6),
-            token_format: 'YANDEX_PAY',
+            token_format: 'PAY_TOKEN',
             created_at: m.updated || new Date().toISOString(),
             token_value: 'ut_' + Math.random().toString(36).substring(2, 18),
           };
@@ -1581,9 +1581,9 @@ export class CometMainScreenComponent implements OnInit {
     });
   }
 
-  // --- Эмуляция действий Яндекс.Пэй ---
+  // --- Эмуляция действий провайдера ---
 
-  /** Мерчанты, требующие действия со стороны Яндекса */
+  /** Мерчанты, требующие действия со стороны провайдера */
   get emulationMerchants(): MerchantInfo[] {
     return this.merchants.filter(m => {
       if (m.registration_status === 'processing') return true;
@@ -1604,28 +1604,28 @@ export class CometMainScreenComponent implements OnInit {
     );
   }
 
-  /** Яндекс одобряет заявку */
+  /** Провайдер одобряет заявку */
   emuApprove(merchant: MerchantInfo): void {
     this.updateMerchantStatus(merchant.merchant_id, 'active');
     this.merchantTokenStatusMap.set(merchant.merchant_id, 'pending');
-    this.showToast('Яндекс: заявка одобрена', merchant.name);
+    this.showToast('Провайдер: заявка одобрена', merchant.name);
   }
 
-  /** Яндекс отклоняет заявку */
+  /** Провайдер отклоняет заявку */
   emuReject(merchant: MerchantInfo): void {
     this.updateMerchantStatus(merchant.merchant_id, 'failed');
-    this.showToast('Яндекс: заявка отклонена', merchant.name);
+    this.showToast('Провайдер: заявка отклонена', merchant.name);
   }
 
-  /** Яндекс выдаёт токен */
+  /** Провайдер выдаёт токен */
   emuIssueToken(merchant: MerchantInfo): void {
     this.autoGenerateToken(merchant.merchant_id);
     // Автоматическое подключение QR-табличек к терминалам в Интеграциях
     if (merchant.storeId) {
       this.autoConfigureStore(merchant);
-      this.showToast('Яндекс: токен выдан', merchant.name + ' — терминалы подключены!');
+      this.showToast('Провайдер: токен выдан', merchant.name + ' — терминалы подключены!');
     } else {
-      this.showToast('Яндекс: токен выдан', merchant.name);
+      this.showToast('Провайдер: токен выдан', merchant.name);
     }
   }
 
@@ -1634,8 +1634,8 @@ export class CometMainScreenComponent implements OnInit {
     const storeId = merchant.storeId;
     if (!storeId) return;
 
-    // 1. Установить ключ Яндекс.Пэй на магазине
-    this.updateStoreInOrgs(storeId, { hasYandexPayKey: true });
+    // 1. Установить ключ провайдера на магазине
+    this.updateStoreInOrgs(storeId, { hasPayKey: true });
 
     // 2. Сформировать терминалы с автоназначенными QR-табличками
     const storeData = MOCK_STORE_TERMINALS.find(s => s.storeId === storeId);
@@ -1643,7 +1643,7 @@ export class CometMainScreenComponent implements OnInit {
       const selectedTerminals = storeData.terminals
         .filter(t => merchant.terminalIds!.includes(t.terminalId));
 
-      const autoTerminals: YpTerminal[] = selectedTerminals.map((t, i) => {
+      const autoTerminals: PayTerminal[] = selectedTerminals.map((t, i) => {
         const acct = MOCK_ACCOUNTS[i % MOCK_ACCOUNTS.length];
         return {
           terminalId: t.terminalId,
@@ -1667,23 +1667,23 @@ export class CometMainScreenComponent implements OnInit {
     this.persistOrganizations();
   }
 
-  /** Яндекс: ошибка выдачи токена */
+  /** Провайдер: ошибка выдачи токена */
   emuTokenError(merchant: MerchantInfo): void {
     this.merchantTokenStatusMap.set(merchant.merchant_id, 'error');
-    this.showToast('Яндекс: ошибка токена', merchant.name);
+    this.showToast('Провайдер: ошибка токена', merchant.name);
   }
 
-  /** Яндекс: повторная попытка получения токена */
+  /** Провайдер: повторная попытка получения токена */
   emuRetryToken(merchant: MerchantInfo): void {
     this.merchantTokenStatusMap.set(merchant.merchant_id, 'retrying');
     this.showToast('Повторная попытка...', merchant.name);
   }
 
-  /** Яндекс пересматривает отклонённую заявку */
+  /** Провайдер пересматривает отклонённую заявку */
   emuReconsider(merchant: MerchantInfo): void {
     this.updateMerchantStatus(merchant.merchant_id, 'processing');
     this.merchantTokenStatusMap.delete(merchant.merchant_id);
-    this.showToast('Яндекс: заявка на пересмотре', merchant.name);
+    this.showToast('Провайдер: заявка на пересмотре', merchant.name);
   }
 
   /** Обновить статус мерчанта в хранилище и UI */

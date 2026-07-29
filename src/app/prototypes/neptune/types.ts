@@ -23,7 +23,7 @@ export type PanelState = 'no-guest' | 'identified' | 'unavailable';
 /** Способ идентификации гостя */
 export type IdentifyMethod = 'card' | 'id';
 
-/** Баллы лояльности (соответствие MGS: 0=Complimentary, 1=Gaming, 3=Travel, 4=Restaurant) */
+/** Баллы лояльности (соответствие Neptune: 0=Complimentary, 1=Gaming, 3=Travel, 4=Restaurant) */
 export interface MockPoint {
   point_id: number;
   point_name: string;
@@ -88,7 +88,7 @@ export interface MockPointService {
   points: string;
 }
 
-/** Тип ошибки по спецификации MGS */
+/** Тип ошибки по спецификации Neptune */
 export interface ErrorScenario {
   id: string;
   httpCode: number | null;

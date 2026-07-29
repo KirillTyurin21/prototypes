@@ -52,7 +52,7 @@ import { CatalogSection, CatalogCell } from '../types';
           </div>
           <div class="flex-1">
             <h3 class="font-medium text-gray-900">Конфигурация плагина</h3>
-            <p class="text-sm text-gray-500">Все параметры настройки: подключение, таймауты, роли, кнопки, размеры UI, MGS</p>
+            <p class="text-sm text-gray-500">Все параметры настройки: подключение, таймауты, роли, кнопки, размеры UI, Neptune</p>
           </div>
           <lucide-icon name="chevron-right" [size]="20" class="text-gray-400"></lucide-icon>
         </div>

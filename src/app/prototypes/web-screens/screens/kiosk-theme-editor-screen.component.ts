@@ -341,7 +341,7 @@ export class KioskThemeEditorScreenComponent implements OnInit {
       'kiosk-sample-qr': 'Пример QR',
       'kiosk-tips-qr': 'QR для чаевых',
       'kiosk-payment-qr': 'QR для оплаты',
-      'kiosk-yandex-pay-qr': 'Yandex.Pay QR',
+      'kiosk-external-pay-qr': 'Pay QR',
       'kiosk-kaspi-qr': 'KASPI QR',
     };
     const name = nameMap[type] || type;

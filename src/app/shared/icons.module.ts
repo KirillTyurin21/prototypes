@@ -160,7 +160,7 @@ import {
   AlignStartVertical,
   AlignCenterVertical,
   AlignEndVertical,
-  // Halyk Consent prototype
+  // External consent prototype
   Plug,
   ShieldCheck,
   Inbox,
@@ -363,7 +363,7 @@ const icons = {
   AlignStartVertical,
   AlignCenterVertical,
   AlignEndVertical,
-  // Halyk Consent prototype
+  // External consent prototype
   Plug,
   Unplug,
   ShieldCheck,

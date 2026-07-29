@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
 
 /**
- * Неблокирующий диалог «Push стоп-запрос от Beanshe».
+ * Неблокирующий диалог «Push стоп-запрос от внешней системы».
  *
  * Показывается поверх окна плагина (но не блокирует терминал).
  * Бариста может подтвердить (поставить на стоп) или отклонить.
@@ -20,7 +20,7 @@ import { IconsModule } from '@/shared/icons.module';
          style="background: rgba(0,0,0,0.5);">
       <div class="max-w-xs w-full mx-4 animate-fade-in" style="background: #404040;">
 
-        <!-- Title (iiko style: gold italic) -->
+        <!-- Title (Front style: gold italic) -->
         <div class="px-4 py-3 text-center" style="background: #333;">
           <span class="text-sm font-semibold italic" style="color: #c8b560;">
             Запрос на стоп
@@ -43,7 +43,7 @@ import { IconsModule } from '@/shared/icons.module';
           </p>
         </div>
 
-        <!-- Footer (iiko style: dark bar with bold white buttons) -->
+        <!-- Footer (Front style: dark bar with bold white buttons) -->
         <div class="flex" style="background: #2a2a2a; border-top: 1px solid #555;">
           <button (click)="onConfirm()"
                   [disabled]="loading"

@@ -1,30 +1,30 @@
-import { Organization, Account, YpTerminal, Partner, MerchantInfo, MerchantStatus, UserTokenInfo, MccCode, OAuthState, AvailableTerminal, StoreTerminals } from '../types';
+import { Organization, Account, PayTerminal, Partner, MerchantInfo, MerchantStatus, UserTokenInfo, MccCode, OAuthState, AvailableTerminal, StoreTerminals } from '../types';
 
 export const MOCK_ORGANIZATIONS: Organization[] = [
   {
     organizationId: '1',
     organizationName: 'ООО "Ресторанная группа Север"',
     stores: [
-      { storeId: '101', storeName: 'Ресторан "Премьер"', hasYandexPayKey: true, terminalsConfigured: 'partial' },
-      { storeId: '102', storeName: 'Кафе "Уют"', hasYandexPayKey: false, terminalsConfigured: 'none' },
-      { storeId: '103', storeName: 'Бар "Огонёк"', hasYandexPayKey: false, terminalsConfigured: 'none' },
+      { storeId: '101', storeName: 'Ресторан "Премьер"', hasPayKey: true, terminalsConfigured: 'partial' },
+      { storeId: '102', storeName: 'Кафе "Уют"', hasPayKey: false, terminalsConfigured: 'none' },
+      { storeId: '103', storeName: 'Бар "Огонёк"', hasPayKey: false, terminalsConfigured: 'none' },
     ],
   },
   {
     organizationId: '2',
     organizationName: 'ИП Иванов А.В.',
     stores: [
-      { storeId: '201', storeName: 'Пиццерия "Капричоза"', hasYandexPayKey: false, terminalsConfigured: 'none' },
-      { storeId: '202', storeName: 'Суши-бар "Токио"', hasYandexPayKey: true, terminalsConfigured: 'full' },
+      { storeId: '201', storeName: 'Пиццерия "Капричоза"', hasPayKey: false, terminalsConfigured: 'none' },
+      { storeId: '202', storeName: 'Суши-бар "Токио"', hasPayKey: true, terminalsConfigured: 'full' },
     ],
   },
   {
     organizationId: '3',
     organizationName: 'ООО "Быстрое питание"',
     stores: [
-      { storeId: '301', storeName: 'Кофе-поинт "ЦУМ"', hasYandexPayKey: true, terminalsConfigured: 'none' },
-      { storeId: '302', storeName: 'Бургерная №2', hasYandexPayKey: false, terminalsConfigured: 'none' },
-      { storeId: '303', storeName: 'Бургерная №3', hasYandexPayKey: true, terminalsConfigured: 'full' },
+      { storeId: '301', storeName: 'Кофе-поинт "ЦУМ"', hasPayKey: true, terminalsConfigured: 'none' },
+      { storeId: '302', storeName: 'Бургерная №2', hasPayKey: false, terminalsConfigured: 'none' },
+      { storeId: '303', storeName: 'Бургерная №3', hasPayKey: true, terminalsConfigured: 'full' },
     ],
   },
 ];
@@ -35,7 +35,7 @@ export const MOCK_ACCOUNTS: Account[] = [
   { key: 'CS1T001AB02C3DE4FG5H6IJ7KL8MN9OP', name: 'QR табличка - ID 48302', active: 1 },
 ];
 
-export function getMockTerminals(storeId: string): YpTerminal[] {
+export function getMockTerminals(storeId: string): PayTerminal[] {
   const storeData = MOCK_STORE_TERMINALS.find(s => s.storeId === storeId);
   if (!storeData) {
     return [
@@ -160,7 +160,7 @@ export const MOCK_USER_TOKENS: UserTokenInfo[] = [
     merchant_id: '500924a8-aaaa-bbbb-cccc-ddddeeee0001',
     partner_id: '6a3a39f6-1111-2222-3333-444455556666',
     last_four: 'g7h8',
-    token_format: 'YANDEX_PAY',
+    token_format: 'PAY_TOKEN',
     created_at: '2026-03-19T12:00:00Z',
   },
 ];

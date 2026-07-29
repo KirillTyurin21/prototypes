@@ -126,7 +126,7 @@ interface ApiLogEntry {
             <!-- Step: scan-qr -->
             <div *ngIf="currentStep === 'scan-qr'" class="text-center">
               <p class="text-sm text-text-secondary mb-3">
-                Ожидание сканирования QR-кода из приложения Wildberries
+                Ожидание сканирования QR-кода из приложения партнёра
               </p>
               <ui-button
                 variant="primary"
@@ -227,7 +227,7 @@ interface ApiLogEntry {
       (cancel)="onQrCancel()"
     >
       <p class="text-center mb-4">
-        Отсканируйте QR-код из приложения<br>Wildberries
+        Отсканируйте QR-код из приложения<br>партнёра
       </p>
       <div class="mb-3">
         <label class="block text-xs text-gray-400 mb-1">QR-код:</label>
@@ -255,7 +255,7 @@ interface ApiLogEntry {
         <lucide-icon name="loader-2" [size]="48" class="text-[#b8c959] animate-spin mb-4"></lucide-icon>
         <p class="text-white text-base font-medium mb-2">Ожидание подтверждения</p>
         <p class="text-gray-400 text-sm mb-4">
-          Гость подтверждает оплату<br>в приложении Wildberries
+          Гость подтверждает оплату<br>в приложении партнёра
         </p>
         <p class="text-[#b8c959] text-lg font-bold mb-4">{{ amount }} ₽</p>
         <!-- Progress bar -->

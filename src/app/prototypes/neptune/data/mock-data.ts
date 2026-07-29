@@ -82,9 +82,9 @@ export const DEMO_ROLES = {
 };
 
 /** Шаблон пречека */
-export const PRECHEQUE_TEMPLATE = 'Списание MGS: {result_sum} руб.';
+export const PRECHEQUE_TEMPLATE = 'Списание по плагину: {result_sum} руб.';
 
-/** Сценарии ошибок из спецификации MGS */
+/** Сценарии ошибок из спецификации Neptune */
 export const ERROR_SCENARIOS: ErrorScenario[] = [
   { id: 'network',      httpCode: null, title: 'Сетевая ошибка',        message: 'Нет связи с сервером. Проверьте подключение.',                   action: 'Retry (retryCount раз)',   retryable: true },
   { id: 'auth-invalid', httpCode: 406,  title: 'Невалидный API-ключ',   message: 'Ошибка аутентификации. Проверьте API-ключ в конфигурации.',      action: 'Кнопки заблокированы',     retryable: false },
@@ -95,7 +95,7 @@ export const ERROR_SCENARIOS: ErrorScenario[] = [
   { id: 'insufficient-cash', httpCode: 423, title: 'Недостаточно средств', message: 'Недостаточно кэш-поинтов на счёте гостя.',                  action: 'Другой способ оплаты',     retryable: false },
   { id: 'insufficient-points', httpCode: 423, title: 'Недостаточно баллов', message: 'Недостаточно баллов лояльности на счёте.',                  action: 'Другой способ оплаты',     retryable: false },
   { id: 'account-blocked', httpCode: 423, title: 'Счёт заблокирован',   message: 'Счёт гостя заблокирован. Обратитесь к менеджеру казино.',        action: 'Обратиться к менеджеру',    retryable: false },
-  { id: 'mgs-unavailable', httpCode: null, title: 'Сервер недоступен',  message: 'Сервер недоступен. Кассир может продолжить работу без плагина.', action: 'Периодический retry',      retryable: true },
+  { id: 'server-unavailable', httpCode: null, title: 'Сервер недоступен',  message: 'Сервер недоступен. Кассир может продолжить работу без плагина.', action: 'Периодический retry',      retryable: true },
 ];
 
 /** Тексты ошибок (legacy) */
@@ -117,7 +117,7 @@ export const CATALOG_SECTIONS: CatalogSection[] = [
   {
     title: 'Платежи',
     icon: 'wallet',
-    description: 'оплата заказа через MGS',
+    description: 'оплата заказа через плагин',
     cells: [
       { id: 'pin-entry',     label: 'Ввод PIN-кода',     icon: 'key-round',  iconColor: '#ff6d00', description: 'PIN-код гостя → платёжный токен (TTL 5 мин)',  modalType: 'pin-entry', badge: '4 состояния', badgeColor: '#ff6d00' },
       { id: 'pay-cashless',  label: 'Оплата Cashless',   icon: 'wallet',     iconColor: '#2e7d32', description: 'Списание кэш-поинтов',         modalType: 'payment-cashless', paymentType: 'cashless' },
@@ -136,18 +136,18 @@ export const CATALOG_SECTIONS: CatalogSection[] = [
   {
     title: 'Обработка ошибок',
     icon: 'alert-triangle',
-    description: 'сценарии ошибок MGS по спецификации',
+    description: 'сценарии ошибок Neptune по спецификации',
     cells: [
       { id: 'err-network',    label: 'Сетевая ошибка',     icon: 'wifi-off',      iconColor: '#d32f2f', description: 'Таймаут / нет связи (retry)',         modalType: 'error', errorScenarioId: 'network' },
       { id: 'err-auth',       label: 'Ошибка auth (406)',  icon: 'shield-off',    iconColor: '#d32f2f', description: 'Невалидный API-ключ',                 modalType: 'error', errorScenarioId: 'auth-invalid' },
       { id: 'err-session',    label: 'Сессия истекла',     icon: 'clock',         iconColor: '#ff6d00', description: '401/403 — повторная аутентификация',   modalType: 'error', errorScenarioId: 'session-expired' },
-      { id: 'err-not-found',  label: 'Гость не найден',   icon: 'user-x',        iconColor: '#ff6d00', description: '404 — гость не найден в MGS',          modalType: 'error', errorScenarioId: 'not-found' },
+      { id: 'err-not-found',  label: 'Гость не найден',   icon: 'user-x',        iconColor: '#ff6d00', description: '404 — гость не найден во внешней системе',          modalType: 'error', errorScenarioId: 'not-found' },
       { id: 'err-pin',        label: 'Неверный PIN',       icon: 'key-round',     iconColor: '#d32f2f', description: '406 — неверный PIN-код',               modalType: 'error', errorScenarioId: 'pin-invalid' },
       { id: 'err-token',      label: 'Токен истёк',        icon: 'timer-off',     iconColor: '#ff6d00', description: 'TTL 5 мин — повторный PIN',            modalType: 'error', errorScenarioId: 'token-expired' },
       { id: 'err-cash',       label: 'Недостаточно cash',  icon: 'wallet',        iconColor: '#d32f2f', description: '423 — баланс кэш-поинтов недостаточен', modalType: 'error', errorScenarioId: 'insufficient-cash' },
       { id: 'err-points',     label: 'Недостаточно баллов', icon: 'star',         iconColor: '#d32f2f', description: '423 — баллов лояльности не хватает',    modalType: 'error', errorScenarioId: 'insufficient-points' },
       { id: 'err-blocked',    label: 'Счёт заблокирован',  icon: 'lock',          iconColor: '#d32f2f', description: '423 — счёт гостя заблокирован',         modalType: 'error', errorScenarioId: 'account-blocked' },
-      { id: 'err-unavailable', label: 'MGS недоступен',    icon: 'server-off',    iconColor: '#78909c', description: 'Сервер не отвечает при старте',         modalType: 'error', errorScenarioId: 'mgs-unavailable' },
+      { id: 'err-unavailable', label: 'Сервер недоступен',    icon: 'server-off',    iconColor: '#78909c', description: 'Сервер не отвечает при старте',         modalType: 'error', errorScenarioId: 'server-unavailable' },
     ],
   },
 ];

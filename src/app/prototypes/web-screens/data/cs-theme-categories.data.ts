@@ -54,7 +54,7 @@ export const CS_THEME_CATEGORIES: PaletteCategory[] = [
       { type: 'qr-code', label: 'QR код', icon: 'qr-code' },
       { type: 'qr-code-tips', label: 'QR код чаевых', icon: 'qr-code' },
       { type: 'qr-payment', label: 'Оплата по QR', icon: 'qr-code' },
-      { type: 'yandex-pay-qr', label: 'Яндекс.Пэй QR', icon: 'qr-code' },
+      { type: 'external-pay-qr', label: 'Pay QR', icon: 'qr-code' },
       { type: 'kaspi-qr', label: 'КАСПИ QR', icon: 'qr-code' },
     ],
   },
