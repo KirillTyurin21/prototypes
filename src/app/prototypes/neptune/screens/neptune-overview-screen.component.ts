@@ -50,7 +50,7 @@ import { NeptuneErrorDialogComponent } from '../components/dialogs/error-dialog.
                 Neptune — Guest Management
               </h1>
               <p class="text-sm text-gray-500 mt-0.5">
-                Плагин интеграции Front с системой управления казино Neptune. Идентификация гостей, просмотр профиля и балансов, оплата заказа.
+                Плагин интеграции Front с системой управления гостями Neptune. Идентификация гостей, просмотр профиля и балансов, оплата заказа.
               </p>
             </div>
           </div>
