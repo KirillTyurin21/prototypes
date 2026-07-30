@@ -126,11 +126,11 @@ export class SidebarComponent {
   showList = false;
 
   get allPrototypes(): PrototypeEntry[] {
-    if (this.session.isMaster()) return PROTOTYPES;
-    return PROTOTYPES.filter(p => {
+    const available = this.session.isMaster() ? PROTOTYPES : PROTOTYPES.filter(p => {
       const slug = p.path.replace('/prototype/', '');
       return this.session.hasAccess(slug);
     });
+    return available.filter(p => !p.hideInSidebar);
   }
 
   /** Показывать кнопку «Добавить код» только авторизованным не-мастерам */
