@@ -7,6 +7,8 @@ export interface PrototypeEntry {
   label: string;
   icon: string;        // имя иконки lucide (kebab-case), напр. 'puzzle'
   description?: string;
+  /** Не показывать прототип в раскрывающемся списке боковой панели. */
+  hideInSidebar?: boolean;
   /** Категория для группировки на главной странице: 'front' | 'web' */
   category?: 'front' | 'web';
 }
@@ -26,6 +28,14 @@ export const PROTOTYPES: PrototypeEntry[] = [
     icon: 'settings',
     description: 'Права доступа, основные параметры и настройки системы',
     category: 'web',
+  },
+  {
+    path: '/assets/static-prototypes/phoenix/index.html',
+    label: 'Phoenix — Управление киосками',
+    icon: 'store',
+    description: 'Панель администрирования киосков самообслуживания: шаблоны настроек, темы, групповое управление',
+    category: 'web',
+    hideInSidebar: true,
   },
   // === FRONT ===
   {
