@@ -118,6 +118,10 @@ export class HomeComponent {
   }
 
   navigate(path: string): void {
+    if (path.startsWith('/assets/')) {
+      window.location.href = path;
+      return;
+    }
     this.router.navigateByUrl(path);
   }
 }

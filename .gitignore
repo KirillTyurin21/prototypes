@@ -12,6 +12,7 @@ tmp/
 out-tsc/
 
 # === IDE / Editor ===
+.vs/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -62,3 +63,11 @@ typings/
 # === Materials: вложенные проекты (node_modules) ===
 materials/Pudu роботы/node_modules/
 materials/Pudu роботы/.next/
+
+# === Build / Cache ===
+*.tsbuildinfo
+.eslintcache
+
+# === Editor backups ===
+*.orig
+*.bak
