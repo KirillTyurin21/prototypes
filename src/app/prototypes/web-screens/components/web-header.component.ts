@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
+import { CsDataService } from '../cs-data.service';
 
 @Component({
   selector: 'app-web-header',
@@ -43,6 +44,17 @@ import { IconsModule } from '@/shared/icons.module';
             <lucide-icon [name]="searchOpen ? 'x' : 'search'" [size]="20"></lucide-icon>
           </button>
         </div>
+
+        <!-- License toggle (для демонстрации платного контента) -->
+        <button
+          class="license-toggle"
+          [class.license-toggle--off]="!dataService.hasPremiumLicense"
+          (click)="dataService.togglePremiumLicense()"
+          [title]="dataService.hasPremiumLicense ? 'Платная лицензия активна — нажмите, чтобы выключить' : 'Платной лицензии нет — нажмите, чтобы включить'"
+        >
+          <lucide-icon name="badge-check" [size]="18"></lucide-icon>
+          <span>{{ dataService.hasPremiumLicense ? 'Лицензия: есть' : 'Лицензии нет' }}</span>
+        </button>
 
         <!-- Notification bell -->
         <button class="header-btn notification-btn">
@@ -169,6 +181,34 @@ import { IconsModule } from '@/shared/icons.module';
     .notification-btn {
       display: flex;
     }
+    .license-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid #4caf50;
+      border-radius: 4px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: Roboto, sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .license-toggle:hover {
+      background: #c8e6c9;
+    }
+    .license-toggle--off {
+      border-color: #ff6d00;
+      background: #fff3e0;
+      color: #e65100;
+    }
+    .license-toggle--off:hover {
+      background: #ffe0b2;
+    }
     .user-area {
       display: flex;
       align-items: center;
@@ -214,6 +254,8 @@ export class WebHeaderComponent {
   @Input() pageTitle = 'Advertise screens';
   @Input() pageSubtitle = '';
   @Output() menuToggle = new EventEmitter<void>();
+
+  dataService = inject(CsDataService);
 
   searchOpen = false;
   searchQuery = '';

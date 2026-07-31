@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, TerminalTableRow, ThemeOption, CampaignOption, HintOption, TerminalGroupOption, TerminalThemeStructure, ThemePageInfo, ThemeElementInfo, HintAssignmentInfo } from './cs-types';
+import { CSControl, CSTheme, Hint, CSTerminal, Campaign, CSRestaurant, CSTerminalV2, TerminalScreenshot, TerminalTableRow, ThemeOption, CampaignOption, HintOption, TerminalGroupOption, TerminalThemeStructure, ThemePageInfo, ThemeElementInfo, HintAssignmentInfo, THEME_ELEMENT_TYPES } from './cs-types';
 import { CS_CONTROLS, CS_THEMES, CS_HINTS, CS_TERMINALS, CS_CAMPAIGNS, CS_RESTAURANTS, THEME_OPTIONS, CAMPAIGN_OPTIONS, HINT_OPTIONS, TERMINAL_GROUP_OPTIONS } from './data/cs-mock-data';
 import { StorageService } from '@/shared/storage.service';
 
@@ -23,6 +23,12 @@ export class CsDataService {
   campaignOptions: CampaignOption[] = [];
   hintOptions: HintOption[] = [];
   terminalGroupOptions: TerminalGroupOption[] = [];
+
+  /**
+   * Есть ли платная лицензия хотя бы на одном РМС сети.
+   * Мок — по умолчанию true (лицензия есть), переключается для демонстрации.
+   */
+  hasPremiumLicense = true;
 
   private nextControlId = 7;
   private nextThemeId = 4;
@@ -500,5 +506,31 @@ export class CsDataService {
       pages,
       hints,
     };
+  }
+
+  // ─── Лицензирование платного контента ─────────────
+
+  /** Переключить платную лицензию (для демонстрации) */
+  togglePremiumLicense(): void {
+    this.hasPremiumLicense = !this.hasPremiumLicense;
+  }
+
+  /** Проверка: является ли тип элемента платным */
+  isPremiumElementType(type: string): boolean {
+    const opt = THEME_ELEMENT_TYPES.find(t => t.type === type);
+    return opt?.isPremium ?? false;
+  }
+
+  /** Проверка: содержит ли тема платные элементы */
+  themeHasPremiumElements(theme: CSTheme): boolean {
+    return theme.elements.some(e => this.isPremiumElementType(e.type));
+  }
+
+  /** Получить список названий платных элементов в теме */
+  getPremiumElementNames(theme: CSTheme): string {
+    return theme.elements
+      .filter(e => this.isPremiumElementType(e.type))
+      .map(e => e.name)
+      .join(', ');
   }
 }

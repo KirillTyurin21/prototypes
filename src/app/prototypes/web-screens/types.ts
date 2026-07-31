@@ -310,6 +310,8 @@ export interface ElementCategoryItem {
   type: ArrivalsElementType;
   label: string;
   icon: string;
+  /** Платный элемент — доступен только при платной лицензии */
+  isPremium?: boolean;
 }
 
 export interface ElementCategory {

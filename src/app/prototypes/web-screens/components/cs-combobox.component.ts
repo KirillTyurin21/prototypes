@@ -88,6 +88,17 @@ import { FormsModule } from '@angular/forms';
               />
             </label>
             <span class="cs-select-option-label">{{ displayKey ? opt[displayKey] : opt }}</span>
+            <!-- Значок платной темы (вариант F) -->
+            <span
+              *ngIf="opt.hasPremiumElements"
+              class="cs-select-option-premium"
+              title="Содержит платный контент">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="16.5" r="1.2" fill="currentColor"/>
+              </svg>
+            </span>
           </div>
           <div *ngIf="filteredOptions.length === 0" class="cs-select-no-results">
             Ничего не найдено
@@ -244,6 +255,14 @@ import { FormsModule } from '@angular/forms';
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .cs-select-option-premium {
+      display: inline-flex;
+      align-items: center;
+      color: #ff6d00;
+      cursor: help;
+      flex-shrink: 0;
     }
 
     .cs-select-no-results {

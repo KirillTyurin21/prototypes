@@ -11,6 +11,8 @@ interface PaletteItem {
   type: string;
   label: string;
   icon: string;
+  /** Платный элемент — доступен только при платной лицензии */
+  isPremium?: boolean;
 }
 
 interface PaletteCategory {
@@ -106,6 +108,13 @@ interface PaletteCategory {
               class="element-icon">
             </lucide-icon>
             <span>{{ el.label }}</span>
+            <!-- Значок платного элемента (вариант B) -->
+            <span
+              *ngIf="el.isPremium"
+              class="premium-badge"
+              title="Доступен при платной лицензии">
+              <lucide-icon name="alert-circle" [size]="14"></lucide-icon>
+            </span>
           </div>
         </div>
       </div>
@@ -301,6 +310,16 @@ interface PaletteCategory {
       color: #9e9e9e;
       flex-shrink: 0;
     }
+
+    /* ── Premium badge (платный элемент) ── */
+    .premium-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 6px;
+      color: #ff6d00;
+      cursor: help;
+      flex-shrink: 0;
+    }
   `],
 })
 export class ElementPaletteComponent implements OnDestroy {
@@ -315,6 +334,9 @@ export class ElementPaletteComponent implements OnDestroy {
 
   /** Текущая ширина панели (для two-way binding resize) */
   @Input() panelWidth = 320;
+
+  /** Есть ли платная лицензия (скрывает платные элементы, если нет) */
+  @Input() hasPremiumLicense = true;
 
   /** Выбран элемент — type (строка) */
   @Output() elementSelected = new EventEmitter<string>();
@@ -338,16 +360,19 @@ export class ElementPaletteComponent implements OnDestroy {
     this.stopResize();
   }
 
-  /** Отфильтрованные категории (поиск без учёта регистра) */
+  /** Отфильтрованные категории (поиск без учёта регистра + скрытие платных без лицензии) */
   get filteredCategories(): PaletteCategory[] {
     const q = this.searchQuery.trim().toLowerCase();
-    if (!q) return this.categories;
     return this.categories
       .map(cat => ({
         ...cat,
-        elements: cat.elements.filter(el =>
-          el.label.toLowerCase().includes(q),
-        ),
+        elements: cat.elements.filter(el => {
+          // Платный элемент без лицензии — скрыть (вариант A)
+          if (el.isPremium && !this.hasPremiumLicense) return false;
+          // Поиск по названию
+          if (q && !el.label.toLowerCase().includes(q)) return false;
+          return true;
+        }),
       }))
       .filter(cat => cat.elements.length > 0);
   }

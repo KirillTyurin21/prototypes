@@ -238,6 +238,8 @@ export interface TerminalScreenshot {
 export interface ThemeOption {
   id: number;
   name: string;
+  /** Тема содержит платный контент (доступен при платной лицензии) */
+  hasPremiumElements?: boolean;
 }
 
 export interface CampaignOption {
@@ -469,6 +471,8 @@ export interface ThemeElementTypeOption {
   name: string;
   icon: string;
   singular: boolean; // не более 1 в теме
+  /** Платный элемент — доступен только при платной лицензии */
+  isPremium?: boolean;
 }
 
 export const THEME_ELEMENT_TYPES: ThemeElementTypeOption[] = [
@@ -476,7 +480,7 @@ export const THEME_ELEMENT_TYPES: ThemeElementTypeOption[] = [
   { type: 'text', name: 'Текст', icon: 'type', singular: false },
   { type: 'advertise', name: 'Рекламный блок', icon: 'megaphone', singular: false },
   { type: 'animation', name: 'Анимации', icon: 'film', singular: true },
-  { type: 'hints', name: 'Подсказки', icon: 'lightbulb', singular: true },
+  { type: 'hints', name: 'Подсказки', icon: 'lightbulb', singular: true, isPremium: true },
 ];
 
 /** Дефолтные настройки области подсказок */

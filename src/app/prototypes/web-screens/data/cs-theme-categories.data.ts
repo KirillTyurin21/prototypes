@@ -8,6 +8,8 @@ interface PaletteItem {
   type: string;
   label: string;
   icon: string;
+  /** Платный элемент — доступен только при платной лицензии */
+  isPremium?: boolean;
 }
 
 interface PaletteCategory {
@@ -66,6 +68,7 @@ export const CS_THEME_CATEGORIES: PaletteCategory[] = [
     elements: [
       { type: 'controls-area', label: 'Область контролов', icon: 'square' },
       { type: 'animation-window', label: 'Окно анимации', icon: 'panel-right-open' },
+      { type: 'hints', label: 'Область подсказок', icon: 'lightbulb', isPremium: true },
     ],
   },
   {

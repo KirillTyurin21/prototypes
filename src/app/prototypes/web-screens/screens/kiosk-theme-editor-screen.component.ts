@@ -6,6 +6,7 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
+import { CsDataService } from '../cs-data.service';
 import { MOCK_KIOSK_LIST } from '../data/mock-data';
 import { KIOSK_THEME_CATEGORIES } from '../data/kiosk-theme-categories.data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ElementCategory } from '../types';
@@ -24,6 +25,11 @@ type PanelView = 'theme' | 'add-element' | 'element';
     <div class="editor-layout">
       <!-- ═══ CANVAS ═══ -->
       <div class="canvas-column">
+        <!-- Баннер: нет платной лицензии (вариант D) -->
+        <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
+          <lucide-icon name="alert-triangle" [size]="18"></lucide-icon>
+          <span>У вас нет платной лицензии. Платные элементы будут недоступны на экране.</span>
+        </div>
         <div class="canvas-area" #canvasAreaRef>
           <div class="canvas-scroll">
             <div
@@ -116,6 +122,7 @@ type PanelView = 'theme' | 'add-element' | 'element';
           <app-element-palette
             *ngIf="panelView === 'add-element'"
             [categories]="themeCategories"
+            [hasPremiumLicense]="dataService.hasPremiumLicense"
             (elementSelected)="addElement($event)"
             (closed)="panelView = 'theme'">
           </app-element-palette>
@@ -179,6 +186,7 @@ type PanelView = 'theme' | 'add-element' | 'element';
     :host { display: block; height: 100%; }
     .editor-layout { display: flex; height: calc(100vh - 110px); margin: -20px -24px; font-family: Roboto, sans-serif; }
     .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .premium-banner { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff3e0; border: 1px solid #ff6d00; border-radius: 4px; color: #e65100; font-size: 13px; font-weight: 500; flex-shrink: 0; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
     .canvas-viewport {
@@ -250,6 +258,7 @@ export class KioskThemeEditorScreenComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private storage = inject(StorageService);
+  dataService = inject(CsDataService);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
   panelCollapsed = false;
@@ -258,6 +267,11 @@ export class KioskThemeEditorScreenComponent implements OnInit {
   deleteElementTarget: ArrivalsThemeElement | null = null;
   toastMessage = '';
   canvasScale = 1;
+
+  /** Тема содержит платный элемент (для баннера) */
+  get themeHasPremium(): boolean {
+    return this.theme.elements.some(e => (e.type as string) === 'kiosk-hints-area');
+  }
 
   resWidth = 1024;
   resHeight = 768;
@@ -331,6 +345,11 @@ export class KioskThemeEditorScreenComponent implements OnInit {
 
   /* ── Add element ── */
   addElement(type: string): void {
+    // Сообщение при добавлении платного элемента без лицензии (вариант E)
+    if (type === 'kiosk-hints-area' && !this.dataService.hasPremiumLicense) {
+      this.toastMessage = 'Вы добавляете платный элемент. Он будет недоступен на экране без платной лицензии.';
+      setTimeout(() => { this.toastMessage = ''; }, 3000);
+    }
     const nameMap: Record<string, string> = {
       'text': 'Текст',
       'image': 'Изображение',

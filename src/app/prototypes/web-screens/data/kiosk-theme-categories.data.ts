@@ -8,6 +8,8 @@ interface PaletteItem {
   type: string;
   label: string;
   icon: string;
+  /** Платный элемент — доступен только при платной лицензии */
+  isPremium?: boolean;
 }
 
 interface PaletteCategory {
@@ -37,7 +39,7 @@ export const KIOSK_THEME_CATEGORIES: PaletteCategory[] = [
     collapsed: true,
     elements: [
       { type: 'kiosk-controls-area', label: 'Область контрола', icon: 'square' },
-      { type: 'kiosk-hints-area', label: 'Область подсказок', icon: 'square' },
+      { type: 'kiosk-hints-area', label: 'Область подсказок', icon: 'square', isPremium: true },
     ],
   },
   {
