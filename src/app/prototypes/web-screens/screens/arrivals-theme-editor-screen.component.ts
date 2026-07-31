@@ -27,11 +27,6 @@ type PanelView = 'theme' | 'add-element' | 'element';
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
-        <!-- Баннер: нет платной лицензии (вариант D) -->
-        <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
-          <lucide-icon name="alert-triangle" [size]="18"></lucide-icon>
-          <span>У вас нет платной лицензии. Платные элементы будут недоступны на экране.</span>
-        </div>
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
@@ -81,7 +76,12 @@ type PanelView = 'theme' | 'add-element' | 'element';
           </ng-container>
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
+        <!-- Баннер: нет платной лицензии (вариант D) -->
+      <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
+        <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+        <span>Отсутствует лицензия.</span>
       </div>
+    </div>
       <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
       <ui-confirm-dialog *ngIf="deleteElementTarget" [open]="true" title="Удалить элемент" [message]="'Удалить элемент «' + deleteElementTarget.name + '»?'" confirmText="Удалить" variant="danger" (confirmed)="confirmDeleteElement()" (cancelled)="deleteElementTarget = null"></ui-confirm-dialog>
     </div>
@@ -89,8 +89,8 @@ type PanelView = 'theme' | 'add-element' | 'element';
   styles: [`
     :host { display: block; height: 100%; }
     .editor-layout { display: flex; height: calc(100vh - 110px); margin: -20px -24px; font-family: Roboto, sans-serif; }
-    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-    .premium-banner { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff3e0; border: 1px solid #ff6d00; border-radius: 4px; color: #e65100; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+    .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
     .canvas-viewport { position: relative; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }

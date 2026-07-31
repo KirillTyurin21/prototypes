@@ -31,11 +31,6 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
-        <!-- Баннер: нет платной лицензии (вариант D) -->
-        <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
-          <lucide-icon name="alert-triangle" [size]="18"></lucide-icon>
-          <span>У вас нет платной лицензии. Платные элементы будут недоступны на экране.</span>
-        </div>
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
@@ -136,6 +131,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
         </div>
         </div>
         <app-order-simulator [orders]="sim.orders" [autoRunning]="sim.autoRunning" (addOrder)="sim.addOrder(); areaHelper.clearAll()" (loadMocks)="sim.loadMocks(); areaHelper.clearAll()" (removeOrder)="sim.removeByIdx($event); areaHelper.clearAll()" (cycleStatus)="sim.cycleStatus($event); areaHelper.clearAll()" (changeOrderType)="sim.changeOrderType($event.order, $event.newType); areaHelper.clearAll()" (toggleAuto)="sim.toggleAuto()" (clearAll)="sim.clearAll(); areaHelper.clearAll()"></app-order-simulator>
+        <!-- Баннер: нет платной лицензии (вариант D) -->
+        <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
+          <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+          <span>Отсутствует лицензия.</span>
+        </div>
       </div>
       <div class="control-panel">
         <div class="panel-header" (click)="panelCollapsed = !panelCollapsed"><span>Панель управления</span><lucide-icon [name]="panelCollapsed ? 'chevron-right' : 'chevron-down'" [size]="18"></lucide-icon></div>
@@ -406,8 +406,8 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
   styles: [`
     :host { display: block; height: 100%; }
     .editor-layout { display: flex; height: calc(100vh - 110px); margin: -20px -24px; font-family: Roboto, sans-serif; }
-    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-    .premium-banner { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff3e0; border: 1px solid #ff6d00; border-radius: 4px; color: #e65100; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+    .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
     .premium-badge { display: inline-flex; align-items: center; margin-right: 6px; color: #ff6d00; cursor: help; flex-shrink: 0; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
