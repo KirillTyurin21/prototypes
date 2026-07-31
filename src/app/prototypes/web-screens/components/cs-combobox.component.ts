@@ -36,6 +36,17 @@ import { FormsModule } from '@angular/forms';
         <span class="cs-select-text" [class.cs-select-text--placeholder]="!hasValue()">
           {{ getDisplayText() }}
         </span>
+        <!-- Значок платной темы в выбранном значении -->
+        <span
+          *ngIf="selectedOption?.hasPremiumElements"
+          class="cs-select-option-premium cs-select-trigger-premium"
+          title="Содержит платный контент">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="16.5" r="1.2" fill="currentColor"/>
+          </svg>
+        </span>
         <span class="cs-select-arrow">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M4 6L8 10L12 6" stroke="#9e9e9e" stroke-width="1.5" stroke-linecap="round"/>
@@ -265,6 +276,11 @@ import { FormsModule } from '@angular/forms';
       flex-shrink: 0;
     }
 
+    .cs-select-trigger-premium {
+      margin-left: 2px;
+      margin-right: 2px;
+    }
+
     .cs-select-no-results {
       padding: 16px;
       text-align: center;
@@ -324,6 +340,12 @@ export class CsComboboxComponent {
   searchText = '';
 
   constructor(private el: ElementRef) {}
+
+  /** Найти выбранную опцию (для показа premium-значка в триггере) */
+  get selectedOption(): any {
+    if (!this.hasValue() || this.multi) return null;
+    return this.options.find(o => o[this.valueKey] === this.value) ?? null;
+  }
 
   // ─── Внешний клик → закрыть ───
 
