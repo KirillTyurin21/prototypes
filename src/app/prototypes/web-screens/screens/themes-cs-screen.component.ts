@@ -101,6 +101,12 @@ import { CSTheme } from '../cs-types';
         >
           <ng-template tableCellDef="name" let-item>
             <span class="cell-name" (dblclick)="onDoubleClick(item)">{{ item.name }}</span>
+            <span
+              *ngIf="dataService.themeHasPremiumElements(item)"
+              class="premium-badge"
+              [title]="'Платный контент: ' + dataService.getPremiumElementNames(item)">
+              <lucide-icon name="alert-circle" [size]="14"></lucide-icon>
+            </span>
           </ng-template>
           <ng-template tableCellDef="description" let-item>
             <span class="cell-description">{{ item.description || '—' }}</span>
@@ -178,13 +184,14 @@ import { CSTheme } from '../cs-types';
     /* ─── Table ─── */
     .table-container { border-radius: 4px; overflow: hidden; }
     .cell-name { cursor: pointer; font-weight: 500; color: var(--dt-text-primary); }
+    .premium-badge { display: inline-flex; align-items: center; margin-left: 6px; color: #ff6d00; cursor: help; vertical-align: middle; }
     .cell-description { color: var(--dt-text-secondary); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; display: inline-block; }
     .cell-date { color: var(--dt-text-secondary); font-size: 13px; }
     .cell-count { color: var(--dt-text-secondary); }
   `],
 })
 export class ThemesCsScreenComponent implements OnInit {
-  private dataService = inject(CsDataService);
+  dataService = inject(CsDataService);
   private router = inject(Router);
 
   // ─── State ─────────────────────────────────

@@ -23,7 +23,7 @@ export const MENUBOARD_THEME_CATEGORIES: ElementCategory[] = [
     icon: 'layout-grid',
     collapsed: true,
     elements: [
-      { type: 'area', label: 'Область контролов', icon: 'square' },
+      { type: 'area', label: 'Область контролов', icon: 'square', isPremium: true },
     ],
   },
   {

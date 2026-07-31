@@ -282,8 +282,8 @@ export const PRODUCT_TREE: ProductNode[] = [
 // ═══════════════════════════════════════════════
 
 export const THEME_OPTIONS: ThemeOption[] = [
-  { id: 1, name: 'Основная тема кофейни' },
-  { id: 2, name: 'Акционная тема' },
+  { id: 1, name: 'Основная тема кофейни', hasPremiumElements: true },
+  { id: 2, name: 'Акционная тема', hasPremiumElements: true },
   { id: 3, name: 'Минимальная тема' },
   { id: 4, name: 'Тема 3' },
 ];

@@ -46,6 +46,12 @@ import { ArrivalsThemeListItem } from '../types';
                       [ngClass]="item.itemType === 'folder' ? 'icon-folder' : 'icon-file'"
                     ></lucide-icon>
                     <span>{{ item.name }}</span>
+                    <span
+                      *ngIf="item.itemType === 'theme' && themeHasPremium(item.id)"
+                      class="premium-badge"
+                      title="Платный контент: Область подсказок">
+                      <lucide-icon name="alert-circle" [size]="14"></lucide-icon>
+                    </span>
                   </div>
                 </td>
                 <td class="col-resolution">{{ item.resolution || '' }}</td>
@@ -129,6 +135,7 @@ import { ArrivalsThemeListItem } from '../types';
     .theme-row:hover { background: var(--dt-surface-hover); }
 
     .name-cell { display: flex; align-items: center; gap: 10px; }
+    .premium-badge { display: inline-flex; align-items: center; color: #ff6d00; cursor: help; }
     .icon-folder { color: #ff9800; }
     .icon-file { color: var(--dt-text-disable); }
 
@@ -154,6 +161,13 @@ export class KioskThemesScreenComponent {
 
   items: ArrivalsThemeListItem[] = this.storage.load('web-screens', 'kiosk-list', [...MOCK_KIOSK_LIST]);
   deleteTarget: ArrivalsThemeListItem | null = null;
+
+  /** Тема содержит платный элемент «Область подсказок» (для метки платного контента) */
+  themeHasPremium(themeId: number): boolean {
+    const themes: any[] = this.storage.load('web-screens', 'kiosk-themes', []);
+    const theme = themes.find(t => t.id === themeId);
+    return !!theme && theme.elements?.some((e: any) => e.type === 'kiosk-hints-area');
+  }
 
   onRowClick(item: ArrivalsThemeListItem): void {
     if (item.itemType === 'theme') {

@@ -23,7 +23,7 @@ export const ARRIVALS_THEME_CATEGORIES: ElementCategory[] = [
     icon: 'layout-grid',
     collapsed: true,
     elements: [
-      { type: 'area', label: 'Область', icon: 'square' },
+      { type: 'area', label: 'Область', icon: 'square', isPremium: true },
       { type: 'popup' as any, label: 'Всплывающее окно', icon: 'panel-right-open' },
     ],
   },

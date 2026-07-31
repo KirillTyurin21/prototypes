@@ -6,6 +6,7 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
+import { CsDataService } from '../cs-data.service';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
 import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
@@ -130,6 +131,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
         </div>
         </div>
         <app-order-simulator [orders]="sim.orders" [autoRunning]="sim.autoRunning" (addOrder)="sim.addOrder(); areaHelper.clearAll()" (loadMocks)="sim.loadMocks(); areaHelper.clearAll()" (removeOrder)="sim.removeByIdx($event); areaHelper.clearAll()" (cycleStatus)="sim.cycleStatus($event); areaHelper.clearAll()" (changeOrderType)="sim.changeOrderType($event.order, $event.newType); areaHelper.clearAll()" (toggleAuto)="sim.toggleAuto()" (clearAll)="sim.clearAll(); areaHelper.clearAll()"></app-order-simulator>
+        <!-- Баннер: нет платной лицензии (вариант D) -->
+        <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
+          <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+          <span>Отсутствует лицензия.</span>
+        </div>
       </div>
       <div class="control-panel">
         <div class="panel-header" (click)="panelCollapsed = !panelCollapsed"><span>Панель управления</span><lucide-icon [name]="panelCollapsed ? 'chevron-right' : 'chevron-down'" [size]="18"></lucide-icon></div>
@@ -141,12 +147,13 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
             <div class="section-divider">Настройка режима</div>
             <div class="field-group"><select class="field-select" [(ngModel)]="theme.screenMode"><option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option></select></div>
             <div class="section-divider">Элементы</div>
-            <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" [class.list-dragging]="listDragIndex === i" [class.list-drag-above]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! > i" [class.list-drag-below]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! < i" (click)="selectElementFromList(el.id)" (mousedown)="onListMouseDown(i, $event)"><span class="el-list-name">{{ el.name }}</span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
+            <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" [class.list-dragging]="listDragIndex === i" [class.list-drag-above]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! > i" [class.list-drag-below]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! < i" (click)="selectElementFromList(el.id)" (mousedown)="onListMouseDown(i, $event)"><span class="el-list-name">{{ el.name }}</span><span *ngIf="el.type === 'area'" class="premium-badge" title="Платный элемент — доступен при платной лицензии"><lucide-icon name="alert-circle" [size]="14"></lucide-icon></span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
             <button class="btn-add-element" (click)="panelView = 'add-element'">Добавить элемент</button>
           </ng-container>
           <app-element-palette
             *ngIf="panelView === 'add-element'"
             [categories]="themeCategories"
+            [hasPremiumLicense]="dataService.hasPremiumLicense"
             (elementSelected)="addElement($any($event))"
             (closed)="panelView = 'theme'">
           </app-element-palette>
@@ -399,7 +406,9 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
   styles: [`
     :host { display: block; height: 100%; }
     .editor-layout { display: flex; height: calc(100vh - 110px); margin: -20px -24px; font-family: Roboto, sans-serif; }
-    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+    .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
+    .premium-badge { display: inline-flex; align-items: center; margin-right: 6px; color: #ff6d00; cursor: help; flex-shrink: 0; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
     .canvas-viewport { position: relative; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
@@ -503,6 +512,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   private route = inject(ActivatedRoute);
   private storage = inject(StorageService);
   private cdr = inject(ChangeDetectorRef);
+  dataService = inject(CsDataService);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
   panelCollapsed = false;
@@ -511,6 +521,11 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   deleteElementTarget: ArrivalsThemeElement | null = null;
   toastMessage = '';
   canvasScale = 1;
+
+  /** Тема содержит платный элемент (для баннера) */
+  get themeHasPremium(): boolean {
+    return this.theme.elements.some(e => e.type === 'area');
+  }
   availableControls: ArrivalsControl[] = [];
   mockOrders: ArrivalsOrderMock[] = [...MOCK_ARRIVALS_ORDERS];
   externalMenuCategories = MOCK_EXTERNAL_MENU;
@@ -835,6 +850,10 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Add / Delete */
   addElement(type: ArrivalsElementType): void {
+    // Сообщение при добавлении платного элемента без лицензии (вариант E)
+    if (type === 'area' && !this.dataService.hasPremiumLicense) {
+      this.showToast('Вы добавляете платный элемент. Он будет недоступен на экране без платной лицензии.');
+    }
     const label = this.elementTypes.find(et => et.type === type)?.label ?? type;
     const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0 };
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }

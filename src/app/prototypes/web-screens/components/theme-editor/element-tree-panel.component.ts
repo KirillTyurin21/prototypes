@@ -8,6 +8,8 @@ export interface ElementTypeOption {
   label: string;
   icon: string;
   disabled: boolean;
+  /** Платный элемент — доступен только при платной лицензии */
+  isPremium?: boolean;
 }
 
 @Component({

@@ -6,6 +6,7 @@ import { IconsModule } from '@/shared/icons.module';
 import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
+import { CsDataService } from '../cs-data.service';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS } from '../data/mock-data';
 import { ARRIVALS_THEME_CATEGORIES } from '../data/element-categories.data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
@@ -58,12 +59,13 @@ type PanelView = 'theme' | 'add-element' | 'element';
             <div class="section-divider">Настройка режима</div>
             <div class="field-group"><select class="field-select" [(ngModel)]="theme.screenMode"><option *ngFor="let m of screenModeOptions" [value]="m.value">{{ m.label }}</option></select></div>
             <div class="section-divider">Элементы</div>
-            <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" [class.list-dragging]="listDragIndex === i" [class.list-drag-above]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! > i" [class.list-drag-below]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! < i" (click)="selectElementFromList(el.id)" (mousedown)="onListMouseDown(i, $event)"><span class="el-list-name">{{ el.name }}</span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
+            <div *ngFor="let el of theme.elements; let i = index" class="element-list-item" [class.active]="selectedElementId === el.id" [class.list-dragging]="listDragIndex === i" [class.list-drag-above]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! > i" [class.list-drag-below]="listDragOverIndex === i && listDragIndex !== null && listDragIndex! < i" (click)="selectElementFromList(el.id)" (mousedown)="onListMouseDown(i, $event)"><span class="el-list-name">{{ el.name }}</span><span *ngIf="el.type === 'area'" class="premium-badge" title="Платный элемент — доступен при платной лицензии"><lucide-icon name="alert-circle" [size]="14"></lucide-icon></span><button class="el-list-delete" (click)="requestDeleteElement(el, $event)" title="Удалить"><lucide-icon name="x" [size]="14"></lucide-icon></button></div>
             <button class="btn-add-element" (click)="panelView = 'add-element'">Добавить элемент</button>
           </ng-container>
           <app-element-palette
             *ngIf="panelView === 'add-element'"
             [categories]="themeCategories"
+            [hasPremiumLicense]="dataService.hasPremiumLicense"
             (elementSelected)="addElement($any($event))"
             (closed)="panelView = 'theme'">
           </app-element-palette>
@@ -74,7 +76,12 @@ type PanelView = 'theme' | 'add-element' | 'element';
           </ng-container>
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
+        <!-- Баннер: нет платной лицензии (вариант D) -->
+      <div *ngIf="!dataService.hasPremiumLicense && themeHasPremium" class="premium-banner">
+        <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+        <span>Отсутствует лицензия.</span>
       </div>
+    </div>
       <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
       <ui-confirm-dialog *ngIf="deleteElementTarget" [open]="true" title="Удалить элемент" [message]="'Удалить элемент «' + deleteElementTarget.name + '»?'" confirmText="Удалить" variant="danger" (confirmed)="confirmDeleteElement()" (cancelled)="deleteElementTarget = null"></ui-confirm-dialog>
     </div>
@@ -82,7 +89,8 @@ type PanelView = 'theme' | 'add-element' | 'element';
   styles: [`
     :host { display: block; height: 100%; }
     .editor-layout { display: flex; height: calc(100vh - 110px); margin: -20px -24px; font-family: Roboto, sans-serif; }
-    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+    .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
     .canvas-viewport { position: relative; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
@@ -124,6 +132,7 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .element-list-item.list-drag-above::before { content: ''; position: absolute; top: -2px; left: 0; right: 0; height: 2px; background: #1976d2; border-radius: 1px; z-index: 1; }
     .element-list-item.list-drag-below::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #1976d2; border-radius: 1px; z-index: 1; }
     .el-list-name { flex: 1; }
+    .premium-badge { display: inline-flex; align-items: center; margin-right: 6px; color: #ff6d00; cursor: help; flex-shrink: 0; }
     .el-list-delete { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: none; border-radius: 3px; background: transparent; color: #bdbdbd; cursor: pointer; }
     .el-list-delete:hover { background: #ffebee; color: #e53935; }
     .btn-add-element { width: 100%; height: 40px; border: none; border-radius: 4px; background: #448aff; color: #fff; font-size: 14px; font-weight: 500; font-family: Roboto, sans-serif; cursor: pointer; margin-top: 8px; }
@@ -136,6 +145,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private storage = inject(StorageService);
+  dataService = inject(CsDataService);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
   panelCollapsed = false;
@@ -237,6 +247,10 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   get resHeight(): number { return parseInt(this.theme.resolution.split('x')[1]) || 768; }
   get selectedElement(): ArrivalsThemeElement | null {
     return this.selectedElementId ? (this.theme.elements.find(e => e.id === this.selectedElementId) ?? null) : null;
+  }
+  /** Тема содержит платный элемент (для баннера) */
+  get themeHasPremium(): boolean {
+    return this.theme.elements.some(e => e.type === 'area');
   }
 
   ngOnInit(): void {
@@ -360,6 +374,10 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
 
   addElement(type: ArrivalsElementType): void {
     const label = this.elementTypes.find(et => et.type === type)?.label ?? type;
+    // Сообщение при добавлении платного элемента без лицензии (вариант E)
+    if (type === 'area' && !this.dataService.hasPremiumLicense) {
+      this.showToast('Вы добавляете платный элемент. Он будет недоступен на экране без платной лицензии.');
+    }
     const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0 };
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }

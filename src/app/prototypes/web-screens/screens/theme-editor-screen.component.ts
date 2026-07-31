@@ -75,6 +75,11 @@ function deepClone<T>(obj: T): T {
               {{ el.name }}
             </div>
           </div>
+          <!-- Баннер: нет платной лицензии (вариант D) -->
+          <div *ngIf="!dataService.hasPremiumLicense && dataService.themeHasPremiumElements(theme)" class="premium-banner">
+            <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+            <span>Отсутствует лицензия.</span>
+          </div>
         </div>
 
         <!-- RIGHT: Control panel -->
@@ -127,6 +132,7 @@ function deepClone<T>(obj: T): T {
                 (click)="selectElement(el.id)">
                 <lucide-icon [name]="getElIcon(el.type)" [size]="18" class="el-icon"></lucide-icon>
                 <span class="el-name">{{ el.name }}</span>
+                <span *ngIf="el.type === 'hints'" class="premium-badge" title="Платный элемент — доступен при платной лицензии"><lucide-icon name="alert-circle" [size]="14"></lucide-icon></span>
                 <button class="el-btn el-vis" title="Видимость" (click)="$event.stopPropagation()">
                   <lucide-icon name="eye" [size]="16"></lucide-icon>
                 </button>
@@ -144,6 +150,7 @@ function deepClone<T>(obj: T): T {
             <app-element-palette
               *ngIf="showAddElement"
               [categories]="themeCategories"
+              [hasPremiumLicense]="dataService.hasPremiumLicense"
               (elementSelected)="addElementFromPalette($event)"
               (closed)="showAddElement = false">
             </app-element-palette>
@@ -193,7 +200,10 @@ function deepClone<T>(obj: T): T {
     @keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ── Preview column (left, canvas-style) ── */
-    .canvas-column { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; background: #e0e0e0; overflow: auto; padding: 16px; }
+    .canvas-column { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; background: #e0e0e0; overflow: auto; padding: 16px; position: relative; }
+
+    .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
+    .premium-badge { display: inline-flex; align-items: center; margin-right: 4px; color: #ff6d00; cursor: help; flex-shrink: 0; }
 
     .closed-mode-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; width: 100%; max-width: 600px; aspect-ratio: 16/9; background: #263238; border-radius: 8px; color: #fff; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .closed-icon { color: #ff9800; }
@@ -261,7 +271,7 @@ function deepClone<T>(obj: T): T {
 export class ThemeEditorScreenComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private dataService = inject(CsDataService);
+  dataService = inject(CsDataService);
 
   Math = Math;
 
@@ -390,12 +400,16 @@ export class ThemeEditorScreenComponent implements OnInit {
   private buildElementTypeOptions(): void {
     this.elementTypeOptions = THEME_ELEMENT_TYPES.map(t => {
       const alreadyAdded = t.singular && this.theme!.elements.some(e => e.type === t.type);
-      return { type: t.type, label: t.name, icon: t.icon, disabled: alreadyAdded };
+      return { type: t.type, label: t.name, icon: t.icon, disabled: alreadyAdded, isPremium: t.isPremium };
     });
   }
 
   addElement(opt: ElementTypeOption): void {
     if (opt.disabled || !this.theme) return;
+    // Сообщение при добавлении платного элемента без лицензии (вариант E)
+    if (opt.isPremium && !this.dataService.hasPremiumLicense) {
+      this.showToast('Вы добавляете платный элемент. Он будет недоступен на экране без платной лицензии.');
+    }
     const id = this.nextElementId++;
     let newEl: ThemeElement;
     switch (opt.type) {
