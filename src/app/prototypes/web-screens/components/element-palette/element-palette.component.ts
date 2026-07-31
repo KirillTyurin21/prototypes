@@ -379,7 +379,11 @@ export class ElementPaletteComponent implements OnDestroy {
 
   /** Раскрыть/свернуть категорию */
   toggleCategory(cat: PaletteCategory): void {
-    cat.collapsed = !cat.collapsed;
+    // Переключаем исходную категорию в this.categories, а не копию из filteredCategories
+    const original = this.categories.find(c => c.id === cat.id);
+    if (original) {
+      original.collapsed = !original.collapsed;
+    }
   }
 
   /* ── Resize ── */

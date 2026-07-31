@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+﻿import { NgModule } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   LayoutDashboard,
@@ -116,6 +116,7 @@ import {
   Building2,
   FileCheck,
   Key,
+  PanelRightOpen,
   // Hints anatomy panel
   Maximize2,
   BookOpen,
@@ -200,10 +201,10 @@ import {
 } from 'lucide-angular';
 
 /**
- * Модуль иконок Lucide.
- * Зарегистрируй все используемые иконки здесь.
- * Импортируй в любой standalone-компонент: `imports: [IconsModule]`
- * Использование в шаблоне: `<lucide-icon name="plus" [size]="18"></lucide-icon>`
+ * РњРѕРґСѓР»СЊ РёРєРѕРЅРѕРє Lucide.
+ * Р—Р°СЂРµРіРёСЃС‚СЂРёСЂСѓР№ РІСЃРµ РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ РёРєРѕРЅРєРё Р·РґРµСЃСЊ.
+ * РРјРїРѕСЂС‚РёСЂСѓР№ РІ Р»СЋР±РѕР№ standalone-РєРѕРјРїРѕРЅРµРЅС‚: `imports: [IconsModule]`
+ * РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РІ С€Р°Р±Р»РѕРЅРµ: `<lucide-icon name="plus" [size]="18"></lucide-icon>`
  */
 const icons = {
   LayoutDashboard,
@@ -320,6 +321,7 @@ const icons = {
   Building2,
   FileCheck,
   Key,
+  PanelRightOpen,
   // Hints anatomy panel
   Maximize2,
   BookOpen,
