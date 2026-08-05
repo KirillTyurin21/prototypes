@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconsModule } from '@/shared/icons.module';
+import { MaterialIconComponent } from '@/components/ui/material-icon.component';
 
 /**
  * Локальные типы (совместимы с ElementCategory/ElementCategoryItem из types.ts,
@@ -26,7 +26,7 @@ interface PaletteCategory {
 @Component({
   selector: 'app-element-palette',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule],
+  imports: [CommonModule, FormsModule, MaterialIconComponent],
   template: `
     <!-- ═══════ Resize handle (left edge) ═══════ -->
     <div
@@ -38,8 +38,8 @@ interface PaletteCategory {
     <!-- ═══════ Title + Close ═══════ -->
     <div class="add-element-header">
       <span class="add-element-title">{{ title }}</span>
-      <button class="icon-btn-sm" (click)="closed.emit()">
-        <lucide-icon name="x" [size]="18"></lucide-icon>
+      <button class="icon-btn-sm" (click)="closed.emit()" title="Закрыть">
+        <app-material-icon name="close" [size]="18"></app-material-icon>
       </button>
     </div>
 
@@ -51,17 +51,18 @@ interface PaletteCategory {
         placeholder="Поиск элементов..."
         [(ngModel)]="searchQuery"
       />
-      <lucide-icon
+      <app-material-icon
         *ngIf="!searchQuery"
         name="search"
         [size]="16"
         class="search-elements-icon">
-      </lucide-icon>
+      </app-material-icon>
       <button
         *ngIf="searchQuery"
         class="search-elements-clear"
-        (click)="searchQuery = ''">
-        <lucide-icon name="x" [size]="14"></lucide-icon>
+        (click)="searchQuery = ''"
+        title="Очистить">
+        <app-material-icon name="close" [size]="14"></app-material-icon>
       </button>
     </div>
 
@@ -82,18 +83,18 @@ interface PaletteCategory {
         <div
           class="category-header"
           (click)="toggleCategory(cat)">
-          <lucide-icon
+          <app-material-icon
             [name]="cat.icon"
             [size]="18"
             class="category-icon">
-          </lucide-icon>
+          </app-material-icon>
           <span class="category-label">{{ cat.label }}</span>
           <span class="category-count">{{ cat.elements.length }}</span>
-          <lucide-icon
-            [name]="cat.collapsed ? 'chevron-down' : 'chevron-up'"
+          <app-material-icon
+            [name]="cat.collapsed ? 'arrow_right' : 'arrow_drop_down'"
             [size]="16"
             class="category-chevron">
-          </lucide-icon>
+          </app-material-icon>
         </div>
 
         <!-- Category elements (collapsed animation) -->
@@ -102,18 +103,18 @@ interface PaletteCategory {
             *ngFor="let el of cat.elements"
             class="element-item"
             (click)="elementSelected.emit(el.type)">
-            <lucide-icon
+            <app-material-icon
               [name]="el.icon"
               [size]="16"
               class="element-icon">
-            </lucide-icon>
+            </app-material-icon>
             <span>{{ el.label }}</span>
-            <!-- Значок платного элемента (вариант B) -->
+            <!-- Значок платного элемента -->
             <span
               *ngIf="el.isPremium"
               class="premium-badge"
               title="Доступен при платной лицензии">
-              <lucide-icon name="alert-circle" [size]="14"></lucide-icon>
+              <app-material-icon name="error" [size]="14"></app-material-icon>
             </span>
           </div>
         </div>
@@ -367,7 +368,7 @@ export class ElementPaletteComponent implements OnDestroy {
       .map(cat => ({
         ...cat,
         elements: cat.elements.filter(el => {
-          // Платный элемент без лицензии — скрыть (вариант A)
+          // Платный элемент без лицензии — скрыть
           if (el.isPremium && !this.hasPremiumLicense) return false;
           // Поиск по названию
           if (q && !el.label.toLowerCase().includes(q)) return false;
@@ -379,7 +380,6 @@ export class ElementPaletteComponent implements OnDestroy {
 
   /** Раскрыть/свернуть категорию */
   toggleCategory(cat: PaletteCategory): void {
-    // Переключаем исходную категорию в this.categories, а не копию из filteredCategories
     const original = this.categories.find(c => c.id === cat.id);
     if (original) {
       original.collapsed = !original.collapsed;

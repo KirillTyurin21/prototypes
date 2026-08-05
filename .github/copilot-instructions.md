@@ -758,6 +758,99 @@ npm run watch
 
 ---
 
+## Работа с коммитами Юры (Phoenix — Киоск 2.0)
+
+> **Контекст:** Юра (YuraPervakov) — дизайнер прототипа Phoenix. Он работает в ChatGPT Sites, генерирует HTML/CSS/JS макеты и выгружает их в репозиторий. Он НЕ пишет Angular-код.
+
+### Структура прототипа Phoenix
+
+```
+src/app/prototypes/phoenix/              ← Angular-обёртка (НЕ ТРОГАТЬ Юре)
+├── phoenix.routes.ts                    ← Маршрут /prototype/phoenix
+├── phoenix-prototype.component.ts       ← iframe-обёртка (~25 строк)
+└── changelog.data.ts                    ← История изменений
+
+src/assets/static-prototypes/phoenix/    ← ТОЛЬКО СЮДА Юра кладёт файлы
+├── index.html                           ← Главная страница макета
+├── assets/                              ← JS/CSS бандлы
+└── fonts/                               ← Шрифты
+```
+
+### Как проверять коммиты Юры (обязательный чеклист)
+
+Когда пользователь говорит «Юра внёс правки»:
+
+1. **Найти ветку Юры:**
+   ```bash
+   git fetch origin
+   git log --all --author="YuraPervakov" --oneline -5
+   ```
+   Юра создаёт отдельные ветки вида `phoenix/*` или `kiosk-yura`.
+
+2. **Проверить что изменилось:**
+   ```bash
+   git diff origin/dev..origin/<ветка-юры> --stat
+   ```
+
+3. **Критические проверки (все должны быть пройдены):**
+
+   | Проверка | Команда | Что ищем |
+   |----------|---------|----------|
+   | **Только своя папка** | `git diff ... --name-only \| Where-Object { $_ -match "^src/app/" }` | Должен быть **0 результатов**. Если есть — Юра задел Angular-файлы |
+   | **Не трогал регистрацию** | `git diff ... -- src/app/app.routes.ts src/app/shared/prototypes.registry.ts src/app/components/layout/changelog-button.component.ts` | Должен быть **0 изменений** |
+   | **Не трогал чужие прототипы** | `git diff ... --name-only \| Where-Object { $_ -match "^src/app/prototypes/(?!phoenix)" }` | Должен быть **0 результатов** |
+   | **Конфиденциальность** | `git diff ... \| Select-String -Pattern "iiko\|MGS\|Beanshe\|Wildberries\|pudu-admin\|казин" -SimpleMatch` | Должен быть **0 результатов** (допустимо только внутри минифицированного JS, не в changelog/комментариях) |
+   | **Не удалил Angular-обёртку** | `Test-Path "src/app/prototypes/phoenix/phoenix-prototype.component.ts"` | Файл **должен существовать** |
+
+4. **Если проверки пройдены** — мержим в dev:
+   ```bash
+   git checkout dev
+   git merge origin/<ветка-юры>
+   git push origin dev
+   ```
+
+5. **Если проверки НЕ пройдены** — сообщить пользователю что именно нарушено, предложить откат конкретных файлов:
+   ```bash
+   git checkout origin/dev -- <путь-к-файлу>
+   ```
+
+### Типовые ошибки Юры (из опыта)
+
+| Ошибка | Как проявляется | Исправление |
+|--------|-----------------|-------------|
+| Удалил Angular-файлы phoenix | `phoenix-prototype.component.ts`, `phoenix.routes.ts`, `changelog.data.ts` пропадают | `git checkout origin/dev -- src/app/prototypes/phoenix/` |
+| Удалил регистрацию | `app.routes.ts`, `changelog-button.component.ts` — удалены строки с `phoenix` | `git checkout origin/dev -- src/app/app.routes.ts src/app/components/layout/changelog-button.component.ts` |
+| Случайно изменил чужие прототипы | В diff есть файлы из `comet/`, `neptune/`, `sparrow/` и т.д. | `git checkout origin/dev -- src/app/prototypes/comet/ src/app/prototypes/neptune/ ...` |
+| Нарушил конфиденциальность | В changelog/комментариях появились реальные названия (MGS, Beanshe, Wildberries) | Откатить конкретные файлы через `git checkout origin/dev` |
+
+### Процесс публикации (когда всё чисто)
+
+```bash
+# 1. Мерж в dev
+git checkout dev
+git merge origin/<ветка-юры>
+git push origin dev
+
+# 2. Проверить сборку
+npm run build
+
+# 3. Мерж в master
+git checkout master
+git pull origin master --rebase
+git merge dev
+git push origin master
+git checkout dev
+```
+
+### Важно: Юра НЕ пишет Angular
+
+- Прототип Юры — статические HTML/CSS/JS файлы в `src/assets/static-prototypes/phoenix/`
+- Angular-обёртка (`src/app/prototypes/phoenix/`) — это iframe, который показывает эти файлы
+- Мы НИКОГДА не конвертируем макеты Юры в Angular
+- Если Юра случайно удалил Angular-обёртку — просто восстанавливаем из `origin/dev`
+
+---
+
 ## Git-команды (шпаргалка)
 
 ```bash

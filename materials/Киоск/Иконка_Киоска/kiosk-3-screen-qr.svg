@@ -1,0 +1,41 @@
+<svg width="75" height="75" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Рамка экрана (портретный киоск, центр 37.5) -->
+  <path d="M19 3h37c4.4183 0 8 3.5817 8 8v46c0 4.4183-3.5817 8-8 8H19c-4.4183 0-8-3.5817-8-8V11c0-4.4183 3.5817-8 8-8zm4.5 5h28c1.933 0 3.5 1.567 3.5 3.5v39c0 1.933-1.567 3.5-3.5 3.5h-28c-1.933 0-3.5-1.567-3.5-3.5v-39c0-1.933 1.567-3.5 3.5-3.5z" fill="white" fill-rule="evenodd"/>
+  <!-- Стойка -->
+  <path d="M31 57h13c2.2091 0 4 1.7909 4 4v7c0 1.1046-0.8954 2-2 2H29c-1.1046 0-2-0.8954-2-2v-7c0-2.2091 1.7909-4 4-4z" fill="white"/>
+  <!-- Основание -->
+  <path d="M20 70h35c1.1046 0 2 0.8954 2 2s-0.8954 2-2 2H20c-1.1046 0-2-0.8954-2-2s0.8954-2 2-2z" fill="white"/>
+  <!-- QR-код внутри экрана -->
+  <!-- Верхний левый定位квадрат -->
+  <path d="M26 12h9v9h-9z" fill="white"/>
+  <rect x="28" y="14" width="3" height="3" rx=".5" fill="none"/>
+  <!-- Верхний правый定位квадрат -->
+  <path d="M44 12h9v9h-9z" fill="white"/>
+  <rect x="46" y="14" width="3" height="3" rx=".5" fill="none"/>
+  <!-- Нижний левый定位квадрат -->
+  <path d="M26 29h9v9h-9z" fill="white"/>
+  <rect x="28" y="31" width="3" height="3" rx=".5" fill="none"/>
+  <!-- Нижний правый定位квадрат -->
+  <path d="M44 29h9v9h-9z" fill="white"/>
+  <rect x="46" y="31" width="3" height="3" rx=".5" fill="none"/>
+  <!-- Модули QR между квадратами -->
+  <rect x="39" y="12" width="3" height="3" rx=".5" fill="white"/>
+  <rect x="39" y="17" width="3" height="3" rx=".5" fill="white"/>
+  <rect x="35" y="12" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="35" y="17" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="43" y="17" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="26" y="25" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="31" y="25" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="35" y="22" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="39" y="22" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="44" y="25" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="49" y="25" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="28" y="35" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="33" y="35" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="37" y="35" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="42" y="29" width="2" height="2" rx=".5" fill="white"/>
+  <rect x="46" y="29" width="3" height="2" rx=".5" fill="white"/>
+  <rect x="50" y="33" width="2" height="2" rx=".5" fill="white"/>
+  <!-- Текстовая строка (под QR) -->
+  <rect x="26" y="44" width="14" height="2.5" rx="1.25" fill="white" opacity=".5"/>
+</svg>

@@ -2,6 +2,32 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.40',
+    date: '2026-08-05',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Все редакторы тем',
+        items: [
+          'Иконки категорий и элементов переведены на Material Icons (frontend-common.iiko.ru/components/resto-icon/dynamic/icon%20list)',
+          'Маппинг Material→Lucide для рендеринга в прототипе (43 иконки)',
+          'Категория «Стандартные»: build, «Контейнеры»: grid_view, «Медиа»: campaign, «Информационные»: analytics',
+          'Категория «Данные заказа»: receipt_long, «Клиент»: person, «Доставка»: local_shipping, «Отмена»: cancel',
+          'Категория «Данные чека»: point_of_sale, «QR-коды»: qr_code, «Свойства продукта»: inventory',
+          'Категория «Визуализация»: visibility, «Визуальные свойства»: design_services, «Цены»: sell',
+        ],
+      },
+      {
+        page: 'Все редакторы тем и контролов',
+        items: [
+          'Элементы переведены на Material Icons: Текст — text_fields, Изображение — photo, Прямоугольник — check_box_outline_blank',
+          'Удалён маппинг Resto→Lucide, заменён на Material→Lucide в element-palette.component.ts',
+          'Обновлены все 7 data-файлов категорий: Arrivals Themes/Controls, CS Themes/Controls, MenuBoard, Kiosk',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.39',
     date: '2026-07-31',
     status: 'released',
