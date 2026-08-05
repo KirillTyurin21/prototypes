@@ -3,16 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 
-/** Маппинг Resto-иконок → ближайший Lucide-аналог (для рендеринга в прототипе). */
+/** Маппинг Resto-иконок → ближайший Lucide-аналог (для рендеринга в прототипе).
+ *  Все иконки верифицированы по реальным SVG на frontend-common.iiko.ru 05.08.2026. */
 const RESTO_TO_LUCIDE: Record<string, string> = {
-  'resto-menu:constructor':         'layers',
-  'resto-menu:storefront':           'layout-grid',
-  'resto-menu:notification':         'megaphone',
+  'resto-menu:constructor':         'wrench',
+  'resto-menu:storefront':           'store',
+  'resto-menu:notification':         'bell',
   'resto-menu:analitics':            'bar-chart-3',
-  'resto-menu:external-orders':      'package',
+  'resto-menu:external-orders':      'shuffle',
   'resto-menu:smart-kitchen':        'utensils',
   'resto-menu:staff':                'user',
-  'resto-menu:delivery-map':         'truck',
+  'resto-menu:delivery-map':         'map-pin',
   'resto:cancel':                    'x-circle',
   'resto-menu:cash-layouts':         'receipt',
   'resto-menu:payments':             'credit-card',
@@ -27,7 +28,7 @@ const RESTO_TO_LUCIDE: Record<string, string> = {
   'resto-menu:dictionary':           'book-open',
   'resto-menu:settings':             'settings',
   'resto-menu:loyalty':              'star',
-  'resto-menu:external-driver':      'truck',
+  'resto-menu:external-driver':      'user',
   'resto-menu:local-shipping':       'truck',
   'resto:table-chair':               'layout-grid',
   'resto:approve':                   'check-circle-2',
