@@ -15,6 +15,13 @@ export const CHANGELOG: ChangelogRelease[] = [
           'Категория «Данные заказа»: external-orders, «Клиент»: staff, «Доставка»: delivery-map, «Отмена»: cancel',
         ],
       },
+      {
+        page: 'Все редакторы тем и контролов',
+        items: [
+          'Первая категория переименована в «Стандартные» во всех продуктах (Arrivals, Customer Screen, MenuBoard, Киоск)',
+          'Контролы Customer Screen (Стандартный и Подсказка): иконки переведены на Resto Icons',
+        ],
+      },
     ],
   },
   {
