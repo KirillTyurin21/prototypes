@@ -162,7 +162,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.32',
     date: '2026-06-11',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Электронная очередь — Редактор контролов',
