@@ -2,6 +2,22 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.40',
+    date: '2026-08-05',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Все редакторы тем',
+        items: [
+          'Иконки категорий и элементов заменены с Lucide на Resto Icons (frontend-common.iiko.ru/development-kit/icons)',
+          'Палитра элементов: иконки отображаются как текстовые бейджи с названием Resto-иконки',
+          'Категория «Стандартные»: constructor, «Контейнеры»: storefront, «Медиа»: notification, «Информационные»: analitics',
+          'Категория «Данные заказа»: external-orders, «Клиент»: staff, «Доставка»: delivery-map, «Отмена»: cancel',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.39',
     date: '2026-07-31',
     status: 'released',

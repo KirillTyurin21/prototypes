@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Иконка Киоска — Выбор варианта</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Roboto, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #212121;
+    padding: 40px 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #757575;
+    margin-bottom: 40px;
+  }
+  .variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .variant-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .variant-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+  }
+  .variant-preview {
+    background: linear-gradient(135deg, #a595e8, #8972e1);
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+  }
+  .variant-preview img {
+    width: 128px;
+    height: 128px;
+  }
+  .variant-info {
+    padding: 20px;
+  }
+  .variant-info h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .variant-info .number {
+    color: #8972e1;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .variant-info p {
+    color: #757575;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .sizes {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .size-badge {
+    background: #f0edfc;
+    color: #8972e1;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .section-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 500;
+    margin: 48px 0 24px;
+    color: #424242;
+  }
+  .reference {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+  }
+  .ref-icons {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .ref-item {
+    text-align: center;
+  }
+  .ref-preview {
+    background: linear-gradient(135deg, #a595e8, #8972e1);
+    border-radius: 12px;
+    padding: 24px;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+  }
+  .ref-preview svg {
+    width: 64px;
+    height: 64px;
+  }
+  .ref-label {
+    font-size: 12px;
+    color: #757575;
+  }
+</style>
+</head>
+<body>
+
+<h1>Иконка Киоска (КСО)</h1>
+<p class="subtitle">Выберите вариант иконки для основной страницы киоска. Стиль: сектор «Экраны и звуки».</p>
+
+<h2 class="section-title">Существующие иконки сектора «Экраны и звуки»</h2>
+<div class="reference">
+  <div class="ref-icons">
+    <div class="ref-item">
+      <div class="ref-preview">
+        <!-- ds-customer-screen -->
+        <svg width="64" height="64" viewBox="0 0 75 75" fill="none">
+          <path d="M65.483 56.931H9.516C7.135 56.926 4.854 55.978 3.17 54.294C1.487 52.611 0.54 50.329 0.535 47.948V11.488C0.54 9.107 1.488 6.826 3.171 5.143C4.854 3.46 7.136 2.512 9.516 2.507H65.483C67.863 2.512 70.145 3.46 71.828 5.143C73.511 6.826 74.459 9.107 74.464 11.488V47.948C74.459 50.329 73.512 52.611 71.829 54.294C70.145 55.978 67.864 56.926 65.483 56.931Z" fill="white"/>
+          <path d="M44.143 71.698C43.433 71.698 42.752 71.416 42.249 70.913C41.747 70.411 41.465 69.73 41.465 69.019V54.253C41.465 53.901 41.534 53.553 41.669 53.228C41.803 52.903 42.001 52.608 42.249 52.359C42.498 52.11 42.793 51.913 43.118 51.778C43.443 51.644 43.792 51.574 44.143 51.574C44.495 51.574 44.844 51.644 45.169 51.778C45.493 51.913 45.789 52.11 46.037 52.359C46.286 52.608 46.484 52.903 46.618 53.228C46.753 53.553 46.822 53.901 46.822 54.253V69.019C46.822 69.371 46.753 69.72 46.619 70.045C46.484 70.37 46.287 70.665 46.038 70.914C45.789 71.163 45.494 71.36 45.169 71.495C44.844 71.629 44.495 71.698 44.143 71.698Z" fill="white"/>
+          <path d="M33.032 71.698C32.322 71.698 31.64 71.416 31.138 70.913C30.636 70.411 30.354 69.73 30.354 69.019V54.253C30.354 53.542 30.636 52.861 31.138 52.359C31.64 51.856 32.322 51.574 33.032 51.574C33.742 51.574 34.424 51.856 34.926 52.359C35.428 52.861 35.711 53.542 35.711 54.253V69.019C35.711 69.371 35.642 69.72 35.507 70.045C35.373 70.37 35.176 70.665 34.927 70.914C34.678 71.163 34.383 71.36 34.058 71.495C33.732 71.629 33.384 71.698 33.032 71.698Z" fill="white"/>
+          <path d="M54.722 72.493H22.444C21.734 72.493 21.052 72.211 20.55 71.708C20.048 71.206 19.766 70.525 19.766 69.814C19.766 69.104 20.048 68.423 20.55 67.92C21.052 67.418 21.734 67.136 22.444 67.136H54.722C55.432 67.136 56.114 67.418 56.616 67.92C57.118 68.423 57.401 69.104 57.401 69.814C57.401 70.525 57.118 71.206 56.616 71.708C56.114 72.211 55.432 72.493 54.722 72.493Z" fill="white"/>
+          <path d="M45.542 28H15.458C14.1 28 13 29.119 13 30.5C13 31.881 14.1 33 15.458 33H45.542C46.9 33 48 31.881 48 30.5C48 29.119 46.899 28 45.542 28Z" fill="white"/>
+          <path d="M37.174 40H14.826C13.818 40 13 41.119 13 42.5C13 43.881 13.818 45 14.826 45H37.174C38.182 45 39 43.881 39 42.5C39 41.119 38.182 40 37.174 40Z" fill="white"/>
+          <path d="M45.542 16H15.458C14.1 16 13 17.119 13 18.5C13 19.881 14.1 21 15.458 21H45.542C46.9 21 48 19.881 48 18.5C48 17.119 46.899 16 45.542 16Z" fill="white"/>
+          <circle cx="58.5" cy="18.5" r="2.5" fill="white"/>
+          <circle cx="58.5" cy="42.5" r="2.5" fill="white"/>
+          <circle cx="58.5" cy="30.5" r="2.5" fill="white"/>
+        </svg>
+      </div>
+      <span class="ref-label">Дисплей покупателя</span>
+    </div>
+    <div class="ref-item">
+      <div class="ref-preview">
+        <!-- ds-arrivals -->
+        <svg width="64" height="64" viewBox="0 0 75 75" fill="none">
+          <path d="M65.483 56.931H9.516C7.135 56.926 4.854 55.978 3.17 54.294C1.487 52.611 0.54 50.329 0.535 47.948V11.488C0.54 9.107 1.488 6.826 3.171 5.143C4.854 3.46 7.136 2.512 9.516 2.507H65.483C67.863 2.512 70.145 3.46 71.828 5.143C73.511 6.826 74.459 9.107 74.464 11.488V47.948C74.459 50.329 73.512 52.611 71.829 54.294C70.145 55.978 67.864 56.926 65.483 56.931Z" fill="white"/>
+          <path d="M44.143 71.698C43.433 71.698 42.752 71.416 42.249 70.913C41.747 70.411 41.465 69.73 41.465 69.019V54.253C41.465 53.901 41.534 53.553 41.669 53.228C41.803 52.903 42.001 52.608 42.249 52.359C42.498 52.11 42.793 51.913 43.118 51.778C43.443 51.644 43.792 51.574 44.143 51.574C44.495 51.574 44.844 51.644 45.169 51.778C45.493 51.913 45.789 52.11 46.037 52.359C46.286 52.608 46.484 52.903 46.618 53.228C46.753 53.553 46.822 53.901 46.822 54.253V69.019C46.822 69.371 46.753 69.72 46.619 70.045C46.484 70.37 46.287 70.665 46.038 70.914C45.789 71.163 45.494 71.36 45.169 71.495C44.844 71.629 44.495 71.698 44.143 71.698Z" fill="white"/>
+          <path d="M33.032 71.698C32.322 71.698 31.64 71.416 31.138 70.913C30.636 70.411 30.354 69.73 30.354 69.019V54.253C30.354 53.542 30.636 52.861 31.138 52.359C31.64 51.856 32.322 51.574 33.032 51.574C33.742 51.574 34.424 51.856 34.926 52.359C35.428 52.861 35.711 53.542 35.711 54.253V69.019C35.711 69.371 35.642 69.72 35.507 70.045C35.373 70.37 35.176 70.665 34.927 70.914C34.678 71.163 34.383 71.36 34.058 71.495C33.732 71.629 33.384 71.698 33.032 71.698Z" fill="white"/>
+          <path d="M54.722 72.493H22.444C21.734 72.493 21.052 72.211 20.55 71.708C20.048 71.206 19.766 70.525 19.766 69.814C19.766 69.104 20.048 68.423 20.55 67.92C21.052 67.418 21.734 67.136 22.444 67.136H54.722C55.432 67.136 56.114 67.418 56.616 67.92C57.118 68.423 57.401 69.104 57.401 69.814C57.401 70.525 57.118 71.206 56.616 71.708C56.114 72.211 55.432 72.493 54.722 72.493Z" fill="white"/>
+          <path d="M57.629 28H16.371C14.509 28 13 29.119 13 30.5C13 31.881 14.509 33 16.371 33H57.629C59.491 33 61 31.881 61 30.5C61 29.119 59.49 28 57.629 28Z" fill="white"/>
+          <path d="M57.629 40H16.371C14.509 40 13 41.119 13 42.5C13 43.881 14.509 45 16.371 45H57.629C59.491 45 61 43.881 61 42.5C61 41.119 59.49 40 57.629 40Z" fill="white"/>
+          <path d="M57.629 16H16.371C14.509 16 13 17.119 13 18.5C13 19.881 14.509 21 16.371 21H57.629C59.491 21 61 19.881 61 18.5C61 17.119 59.49 16 57.629 16Z" fill="white"/>
+        </svg>
+      </div>
+      <span class="ref-label">Эл. очередь</span>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">Варианты иконки Киоска</h2>
+<div class="variants">
+  <div class="variant-card" onclick="this.querySelector('input').click()">
+    <div class="variant-preview">
+      <img src="kiosk-1-screen-stand.svg" alt="Вариант 1: Экран на стойке">
+    </div>
+    <div class="variant-info">
+      <div class="number">Вариант 1</div>
+      <h2>Киоск на стойке</h2>
+      <p>Портретный сенсорный экран на напольной стойке — классический образ киоска самообслуживания. Самый универсальный вариант.</p>
+      <div class="sizes">
+        <span class="size-badge">64×64</span>
+        <span class="size-badge">128×128</span>
+        <span class="size-badge">256×256</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;">
+        <input type="radio" name="choice" value="1" style="accent-color:#8972e1;">
+        <span style="font-size:14px;">Выбрать этот вариант</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="variant-card" onclick="this.querySelector('input').click()">
+    <div class="variant-preview">
+      <img src="kiosk-2-screen-cart.svg" alt="Вариант 2: Экран + корзина">
+    </div>
+    <div class="variant-info">
+      <div class="number">Вариант 2</div>
+      <h2>Киоск + корзина</h2>
+      <p>Портретный киоск с иконкой корзины внутри экрана — акцент на оформлении заказа.</p>
+      <div class="sizes">
+        <span class="size-badge">64×64</span>
+        <span class="size-badge">128×128</span>
+        <span class="size-badge">256×256</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;">
+        <input type="radio" name="choice" value="2" style="accent-color:#8972e1;">
+        <span style="font-size:14px;">Выбрать этот вариант</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="variant-card" onclick="this.querySelector('input').click()">
+    <div class="variant-preview">
+      <img src="kiosk-3-screen-qr.svg" alt="Вариант 3: Экран + QR-код">
+    </div>
+    <div class="variant-info">
+      <div class="number">Вариант 3</div>
+      <h2>Киоск + QR-код</h2>
+      <p>Портретный киоск со стилизованным QR-кодом на экране — акцент на сканировании и оплате.</p>
+      <div class="sizes">
+        <span class="size-badge">64×64</span>
+        <span class="size-badge">128×128</span>
+        <span class="size-badge">256×256</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;">
+        <input type="radio" name="choice" value="3" style="accent-color:#8972e1;">
+        <span style="font-size:14px;">Выбрать этот вариант</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="variant-card" onclick="this.querySelector('input').click()">
+    <div class="variant-preview">
+      <img src="kiosk-4-screen-touch.svg" alt="Вариант 4: Экран + касание">
+    </div>
+    <div class="variant-info">
+      <div class="number">Вариант 4</div>
+      <h2>Киоск + касание</h2>
+      <p>Портретный киоск с индикатором касания и стилизованным пальцем — акцент на сенсорном взаимодействии.</p>
+      <div class="sizes">
+        <span class="size-badge">64×64</span>
+        <span class="size-badge">128×128</span>
+        <span class="size-badge">256×256</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;">
+        <input type="radio" name="choice" value="4" style="accent-color:#8972e1;">
+        <span style="font-size:14px;">Выбрать этот вариант</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

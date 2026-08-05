@@ -1,7 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconsModule } from '@/shared/icons.module';
 
 /**
  * Локальные типы (совместимы с ElementCategory/ElementCategoryItem из types.ts,
@@ -26,7 +25,7 @@ interface PaletteCategory {
 @Component({
   selector: 'app-element-palette',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <!-- ═══════ Resize handle (left edge) ═══════ -->
     <div
@@ -38,9 +37,7 @@ interface PaletteCategory {
     <!-- ═══════ Title + Close ═══════ -->
     <div class="add-element-header">
       <span class="add-element-title">{{ title }}</span>
-      <button class="icon-btn-sm" (click)="closed.emit()">
-        <lucide-icon name="x" [size]="18"></lucide-icon>
-      </button>
+      <button class="icon-btn-sm" (click)="closed.emit()" title="Закрыть">&times;</button>
     </div>
 
     <!-- ═══════ Search ═══════ -->
@@ -51,18 +48,11 @@ interface PaletteCategory {
         placeholder="Поиск элементов..."
         [(ngModel)]="searchQuery"
       />
-      <lucide-icon
-        *ngIf="!searchQuery"
-        name="search"
-        [size]="16"
-        class="search-elements-icon">
-      </lucide-icon>
       <button
         *ngIf="searchQuery"
         class="search-elements-clear"
-        (click)="searchQuery = ''">
-        <lucide-icon name="x" [size]="14"></lucide-icon>
-      </button>
+        (click)="searchQuery = ''"
+        title="Очистить">&times;</button>
     </div>
 
     <!-- ═══════ Empty state ═══════ -->
@@ -82,18 +72,10 @@ interface PaletteCategory {
         <div
           class="category-header"
           (click)="toggleCategory(cat)">
-          <lucide-icon
-            [name]="cat.icon"
-            [size]="18"
-            class="category-icon">
-          </lucide-icon>
+          <span class="resto-icon-badge" [title]="cat.icon">{{ formatIcon(cat.icon) }}</span>
           <span class="category-label">{{ cat.label }}</span>
           <span class="category-count">{{ cat.elements.length }}</span>
-          <lucide-icon
-            [name]="cat.collapsed ? 'chevron-down' : 'chevron-up'"
-            [size]="16"
-            class="category-chevron">
-          </lucide-icon>
+          <span class="category-chevron">{{ cat.collapsed ? '&#8250;' : '&#8964;' }}</span>
         </div>
 
         <!-- Category elements (collapsed animation) -->
@@ -102,19 +84,13 @@ interface PaletteCategory {
             *ngFor="let el of cat.elements"
             class="element-item"
             (click)="elementSelected.emit(el.type)">
-            <lucide-icon
-              [name]="el.icon"
-              [size]="16"
-              class="element-icon">
-            </lucide-icon>
+            <span class="resto-icon-badge-sm" [title]="el.icon">{{ formatIcon(el.icon) }}</span>
             <span>{{ el.label }}</span>
-            <!-- Значок платного элемента (вариант B) -->
+            <!-- Значок платного элемента -->
             <span
               *ngIf="el.isPremium"
               class="premium-badge"
-              title="Доступен при платной лицензии">
-              <lucide-icon name="alert-circle" [size]="14"></lucide-icon>
-            </span>
+              title="Доступен при платной лицензии">!</span>
           </div>
         </div>
       </div>
@@ -163,6 +139,8 @@ interface PaletteCategory {
       background: transparent;
       color: #757575;
       cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
     }
     .icon-btn-sm:hover {
       background: #f0f0f0;
@@ -176,7 +154,7 @@ interface PaletteCategory {
     .search-elements-input {
       width: 100%;
       height: 34px;
-      padding: 0 36px 0 36px;
+      padding: 0 32px 0 10px;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
       font-size: 13px;
@@ -187,13 +165,6 @@ interface PaletteCategory {
     .search-elements-input:focus {
       outline: none;
       border-color: #448aff;
-    }
-    .search-elements-icon {
-      position: absolute;
-      left: 10px;
-      top: 9px;
-      color: #9e9e9e;
-      pointer-events: none;
     }
     .search-elements-clear {
       position: absolute;
@@ -209,6 +180,8 @@ interface PaletteCategory {
       background: transparent;
       color: #9e9e9e;
       cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
     }
     .search-elements-clear:hover {
       background: #f0f0f0;
@@ -219,6 +192,41 @@ interface PaletteCategory {
       text-align: center;
       font-size: 13px;
       color: #bdbdbd;
+    }
+
+    /* ── Resto icon badges ── */
+    .resto-icon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: Roboto, monospace;
+      color: #1976d2;
+      background: #e3f2fd;
+      flex-shrink: 0;
+      cursor: help;
+    }
+    .resto-icon-badge-sm {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 26px;
+      padding: 0 4px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 400;
+      font-family: Roboto, monospace;
+      color: #fff;
+      background: #448aff;
+      flex-shrink: 0;
+      cursor: help;
+      white-space: nowrap;
     }
 
     /* ── Categories ── */
@@ -244,10 +252,6 @@ interface PaletteCategory {
     .category-header:hover {
       background: #f5f5f5;
     }
-    .category-icon {
-      color: #757575;
-      flex-shrink: 0;
-    }
     .category-label {
       flex: 1;
       font-size: 14px;
@@ -269,6 +273,7 @@ interface PaletteCategory {
     .category-chevron {
       color: #9e9e9e;
       flex-shrink: 0;
+      font-size: 16px;
       transition: transform 0.2s ease;
     }
 
@@ -303,26 +308,32 @@ interface PaletteCategory {
       background: #e3f2fd;
       color: #1976d2;
     }
-    .element-item:hover .element-icon {
-      color: #1976d2;
-    }
-    .element-icon {
-      color: #9e9e9e;
-      flex-shrink: 0;
-    }
 
     /* ── Premium badge (платный элемент) ── */
     .premium-badge {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
       margin-left: 6px;
-      color: #ff6d00;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: #ff6d00;
+      border-radius: 50%;
       cursor: help;
       flex-shrink: 0;
     }
   `],
 })
 export class ElementPaletteComponent implements OnDestroy {
+  /** Форматирует Resto-иконку для отображения: 'resto-menu:constructor' → 'constructor' */
+  formatIcon(icon: string): string {
+    const parts = icon.split(':');
+    return parts.length > 1 ? parts[1] : icon;
+  }
+
   /** Категории с элементами */
   @Input() categories: PaletteCategory[] = [];
 
@@ -367,7 +378,7 @@ export class ElementPaletteComponent implements OnDestroy {
       .map(cat => ({
         ...cat,
         elements: cat.elements.filter(el => {
-          // Платный элемент без лицензии — скрыть (вариант A)
+          // Платный элемент без лицензии — скрыть
           if (el.isPremium && !this.hasPremiumLicense) return false;
           // Поиск по названию
           if (q && !el.label.toLowerCase().includes(q)) return false;
@@ -379,7 +390,6 @@ export class ElementPaletteComponent implements OnDestroy {
 
   /** Раскрыть/свернуть категорию */
   toggleCategory(cat: PaletteCategory): void {
-    // Переключаем исходную категорию в this.categories, а не копию из filteredCategories
     const original = this.categories.find(c => c.id === cat.id);
     if (original) {
       original.collapsed = !original.collapsed;
