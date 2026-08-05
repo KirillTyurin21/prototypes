@@ -1,41 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconsModule } from '@/shared/icons.module';
-
-/** Маппинг Resto-иконок → ближайший Lucide-аналог (для рендеринга в прототипе).
- *  Все иконки верифицированы по реальным SVG на frontend-common.iiko.ru 05.08.2026. */
-const RESTO_TO_LUCIDE: Record<string, string> = {
-  'resto-menu:constructor':         'wrench',
-  'resto-menu:storefront':           'store',
-  'resto-menu:notification':         'bell',
-  'resto-menu:analitics':            'bar-chart-3',
-  'resto-menu:external-orders':      'shuffle',
-  'resto-menu:smart-kitchen':        'utensils',
-  'resto-menu:staff':                'user',
-  'resto-menu:delivery-map':         'map-pin',
-  'resto:cancel':                    'x-circle',
-  'resto-menu:cash-layouts':         'receipt',
-  'resto-menu:payments':             'credit-card',
-  'resto-menu:menu-prices':          'list',
-  'resto:tov':                       'package',
-  'resto-menu:customer-screen':      'monitor',
-  'resto-menu:scheme-edit':          'pencil',
-  'resto-menu:percent':              'percent',
-  'resto-menu:events':               'clock',
-  'resto:edit_document':             'file-edit',
-  'resto-menu:error':                'alert-circle',
-  'resto-menu:dictionary':           'book-open',
-  'resto-menu:settings':             'settings',
-  'resto-menu:loyalty':              'star',
-  'resto-menu:external-driver':      'user',
-  'resto-menu:local-shipping':       'truck',
-  'resto:table-chair':               'layout-grid',
-  'resto:approve':                   'check-circle-2',
-  'resto:rice':                      'utensils-crossed',
-  'resto-menu:call-centre':          'smartphone',
-  'resto-menu:entity-import':        'download',
-};
+import { MaterialIconComponent } from '@/components/ui/material-icon.component';
 
 /**
  * Локальные типы (совместимы с ElementCategory/ElementCategoryItem из types.ts,
@@ -60,7 +26,7 @@ interface PaletteCategory {
 @Component({
   selector: 'app-element-palette',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule],
+  imports: [CommonModule, FormsModule, MaterialIconComponent],
   template: `
     <!-- ═══════ Resize handle (left edge) ═══════ -->
     <div
@@ -73,7 +39,7 @@ interface PaletteCategory {
     <div class="add-element-header">
       <span class="add-element-title">{{ title }}</span>
       <button class="icon-btn-sm" (click)="closed.emit()" title="Закрыть">
-        <lucide-icon name="x" [size]="18"></lucide-icon>
+        <app-material-icon name="close" [size]="18"></app-material-icon>
       </button>
     </div>
 
@@ -85,18 +51,18 @@ interface PaletteCategory {
         placeholder="Поиск элементов..."
         [(ngModel)]="searchQuery"
       />
-      <lucide-icon
+      <app-material-icon
         *ngIf="!searchQuery"
         name="search"
         [size]="16"
         class="search-elements-icon">
-      </lucide-icon>
+      </app-material-icon>
       <button
         *ngIf="searchQuery"
         class="search-elements-clear"
         (click)="searchQuery = ''"
         title="Очистить">
-        <lucide-icon name="x" [size]="14"></lucide-icon>
+        <app-material-icon name="close" [size]="14"></app-material-icon>
       </button>
     </div>
 
@@ -117,18 +83,18 @@ interface PaletteCategory {
         <div
           class="category-header"
           (click)="toggleCategory(cat)">
-          <lucide-icon
-            [name]="restoToLucide(cat.icon)"
+          <app-material-icon
+            [name]="cat.icon"
             [size]="18"
             class="category-icon">
-          </lucide-icon>
+          </app-material-icon>
           <span class="category-label">{{ cat.label }}</span>
           <span class="category-count">{{ cat.elements.length }}</span>
-          <lucide-icon
-            [name]="cat.collapsed ? 'chevron-down' : 'chevron-up'"
+          <app-material-icon
+            [name]="cat.collapsed ? 'arrow_right' : 'arrow_drop_down'"
             [size]="16"
             class="category-chevron">
-          </lucide-icon>
+          </app-material-icon>
         </div>
 
         <!-- Category elements (collapsed animation) -->
@@ -137,18 +103,18 @@ interface PaletteCategory {
             *ngFor="let el of cat.elements"
             class="element-item"
             (click)="elementSelected.emit(el.type)">
-            <lucide-icon
-              [name]="restoToLucide(el.icon)"
+            <app-material-icon
+              [name]="el.icon"
               [size]="16"
               class="element-icon">
-            </lucide-icon>
+            </app-material-icon>
             <span>{{ el.label }}</span>
             <!-- Значок платного элемента -->
             <span
               *ngIf="el.isPremium"
               class="premium-badge"
               title="Доступен при платной лицензии">
-              <lucide-icon name="alert-circle" [size]="14"></lucide-icon>
+              <app-material-icon name="error" [size]="14"></app-material-icon>
             </span>
           </div>
         </div>
@@ -358,11 +324,6 @@ interface PaletteCategory {
   `],
 })
 export class ElementPaletteComponent implements OnDestroy {
-  /** Преобразует Resto-иконку в ближайший Lucide-аналог для рендеринга */
-  restoToLucide(restoIcon: string): string {
-    return RESTO_TO_LUCIDE[restoIcon] || 'circle';
-  }
-
   /** Категории с элементами */
   @Input() categories: PaletteCategory[] = [];
 

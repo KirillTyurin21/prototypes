@@ -1,8 +1,8 @@
 /**
  * Customer Screen — Контролы, тип Подсказка (V2)
  * 3 категории, 10 элементов.
- * Иконки: Resto Icons (frontend-common.iiko.ru/development-kit/icons)
- * Источник: DS-Группировка-элементов-ИКОНКИ_RESTO.md
+ * Иконки: Material Icons (frontend-common.iiko.ru/components/resto-icon/dynamic/icon%20list)
+ * Источник: DS-Группировка-элементов-ИКОНКИ_RESTO.md (ред. 05.08.2026)
  */
 
 interface PaletteItem {
@@ -23,36 +23,36 @@ export const CS_CONTROL_HINTS_CATEGORIES: PaletteCategory[] = [
   {
     id: 'standard',
     label: 'Стандартные',
-    icon: 'resto-menu:constructor',
+    icon: 'build',
     collapsed: false,
     elements: [
-      { type: 'text', label: 'Текст', icon: 'resto:edit_document' },
-      { type: 'image', label: 'Изображение', icon: 'resto-menu:customer-screen' },
-      { type: 'rectangle', label: 'Прямоугольник', icon: 'resto-menu:storefront' },
+      { type: 'text', label: 'Текст', icon: 'text_fields' },
+      { type: 'image', label: 'Изображение', icon: 'photo' },
+      { type: 'rectangle', label: 'Прямоугольник', icon: 'check_box_outline_blank' },
     ],
   },
   {
     id: 'visual-props',
     label: 'Визуальные свойства',
-    icon: 'resto-menu:scheme-edit',
+    icon: 'design_services',
     collapsed: true,
     elements: [
-      { type: 'hint-text', label: 'Текст подсказки', icon: 'resto:edit_document' },
-      { type: 'hint-image', label: 'Изображение подсказки', icon: 'resto-menu:customer-screen' },
-      { type: 'hint-name', label: 'Название подсказки', icon: 'resto:tov' },
-      { type: 'hint-dish-name', label: 'Название блюда', icon: 'resto:rice' },
+      { type: 'hint-text', label: 'Текст подсказки', icon: 'text_fields' },
+      { type: 'hint-image', label: 'Изображение подсказки', icon: 'photo' },
+      { type: 'hint-name', label: 'Название подсказки', icon: 'inventory' },
+      { type: 'hint-dish-name', label: 'Название блюда', icon: 'restaurant' },
     ],
   },
   {
     id: 'prices',
     label: 'Цены',
-    icon: 'resto-menu:percent',
+    icon: 'sell',
     collapsed: true,
     elements: [
-      { type: 'discount-name', label: 'Название скидки', icon: 'resto-menu:percent' },
-      { type: 'discount-amount', label: 'Размер скидки', icon: 'resto-menu:percent' },
-      { type: 'price-without-discount', label: 'Цена без скидки', icon: 'resto-menu:cash-layouts' },
-      { type: 'price-with-discount', label: 'Цена со скидкой', icon: 'resto-menu:percent' },
+      { type: 'discount-name', label: 'Название скидки', icon: 'percent' },
+      { type: 'discount-amount', label: 'Размер скидки', icon: 'percent' },
+      { type: 'price-without-discount', label: 'Цена без скидки', icon: 'point_of_sale' },
+      { type: 'price-with-discount', label: 'Цена со скидкой', icon: 'percent' },
     ],
   },
 ];
