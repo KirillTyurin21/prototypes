@@ -171,8 +171,15 @@ export const WEB_SCREENS_ROUTES: Routes = [
       {
         path: 'campaigns',
         loadComponent: () =>
-          import('./screens/stub-screen.component').then(
-            m => m.StubScreenComponent
+          import('./screens/campaigns-screen.component').then(
+            m => m.CampaignsScreenComponent
+          ),
+      },
+      {
+        path: 'campaign-editor/:id',
+        loadComponent: () =>
+          import('./screens/campaign-editor-screen.component').then(
+            m => m.CampaignEditorScreenComponent
           ),
       },
       {

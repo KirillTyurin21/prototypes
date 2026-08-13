@@ -198,6 +198,15 @@ import {
   Unplug,
   UtensilsCrossed,
   Percent,
+  // Web screens campaigns
+  FilePlus2,
+  FolderPlus,
+  Signpost,
+  GripVertical,
+  Calendar,
+  ArrowUp,
+  ArrowDown,
+  FolderOpen,
 } from 'lucide-angular';
 
 /**
@@ -402,6 +411,15 @@ const icons = {
   // Variant switcher (cs-terminals)
   PanelRight,
   ChevronsDownUp,
+  // Web screens campaigns
+  FilePlus2,
+  FolderPlus,
+  Signpost,
+  GripVertical,
+  Calendar,
+  ArrowUp,
+  ArrowDown,
+  FolderOpen,
 };
 
 @NgModule({
