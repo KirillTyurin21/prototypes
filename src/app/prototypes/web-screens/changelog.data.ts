@@ -4,7 +4,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.41',
     date: '2026-08-13',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Кампании',
@@ -31,8 +31,8 @@ export const CHANGELOG: ChangelogRelease[] = [
   },
   {
     version: '1.40',
-    date: '2026-08-05',
-    status: 'unreleased',
+    date: '2026-08-13',
+    status: 'released',
     changes: [
       {
         page: 'Все редакторы тем',
