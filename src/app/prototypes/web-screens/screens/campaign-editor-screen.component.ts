@@ -1,4 +1,4 @@
-import { Component, inject, HostListener, OnInit } from '@angular/core';
+import { Component, inject, HostListener, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -129,7 +129,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
               *ngFor="let res of campaign.resolutions"
               class="vtab"
               [class.vtab-active]="activeResolutionId === res.id"
-              (click)="activeResolutionId = res.id"
+              (click)="selectResolution(res.id)"
             >
               <span class="vtab-del" (click)="askDeleteResolution(res, $event)" aria-label="Удалить">
                 <lucide-icon name="x" [size]="16"></lucide-icon>
@@ -139,7 +139,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
             <button
               class="vtab"
               [class.vtab-active]="activeResolutionId === null"
-              (click)="activeResolutionId = null"
+              (click)="selectResolution(null)"
             >
               <span class="vtab-label">Добавить разрешение</span>
             </button>
@@ -180,22 +180,51 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
             <ng-container *ngIf="activeResolution">
               <div class="htabs-wrap">
                 <div class="htabs">
+                  <!-- Стрелка прокрутки влево -->
                   <button
-                    *ngFor="let tab of modeTabs"
-                    class="htab"
-                    [class.htab-active]="activeMode === tab.id"
-                    (click)="activeMode = tab.id"
+                    *ngIf="canScrollLeft"
+                    class="htab-pagination"
+                    (click)="scrollTabs(-1)"
+                    aria-label="Прокрутить вкладки влево"
                   >
-                    <span
-                      *ngIf="tab.removable"
-                      class="htab-close"
-                      (click)="removeModeTab(tab.id, $event)"
-                      aria-label="Удалить режим"
-                    >
-                      <lucide-icon name="x" [size]="16"></lucide-icon>
-                    </span>
-                    <span class="htab-label">{{ tab.name }}</span>
+                    <lucide-icon name="chevron-left" [size]="20"></lucide-icon>
                   </button>
+
+                  <!-- Зона прокрутки с вкладками -->
+                  <div
+                    class="htabs-scroll"
+                    #tabScroll
+                    (scroll)="onTabListScroll()"
+                  >
+                    <button
+                      *ngFor="let tab of modeTabs; let i = index; trackBy: trackTab"
+                      class="htab"
+                      [class.htab-active]="activeMode === tab.id"
+                      (click)="selectTab(tab.id, i)"
+                    >
+                      <span
+                        *ngIf="tab.removable"
+                        class="htab-close"
+                        (click)="removeModeTab(tab.id, $event)"
+                        aria-label="Удалить режим"
+                      >
+                        <lucide-icon name="x" [size]="16"></lucide-icon>
+                      </span>
+                      <span class="htab-label">{{ tab.name }}</span>
+                    </button>
+                  </div>
+
+                  <!-- Стрелка прокрутки вправо -->
+                  <button
+                    *ngIf="canScrollRight"
+                    class="htab-pagination"
+                    (click)="scrollTabs(1)"
+                    aria-label="Прокрутить вкладки вправо"
+                  >
+                    <lucide-icon name="chevron-right" [size]="20"></lucide-icon>
+                  </button>
+
+                  <!-- Вкладка «+» — фиксирована справа, не прокручивается -->
                   <button
                     *ngIf="availableModes.length > 0"
                     class="htab htab-plus"
@@ -498,25 +527,27 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
     .web-btn-primary {
       background-color: #448aff;
       color: #ffffff;
-      box-shadow: rgba(158, 158, 158, 0.14) 0 2px 2px 0, rgba(158, 158, 158, 0.12) 0 3px 1px -2px, rgba(158, 158, 158, 0.2) 0 1px 5px 0;
+      box-shadow: 0 2px 2px 0 rgba(224, 224, 224, 1), 0 1px 1px 0 rgba(214, 214, 214, 1);
     }
-    .web-btn-primary:hover { background-color: #3b7cf0; }
+    .web-btn-primary:hover { background-color: #3969d5; }
+    .web-btn-primary:active { background-color: #2651b5; }
     .web-btn-outline {
       background-color: #ffffff;
-      color: #212121;
+      color: #333333;
       border: 1px solid #e0e0e0;
       text-transform: none;
       padding: 0 12px;
     }
-    .web-btn-outline:hover { background-color: #f5f5f5; }
+    .web-btn-outline:hover { background-color: #fafafa; }
     .web-btn-white {
       background-color: #ffffff;
       color: rgba(0, 0, 0, 0.87);
-      box-shadow: rgba(158, 158, 158, 0.14) 0 2px 2px 0, rgba(158, 158, 158, 0.12) 0 3px 1px -2px;
+      box-shadow: 0 2px 2px 0 rgba(224, 224, 224, 1), 0 1px 1px 0 rgba(214, 214, 214, 1);
     }
+    .web-btn-white:hover { background-color: #fafafa; }
     .web-btn-disabled {
-      background-color: #eeeeee;
-      color: rgba(0, 0, 0, 0.33);
+      background-color: #ebebeb;
+      color: #9e9e9e;
       box-shadow: none;
       cursor: default;
     }
@@ -527,13 +558,13 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       left: 50%;
       bottom: 24px;
       transform: translateX(-50%);
-      background-color: #323232;
+      background-color: #424242;
       color: #ffffff;
       font-size: 14px;
       padding: 14px 16px;
       border-radius: 4px;
       z-index: 3000;
-      box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.14);
+      box-shadow: 0 1px 10px 0 rgba(224, 224, 224, 1), 0 2px 4px 0 rgba(214, 214, 214, 1);
       animation: fadeIn 0.2s ease-out;
     }
 
@@ -559,11 +590,11 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       color: #757575;
       cursor: pointer;
     }
-    .back-btn:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .back-btn:hover { background-color: #ebebeb; }
     .page-title {
       font-size: 24px;
       font-weight: 500;
-      color: #212121;
+      color: #333333;
       line-height: 1.2;
     }
 
@@ -625,7 +656,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       color: #757575;
       cursor: pointer;
     }
-    .field-suffix:hover { background-color: rgba(0, 0, 0, 0.04); border-radius: 50%; }
+    .field-suffix:hover { background-color: #ebebeb; border-radius: 50%; }
 
     /* Дни недели */
     .days-toggle {
@@ -648,7 +679,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       white-space: nowrap;
     }
     .day-toggle:last-child { border-right: none; }
-    .day-toggle:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .day-toggle:hover { background-color: #ebebeb; }
     .day-toggle-checked { background-color: rgba(0, 0, 0, 0.1); }
     .day-toggle-checked:hover { background-color: rgba(0, 0, 0, 0.12); }
 
@@ -682,7 +713,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       text-align: center;
       white-space: nowrap;
     }
-    .vtab:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .vtab:hover { background-color: #ebebeb; }
     .vtab-active { color: #448aff; }
     .vtab-label { display: inline-block; }
     .vtab-del {
@@ -694,7 +725,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       border-radius: 50%;
       color: #e1e1e1;
     }
-    .vtab-del:hover { color: #757575; background-color: rgba(0, 0, 0, 0.06); }
+    .vtab-del:hover { color: #757575; background-color: #ebebeb; }
 
     .vpanel {
       flex: 1;
@@ -716,7 +747,8 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
     }
     .htab {
       position: relative;
-      flex: 1;
+      flex: 0 0 auto;
+      min-width: 160px;
       height: 48px;
       border: none;
       background: none;
@@ -728,7 +760,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       white-space: nowrap;
       padding: 0 8px;
     }
-    .htab:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .htab:hover { background-color: #ebebeb; }
     .htab-active { color: #448aff; }
     .htab-active::after {
       content: '';
@@ -754,7 +786,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       color: #e1e1e1;
       flex-shrink: 0;
     }
-    .htab-close:hover { color: #757575; background-color: rgba(0, 0, 0, 0.06); }
+    .htab-close:hover { color: #757575; background-color: #ebebeb; }
     .htab-plus {
       flex: 0 0 56px;
       display: inline-flex;
@@ -763,6 +795,33 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       color: rgba(0, 0, 0, 0.54);
     }
     .htab-plus:hover { color: #448aff; }
+
+    /* Прокрутка ряда вкладок (Material-подобная пагинация) */
+    .htabs-scroll {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .htabs-scroll::-webkit-scrollbar { display: none; }
+    .htab-pagination {
+      flex: 0 0 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 48px;
+      border: none;
+      background: none;
+      color: rgba(0, 0, 0, 0.54);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .htab-pagination:hover {
+      color: #448aff;
+      background-color: #ebebeb;
+    }
     .selector-backdrop { position: fixed; inset: 0; z-index: 60; }
     .mode-selector {
       position: absolute;
@@ -775,15 +834,14 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       background: #ffffff;
       border-radius: 4px;
       padding: 8px 0;
-      box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+      box-shadow: 0 4px 16px 4px rgba(224, 224, 224, 1), 0 6px 6px 0 rgba(214, 214, 214, 1);
       animation: fadeIn 0.15s ease-out;
     }
     .mode-group-label {
       font-size: 12px;
-      color: rgba(0, 0, 0, 0.54);
+      font-weight: 500;
+      color: #616161;
       padding: 8px 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
     }
     .mode-option {
       display: flex;
@@ -797,12 +855,12 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       text-align: left;
       font-family: Roboto, sans-serif;
       font-size: 14px;
-      color: rgba(0, 0, 0, 0.87);
+      color: #333333;
       cursor: pointer;
       white-space: nowrap;
     }
-    .mode-option:hover { background-color: rgba(0, 0, 0, 0.04); }
-    .mode-option-code { color: rgba(0, 0, 0, 0.54); }
+    .mode-option:hover { background-color: #ebebeb; }
+    .mode-option-code { color: #9e9e9e; }
 
     /* Настройки рекламы */
     .advertise-settings {
@@ -903,7 +961,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       cursor: pointer;
       flex-shrink: 0;
     }
-    .media-close:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .media-close:hover { background-color: #ebebeb; }
     .media-grip { color: #bdbdbd; flex-shrink: 0; cursor: grab; }
 
     /* Канвас */
@@ -954,13 +1012,13 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
     .web-dialog {
       background: #ffffff;
       border-radius: 4px;
-      box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2), 0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 6px 28px 6px rgba(224, 224, 224, 1), 0 8px 10px 0 rgba(214, 214, 214, 1);
       display: flex;
       flex-direction: column;
       animation: fadeIn 0.15s ease-out;
     }
     .web-dialog-sm { width: 280px; }
-    .web-dialog-title { font-size: 20px; font-weight: 500; color: #212121; padding: 24px 24px 8px; }
+    .web-dialog-title { font-size: 20px; font-weight: 500; color: #333333; padding: 24px 24px 8px; }
     .web-dialog-text { font-size: 16px; color: #616161; padding: 0 24px; }
     .web-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 24px; }
 
@@ -970,7 +1028,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       right: 0;
       bottom: 0;
       background: #ffffff;
-      box-shadow: rgba(158, 158, 158, 0.14) 0 8px 10px 1px, rgba(158, 158, 158, 0.12) 0 3px 14px 2px;
+      box-shadow: 0 6px 28px 6px rgba(224, 224, 224, 1), 0 8px 10px 0 rgba(214, 214, 214, 1);
       display: flex;
       flex-direction: column;
       animation: slideIn 0.18s ease-out;
@@ -984,7 +1042,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       padding: 24px 24px 0;
       flex-shrink: 0;
     }
-    .end-panel-title { font-size: 24px; font-weight: 500; color: #212121; line-height: 1.2; }
+    .end-panel-title { font-size: 24px; font-weight: 500; color: #333333; line-height: 1.2; }
     .end-panel-close {
       display: inline-flex;
       align-items: center;
@@ -1140,7 +1198,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       cursor: pointer;
       margin-left: 6px;
     }
-    .gallery-action:hover { background-color: #f5f5f5; }
+    .gallery-action:hover { background-color: #fafafa; }
     .gallery-action-danger { border-color: #ff5252; color: #ff5252; }
     .gallery-action-danger:hover { background-color: #fff5f5; }
     .gallery-footer {
@@ -1210,7 +1268,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
       color: rgba(0, 0, 0, 0.87);
       cursor: pointer;
     }
-    .calendar-day:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .calendar-day:hover { background-color: #ebebeb; }
     .calendar-day-selected {
       background-color: #448aff;
       color: #ffffff;
@@ -1227,7 +1285,7 @@ const DAY_NAMES = ['Понедельник', 'Вторник', 'Среда', 'Ч
     }
   `],
 })
-export class CampaignEditorScreenComponent implements OnInit {
+export class CampaignEditorScreenComponent implements OnInit, AfterViewInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   data = inject(CampaignsDataService);
@@ -1260,6 +1318,11 @@ export class CampaignEditorScreenComponent implements OnInit {
   activeResolutionId: number | null = null;
   activeMode = 'order';
   modeSelectorOpen = false;
+
+  // Прокрутка вкладок режимов
+  @ViewChild('tabScroll') tabScrollEl!: ElementRef<HTMLElement>;
+  canScrollLeft = false;
+  canScrollRight = false;
 
   newResW = 1024;
   newResH = 768;
@@ -1374,6 +1437,22 @@ export class CampaignEditorScreenComponent implements OnInit {
     return getScreenMode(id)?.name ?? id;
   }
 
+  /** Выбор вкладки режима + автоскролл к ней */
+  selectTab(id: string, index?: number): void {
+    this.activeMode = id;
+    this.scrollToTab(index);
+  }
+
+  trackTab(index: number, tab: { id: string }): string {
+    return tab.id;
+  }
+
+  /** Выбор разрешения (вертикальная вкладка) + пересчёт стрелок */
+  selectResolution(id: number | null): void {
+    this.activeResolutionId = id;
+    setTimeout(() => this.updateScrollState(), 50);
+  }
+
   /** Добавить режим: вкладка встаёт на место «+» */
   addMode(id: string): void {
     const res = this.activeResolution;
@@ -1381,6 +1460,7 @@ export class CampaignEditorScreenComponent implements OnInit {
     res.modes[id] = [];
     this.activeMode = id;
     this.modeSelectorOpen = false;
+    setTimeout(() => this.scrollToTab(this.modeTabs.length - 1), 50);
   }
 
   /** Удалить режим: режим возвращается в селектор, «+» появляется снова */
@@ -1392,7 +1472,87 @@ export class CampaignEditorScreenComponent implements OnInit {
     this.modeSelectorOpen = false;
     if (this.activeMode === id) {
       this.activeMode = 'order';
+      setTimeout(() => this.scrollToTab(0), 50);
     }
+    setTimeout(() => this.updateScrollState(), 50);
+  }
+
+  // ─── Прокрутка ряда вкладок ───────────────────
+
+  onTabListScroll(): void {
+    this.updateScrollState();
+  }
+
+  scrollTabs(direction: 1 | -1): void {
+    const container = this.tabScrollEl?.nativeElement;
+    if (!container) return;
+    container.scrollBy({ left: direction * 200, behavior: 'smooth' });
+  }
+
+  private scrollToTab(index?: number): void {
+    const targetIndex = index;
+    setTimeout(() => {
+      const container = this.tabScrollEl?.nativeElement;
+      if (!container) return;
+      const idx = targetIndex !== undefined
+        ? targetIndex
+        : this.modeTabs.findIndex(t => t.id === this.activeMode);
+      const tabs = container.querySelectorAll<HTMLElement>('.htab');
+      const el = tabs[idx];
+      if (el) {
+        el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+      }
+      // После завершения анимации — довести вкладку до полной видимости
+      // (ширина зоны могла измениться из-за появления стрелок)
+      setTimeout(() => {
+        const tabs2 = container.querySelectorAll<HTMLElement>('.htab');
+        const el2 = tabs2[idx];
+        if (!el2) {
+          this.updateScrollState();
+          return;
+        }
+        const maxLeft = container.scrollWidth - container.clientWidth;
+        const tr = el2.getBoundingClientRect();
+        const cr = container.getBoundingClientRect();
+        if (tr.width === 0) {
+          this.updateScrollState();
+          return;
+        }
+        if (tr.right > cr.right) {
+          container.scrollTo({
+            left: Math.min(container.scrollLeft + (tr.right - cr.right), maxLeft),
+            behavior: 'smooth',
+          });
+        } else if (tr.left < cr.left) {
+          container.scrollTo({
+            left: Math.max(container.scrollLeft - (cr.left - tr.left), 0),
+            behavior: 'smooth',
+          });
+        }
+        this.updateScrollState();
+      }, 400);
+      this.updateScrollState();
+    });
+  }
+
+  private updateScrollState(): void {
+    const container = this.tabScrollEl?.nativeElement;
+    if (!container) return;
+    const maxLeft = container.scrollWidth - container.clientWidth;
+    if (container.scrollLeft > maxLeft) {
+      container.scrollLeft = maxLeft;
+    }
+    this.canScrollLeft = container.scrollLeft > 2;
+    this.canScrollRight = container.scrollLeft < maxLeft - 2;
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateScrollState();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.updateScrollState(), 100);
   }
 
   pad(n: number): string {
@@ -1482,6 +1642,7 @@ export class CampaignEditorScreenComponent implements OnInit {
     this.newResH = 768;
     this.errors.width = '';
     this.errors.height = '';
+    setTimeout(() => this.updateScrollState(), 50);
   }
 
   askDeleteResolution(res: CampaignResolution, event: Event): void {
@@ -1493,6 +1654,7 @@ export class CampaignEditorScreenComponent implements OnInit {
       if (this.activeResolutionId === res.id) {
         this.activeResolutionId = this.campaign.resolutions.length > 0 ? this.campaign.resolutions[0].id : null;
       }
+      setTimeout(() => this.updateScrollState(), 50);
     };
     this.confirmOpen = true;
   }

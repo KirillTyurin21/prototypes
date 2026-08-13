@@ -290,26 +290,27 @@ interface CampaignRow {
     .web-btn-primary {
       background-color: #448aff;
       color: #ffffff;
-      box-shadow: rgba(158, 158, 158, 0.14) 0 2px 2px 0, rgba(158, 158, 158, 0.12) 0 3px 1px -2px, rgba(158, 158, 158, 0.2) 0 1px 5px 0;
+      box-shadow: 0 2px 2px 0 rgba(224, 224, 224, 1), 0 1px 1px 0 rgba(214, 214, 214, 1);
     }
-    .web-btn-primary:hover { background-color: #3b7cf0; }
+    .web-btn-primary:hover { background-color: #3969d5; }
+    .web-btn-primary:active { background-color: #2651b5; }
     .web-btn-outline {
       background-color: #ffffff;
-      color: #212121;
+      color: #333333;
       border: 1px solid #e0e0e0;
       text-transform: none;
       padding: 0 12px;
     }
-    .web-btn-outline:hover { background-color: #f5f5f5; }
+    .web-btn-outline:hover { background-color: #fafafa; }
     .web-btn-white {
       background-color: #ffffff;
       color: rgba(0, 0, 0, 0.87);
-      box-shadow: rgba(158, 158, 158, 0.14) 0 2px 2px 0, rgba(158, 158, 158, 0.12) 0 3px 1px -2px;
+      box-shadow: 0 2px 2px 0 rgba(224, 224, 224, 1), 0 1px 1px 0 rgba(214, 214, 214, 1);
     }
     .web-btn-white:hover { background-color: #fafafa; }
     .web-btn-disabled {
-      background-color: #eeeeee;
-      color: rgba(0, 0, 0, 0.33);
+      background-color: #ebebeb;
+      color: #9e9e9e;
       box-shadow: none;
       cursor: default;
     }
@@ -325,9 +326,9 @@ interface CampaignRow {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: rgb(235, 235, 235) 0 0.5px 2px 0, rgb(224, 224, 224) 0 1px 1px 0;
+      box-shadow: 0 2px 2px 0 rgba(224, 224, 224, 1), 0 1px 1px 0 rgba(214, 214, 214, 1);
     }
-    .web-btn-info:hover { background-color: #3b7cf0; }
+    .web-btn-info:hover { background-color: #3969d5; }
 
     /* ─── Toast ─── */
     .web-toast {
@@ -335,13 +336,13 @@ interface CampaignRow {
       left: 50%;
       bottom: 24px;
       transform: translateX(-50%);
-      background-color: #323232;
+      background-color: #424242;
       color: #ffffff;
       font-size: 14px;
       padding: 14px 16px;
       border-radius: 4px;
       z-index: 3000;
-      box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.14);
+      box-shadow: 0 1px 10px 0 rgba(224, 224, 224, 1), 0 2px 4px 0 rgba(214, 214, 214, 1);
       animation: fadeIn 0.2s ease-out;
     }
 
@@ -356,7 +357,7 @@ interface CampaignRow {
     .page-title {
       font-size: 24px;
       font-weight: 500;
-      color: #212121;
+      color: #333333;
       line-height: 1.2;
     }
     .header-actions {
@@ -379,8 +380,8 @@ interface CampaignRow {
       font-family: Roboto, sans-serif;
     }
     .web-table th {
-      background-color: #f0f6ff;
-      color: #212121;
+      background-color: #f0f5ff;
+      color: #333333;
       font-weight: 400;
       text-align: left;
       height: 48px;
@@ -395,7 +396,7 @@ interface CampaignRow {
       border: none;
     }
     .web-table tbody tr.web-row-hover:hover {
-      background-color: #f5f5f5;
+      background-color: #ebebeb;
     }
     .move-chevron-btn { cursor: pointer; border-radius: 4px; }
     .move-chevron-btn:hover { color: #212121; background-color: rgba(0, 0, 0, 0.08); }
@@ -428,7 +429,7 @@ interface CampaignRow {
       color: rgba(0, 0, 0, 0.87);
       cursor: pointer;
     }
-    .icon-btn:hover { background-color: rgba(0, 0, 0, 0.04); }
+    .icon-btn:hover { background-color: #ebebeb; }
 
     /* ─── Overlay и диалоги ─── */
     .web-overlay {
@@ -443,7 +444,7 @@ interface CampaignRow {
     .web-dialog {
       background: #ffffff;
       border-radius: 4px;
-      box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2), 0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 6px 28px 6px rgba(224, 224, 224, 1), 0 8px 10px 0 rgba(214, 214, 214, 1);
       display: flex;
       flex-direction: column;
       animation: fadeIn 0.15s ease-out;
@@ -452,7 +453,7 @@ interface CampaignRow {
     .web-dialog-title {
       font-size: 20px;
       font-weight: 500;
-      color: #212121;
+      color: #333333;
       padding: 24px 24px 8px;
     }
     .web-dialog-text {
@@ -521,9 +522,9 @@ interface CampaignRow {
       text-align: left;
       border-radius: 4px;
     }
-    .move-row:hover { background-color: rgba(0, 0, 0, 0.04); }
-    .move-row-selected { background-color: rgba(68, 138, 255, 0.12); }
-    .move-row-selected:hover { background-color: rgba(68, 138, 255, 0.12); }
+    .move-row:hover { background-color: #ebebeb; }
+    .move-row-selected { background-color: #f0f5ff; }
+    .move-row-selected:hover { background-color: #f0f5ff; }
     .move-folder-icon { color: #757575; flex-shrink: 0; }
     .move-row-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .move-row-spacer { flex: 1; }
@@ -542,7 +543,7 @@ interface CampaignRow {
       right: 0;
       bottom: 0;
       background: #ffffff;
-      box-shadow: rgba(158, 158, 158, 0.14) 0 8px 10px 1px, rgba(158, 158, 158, 0.12) 0 3px 14px 2px;
+      box-shadow: 0 6px 28px 6px rgba(224, 224, 224, 1), 0 8px 10px 0 rgba(214, 214, 214, 1);
       display: flex;
       flex-direction: column;
       animation: slideIn 0.18s ease-out;
@@ -559,7 +560,7 @@ interface CampaignRow {
     .end-panel-title {
       font-size: 24px;
       font-weight: 500;
-      color: #212121;
+      color: #333333;
       line-height: 1.2;
     }
     .end-panel-close {
