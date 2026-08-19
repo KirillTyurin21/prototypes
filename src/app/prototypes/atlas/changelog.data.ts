@@ -2,6 +2,20 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '3.4',
+    date: '2026-08-19',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Страница интеграции (СберЧаевые)',
+        pageRoute: '/prototype/atlas/sber-tips',
+        items: [
+          'Убран блок «Как передать доступ банку» с инструкцией по CRM ID',
+        ],
+      },
+    ],
+  },
+  {
     version: '3.3',
     date: '2026-08-19',
     status: 'released',
