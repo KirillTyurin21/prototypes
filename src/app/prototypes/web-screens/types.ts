@@ -440,6 +440,45 @@ export interface SoundTerminalGroupV2 {
   terminals: SoundTerminalV2[];
 }
 
+/* ── Sounds v2: «Обработчики событий» (дерево + панель) ── */
+
+/** Коллекция обработчиков */
+export interface DvCollection {
+  id: number;
+  name: string;
+  isSystem?: boolean;
+}
+
+/** Обработчик события в новой модели (несколько коллекций, голоса Светлана/Дмитрий) */
+export interface DvEventHandler {
+  id: number;
+  name: string;
+  collectionIds: number[];      // пусто → «Без коллекции»
+  events: string[];
+  voiceType: 'file' | 'generation';
+  fileName?: string;
+  fileSizeKb?: number;
+  voiceName?: string;
+  phraseText?: string;
+  generationStatus?: 'pending' | 'generating' | 'done';
+  /** для совместимости с GenerationQueuePanel */
+  fileSize?: number;
+}
+
+/** Аудиофайл из Галереи */
+export interface DvAudioFile {
+  id: number;
+  name: string;
+  sizeKb: number;
+  date: string;
+}
+
+/** Пункт generic-пикера */
+export interface CheckListPickerItem {
+  id: string | number;
+  label: string;
+}
+
 /* ── Generation Queue ── */
 
 export interface GenerationQueueItem {

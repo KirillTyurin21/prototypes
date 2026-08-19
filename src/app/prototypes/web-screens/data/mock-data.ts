@@ -19,6 +19,10 @@ import {
   ArrivalsDevice,
   SoundTerminalGroupV2,
   DvArrivalsDisplay,
+  DvCollection,
+  DvEventHandler,
+  DvAudioFile,
+  CheckListPickerItem,
 } from '../types';
 
 /** Секции бокового меню Web */
@@ -86,10 +90,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     items: [],
   },
   {
-    title: 'Настройка терминалов (новая)',
+    title: 'Звуки (новая концепция)',
     icon: 'sliders',
-    route: 'sounds-terminals-v2',
-    items: [],
+    items: [
+      { icon: '', label: 'Обработчики событий (новая)', route: 'sounds-event-handlers-v2' },
+      { icon: '', label: 'Настройка терминалов (новая)', route: 'sounds-terminals-v2' },
+    ],
   },
 ];
 
@@ -1050,6 +1056,110 @@ export function getSystemHandlerPrefix(name: string): string {
 export function getHandlerDisplayName(name: string): string {
   return getSystemHandlerPrefix(name) + name;
 }
+
+/* ── Sounds v2: «Обработчики событий» ── */
+
+export const MOCK_DV_COLLECTIONS: DvCollection[] = [
+  { id: 1, name: 'Системные обработчики событий', isSystem: true },
+  { id: 2, name: 'Доставка', isSystem: true },
+  { id: 3, name: 'Кухня', isSystem: true },
+  { id: 4, name: 'Бронь', isSystem: true },
+  { id: 5, name: '1145' },
+  { id: 6, name: 'тест' },
+];
+
+/** Полный список событий стенда (34) */
+export const MOCK_DV_EVENTS: string[] = [
+  'Бронь: банкет завершен',
+  'Бронь: банкет начат',
+  'Бронь: банкет начат (универсально)',
+  'Бронь: банкет отменен (no-show)',
+  'Бронь: включено напоминание о подготовке',
+  'Бронь: гость пришел (резерв закрыт)',
+  'Бронь: отмена (гость не пришел)',
+  'Бронь: отмена (гость отказался)',
+  'Бронь: отмена (другая причина)',
+  'Бронь: резерв закрыт (любой исход)',
+  'Бронь: создан банкет',
+  'Бронь: создан резерв',
+  'Доставка: готовится',
+  'Доставка: доставлено',
+  'Доставка: закрыто',
+  'Доставка: курьер в пути',
+  'Доставка: назначен курьер',
+  'Доставка: новый заказ',
+  'Доставка: ожидает отправки',
+  'Доставка: отменено',
+  'Доставка: подтвержден',
+  'Доставка: приготовлен',
+  'Доставка: тайм-аут',
+  'Доставка: упакован',
+  'Кухня: заказ в ожидании (Idle)',
+  'Кухня: заказ в приготовлении (Processing1)',
+  'Кухня: заказ в приготовлении (Processing2)',
+  'Кухня: заказ в приготовлении (Processing3)',
+  'Кухня: заказ в приготовлении (Processing4)',
+  'Кухня: заказ выдан (Served)',
+  'Кухня: заказ приготовлен (Processed)',
+  'Кухня: заказ удален',
+  'Кухня: заказ упакован',
+  'Кухня: новый кухонный заказ',
+];
+
+export const MOCK_DV_VOICES: string[] = ['Светлана', 'Дмитрий'];
+
+export const MOCK_DV_VARIABLES: { label: string; token: string }[] = [
+  { label: 'Имя гостя', token: '[guest_name]' },
+  { label: 'Номер заказа', token: '[order_number]' },
+  { label: 'Номер стола', token: '[table_number]' },
+];
+
+export const MOCK_DV_AUDIO_FILES: DvAudioFile[] = [
+  { id: 1, name: 'Банкет завершен', sizeKb: 22, date: '21.01.1970' },
+  { id: 2, name: 'Банкет начался', sizeKb: 21, date: '21.01.1970' },
+  { id: 3, name: 'Гость пришел', sizeKb: 16, date: '21.01.1970' },
+  { id: 4, name: 'kitten_crying.mp3', sizeKb: 293, date: '21.01.1970' },
+  { id: 5, name: 'new_cooking_stage.mp3', sizeKb: 28, date: '21.01.1970' },
+  { id: 6, name: 'samsung-notification-sound-bass-boosted.mp3', sizeKb: 20, date: '21.01.1970' },
+  { id: 7, name: 'sound.mp3', sizeKb: 16, date: '21.01.1970' },
+  { id: 8, name: 'time_is_over.mp3', sizeKb: 52, date: '21.01.1970' },
+];
+
+export const MOCK_DV_HANDLERS: DvEventHandler[] = [
+  // Системные обработчики событий (collection 1) — файлы
+  { id: 1, name: 'Кухня: заказ приготовлен (Processed)', collectionIds: [1], events: ['Кухня: заказ приготовлен (Processed)'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 2, name: 'Доставка: новый заказ', collectionIds: [1], events: ['Доставка: новый заказ'], voiceType: 'file', fileName: 'kitten_crying.mp3', fileSizeKb: 293 },
+  { id: 3, name: 'Доставка: доставлено', collectionIds: [1], events: ['Доставка: доставлено'], voiceType: 'file', fileName: 'time_is_over.mp3', fileSizeKb: 52 },
+  { id: 4, name: 'Доставка: закрыто', collectionIds: [1], events: ['Доставка: закрыто'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 5, name: 'Доставка: отменено', collectionIds: [1], events: ['Доставка: отменено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 6, name: 'Доставка: назначен курьер', collectionIds: [1], events: ['Доставка: назначен курьер'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 7, name: 'Бронь: создан резерв', collectionIds: [1], events: ['Бронь: создан резерв'], voiceType: 'file', fileName: 'Банкет завершен', fileSizeKb: 22 },
+  { id: 8, name: 'Бронь: создан банкет', collectionIds: [1], events: ['Бронь: создан банкет'], voiceType: 'file', fileName: 'Банкет начался', fileSizeKb: 21 },
+  { id: 9, name: 'Бронь: включено напоминание о подготовке', collectionIds: [1], events: ['Бронь: включено напоминание о подготовке'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 10, name: 'Бронь: гость пришел (резерв закрыт)', collectionIds: [1], events: ['Бронь: гость пришел (резерв закрыт)'], voiceType: 'file', fileName: 'Гость пришел', fileSizeKb: 16 },
+  { id: 11, name: 'Бронь: отмена (гость отказался)', collectionIds: [1], events: ['Бронь: отмена (гость отказался)'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 12, name: 'Бронь: отмена (другая причина)', collectionIds: [1], events: ['Бронь: отмена (другая причина)'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  // Доставка (collection 2) — генерация
+  { id: 13, name: 'Доставка: новый заказ', collectionIds: [2], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Внимание, поступил новый заказ на доставку номер [order_number]', generationStatus: 'done' },
+  { id: 14, name: 'Доставка: подтвержден', collectionIds: [2], events: ['Доставка: подтвержден'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] подтвержден', generationStatus: 'done' },
+  { id: 15, name: 'Доставка: готовится', collectionIds: [2], events: ['Доставка: готовится'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] готовится', generationStatus: 'pending' },
+  { id: 16, name: 'Доставка: приготовлен', collectionIds: [2], events: ['Доставка: приготовлен'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] готов к выдаче', generationStatus: 'done' },
+  { id: 17, name: 'Доставка: упакован', collectionIds: [2], events: ['Доставка: упакован'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] упакован', generationStatus: 'done' },
+  // Кухня (collection 3) — генерация
+  { id: 18, name: 'Кухня: новый кухонный заказ', collectionIds: [3], events: ['Кухня: новый кухонный заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Новый заказ на кухне: [order_number]', generationStatus: 'done' },
+  { id: 19, name: 'Кухня: заказ приготовлен', collectionIds: [3], events: ['Кухня: заказ приготовлен (Processed)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] приготовлен', generationStatus: 'done' },
+  { id: 20, name: 'Кухня: заказ в ожидании', collectionIds: [3], events: ['Кухня: заказ в ожидании (Idle)'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] в ожидании', generationStatus: 'pending' },
+  // Бронь (collection 4) — генерация
+  { id: 21, name: 'Бронь: банкет начат', collectionIds: [4], events: ['Бронь: банкет начат'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Банкет начат', generationStatus: 'done' },
+  { id: 22, name: 'Бронь: гость пришел', collectionIds: [4], events: ['Бронь: гость пришел (резерв закрыт)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Гость [guest_name] пришел', generationStatus: 'done' },
+  { id: 23, name: 'Бронь: банкет завершен', collectionIds: [4], events: ['Бронь: банкет завершен'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Банкет завершен', generationStatus: 'done' },
+  // 1145 (collection 5)
+  { id: 24, name: 'Тест 1145 (файл)', collectionIds: [5], events: ['Доставка: доставлено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 25, name: '1145 (генерация)', collectionIds: [5], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Тест 1145', generationStatus: 'done' },
+  // Без коллекции
+  { id: 26, name: 'Общий звук', collectionIds: [], events: ['Доставка: новый заказ', 'Доставка: доставлено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 27, name: 'тест', collectionIds: [], events: ['Доставка: отменено'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Тестовая фраза', generationStatus: 'pending' },
+];
 
 /* ── Available Voices ── */
 

@@ -97,6 +97,13 @@ export const WEB_SCREENS_ROUTES: Routes = [
             m => m.SoundsEventHandlersScreenComponent
           ),
       },
+      {
+        path: 'sounds-event-handlers-v2',
+        loadComponent: () =>
+          import('./screens/sounds-event-handlers-v2-screen.component').then(
+            m => m.SoundsEventHandlersV2ScreenComponent
+          ),
+      },
 
       {
         path: 'sounds-terminals',
