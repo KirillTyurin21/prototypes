@@ -66,15 +66,15 @@ export const MOCK_INTEGRATIONS: PaymentIntegration[] = [
     paymentType: { name: 'Sbertips', fiscal: true, buttonLabel: 'СберЧаевые', note: 'Заменит существующий тип оплаты CoinBox' },
     discount: null,
     requiredFields: [
-      { key: 'sberRestInstitutionId', label: 'Код ресторана в системе Сбера', type: 'text', required: true, placeholder: 'Например: 11111', helpText: 'Предоставляется банком при заключении договора' },
+      { key: 'sberRestInstitutionId', label: 'Код ресторана в системе Сбера', type: 'text', required: true, placeholder: 'Например: 11111', helpText: 'Предоставляется банком при заключении договора (ранее прописывался вручную в ссылке QR-кода)' },
       { key: 'terminalGroup', label: 'Терминальная группа', type: 'select', required: true, helpText: 'Настройка применяется к главной кассе группы', options: [
         { value: 'zal', label: 'Зал' },
         { value: 'bar', label: 'Бар' },
         { value: 'terrace', label: 'Терраса' },
       ] },
       { key: 'qrSurface', label: 'Печать QR-кода', type: 'select', required: true, helpText: 'QR-код печатается при любом способе оплаты', options: [
-        { value: '3', label: 'Пречек и чек' },
         { value: '1', label: 'Только пречек' },
+        { value: '3', label: 'Пречек и чек' },
         { value: '2', label: 'Только чек' },
         { value: '0', label: 'Не печатать' },
       ] },
