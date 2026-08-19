@@ -2,6 +2,21 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '3.5',
+    date: '2026-08-19',
+    status: 'released',
+    changes: [
+      {
+        page: 'Страница интеграции (СберЧаевые)',
+        pageRoute: '/prototype/atlas/sber-tips',
+        items: [
+          'На странице оставлено только согласие: убраны настройки (реквизиты подключения) — по эталону Kaspi',
+          'Мастер сокращён до двух шагов: Рестораны → Подтверждение',
+        ],
+      },
+    ],
+  },
+  {
     version: '3.4',
     date: '2026-08-19',
     status: 'released',
