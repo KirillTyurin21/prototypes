@@ -605,7 +605,12 @@ export class AtlasDetailScreenComponent implements OnInit {
   ngOnInit(): void {
     this.accountType = this.storage.load('atlas', 'accountType', 'chain' as AccountType);
     this.integrationId = this.route.snapshot.params['integrationId'];
-    const all = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
+    // Иконка сервисов — буква на фоне; устаревшие logoIcon/logoLetter из localStorage не показываем
+    const all = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS)
+      .map((i: PaymentIntegration) => {
+        const mock = MOCK_INTEGRATIONS.find(m => m.id === i.id);
+        return { ...i, logoIcon: undefined, logoLetter: mock?.logoLetter ?? i.logoLetter, logoColor: mock?.logoColor ?? i.logoColor };
+      });
     this.integration = all.find(i => i.id === this.integrationId) || null;
     if (!this.integration) { this.router.navigate(['/prototype/atlas']); return; }
     this.buildTree();
