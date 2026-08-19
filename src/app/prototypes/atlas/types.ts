@@ -28,8 +28,6 @@ export interface PaymentIntegration {
   autoEntities?: AutoEntity[];
   /** Примечание при подключённом состоянии (view-режим) */
   connectedNote?: string;
-  /** Блок «Как передать доступ банку» в пустом состоянии */
-  howToAccessNote?: string;
 }
 
 /** Дополнительная сущность, создаваемая при подключении */

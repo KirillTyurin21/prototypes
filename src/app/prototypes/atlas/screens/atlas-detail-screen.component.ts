@@ -134,9 +134,6 @@ type DetailMode = 'view' | 'connect';
               </ui-alert>
               <ui-button *ngIf="hasLicense" (click)="startConnect()">Начать подключение</ui-button>
               <ui-button *ngIf="!hasLicense" [disabled]="true">Требуется лицензия</ui-button>
-              <ui-alert *ngIf="integration?.howToAccessNote" variant="info" class="mt-4 text-left">
-                {{ integration?.howToAccessNote }}
-              </ui-alert>
             </div>
           </div>
 
