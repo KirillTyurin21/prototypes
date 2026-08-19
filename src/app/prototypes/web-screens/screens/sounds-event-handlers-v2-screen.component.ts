@@ -162,6 +162,17 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
                     </td>
                     <td></td><td></td>
                     <td>
+                      <div class="eh2-a-actions" *ngIf="col.isSystem">
+                        <button type="button" class="eh2-a-action" disabled title="Недоступно для системной коллекции" aria-label="Редактировать коллекцию (недоступно)">
+                          <lucide-icon name="pencil" [size]="15"></lucide-icon>
+                        </button>
+                        <button type="button" class="eh2-a-action" disabled title="Недоступно для системной коллекции" aria-label="Копировать коллекцию (недоступно)">
+                          <lucide-icon name="copy" [size]="15"></lucide-icon>
+                        </button>
+                        <button type="button" class="eh2-a-action eh2-a-action--danger" disabled title="Недоступно для системной коллекции" aria-label="Удалить коллекцию (недоступно)">
+                          <lucide-icon name="trash-2" [size]="15"></lucide-icon>
+                        </button>
+                      </div>
                       <div class="eh2-a-actions" *ngIf="!col.isSystem">
                         <button type="button" class="eh2-a-action" (click)="openRenameCollection(col, $event)" title="Редактировать" aria-label="Редактировать коллекцию">
                           <lucide-icon name="pencil" [size]="15"></lucide-icon>
@@ -190,7 +201,6 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
                         >
                           {{ h.generationStatus === 'done' ? 'Готово' : 'Ожидание' }}
                         </span>
-                        <span class="eh2-a-none" *ngIf="h.voiceType !== 'generation'">—</span>
                       </td>
                       <td>
                         <div class="eh2-a-actions">
@@ -240,7 +250,6 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
                         >
                           {{ h.generationStatus === 'done' ? 'Готово' : 'Ожидание' }}
                         </span>
-                        <span class="eh2-a-none" *ngIf="h.voiceType !== 'generation'">—</span>
                       </td>
                       <td>
                         <div class="eh2-a-actions">
@@ -317,8 +326,8 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
       <!-- Боковая панель создания / переименования коллекции -->
       <app-collection-create-panel
         [open]="createCollectionOpen || !!renameCollection"
-        [title]="renameCollection ? 'Переименовать коллекцию' : 'Новая коллекция'"
-        [saveLabel]="renameCollection ? 'Сохранить' : 'Сохранить'"
+        [title]="renameCollection ? 'Переименовать коллекцию' : 'Создать коллекцию'"
+        [saveLabel]="'Сохранить'"
         [initialName]="renameCollection?.name ?? ''"
         (close)="closeCollectionPanel()"
         (save)="onCollectionSave($event)"
@@ -351,7 +360,7 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
             <li>Обработчик может входить в одну или несколько коллекций. Без выбора коллекции обработчик попадает в «Без коллекции».</li>
             <li>Дублирование коллекции копирует её вместе со всеми обработчиками.</li>
             <li>При удалении коллекции удаляются все данные о ней, включая обработчики.</li>
-            <li>Дублирование обработчика создаёт копию внизу общего списка в папке «Без коллекции».</li>
+            <li>Дублирование обработчика создаёт копию с суффиксом «(Copy)» в той же коллекции.</li>
             <li>Звуковые файлы берутся из Галереи; если подходящих нет — поле выбора пусто.</li>
             <li>Генерация — пилотная функция. Доступные голоса: Светлана и Дмитрий.</li>
             <li>Фраза после сохранения уходит в очередь генерации; среднее время обработки 5–10 минут. Знаки препинания влияют на паузы, результат можно прослушать и перегенерировать.</li>
@@ -556,30 +565,28 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
       background: var(--dt-surface-primary);
       overflow-x: auto;
     }
-    .eh2-a-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .eh2-a-table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .eh2-a-table th {
-      padding: 10px 12px;
+      padding: 14px 16px;
       text-align: left;
-      font-weight: 500;
-      font-size: 12.5px;
+      font-weight: 400;
+      font-size: 14px;
       color: var(--dt-text-primary);
       background: #f0f5ff;
-      border-bottom: 1px solid #d6d6d6;
       white-space: nowrap;
     }
     .eh2-a-table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 13px 16px;
+      border-bottom: 1px solid #e0e0e0;
       color: var(--dt-text-primary);
       vertical-align: middle;
     }
     .eh2-a-table tbody tr:last-child td { border-bottom: none; }
-    .eh2-a-th-actions { width: 110px; }
-    .eh2-a-th-voice { width: 120px; }
-    .eh2-a-th-status { width: 110px; }
+    .eh2-a-th-actions { width: 130px; }
+    .eh2-a-th-voice { width: 200px; }
+    .eh2-a-th-status { width: 200px; }
 
-    .eh2-a-col td { background: var(--dt-surface-variant); border-bottom: 1px solid #d6d6d6; }
-    .eh2-a-col--system td { background: #fafbfd; }
+    .eh2-a-col td { border-bottom: 1px solid #e0e0e0; }
     .eh2-a-col-btn {
       display: inline-flex;
       align-items: center;
@@ -588,26 +595,27 @@ import { GenerationQueuePanelComponent } from '../components/sounds/generation-q
       background: none;
       padding: 2px 4px;
       font-family: Roboto, sans-serif;
+      font-size: 14px;
       cursor: pointer;
       color: var(--dt-text-primary);
     }
     .eh2-a-col-btn:focus-visible { outline: 2px solid var(--dt-brand-accent); outline-offset: 1px; }
-    .eh2-a-col-name { font-size: 14px; font-weight: 500; }
-    .eh2-a-col-count { font-size: 12px; color: var(--dt-text-disable); }
+    .eh2-a-col-name { font-size: 14px; }
+    .eh2-a-col-count { font-size: 14px; color: var(--dt-text-primary); }
 
     .eh2-a-handler-name { display: inline-block; padding-left: 18px; }
     .eh2-a-status {
       display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      background: #fff3e0;
-      color: #e65100;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(245, 166, 35, 0.15);
+      color: #ffab40;
       font-size: 12px;
       font-weight: 500;
       white-space: nowrap;
     }
-    .eh2-a-status--done { background: #e8f5e9; color: #2e7d32; }
-    .eh2-a-none { color: var(--dt-text-disable); }
+    .eh2-a-status--done { background: rgba(2, 155, 229, 0.12); color: #448aff; }
+
 
     .eh2-a-actions { display: flex; gap: 2px; }
     .eh2-a-action {
@@ -892,14 +900,13 @@ export class SoundsEventHandlersV2ScreenComponent implements OnInit, OnDestroy {
   copyCollection(col: DvCollection, event: Event): void {
     event.stopPropagation();
     const maxColId = this.collections.reduce((m, c) => Math.max(m, c.id), 0);
-    const newCol: DvCollection = { id: maxColId + 1, name: col.name + ' (копия)' };
+    const newCol: DvCollection = { id: maxColId + 1, name: col.name + ' (Copy)' };
     this.collections = [...this.collections, newCol];
 
     let maxHId = this.handlers.reduce((m, h) => Math.max(m, h.id), 0);
     const copies: DvEventHandler[] = this.handlersInCollection(col.id).map(h => ({
       ...h,
       id: ++maxHId,
-      name: h.name + ' (копия)',
       collectionIds: [newCol.id],
     }));
     this.handlers = [...this.handlers, ...copies];
@@ -986,12 +993,12 @@ export class SoundsEventHandlersV2ScreenComponent implements OnInit, OnDestroy {
     const copy: DvEventHandler = {
       ...h,
       id: maxId + 1,
-      name: h.name + ' (копия)',
-      collectionIds: [],
+      name: h.name + ' (Copy)',
+      collectionIds: [...h.collectionIds],
     };
     this.handlers = [...this.handlers, copy];
     this.persist();
-    this.showFeedback('success', `Копия создана в «Без коллекции»`);
+    this.showFeedback('success', `Копия «${copy.name}» создана`);
   }
 
   requestDeleteHandler(h: DvEventHandler): void {
@@ -1062,13 +1069,13 @@ export class SoundsEventHandlersV2ScreenComponent implements OnInit, OnDestroy {
     const copies: DvEventHandler[] = source.map(h => ({
       ...h,
       id: ++maxId,
-      name: h.name + ' (копия)',
-      collectionIds: [],
+      name: h.name + ' (Copy)',
+      collectionIds: [...h.collectionIds],
     }));
     this.handlers = [...this.handlers, ...copies];
     this.checkedIds = new Set();
     this.persist();
-    this.showFeedback('success', `Скопировано обработчиков: ${copies.length} (в «Без коллекции»)`);
+    this.showFeedback('success', `Скопировано обработчиков: ${copies.length}`);
   }
 
   // ── Панель (вариант B) ─────────────────────────────

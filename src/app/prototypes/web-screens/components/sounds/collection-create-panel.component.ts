@@ -35,7 +35,6 @@ import { IconsModule } from '@/shared/icons.module';
           (keydown.enter)="submit()"
           autofocus
         />
-        <p class="cc-hint">Название коллекции отображается в дереве слева.</p>
       </div>
 
       <div class="cc-foot">
@@ -125,7 +124,6 @@ import { IconsModule } from '@/shared/icons.module';
     }
     .cc-input:focus { border-color: var(--dt-brand-accent); }
     .cc-input::placeholder { color: var(--dt-text-disable); }
-    .cc-hint { margin-top: 8px; font-size: 12px; color: var(--dt-text-disable); }
 
     .cc-foot {
       display: flex;
@@ -164,7 +162,7 @@ import { IconsModule } from '@/shared/icons.module';
 })
 export class CollectionCreatePanelComponent implements OnChanges {
   @Input() open = false;
-  @Input() title = 'Новая коллекция';
+  @Input() title = 'Создать коллекцию';
   @Input() saveLabel = 'Сохранить';
   @Input() placeholder = 'Введите название коллекции';
   @Input() initialName = '';

@@ -81,29 +81,13 @@ export interface HandlerCreateData {
 
         <!-- Тип озвучки -->
         <div class="hc-field">
-          <span class="hc-label">Тип озвучки</span>
-          <div class="hc-seg" role="radiogroup" aria-label="Тип озвучки">
-            <button
-              type="button"
-              class="hc-seg-btn"
-              role="radio"
-              [attr.aria-checked]="model.voiceType === 'file'"
-              [class.hc-seg-btn--active]="model.voiceType === 'file'"
-              (click)="model.voiceType = 'file'"
-            >
-              Файл
-            </button>
-            <button
-              type="button"
-              class="hc-seg-btn"
-              role="radio"
-              [attr.aria-checked]="model.voiceType === 'generation'"
-              [class.hc-seg-btn--active]="model.voiceType === 'generation'"
-              (click)="model.voiceType = 'generation'"
-            >
-              Генерация
-              <span class="hc-pilot" *ngIf="model.voiceType !== 'generation'">ПИЛОТ</span>
-            </button>
+          <label class="hc-label" for="hc-voice-type">Тип озвучки</label>
+          <div class="hc-combobox">
+            <select id="hc-voice-type" class="hc-select" [(ngModel)]="model.voiceType">
+              <option value="file">Файл</option>
+              <option value="generation">Генерация</option>
+            </select>
+            <lucide-icon name="chevron-down" [size]="16" class="hc-combobox-chevron"></lucide-icon>
           </div>
         </div>
 
@@ -142,6 +126,7 @@ export interface HandlerCreateData {
             <span class="hc-status">Статус: Ожидание</span>
             <button type="button" class="hc-play" disabled aria-label="Воспроизвести (недоступно)">
               <lucide-icon name="play" [size]="15"></lucide-icon>
+              Воспроизвести
             </button>
           </div>
 
@@ -347,6 +332,32 @@ export interface HandlerCreateData {
       font-weight: 500;
     }
 
+    .hc-combobox { position: relative; display: inline-block; }
+    .hc-combobox .hc-select {
+      appearance: none;
+      -webkit-appearance: none;
+      height: 36px;
+      min-width: 160px;
+      padding: 0 32px 0 12px;
+      border: 1px solid #d6d6d6;
+      border-radius: 4px;
+      background: var(--dt-surface-primary);
+      font-family: Roboto, sans-serif;
+      font-size: 14px;
+      color: var(--dt-text-primary);
+      outline: none;
+      cursor: pointer;
+    }
+    .hc-combobox .hc-select:focus { border-color: var(--dt-brand-accent); }
+    .hc-combobox-chevron {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      color: var(--dt-text-secondary);
+      pointer-events: none;
+    }
+
     .hc-file-btn {
       display: inline-flex;
       align-items: center;
@@ -409,13 +420,15 @@ export interface HandlerCreateData {
     .hc-play {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
+      gap: 6px;
+      height: 32px;
+      padding: 0 12px;
       border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       color: #d6d6d6;
+      font-family: Roboto, sans-serif;
+      font-size: 12.5px;
       cursor: default;
     }
 

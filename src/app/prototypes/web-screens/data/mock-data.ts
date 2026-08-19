@@ -1065,7 +1065,6 @@ export const MOCK_DV_COLLECTIONS: DvCollection[] = [
   { id: 3, name: 'Кухня', isSystem: true },
   { id: 4, name: 'Бронь', isSystem: true },
   { id: 5, name: '1145' },
-  { id: 6, name: 'тест' },
 ];
 
 /** Полный список событий стенда (34) */
@@ -1126,7 +1125,7 @@ export const MOCK_DV_AUDIO_FILES: DvAudioFile[] = [
 ];
 
 export const MOCK_DV_HANDLERS: DvEventHandler[] = [
-  // Системные обработчики событий (collection 1) — файлы
+  // ── Системные обработчики событий (collection 1) — файлы ──
   { id: 1, name: 'Кухня: заказ приготовлен (Processed)', collectionIds: [1], events: ['Кухня: заказ приготовлен (Processed)'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
   { id: 2, name: 'Доставка: новый заказ', collectionIds: [1], events: ['Доставка: новый заказ'], voiceType: 'file', fileName: 'kitten_crying.mp3', fileSizeKb: 293 },
   { id: 3, name: 'Доставка: доставлено', collectionIds: [1], events: ['Доставка: доставлено'], voiceType: 'file', fileName: 'time_is_over.mp3', fileSizeKb: 52 },
@@ -1139,26 +1138,60 @@ export const MOCK_DV_HANDLERS: DvEventHandler[] = [
   { id: 10, name: 'Бронь: гость пришел (резерв закрыт)', collectionIds: [1], events: ['Бронь: гость пришел (резерв закрыт)'], voiceType: 'file', fileName: 'Гость пришел', fileSizeKb: 16 },
   { id: 11, name: 'Бронь: отмена (гость отказался)', collectionIds: [1], events: ['Бронь: отмена (гость отказался)'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
   { id: 12, name: 'Бронь: отмена (другая причина)', collectionIds: [1], events: ['Бронь: отмена (другая причина)'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
-  // Доставка (collection 2) — генерация
+
+  // ── Доставка (collection 2, 13) — генерация, все Готово ──
   { id: 13, name: 'Доставка: новый заказ', collectionIds: [2], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Внимание, поступил новый заказ на доставку номер [order_number]', generationStatus: 'done' },
   { id: 14, name: 'Доставка: подтвержден', collectionIds: [2], events: ['Доставка: подтвержден'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] подтвержден', generationStatus: 'done' },
-  { id: 15, name: 'Доставка: готовится', collectionIds: [2], events: ['Доставка: готовится'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] готовится', generationStatus: 'pending' },
-  { id: 16, name: 'Доставка: приготовлен', collectionIds: [2], events: ['Доставка: приготовлен'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] готов к выдаче', generationStatus: 'done' },
+  { id: 15, name: 'Доставка: готовится', collectionIds: [2], events: ['Доставка: готовится'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] готовится', generationStatus: 'done' },
+  { id: 16, name: 'Доставка: приготовлен', collectionIds: [2], events: ['Доставка: приготовлен'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] приготовлен', generationStatus: 'done' },
   { id: 17, name: 'Доставка: упакован', collectionIds: [2], events: ['Доставка: упакован'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] упакован', generationStatus: 'done' },
-  // Кухня (collection 3) — генерация
-  { id: 18, name: 'Кухня: новый кухонный заказ', collectionIds: [3], events: ['Кухня: новый кухонный заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Новый заказ на кухне: [order_number]', generationStatus: 'done' },
-  { id: 19, name: 'Кухня: заказ приготовлен', collectionIds: [3], events: ['Кухня: заказ приготовлен (Processed)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] приготовлен', generationStatus: 'done' },
-  { id: 20, name: 'Кухня: заказ в ожидании', collectionIds: [3], events: ['Кухня: заказ в ожидании (Idle)'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] в ожидании', generationStatus: 'pending' },
-  // Бронь (collection 4) — генерация
-  { id: 21, name: 'Бронь: банкет начат', collectionIds: [4], events: ['Бронь: банкет начат'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Банкет начат', generationStatus: 'done' },
-  { id: 22, name: 'Бронь: гость пришел', collectionIds: [4], events: ['Бронь: гость пришел (резерв закрыт)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Гость [guest_name] пришел', generationStatus: 'done' },
-  { id: 23, name: 'Бронь: банкет завершен', collectionIds: [4], events: ['Бронь: банкет завершен'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Банкет завершен', generationStatus: 'done' },
-  // 1145 (collection 5)
-  { id: 24, name: 'Тест 1145 (файл)', collectionIds: [5], events: ['Доставка: доставлено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
-  { id: 25, name: '1145 (генерация)', collectionIds: [5], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Тест 1145', generationStatus: 'done' },
-  // Без коллекции
-  { id: 26, name: 'Общий звук', collectionIds: [], events: ['Доставка: новый заказ', 'Доставка: доставлено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
-  { id: 27, name: 'тест', collectionIds: [], events: ['Доставка: отменено'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Тестовая фраза', generationStatus: 'pending' },
+  { id: 18, name: 'Доставка: ожидает отправки', collectionIds: [2], events: ['Доставка: ожидает отправки'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] ожидает отправки', generationStatus: 'done' },
+  { id: 19, name: 'Доставка: назначен курьер', collectionIds: [2], events: ['Доставка: назначен курьер'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'На заказ [order_number] назначен курьер', generationStatus: 'done' },
+  { id: 20, name: 'Доставка: курьер в пути', collectionIds: [2], events: ['Доставка: курьер в пути'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Курьер с заказом [order_number] уже в пути', generationStatus: 'done' },
+  { id: 21, name: 'Доставка: доставлено', collectionIds: [2], events: ['Доставка: доставлено'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] доставлен', generationStatus: 'done' },
+  { id: 22, name: 'Доставка: закрыто', collectionIds: [2], events: ['Доставка: закрыто'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] закрыт', generationStatus: 'done' },
+  { id: 23, name: 'Доставка: отменен', collectionIds: [2], events: ['Доставка: отменено'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] отменен', generationStatus: 'done' },
+  { id: 24, name: 'Доставка: тайм-аут', collectionIds: [2], events: ['Доставка: тайм-аут'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Время обработки заказа [order_number] истекло', generationStatus: 'done' },
+
+  // ── Кухня (collection 3, 11) — генерация, все Готово ──
+  { id: 25, name: 'Кухня: новый кухонный заказ', collectionIds: [3], events: ['Кухня: новый кухонный заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Новый заказ на кухне: [order_number]', generationStatus: 'done' },
+  { id: 26, name: 'Кухня: заказ в ожидании', collectionIds: [3], events: ['Кухня: заказ в ожидании (Idle)'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] в ожидании', generationStatus: 'done' },
+  { id: 27, name: 'Кухня: заказ в приготовлении (готовится 1)', collectionIds: [3], events: ['Кухня: заказ в приготовлении (Processing1)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] готовится', generationStatus: 'done' },
+  { id: 28, name: 'Кухня: заказ в приготовлении (готовится 2)', collectionIds: [3], events: ['Кухня: заказ в приготовлении (Processing2)'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] готовится', generationStatus: 'done' },
+  { id: 29, name: 'Кухня: заказ в приготовлении (готовится 3)', collectionIds: [3], events: ['Кухня: заказ в приготовлении (Processing3)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] готовится', generationStatus: 'done' },
+  { id: 30, name: 'Кухня: заказ в приготовлении (готовится 4)', collectionIds: [3], events: ['Кухня: заказ в приготовлении (Processing4)'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] готовится', generationStatus: 'done' },
+  { id: 31, name: 'Кухня: заказ приготовлен', collectionIds: [3], events: ['Кухня: заказ приготовлен (Processed)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] приготовлен', generationStatus: 'done' },
+  { id: 32, name: 'Кухня: заказ выдан', collectionIds: [3], events: ['Кухня: заказ выдан (Served)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] выдан', generationStatus: 'done' },
+  { id: 33, name: 'Кухня: удален', collectionIds: [3], events: ['Кухня: заказ удален'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Заказ [order_number] удален', generationStatus: 'done' },
+  { id: 34, name: 'Кухня: заказ упакован', collectionIds: [3], events: ['Кухня: заказ упакован'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ [order_number] упакован', generationStatus: 'done' },
+
+  // ── Бронь (collection 4, 14) — генерация, все Готово + 1185 ──
+  { id: 35, name: 'Бронь: создан резерв', collectionIds: [4], events: ['Бронь: создан резерв'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Создан резерв на [order_number]', generationStatus: 'done' },
+  { id: 36, name: 'Бронь: создан банкет', collectionIds: [4], events: ['Бронь: создан банкет'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Создан банкет', generationStatus: 'done' },
+  { id: 37, name: 'Бронь: банкет начат', collectionIds: [4], events: ['Бронь: банкет начат'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Банкет начат', generationStatus: 'done' },
+  { id: 38, name: 'Бронь: банкет начат (универсально)', collectionIds: [4], events: ['Бронь: банкет начат (универсально)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Банкет начат', generationStatus: 'done' },
+  { id: 39, name: 'Бронь: гость пришел', collectionIds: [4], events: ['Бронь: гость пришел (резерв закрыт)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Гость [guest_name] пришел', generationStatus: 'done' },
+  { id: 40, name: 'Бронь: включено напоминание о подготовке', collectionIds: [4], events: ['Бронь: включено напоминание о подготовке'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Напоминание: банкет скоро начнется', generationStatus: 'done' },
+  { id: 41, name: 'Бронь: банкет отменен', collectionIds: [4], events: ['Бронь: банкет отменен (no-show)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Банкет отменен', generationStatus: 'done' },
+  { id: 42, name: 'Бронь: отмена (гость не пришел)', collectionIds: [4], events: ['Бронь: отмена (гость не пришел)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Бронь отменена: гость не пришел', generationStatus: 'done' },
+  { id: 43, name: 'Бронь: отмена (гость отказался)', collectionIds: [4], events: ['Бронь: отмена (гость отказался)'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Бронь отменена: гость отказался', generationStatus: 'done' },
+  { id: 44, name: 'Бронь: отмена (другая причина)', collectionIds: [4], events: ['Бронь: отмена (другая причина)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Бронь отменена', generationStatus: 'done' },
+  { id: 45, name: 'Бронь: резерв закрыт (любой исход)', collectionIds: [4], events: ['Бронь: резерв закрыт (любой исход)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Резерв закрыт', generationStatus: 'done' },
+  { id: 46, name: 'Бронь: банкет завершен', collectionIds: [4], events: ['Бронь: банкет завершен'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Банкет завершен', generationStatus: 'done' },
+  { id: 47, name: '1185', collectionIds: [4], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Озвучка 1185', generationStatus: 'done' },
+
+  // ── «тест» — обработчик в нескольких коллекциях (Доставка, Кухня, Бронь, 1145) ──
+  { id: 48, name: 'тест', collectionIds: [2, 3, 4, 5], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Дмитрий', phraseText: 'Тестовая фраза', generationStatus: 'pending' },
+
+  // ── 1145 (collection 5, 5) ──
+  { id: 49, name: 'Тест 1145 (файл)', collectionIds: [5], events: ['Доставка: доставлено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 50, name: '1145 (генерация)', collectionIds: [5], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Тест 1145', generationStatus: 'done' },
+  { id: 51, name: 'Тест 1145 (файл) (Copy)', collectionIds: [5], events: ['Доставка: доставлено'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 52, name: '1145 (генерация) (Copy)', collectionIds: [5], events: ['Доставка: новый заказ'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Тест 1145', generationStatus: 'done' },
+
+  // ── Без коллекции (2) ──
+  { id: 53, name: '111', collectionIds: [], events: ['Доставка: закрыто'], voiceType: 'file', fileName: 'sound.mp3', fileSizeKb: 16 },
+  { id: 54, name: 'KD', collectionIds: [], events: ['Кухня: заказ выдан (Served)'], voiceType: 'generation', voiceName: 'Светлана', phraseText: 'Заказ выдан', generationStatus: 'done' },
 ];
 
 /* ── Available Voices ── */

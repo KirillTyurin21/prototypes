@@ -16,14 +16,13 @@ import { MOCK_DV_AUDIO_FILES } from '../../data/mock-data';
   template: `
     <div class="af-backdrop" *ngIf="open" (click)="close.emit()" role="presentation"></div>
 
-    <div class="af-modal" *ngIf="open" role="dialog" aria-modal="true" aria-label="Аудио файлы">
+    <div class="af-modal" *ngIf="open" role="dialog" aria-modal="true" aria-label="Файлы">
       <div class="af-head">
         <button type="button" class="af-back-btn" disabled aria-label="Назад">
           <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
         </button>
         <div class="af-head-text">
-          <h3 class="af-title">Аудио файлы</h3>
-          <p class="af-subtitle">Галерея аудиофайлов</p>
+          <h3 class="af-title">Файлы</h3>
         </div>
         <button type="button" class="af-close" (click)="close.emit()" aria-label="Закрыть">
           <lucide-icon name="x" [size]="18"></lucide-icon>
@@ -37,7 +36,7 @@ import { MOCK_DV_AUDIO_FILES } from '../../data/mock-data';
         </div>
 
         <div class="af-sort">
-          <lucide-icon name="arrow-left-right" [size]="14"></lucide-icon>
+          <lucide-icon name="arrow-up" [size]="14"></lucide-icon>
           <span>По названию</span>
           <lucide-icon name="chevron-down" [size]="14"></lucide-icon>
         </div>
@@ -124,7 +123,6 @@ import { MOCK_DV_AUDIO_FILES } from '../../data/mock-data';
     }
     .af-head-text { flex: 1; min-width: 0; }
     .af-title { margin: 0; font-size: 15px; font-weight: 500; color: var(--dt-text-primary); }
-    .af-subtitle { margin: 1px 0 0; font-size: 12px; color: var(--dt-text-secondary); }
     .af-back-btn, .af-close {
       display: inline-flex;
       align-items: center;

@@ -323,9 +323,9 @@ import { AudioFilesModalComponent } from './audio-files-modal.component';
     }
     .hd-badge--system { background: #f0f5ff; color: #3969d5; }
     .hd-badge--pilot { background: #fff3e0; color: #e65100; }
-    .hd-badge--status { background: #fff3e0; color: #e65100; }
-    .hd-badge--done { background: #e8f5e9; color: #2e7d32; }
-    .hd-badge--pending { background: #fff3e0; color: #e65100; }
+    .hd-badge--status { background: rgba(245, 166, 35, 0.15); color: #ffab40; }
+    .hd-badge--done { background: rgba(2, 155, 229, 0.12); color: #448aff; }
+    .hd-badge--pending { background: rgba(245, 166, 35, 0.15); color: #ffab40; }
 
     .hd-section { margin-bottom: 18px; }
     .hd-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: var(--dt-text-primary); }
