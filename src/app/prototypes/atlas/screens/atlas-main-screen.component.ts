@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { UiButtonComponent, UiCardComponent, UiCardContentComponent, UiSkeletonComponent, UiStatusDotComponent, UiConfirmDialogComponent } from '@/components/ui';
 import { IconsModule } from '@/shared/icons.module';
 import { StorageService } from '@/shared/storage.service';
@@ -59,7 +60,10 @@ import { MOCK_INTEGRATIONS } from '../data/mock-data';
         <ui-card *ngFor="let it of integrations; trackBy: trackById" [hoverable]="true" (cardClick)="openDetail(it.id)">
           <ui-card-content>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0" [class]="it.logoColor">{{ it.logoLetter }}</div>
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0 overflow-hidden" [class]="it.logoColor">
+                <span *ngIf="!it.logoIcon">{{ it.logoLetter }}</span>
+                <span *ngIf="it.logoIcon" class="w-7 h-7 block" [innerHTML]="logo(it)"></span>
+              </div>
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-sm truncate text-gray-900">{{ it.name }}</p>
                 <div class="flex items-center gap-1.5 mt-0.5">
@@ -96,6 +100,7 @@ import { MOCK_INTEGRATIONS } from '../data/mock-data';
 export class AtlasMainScreenComponent implements OnInit {
   private router = inject(Router);
   private storage = inject(StorageService);
+  private sanitizer = inject(DomSanitizer);
   integrations: PaymentIntegration[] = [];
   accountType: AccountType = 'chain';
   toastMessage = '';
@@ -112,6 +117,8 @@ export class AtlasMainScreenComponent implements OnInit {
     this.storage.save('atlas', 'accountType', type);
   }
   openDetail(id: string): void { this.router.navigate(['/prototype/atlas', id]); }
+
+  logo(it: PaymentIntegration): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(it.logoIcon || ''); }
 
   quickDisconnect(id: string): void {
     this.disconnectTarget = this.integrations.find(i => i.id === id) || null;
