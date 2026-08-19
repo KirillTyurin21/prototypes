@@ -1,21 +1,5 @@
 import { PaymentIntegration, RestaurantNode } from '../types';
 
-/** Иконка сервиса СберЧаевые (белая линия, конвенция Киоск/Менюборд, вариант 1 «QR + монета») */
-const SBER_TIPS_LOGO = '<svg width="75" height="75" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-  '<path d="M19 11h37c4.418 0 8 3.582 8 8v37c0 4.418-3.582 8-8 8H19c-4.418 0-8-3.582-8-8V19c0-4.418 3.582-8 8-8zm0 5h37c1.657 0 3 1.343 3 3v37c0 1.657-1.343 3-3 3H19c-1.657 0-3-1.343-3-3V19c0-1.657 1.343-3 3-3z" fill="white" fill-rule="evenodd"/>' +
-  '<path d="M21 21h9v9h-9v-9zm2.7 2.7v3.6h3.6v-3.6h-3.6z" fill="white" fill-rule="evenodd"/>' +
-  '<path d="M45 21h9v9h-9v-9zm2.7 2.7v3.6h3.6v-3.6h-3.6z" fill="white" fill-rule="evenodd"/>' +
-  '<path d="M21 45h9v9h-9v-9zm2.7 2.7v3.6h3.6v-3.6h-3.6z" fill="white" fill-rule="evenodd"/>' +
-  '<rect x="33.5" y="23" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<rect x="38" y="27" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<rect x="33" y="32" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<rect x="41" y="32.5" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<rect x="24" y="33" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<rect x="47.5" y="34" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<rect x="29" y="42" width="3" height="3" rx="1" fill="white" opacity=".75"/>' +
-  '<path d="M45 42a7 7 0 1 0 0 14 7 7 0 1 0 0-14zm0 3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 1 1 0-7z" fill="white" fill-rule="evenodd"/>' +
-  '</svg>';
-
 export const MOCK_INTEGRATIONS: PaymentIntegration[] = [
   {
     id: 'kaspi',
@@ -53,9 +37,8 @@ export const MOCK_INTEGRATIONS: PaymentIntegration[] = [
   {
     id: 'sber-tips',
     name: 'СберЧаевые',
-    logoLetter: 'C',
+    logoLetter: 'S',
     logoColor: 'bg-green-600',
-    logoIcon: SBER_TIPS_LOGO,
     status: 'disconnected',
     connectedRestaurantIds: [],
     operationCategories: [
