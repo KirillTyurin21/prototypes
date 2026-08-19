@@ -108,12 +108,15 @@ export class AtlasMainScreenComponent implements OnInit {
   disconnectTarget: PaymentIntegration | null = null;
 
   ngOnInit(): void {
-    // Иконка сервисов — буква на фоне; устаревшие logoIcon/logoLetter из localStorage не показываем
+    // Новые системы из моков подмешиваются к сохранённым; логотип-параметры всегда актуальные
     const saved = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
-    this.integrations = saved.map(i => {
-      const mock = MOCK_INTEGRATIONS.find(m => m.id === i.id);
-      return { ...i, logoIcon: undefined, logoLetter: mock?.logoLetter ?? i.logoLetter, logoColor: mock?.logoColor ?? i.logoColor };
+    this.integrations = MOCK_INTEGRATIONS.map(mock => {
+      const s = saved.find(i => i.id === mock.id);
+      return s
+        ? { ...s, logoIcon: undefined, logoLetter: mock.logoLetter, logoColor: mock.logoColor }
+        : { ...mock };
     });
+    this.storage.save('atlas', 'integrations', this.integrations);
     this.accountType = this.storage.load('atlas', 'accountType', 'chain' as AccountType);
   }
 
