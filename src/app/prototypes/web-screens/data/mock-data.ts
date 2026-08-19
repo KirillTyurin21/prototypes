@@ -17,6 +17,8 @@ import {
   SoundFile,
   GenerationQueueItem,
   ArrivalsDevice,
+  SoundTerminalGroupV2,
+  DvArrivalsDisplay,
 } from '../types';
 
 /** Секции бокового меню Web */
@@ -81,6 +83,12 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     title: 'Кампании',
     icon: 'megaphone',
     route: 'campaigns',
+    items: [],
+  },
+  {
+    title: 'Настройка терминалов (новая)',
+    icon: 'sliders',
+    route: 'sounds-terminals-v2',
     items: [],
   },
 ];
@@ -903,6 +911,145 @@ export const MOCK_SOUND_TERMINAL_GROUPS: SoundTerminalGroup[] = [
     ],
   },
 ];
+
+/* ── Sounds v2: переделка «Настройка терминалов» ── */
+
+/** Физические аудиоустройства (новая модель) */
+export const MOCK_PHYSICAL_AUDIO_DEVICES: string[] = [
+  'Динамики (Realtek(R) Audio)',
+  'Динамики (High Definition Audio Device)',
+  'Наушники (USB)',
+];
+
+/** Аудиоустройства варианта «Было» — как на стенде */
+export const MOCK_LEGACY_AUDIO_DEVICES: string[] = [
+  'Не выбрано',
+  'Динамики (Realtek(R) Audio)',
+  'Удаленное аудио',
+];
+
+/** Дисплеи Arrivals, доступные терминалам ресторана (по группам = RMS) */
+export const MOCK_RMS_DISPLAYS: Record<number, DvArrivalsDisplay[]> = {
+  1: [
+    { id: 'zal', name: 'Дисплей «Зал»', isOnline: true, themeName: 'Тема «Зал днём»' },
+    { id: 'kuhnya', name: 'Дисплей «Кухня»', isOnline: true, themeName: 'Тема «Кухня»' },
+    { id: 'dostavka', name: 'Дисплей «Доставка»', isOnline: false, themeName: 'Тема «Доставка»' },
+  ],
+  2: [
+    { id: 'zal2', name: 'Дисплей «Зал»', isOnline: true, themeName: 'Тема «Вечерний зал»' },
+    { id: 'bar', name: 'Дисплей «Бар»', isOnline: true, themeName: 'Тема «Бар»' },
+  ],
+  // Группа 3: RMS офлайн — список дисплеев не загружается (демо Error-состояния)
+  3: [],
+};
+
+/** Терминалы в новой модели: у каждого — несколько устройств вывода */
+export const MOCK_SOUND_TERMINAL_GROUPS_V2: SoundTerminalGroupV2[] = [
+  {
+    id: 1,
+    name: 'Мой ресторан',
+    terminals: [
+      {
+        id: 101,
+        name: '127.0.0.1',
+        lastActivity: '30.07.2026, 23:11:22',
+        devices: [
+          { id: 'd1', kind: 'physical', audioDevice: 'Динамики (Realtek(R) Audio)', handlerIds: [12, 16] },
+          { id: 'd2', kind: 'arrivals-display', displayId: 'zal', displayName: 'Дисплей «Зал»', displayOnline: true, themeName: 'Тема «Зал днём»', handlerIds: [7] },
+          { id: 'd3', kind: 'arrivals-display', displayId: 'dostavka', displayName: 'Дисплей «Доставка»', displayOnline: false, themeName: 'Тема «Доставка»', handlerIds: [9] },
+        ],
+      },
+      {
+        id: 102,
+        name: '192.168.99.116',
+        lastActivity: '20.01.2026, 14:04:06',
+        devices: [
+          { id: 'd1', kind: 'physical', audioDevice: 'Динамики (Realtek(R) Audio)', handlerIds: [] },
+        ],
+      },
+      {
+        id: 103,
+        name: 'MSK-IIKO-285.resto.lan (192.168.0.187)',
+        lastActivity: '22.07.2026, 17:47:29',
+        devices: [],
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Ресторан «Центральный»',
+    terminals: [
+      {
+        id: 201,
+        name: '10.0.0.5',
+        lastActivity: '18.08.2026, 09:45:11',
+        devices: [
+          { id: 'd1', kind: 'physical', audioDevice: 'Динамики (High Definition Audio Device)', handlerIds: [1, 2] },
+          { id: 'd2', kind: 'arrivals-display', displayId: 'bar', displayName: 'Дисплей «Бар»', displayOnline: true, themeName: 'Тема «Бар»', handlerIds: [13] },
+        ],
+      },
+      {
+        id: 202,
+        name: '10.0.0.6',
+        lastActivity: '17.08.2026, 14:20:00',
+        devices: [
+          { id: 'd1', kind: 'physical', audioDevice: 'Наушники (USB)', handlerIds: [12] },
+        ],
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Кафе «Утренняя звезда»',
+    terminals: [
+      { id: 301, name: '172.16.0.1', lastActivity: '03.08.2026, 22:10:55', devices: [] },
+    ],
+  },
+];
+
+/** Мок-данные варианта «Было» — реплика стенда (легаси-модель) */
+export const MOCK_SOUND_TERMINAL_GROUPS_LEGACY: SoundTerminalGroup[] = [
+  {
+    id: 1,
+    name: 'Мой ресторан',
+    terminalCount: 3,
+    terminals: [
+      { id: 101, name: '127.0.0.1', lastActivity: '30.07.2026, 23:11:22', handlerIds: [7, 12, 16], audioDevice: 'Динамики (Realtek(R) Audio)' },
+      { id: 102, name: '192.168.99.116', lastActivity: '20.01.2026, 14:04:06', handlerIds: [7], audioDevice: 'Динамики (Realtek(R) Audio)' },
+      { id: 103, name: 'MSK-IIKO-285.resto.lan (192.168.0.187)', lastActivity: '22.07.2026, 17:47:29', handlerIds: [9], audioDevice: 'Удаленное аудио' },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Ресторан «Центральный»',
+    terminalCount: 2,
+    terminals: [
+      { id: 201, name: '10.0.0.5', lastActivity: '18.08.2026, 09:45:11', handlerIds: [1, 2, 3], audioDevice: 'Удаленное аудио' },
+      { id: 202, name: '10.0.0.6', lastActivity: '17.08.2026, 14:20:00', handlerIds: [], audioDevice: 'Не выбрано' },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Кафе «Утренняя звезда»',
+    terminalCount: 1,
+    terminals: [
+      { id: 301, name: '172.16.0.1', lastActivity: '03.08.2026, 22:10:55', handlerIds: [15, 16], audioDevice: 'Динамики (Realtek(R) Audio)' },
+    ],
+  },
+];
+
+/** Системный префикс обработчика — как на стенде: Доставка *, Кухня **, Бронь *** */
+export function getSystemHandlerPrefix(name: string): string {
+  if (name.startsWith('Бронь:')) return '***';
+  if (name.startsWith('Кухня:')) return '**';
+  if (name.startsWith('Доставка:')) return '*';
+  return '';
+}
+
+/** Отображаемое имя обработчика с системным префиксом */
+export function getHandlerDisplayName(name: string): string {
+  return getSystemHandlerPrefix(name) + name;
+}
 
 /* ── Available Voices ── */
 
