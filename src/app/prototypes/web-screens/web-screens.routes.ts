@@ -106,6 +106,13 @@ export const WEB_SCREENS_ROUTES: Routes = [
           ),
       },
       {
+        path: 'sounds-terminals-v2',
+        loadComponent: () =>
+          import('./screens/sounds-terminals-v2-screen.component').then(
+            m => m.SoundsTerminalsV2ScreenComponent
+          ),
+      },
+      {
         path: 'arrivals-multiscreen',
         loadComponent: () =>
           import('./screens/arrivals-multiscreen-screen.component').then(

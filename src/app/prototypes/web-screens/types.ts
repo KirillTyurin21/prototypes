@@ -401,6 +401,45 @@ export interface ArrivalsDisplay {
   audioOutput: 'tv' | 'centralized';
 }
 
+/* ── Sounds v2: переделка «Настройка терминалов» (дерево + панель) ── */
+
+/** Устройство вывода звука терминала: физическое аудиоустройство или дисплей Arrivals */
+export interface SoundOutputDevice {
+  id: string;
+  kind: 'physical' | 'arrivals-display';
+  /** для kind = physical — название аудиоустройства */
+  audioDevice?: string;
+  /** для kind = arrivals-display — конкретный дисплей RMS */
+  displayId?: string;
+  displayName?: string;
+  displayOnline?: boolean;
+  themeName?: string;
+  handlerIds: number[];
+}
+
+/** Дисплей Arrivals, доступный для выбора (RMS ресторана) */
+export interface DvArrivalsDisplay {
+  id: string;
+  name: string;
+  isOnline: boolean;
+  themeName: string;
+}
+
+/** Терминал в новой модели: несколько устройств вывода */
+export interface SoundTerminalV2 {
+  id: number;
+  name: string;
+  lastActivity: string;
+  devices: SoundOutputDevice[];
+}
+
+/** Группа (ресторан) терминалов в новой модели */
+export interface SoundTerminalGroupV2 {
+  id: number;
+  name: string;
+  terminals: SoundTerminalV2[];
+}
+
 /* ── Generation Queue ── */
 
 export interface GenerationQueueItem {
