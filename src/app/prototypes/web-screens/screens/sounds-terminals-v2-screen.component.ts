@@ -148,6 +148,16 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
                           <span class="dv2-a-dropdown-value" [class.dv2-a-dropdown-value--empty]="t.handlerIds.length === 0">
                             {{ handlerSummary(t) }}
                           </span>
+                          <button
+                            type="button"
+                            class="dv2-a-dropdown-clear"
+                            *ngIf="t.handlerIds.length > 0"
+                            (click)="clearLegacyHandlers(t, $event)"
+                            aria-label="Очистить обработчики"
+                            title="Очистить"
+                          >
+                            <lucide-icon name="x" [size]="13"></lucide-icon>
+                          </button>
                           <lucide-icon name="chevron-down" [size]="16" class="dv2-a-dropdown-chevron"></lucide-icon>
                         </div>
                         <div
@@ -269,7 +279,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
     .dv2-header-actions { display: flex; align-items: center; gap: 8px; }
     .dv2-save {
       padding: 0 16px;
-      height: 34px;
+      height: 36px;
       border: none;
       border-radius: 4px;
       background: var(--dt-brand-accent);
@@ -281,7 +291,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       cursor: pointer;
       transition: background 0.15s ease;
     }
-    .dv2-save:hover { background: var(--dt-brand-accent-dark); }
+    .dv2-save:hover { background: #3969d5; }
     .dv2-save--active { background: var(--dt-brand-warning-dark); }
     .dv2-save--active:hover { background: var(--dt-brand-warning-darker); }
     .dv2-info {
@@ -296,14 +306,14 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       color: var(--dt-text-disable);
       cursor: pointer;
     }
-    .dv2-info:hover { background: var(--dt-surface-hover); color: var(--dt-text-primary); }
+    .dv2-info:hover { background: #ebebeb; color: var(--dt-text-primary); }
 
     /* ── Variant switcher ── */
     .dv2-switcher { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
     .dv2-switcher-label { font-size: 13px; color: var(--dt-text-secondary); }
     .dv2-switcher-segments {
       display: inline-flex;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       overflow: hidden;
       background: var(--dt-surface-primary);
@@ -314,7 +324,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       gap: 6px;
       padding: 7px 14px;
       border: none;
-      border-right: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border-right: 1px solid #d6d6d6;
       background: none;
       color: var(--dt-text-secondary);
       font-family: Roboto, sans-serif;
@@ -324,9 +334,9 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       transition: background 0.15s ease, color 0.15s ease;
     }
     .dv2-switcher-btn:last-child { border-right: none; }
-    .dv2-switcher-btn:hover { background: var(--dt-surface-hover); color: var(--dt-text-primary); }
+    .dv2-switcher-btn:hover { background: #ebebeb; color: var(--dt-text-primary); }
     .dv2-switcher-btn--active { background: var(--dt-brand-accent); color: #fff; }
-    .dv2-switcher-btn--active:hover { background: var(--dt-brand-accent-dark); color: #fff; }
+    .dv2-switcher-btn--active:hover { background: #3969d5; color: #fff; }
 
     /* ── Loading ── */
     .dv2-loading { display: flex; flex-direction: column; gap: 14px; }
@@ -355,7 +365,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       max-width: 340px;
       height: 36px;
       padding: 0 12px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       color: var(--dt-text-disable);
@@ -384,7 +394,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
 
     .dv2-a-groups { display: flex; flex-direction: column; gap: 10px; }
     .dv2-a-group {
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       overflow: hidden;
@@ -402,12 +412,12 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       text-align: left;
       transition: background 0.12s ease;
     }
-    .dv2-a-group-head:hover { background: var(--dt-surface-hover); }
+    .dv2-a-group-head:hover { background: #ebebeb; }
     .dv2-a-chevron { color: var(--dt-text-secondary); flex-shrink: 0; }
     .dv2-a-group-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; color: var(--dt-text-primary); }
     .dv2-a-group-count { font-size: 12.5px; color: var(--dt-text-disable); }
 
-    .dv2-a-table-wrap { border-top: 1px solid var(--dt-stroke-default, #d6d6d6); }
+    .dv2-a-table-wrap { border-top: 1px solid #d6d6d6; }
     .dv2-a-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
     .dv2-a-table th {
       text-align: left;
@@ -415,12 +425,12 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       font-weight: 500;
       font-size: 12.5px;
       color: var(--dt-text-secondary);
-      background: var(--dt-surface-variant);
-      border-bottom: 1px solid var(--dt-stroke-default, #d6d6d6);
+      background: #f0f5ff;
+      border-bottom: 1px solid #d6d6d6;
     }
     .dv2-a-table td {
       padding: 10px 14px;
-      border-bottom: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border-bottom: 1px solid #d6d6d6;
       color: var(--dt-text-primary);
       vertical-align: middle;
     }
@@ -441,7 +451,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       gap: 8px;
       min-height: 32px;
       padding: 6px 10px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       cursor: pointer;
@@ -459,13 +469,29 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
     }
     .dv2-a-dropdown-value--empty { color: var(--dt-text-disable); }
     .dv2-a-dropdown-chevron { color: var(--dt-text-disable); flex-shrink: 0; }
+    .dv2-a-dropdown-clear {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: none;
+      color: var(--dt-text-disable);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .dv2-a-dropdown-clear:hover { background: #ebebeb; color: var(--dt-text-primary); }
 
     .dv2-a-dd-panel {
       position: fixed;
       z-index: 900;
       max-height: 260px;
       overflow-y: auto;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       box-shadow: 0 4px 16px 4px rgba(224, 224, 224, 0.7);
@@ -478,7 +504,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       margin: 8px 10px;
       padding: 0 10px;
       height: 30px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       color: var(--dt-text-disable);
     }
@@ -513,7 +539,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       font-size: 13px;
       color: var(--dt-text-primary);
     }
-    .dv2-a-dd-item:hover { background: var(--dt-surface-hover); }
+    .dv2-a-dd-item:hover { background: #ebebeb; }
     .dv2-a-dd-item input { width: 15px; height: 15px; margin: 0; accent-color: var(--dt-brand-accent); cursor: pointer; }
     .dv2-a-dd-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -521,7 +547,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       width: 100%;
       height: 32px;
       padding: 0 8px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       font-family: Roboto, sans-serif;
@@ -544,7 +570,7 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       height: 36px;
       margin-bottom: 12px;
       padding: 0 12px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       color: var(--dt-text-disable);
@@ -565,16 +591,16 @@ import { HandlerPickerModalComponent } from '../components/sounds/handler-picker
       display: flex;
       flex: 1;
       min-height: 480px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
-      border-radius: 6px;
+      border: 1px solid #d6d6d6;
+      border-radius: 4px;
       background: var(--dt-surface-primary);
       overflow: hidden;
     }
     .dv2-b-tree {
       flex: 0 0 320px;
       max-width: 320px;
-      border-right: 1px solid var(--dt-stroke-default, #d6d6d6);
-      background: var(--dt-surface-variant);
+      border-right: 1px solid #d6d6d6;
+      background: #f8f9fc;
       overflow-y: auto;
     }
     .dv2-b-panel { flex: 1; min-width: 0; overflow: hidden; }
@@ -790,6 +816,13 @@ export class SoundsTerminalsV2ScreenComponent implements OnInit, OnDestroy {
     } else {
       terminal.handlerIds.push(handlerId);
     }
+    this.markUnsaved();
+  }
+
+  clearLegacyHandlers(terminal: SoundTerminalGroup['terminals'][number], event: Event): void {
+    event.stopPropagation();
+    terminal.handlerIds = [];
+    this.activeHandlerDropdown = null;
     this.markUnsaved();
   }
 

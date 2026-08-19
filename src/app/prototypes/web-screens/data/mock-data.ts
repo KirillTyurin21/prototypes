@@ -1014,9 +1014,9 @@ export const MOCK_SOUND_TERMINAL_GROUPS_LEGACY: SoundTerminalGroup[] = [
     name: 'Мой ресторан',
     terminalCount: 3,
     terminals: [
-      { id: 101, name: '127.0.0.1', lastActivity: '30.07.2026, 23:11:22', handlerIds: [7, 12, 16], audioDevice: 'Динамики (Realtek(R) Audio)' },
-      { id: 102, name: '192.168.99.116', lastActivity: '20.01.2026, 14:04:06', handlerIds: [7], audioDevice: 'Динамики (Realtek(R) Audio)' },
-      { id: 103, name: 'MSK-IIKO-285.resto.lan (192.168.0.187)', lastActivity: '22.07.2026, 17:47:29', handlerIds: [9], audioDevice: 'Удаленное аудио' },
+      { id: 101, name: '127.0.0.1', lastActivity: '30.07.2026, 23:11:22 +4', handlerIds: [7, 12, 16], audioDevice: 'Динамики (Realtek(R) Audio)' },
+      { id: 102, name: '192.168.99.116', lastActivity: '20.01.2026, 14:04:06 +4', handlerIds: [7], audioDevice: 'Динамики (Realtek(R) Audio)' },
+      { id: 103, name: 'MSK-IIKO-285.resto.lan (192.168.0.187)', lastActivity: '22.07.2026, 17:47:29 +4', handlerIds: [9], audioDevice: 'Удаленное аудио' },
     ],
   },
   {
@@ -1024,8 +1024,8 @@ export const MOCK_SOUND_TERMINAL_GROUPS_LEGACY: SoundTerminalGroup[] = [
     name: 'Ресторан «Центральный»',
     terminalCount: 2,
     terminals: [
-      { id: 201, name: '10.0.0.5', lastActivity: '18.08.2026, 09:45:11', handlerIds: [1, 2, 3], audioDevice: 'Удаленное аудио' },
-      { id: 202, name: '10.0.0.6', lastActivity: '17.08.2026, 14:20:00', handlerIds: [], audioDevice: 'Не выбрано' },
+      { id: 201, name: '10.0.0.5', lastActivity: '18.08.2026, 09:45:11 +4', handlerIds: [1, 2, 3], audioDevice: 'Удаленное аудио' },
+      { id: 202, name: '10.0.0.6', lastActivity: '17.08.2026, 14:20:00 +4', handlerIds: [], audioDevice: 'Не выбрано' },
     ],
   },
   {
@@ -1033,7 +1033,7 @@ export const MOCK_SOUND_TERMINAL_GROUPS_LEGACY: SoundTerminalGroup[] = [
     name: 'Кафе «Утренняя звезда»',
     terminalCount: 1,
     terminals: [
-      { id: 301, name: '172.16.0.1', lastActivity: '03.08.2026, 22:10:55', handlerIds: [15, 16], audioDevice: 'Динамики (Realtek(R) Audio)' },
+      { id: 301, name: '172.16.0.1', lastActivity: '03.08.2026, 22:10:55 +4', handlerIds: [15, 16], audioDevice: 'Динамики (Realtek(R) Audio)' },
     ],
   },
 ];

@@ -85,7 +85,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       display: flex;
       flex-direction: column;
       background: var(--dt-surface-primary);
-      border-radius: 8px;
+      border-radius: 4px;
       box-shadow: 0 6px 28px 6px rgba(224, 224, 224, 0.6), 0 8px 10px rgba(214, 214, 214, 0.6);
       z-index: 91;
       font-family: Roboto, sans-serif;
@@ -102,7 +102,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       align-items: flex-start;
       gap: 10px;
       padding: 14px 16px;
-      border-bottom: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border-bottom: 1px solid #d6d6d6;
     }
     .hpm-head-text { flex: 1; min-width: 0; }
     .hpm-title { margin: 0; font-size: 15px; font-weight: 500; color: var(--dt-text-primary); }
@@ -119,7 +119,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       color: var(--dt-text-secondary);
       cursor: pointer;
     }
-    .hpm-close:hover { background: var(--dt-surface-hover); color: var(--dt-text-primary); }
+    .hpm-close:hover { background: #ebebeb; color: var(--dt-text-primary); }
 
     .hpm-search {
       display: flex;
@@ -128,7 +128,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       margin: 12px 16px 8px;
       padding: 0 10px;
       height: 34px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       color: var(--dt-text-disable);
       background: var(--dt-surface-primary);
@@ -183,9 +183,9 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       font-size: 13px;
       color: var(--dt-text-primary);
     }
-    .hpm-item:hover { background: var(--dt-surface-hover); }
+    .hpm-item:hover { background: #ebebeb; }
     .hpm-item--checked { background: var(--dt-surface-sidebar-selected); }
-    .hpm-item--checked .hpm-name { font-weight: 500; color: var(--dt-brand-accent-dark); }
+    .hpm-item--checked .hpm-name { font-weight: 500; color: var(--dt-brand-accent); }
     .hpm-item input { width: 15px; height: 15px; margin: 0; accent-color: var(--dt-brand-accent); cursor: pointer; }
     .hpm-icon { display: inline-flex; color: var(--dt-brand-accent); }
     .hpm-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -195,7 +195,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       align-items: center;
       gap: 10px;
       padding: 12px 16px;
-      border-top: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border-top: 1px solid #d6d6d6;
     }
     .hpm-count { margin-right: auto; font-size: 12.5px; color: var(--dt-text-secondary); }
     .hpm-count b { color: var(--dt-brand-accent); font-weight: 500; }
@@ -209,17 +209,17 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       transition: background 0.15s ease;
     }
     .hpm-btn--ghost {
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       background: var(--dt-surface-primary);
       color: var(--dt-text-primary);
     }
-    .hpm-btn--ghost:hover { background: var(--dt-surface-hover); }
+    .hpm-btn--ghost:hover { background: #ebebeb; }
     .hpm-btn--primary {
       border: 1px solid transparent;
       background: var(--dt-brand-accent);
       color: #fff;
     }
-    .hpm-btn--primary:hover { background: var(--dt-brand-accent-dark); }
+    .hpm-btn--primary:hover { background: #3969d5; }
   `],
 })
 export class HandlerPickerModalComponent implements OnChanges {

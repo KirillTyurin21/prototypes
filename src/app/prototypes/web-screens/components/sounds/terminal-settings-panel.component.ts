@@ -135,7 +135,7 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       align-items: center;
       gap: 12px;
       padding-bottom: 14px;
-      border-bottom: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border-bottom: 1px solid #d6d6d6;
     }
     .tsp-head-icon {
       display: inline-flex;
@@ -177,7 +177,7 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       gap: 5px;
       margin-left: auto;
       padding: 5px 10px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       color: var(--dt-text-secondary);
@@ -186,7 +186,7 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .tsp-refresh:hover { color: var(--dt-text-primary); background: var(--dt-surface-hover); }
+    .tsp-refresh:hover { color: var(--dt-text-primary); background: #ebebeb; }
     .tsp-spin { animation: tsp-spin 0.8s linear infinite; }
     @keyframes tsp-spin { to { transform: rotate(360deg); } }
 
@@ -211,8 +211,8 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       align-items: center;
       gap: 8px;
       padding: 26px 16px;
-      border: 1px dashed var(--dt-stroke-default, #d6d6d6);
-      border-radius: 6px;
+      border: 1px dashed #d6d6d6;
+      border-radius: 4px;
       color: var(--dt-text-disable);
       font-size: 12.5px;
       text-align: center;
@@ -226,8 +226,8 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       gap: 6px;
       margin-top: 12px;
       padding: 10px;
-      border: 1px dashed var(--dt-stroke-default, #d6d6d6);
-      border-radius: 6px;
+      border: 1px dashed #d6d6d6;
+      border-radius: 4px;
       background: var(--dt-surface-primary);
       color: var(--dt-brand-accent);
       font-family: Roboto, sans-serif;
@@ -267,7 +267,8 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       background: linear-gradient(transparent, var(--dt-surface-primary) 30%);
     }
     .tsp-btn {
-      padding: 8px 18px;
+      padding: 0 18px;
+      height: 36px;
       border-radius: 4px;
       font-family: Roboto, sans-serif;
       font-size: 13.5px;
@@ -276,17 +277,17 @@ import { HandlerPickerModalComponent } from './handler-picker-modal.component';
       transition: background 0.15s ease;
     }
     .tsp-btn--ghost {
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       background: var(--dt-surface-primary);
       color: var(--dt-text-primary);
     }
-    .tsp-btn--ghost:hover { background: var(--dt-surface-hover); }
+    .tsp-btn--ghost:hover { background: #ebebeb; }
     .tsp-btn--primary {
       border: 1px solid transparent;
       background: var(--dt-brand-accent);
       color: #fff;
     }
-    .tsp-btn--primary:hover { background: var(--dt-brand-accent-dark); }
+    .tsp-btn--primary:hover { background: #3969d5; }
   `],
 })
 export class TerminalSettingsPanelComponent implements OnChanges {

@@ -78,8 +78,8 @@ import { getHandlerDisplayName } from '../../data/mock-data';
   `,
   styles: [`
     .sdc {
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
-      border-radius: 6px;
+      border: 1px solid #d6d6d6;
+      border-radius: 4px;
       background: var(--dt-surface-primary);
       overflow: hidden;
       transition: box-shadow 0.15s ease, opacity 0.2s ease;
@@ -92,7 +92,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       align-items: center;
       gap: 10px;
       padding: 10px 12px;
-      border-bottom: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border-bottom: 1px solid #d6d6d6;
       background: var(--dt-surface-variant);
     }
     .sdc-idx {
@@ -114,7 +114,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       width: 100%;
       height: 32px;
       padding: 0 28px 0 10px;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       font-family: Roboto, sans-serif;
@@ -142,7 +142,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       width: 30px;
       height: 30px;
       flex-shrink: 0;
-      border: 1px solid var(--dt-stroke-default, #d6d6d6);
+      border: 1px solid #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       color: var(--dt-text-secondary);
@@ -228,7 +228,7 @@ import { getHandlerDisplayName } from '../../data/mock-data';
       align-items: center;
       gap: 5px;
       padding: 6px 12px;
-      border: 1px dashed var(--dt-stroke-default, #d6d6d6);
+      border: 1px dashed #d6d6d6;
       border-radius: 4px;
       background: var(--dt-surface-primary);
       color: var(--dt-brand-accent);

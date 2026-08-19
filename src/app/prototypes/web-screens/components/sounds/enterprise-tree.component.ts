@@ -114,7 +114,7 @@ export type TerminalStatusKind = 'ok' | 'partial' | 'none';
       padding: 2px 4px 2px 2px;
       border-radius: 4px;
     }
-    .et-org-row:hover { background: var(--dt-surface-hover); }
+    .et-org-row:hover { background: #ebebeb; }
     .et-org-btn {
       display: flex;
       align-items: center;
@@ -155,12 +155,12 @@ export type TerminalStatusKind = 'ok' | 'partial' | 'none';
       cursor: pointer;
       transition: background 0.12s ease;
     }
-    .et-term:hover { background: var(--dt-surface-hover); }
+    .et-term:hover { background: #ebebeb; }
     .et-term--active {
       background: var(--dt-surface-sidebar-selected);
       box-shadow: inset 2px 0 0 var(--dt-brand-accent);
     }
-    .et-term--active .et-term-name { font-weight: 500; color: var(--dt-brand-accent-dark); }
+    .et-term--active .et-term-name { font-weight: 500; color: var(--dt-text-primary); }
 
     .et-check {
       width: 15px;
@@ -193,15 +193,15 @@ export type TerminalStatusKind = 'ok' | 'partial' | 'none';
     .et-status { display: inline-flex; flex-shrink: 0; }
     .et-status--ok { color: var(--dt-brand-positive); }
     .et-status--partial { color: var(--dt-brand-warning-dark); }
-    .et-status--none { color: var(--dt-stroke-default, #d6d6d6); }
+    .et-status--none { color: #d6d6d6; }
 
     .et-apply {
       margin-top: 14px;
       padding: 9px 12px;
       border: 1px solid var(--dt-brand-accent);
       border-radius: 4px;
-      background: var(--dt-brand-accent-lighter);
-      color: var(--dt-brand-accent-dark);
+      background: #f0f5ff;
+      color: var(--dt-brand-accent);
       font-family: Roboto, sans-serif;
       font-size: 13px;
       font-weight: 500;
