@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Иконка СберЧаевые — Выбор варианта</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Roboto, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #212121;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 28px; font-weight: 500; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: #757575; margin-bottom: 40px; }
+  .variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .variant-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .variant-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+  }
+  .variant-preview {
+    background: linear-gradient(135deg, #3daa6f, #008f42);
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+  }
+  .variant-preview img { width: 128px; height: 128px; }
+  .variant-info { padding: 20px; }
+  .variant-info h2 { font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+  .variant-info .number {
+    color: #008f42;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .variant-info p { color: #757575; font-size: 14px; line-height: 1.5; }
+  .sizes { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .size-badge {
+    background: #e5f4ec;
+    color: #008f42;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .section-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 500;
+    margin: 48px 0 24px;
+    color: #424242;
+  }
+  .ref-icons { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+  .ref-item { text-align: center; }
+  .ref-preview {
+    background: linear-gradient(135deg, #3daa6f, #008f42);
+    border-radius: 12px;
+    padding: 24px;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ref-preview img { width: 64px; height: 64px; }
+  .ref-item span { display: block; margin-top: 8px; font-size: 13px; color: #616161; }
+</style>
+</head>
+<body>
+  <h1>Иконка СберЧаевые — Выбор варианта</h1>
+  <p class="subtitle">Конвенция: белая линия на прозрачном фоне, viewBox 75×75, рамка одинаковой толщины. Контент заполняет квадратный канвас.</p>
+
+  <div class="variants">
+    <div class="variant-card">
+      <div class="variant-preview"><img src="sber-1-qr-coin.svg" alt="Вариант 1"></div>
+      <div class="variant-info">
+        <div class="number">Вариант 1</div>
+        <h2>QR-код + монета</h2>
+        <p>QR-код для сканирования и монета — чаевые. Простой и читаемый образ сервиса «оплата + чаевые».</p>
+        <div class="sizes"><span class="size-badge">SVG</span><span class="size-badge">PNG 64/128/256</span></div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-preview"><img src="sber-2-qr-receipt.svg" alt="Вариант 2"></div>
+      <div class="variant-info">
+        <div class="number">Вариант 2</div>
+        <h2>Чек с QR-кодом</h2>
+        <p>Счёт с позициями и QR-кодом для оплаты. Подчёркивает сценарий «гость оплачивает счёт по QR».</p>
+        <div class="sizes"><span class="size-badge">SVG</span><span class="size-badge">PNG 64/128/256</span></div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-preview"><img src="sber-3-qr-wallet.svg" alt="Вариант 3"></div>
+      <div class="variant-info">
+        <div class="number">Вариант 3</div>
+        <h2>Кошелёк с QR-кодом</h2>
+        <p>Кошелёк с клапаном, QR-кодом и кнопкой — «платёжный сервис» в чистом виде.</p>
+        <div class="sizes"><span class="size-badge">SVG</span><span class="size-badge">PNG 64/128/256</span></div>
+      </div>
+    </div>
+    <div class="variant-card">
+      <div class="variant-preview"><img src="sber-4-qr-heart.svg" alt="Вариант 4"></div>
+      <div class="variant-info">
+        <div class="number">Вариант 4</div>
+        <h2>QR-код + сердце</h2>
+        <p>QR-код и сердце — благодарность и чаевые. Эмоциональный образ, фокус на чаевых официанту.</p>
+        <div class="sizes"><span class="size-badge">SVG</span><span class="size-badge">PNG 64/128/256</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Для сравнения — соседние сервисы в разделе «Интеграции»</h2>
+  <div class="ref-icons">
+    <div class="ref-item">
+      <div class="ref-preview"><img src="sber-1-qr-coin.svg" alt="СберЧаевые"></div>
+      <span>СберЧаевые (новый)</span>
+    </div>
+  </div>
+</body>
+</html>

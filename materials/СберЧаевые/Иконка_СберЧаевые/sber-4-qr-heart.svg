@@ -1,0 +1,14 @@
+<svg width="75" height="75" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Рамка (толщина 5px со всех сторон) -->
+  <path d="M19 11h37c4.418 0 8 3.582 8 8v37c0 4.418-3.582 8-8 8H19c-4.418 0-8-3.582-8-8V19c0-4.418 3.582-8 8-8zm0 5h37c1.657 0 3 1.343 3 3v37c0 1.657-1.343 3-3 3H19c-1.657 0-3-1.343-3-3V19c0-1.657 1.343-3 3-3z" fill="white" fill-rule="evenodd"/>
+  <!-- QR-маркеры слева -->
+  <path d="M20 21h8v8h-8v-8zm2.4 2.4v3.2h3.2v-3.2h-3.2z" fill="white" fill-rule="evenodd"/>
+  <path d="M20 44h8v8h-8v-8zm2.4 2.4v3.2h3.2v-3.2h-3.2z" fill="white" fill-rule="evenodd"/>
+  <!-- Модули QR -->
+  <rect x="31.5" y="23" width="2.6" height="2.6" rx=".9" fill="white" opacity=".75"/>
+  <rect x="31.5" y="30" width="2.6" height="2.6" rx=".9" fill="white" opacity=".75"/>
+  <rect x="23" y="31.5" width="2.6" height="2.6" rx=".9" fill="white" opacity=".75"/>
+  <rect x="31.5" y="44.5" width="2.6" height="2.6" rx=".9" fill="white" opacity=".75"/>
+  <!-- Сердце (благодарность) -->
+  <path d="M42 52c-1-9.5-13-10.5-13-20a6.6 6.6 0 0 1 13-4.4 6.6 6.6 0 0 1 13 4.4c0 9.5-12 10.5-13 20zM42 49c-1-7-9-7.6-9-14.7a4.7 4.7 0 0 1 9-3.2 4.7 4.7 0 0 1 9 3.2c0 7.1-8 7.7-9 14.7z" fill="white" fill-rule="evenodd"/>
+</svg>

@@ -7,6 +7,8 @@ export interface PaymentIntegration {
   name: string;
   logoLetter: string;
   logoColor: string;
+  /** Инлайн-SVG иконка сервиса (если задана — показывается вместо буквы) */
+  logoIcon?: string;
   status: IntegrationStatus;
   connectedRestaurantIds: string[];
   operationCategories: OperationCategory[];
@@ -14,6 +16,27 @@ export interface PaymentIntegration {
   discount: DiscountInfo | null;
   requiredFields: FieldConfig[];
   licenseRequired: boolean;
+  /** Вводное слово в alert на шаге подтверждения (по умолчанию «Банк») */
+  accessIntro?: string;
+  /** Полный текст consent-чекбокса (если не задан — универсальный шаблон) */
+  consentText?: string;
+  /** Подпись кнопки подтверждения (по умолчанию «Подтвердить и подключить») */
+  submitLabel?: string;
+  /** Текст toast после успешного подключения */
+  activatedToast?: string;
+  /** Дополнительные сущности в блоке «Будет создано автоматически» */
+  autoEntities?: AutoEntity[];
+  /** Примечание при подключённом состоянии (view-режим) */
+  connectedNote?: string;
+  /** Блок «Как передать доступ банку» в пустом состоянии */
+  howToAccessNote?: string;
+}
+
+/** Дополнительная сущность, создаваемая при подключении */
+export interface AutoEntity {
+  iconName: string;
+  title: string;
+  subtitle: string;
 }
 
 // === Категория операций ===
@@ -48,6 +71,8 @@ export interface PaymentTypeInfo {
   name: string;
   fiscal: boolean;
   buttonLabel: string;
+  /** Дополнительная строка-примечание (напр. «Заменит CoinBox») */
+  note?: string;
 }
 
 // === Скидка (превью) ===
@@ -63,10 +88,18 @@ export interface DiscountInfo {
 export interface FieldConfig {
   key: string;
   label: string;
-  type: 'text' | 'password';
+  type: 'text' | 'password' | 'select';
   required: boolean;
   placeholder?: string;
   helpText?: string;
+  /** Для type === 'select' */
+  options?: FieldOption[];
+}
+
+/** Вариант значения select-поля */
+export interface FieldOption {
+  value: string;
+  label: string;
 }
 
 // === Контекст пользователя ===

@@ -1,0 +1,14 @@
+<svg width="75" height="75" viewBox="0 0 75 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Рамка (толщина 5px со всех сторон) -->
+  <path d="M19 11h37c4.418 0 8 3.582 8 8v37c0 4.418-3.582 8-8 8H19c-4.418 0-8-3.582-8-8V19c0-4.418 3.582-8 8-8zm0 5h37c1.657 0 3 1.343 3 3v37c0 1.657-1.343 3-3 3H19c-1.657 0-3-1.343-3-3V19c0-1.657 1.343-3 3-3z" fill="white" fill-rule="evenodd"/>
+  <!-- Чек (рамка) -->
+  <path d="M24 18h27c2.485 0 4.5 2.015 4.5 4.5v30c0 2.485-2.015 4.5-4.5 4.5H24c-2.485 0-4.5-2.015-4.5-4.5v-30c0-2.485 2.015-4.5 4.5-4.5zm5 5h17c1.381 0 2.5 1.119 2.5 2.5v24c0 1.381-1.119 2.5-2.5 2.5H29c-1.381 0-2.5-1.119-2.5-2.5v-24c0-1.381 1.119-2.5 2.5-2.5z" fill="white" fill-rule="evenodd"/>
+  <!-- Строки чека -->
+  <rect x="32" y="27.5" width="12" height="3" rx="1.5" fill="white"/>
+  <rect x="32" y="33" width="10" height="3" rx="1.5" fill="white" opacity=".75"/>
+  <rect x="32" y="38.5" width="11" height="3" rx="1.5" fill="white" opacity=".6"/>
+  <!-- Мини QR на чеке -->
+  <path d="M32 45h5v5h-5v-5zm1.7 1.7v1.6h1.6v-1.6h-1.6z" fill="white" fill-rule="evenodd"/>
+  <path d="M40.5 45h5v5h-5v-5zm1.7 1.7v1.6h1.6v-1.6h-1.6z" fill="white" fill-rule="evenodd"/>
+  <rect x="47" y="45.5" width="2.2" height="2.2" rx=".8" fill="white" opacity=".8"/>
+</svg>

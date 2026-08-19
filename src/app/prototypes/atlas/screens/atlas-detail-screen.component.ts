@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   UiButtonComponent, UiCardComponent, UiCardHeaderComponent, UiCardTitleComponent, UiCardContentComponent,
   UiCheckboxComponent, UiStatusDotComponent, UiConfirmDialogComponent,
@@ -92,6 +93,9 @@ type DetailMode = 'view' | 'connect';
               <button (click)="goBack()" class="p-1 rounded hover:bg-gray-100 transition-colors">
                 <lucide-icon name="arrow-left" [size]="20" class="text-gray-500"></lucide-icon>
               </button>
+              <div *ngIf="integration?.logoIcon" class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" [class]="integration?.logoColor || 'bg-gray-200'">
+                <span class="w-7 h-7 block" [innerHTML]="logo(integration)"></span>
+              </div>
               <div>
                 <h1 class="text-2xl font-semibold text-gray-900">{{ integration?.name }}</h1>
                 <div class="flex items-center gap-2 mt-0.5">
@@ -130,6 +134,9 @@ type DetailMode = 'view' | 'connect';
               </ui-alert>
               <ui-button *ngIf="hasLicense" (click)="startConnect()">Начать подключение</ui-button>
               <ui-button *ngIf="!hasLicense" [disabled]="true">Требуется лицензия</ui-button>
+              <ui-alert *ngIf="integration?.howToAccessNote" variant="info" class="mt-4 text-left">
+                {{ integration?.howToAccessNote }}
+              </ui-alert>
             </div>
           </div>
 
@@ -177,6 +184,7 @@ type DetailMode = 'view' | 'connect';
             <div class="flex-1 overflow-y-auto bg-white">
               <div *ngIf="!selectedRestaurantId" class="p-6 animate-fade-in">
                 <div class="max-w-2xl space-y-6">
+                  <ui-alert *ngIf="integration?.connectedNote" variant="info">{{ integration?.connectedNote }}</ui-alert>
                   <div>
                     <h2 class="text-xl font-semibold text-gray-900">Общие настройки</h2>
                     <p class="text-sm text-gray-500 mt-1">Выберите ресторан в дереве слева для просмотра индивидуальных настроек.</p>
@@ -210,8 +218,19 @@ type DetailMode = 'view' | 'connect';
                           <div>
                             <p class="text-sm font-medium">Тип оплаты «{{ integration?.paymentType?.name }}»</p>
                             <p class="text-xs text-gray-500 mt-0.5">{{ integration?.paymentType?.fiscal ? 'Фискальный' : 'Нефискальный' }} &middot; Кнопка: «{{ integration?.paymentType?.buttonLabel }}»</p>
+                            <p *ngIf="integration?.paymentType?.note" class="text-xs text-gray-400 mt-0.5">{{ integration?.paymentType?.note }}</p>
                           </div>
                         </div>
+                        <ng-container *ngFor="let ent of integration?.autoEntities || []">
+                          <ui-divider></ui-divider>
+                          <div class="flex items-start gap-3">
+                            <lucide-icon [name]="ent.iconName" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
+                            <div>
+                              <p class="text-sm font-medium">{{ ent.title }}</p>
+                              <p class="text-xs text-gray-500 mt-0.5">{{ ent.subtitle }}</p>
+                            </div>
+                          </div>
+                        </ng-container>
                         <ui-divider *ngIf="integration?.discount"></ui-divider>
                         <div *ngIf="integration?.discount" class="flex items-start gap-3">
                           <lucide-icon name="percent" [size]="18" class="text-orange-500 mt-0.5 shrink-0"></lucide-icon>
@@ -277,7 +296,15 @@ type DetailMode = 'view' | 'connect';
                       <div class="space-y-3">
                         <div *ngFor="let field of integration?.requiredFields || []">
                           <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}<span *ngIf="field.required" class="text-red-500 ml-0.5">*</span></label>
-                          <input [type]="field.type === 'password' ? 'password' : 'text'"
+                          <select *ngIf="field.type === 'select'"
+                            [ngModel]="r.customCredentials?.[field.key] || ''"
+                            (ngModelChange)="onCredentialChange(r, field.key, $event)"
+                            class="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white
+                              focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all">
+                            <option value="" disabled>Выберите...</option>
+                            <option *ngFor="let opt of field.options || []" [value]="opt.value">{{ opt.label }}</option>
+                          </select>
+                          <input *ngIf="field.type !== 'select'" [type]="field.type === 'password' ? 'password' : 'text'"
                             [placeholder]="field.placeholder || ''"
                             [ngModel]="r.customCredentials?.[field.key] || ''"
                             (ngModelChange)="onCredentialChange(r, field.key, $event)"
@@ -383,7 +410,13 @@ type DetailMode = 'view' | 'connect';
                   <div class="space-y-4">
                     <div *ngFor="let field of integration?.requiredFields || []">
                       <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}<span *ngIf="field.required" class="text-red-500 ml-0.5">*</span></label>
-                      <div class="relative">
+                      <select *ngIf="field.type === 'select'"
+                        [(ngModel)]="wizCredentials[field.key]"
+                        class="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white
+                          focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all">
+                        <option *ngFor="let opt of field.options || []" [value]="opt.value">{{ opt.label }}</option>
+                      </select>
+                      <div *ngIf="field.type !== 'select'" class="relative">
                         <input [type]="field.type === 'password' && !wizShowPwd ? 'password' : 'text'"
                           [placeholder]="field.placeholder || ''" [(ngModel)]="wizCredentials[field.key]"
                           class="w-full h-9 px-3 pr-9 text-sm border border-gray-300 rounded-md bg-white placeholder:text-gray-400
@@ -420,7 +453,7 @@ type DetailMode = 'view' | 'connect';
 
                   <!-- Access scopes (read-only, informational) -->
                   <ui-alert variant="info" class="mb-4">
-                    Банк <strong>{{ integration?.name }}</strong> получит доступ к следующим операциям:
+                    {{ integration?.accessIntro || 'Банк' }} <strong>{{ integration?.name }}</strong> получит доступ к следующим операциям:
                   </ui-alert>
                   <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-2 mb-4">
                     <div *ngFor="let cat of integration?.operationCategories || []"
@@ -441,8 +474,19 @@ type DetailMode = 'view' | 'connect';
                       <div>
                         <p class="text-sm font-medium">Тип оплаты «{{ integration?.paymentType?.name }}»</p>
                         <p class="text-xs text-gray-500 mt-0.5">{{ integration?.paymentType?.fiscal ? 'Фискальный' : 'Нефискальный' }} &middot; Кнопка: «{{ integration?.paymentType?.buttonLabel }}»</p>
+                        <p *ngIf="integration?.paymentType?.note" class="text-xs text-gray-400 mt-0.5">{{ integration?.paymentType?.note }}</p>
                       </div>
                     </div>
+                    <ng-container *ngFor="let ent of integration?.autoEntities || []">
+                      <ui-divider></ui-divider>
+                      <div class="flex items-start gap-3">
+                        <lucide-icon [name]="ent.iconName" [size]="18" class="text-blue-500 mt-0.5 shrink-0"></lucide-icon>
+                        <div>
+                          <p class="text-sm font-medium">{{ ent.title }}</p>
+                          <p class="text-xs text-gray-500 mt-0.5">{{ ent.subtitle }}</p>
+                        </div>
+                      </div>
+                    </ng-container>
                     <ui-divider *ngIf="integration?.paymentType && integration?.discount"></ui-divider>
                     <div *ngIf="integration?.discount" class="flex items-start gap-3">
                       <lucide-icon name="percent" [size]="18" class="text-orange-500 mt-0.5 shrink-0"></lucide-icon>
@@ -460,9 +504,10 @@ type DetailMode = 'view' | 'connect';
                         [ngModel]="wizConsent"
                         (ngModelChange)="wizConsent = $event"
                         class="mt-0.5 w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20" />
-                      <span class="text-sm text-gray-700">
+                      <span *ngIf="!integration?.consentText" class="text-sm text-gray-700">
                         Я принимаю условия подключения к {{ integration?.name }}. Подтверждаю, что ознакомлен с перечнем операций, к которым банк получает доступ, и даю согласие на автоматическое создание типа оплаты<ng-container *ngIf="integration?.discount"> и скидки</ng-container>.
                       </span>
+                      <span *ngIf="integration?.consentText" class="text-sm text-gray-700">{{ integration?.consentText }}</span>
                     </label>
                   </div>
 
@@ -474,7 +519,7 @@ type DetailMode = 'view' | 'connect';
                   <div class="flex gap-2">
                     <ui-button *ngIf="connectStep > 1" variant="outline" (click)="wizPrev()">Назад</ui-button>
                     <ui-button *ngIf="connectStep < totalWizSteps" [disabled]="!canWizNext" (click)="wizNext()">Далее</ui-button>
-                    <ui-button *ngIf="connectStep === totalWizSteps" [disabled]="!canWizNext" [loading]="wizSubmitting" (click)="wizSubmit()">Подтвердить и подключить</ui-button>
+                    <ui-button *ngIf="connectStep === totalWizSteps" [disabled]="!canWizNext" [loading]="wizSubmitting" (click)="wizSubmit()">{{ integration?.submitLabel || 'Подтвердить и подключить' }}</ui-button>
                   </div>
                 </div>
 
@@ -504,6 +549,7 @@ export class AtlasDetailScreenComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private storage = inject(StorageService);
+  private sanitizer = inject(DomSanitizer);
 
   // Integration
   integration: PaymentIntegration | null = null;
@@ -559,7 +605,12 @@ export class AtlasDetailScreenComponent implements OnInit {
   ngOnInit(): void {
     this.accountType = this.storage.load('atlas', 'accountType', 'chain' as AccountType);
     this.integrationId = this.route.snapshot.params['integrationId'];
-    const all = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
+    // Иконка сервисов — буква на фоне; устаревшие logoIcon/logoLetter из localStorage не показываем
+    const all = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS)
+      .map((i: PaymentIntegration) => {
+        const mock = MOCK_INTEGRATIONS.find(m => m.id === i.id);
+        return { ...i, logoIcon: undefined, logoLetter: mock?.logoLetter ?? i.logoLetter, logoColor: mock?.logoColor ?? i.logoColor };
+      });
     this.integration = all.find(i => i.id === this.integrationId) || null;
     if (!this.integration) { this.router.navigate(['/prototype/atlas']); return; }
     this.buildTree();
@@ -695,6 +746,8 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   goBack(): void { this.router.navigate(['/prototype/atlas']); }
 
+  logo(it: PaymentIntegration | null): SafeHtml { return this.sanitizer.bypassSecurityTrustHtml(it?.logoIcon || ''); }
+
   // --- Connect Flow ---
 
   startConnect(): void {
@@ -702,6 +755,10 @@ export class AtlasDetailScreenComponent implements OnInit {
     this.connectStep = 1;
     this.wizConsent = false;
     this.wizCredentials = {};
+    // Предзаполняем select-поля первым вариантом
+    for (const f of this.integration?.requiredFields || []) {
+      if (f.type === 'select' && f.options?.length) this.wizCredentials[f.key] = f.options[0].value;
+    }
     this.initWizTree();
   }
 
@@ -790,6 +847,7 @@ export class AtlasDetailScreenComponent implements OnInit {
       const ids: string[] = [];
       for (const i of this.wizFlatRestaurantList) { if (!i.isGroup && i.checked) ids.push(i.id); }
       t.connectedRestaurantIds = ids;
+      for (const c of t.operationCategories) c.allowed = ids.length > 0;
       this.storage.save('atlas', 'integrations', all);
 
       // Build and save restaurant tree
@@ -802,7 +860,7 @@ export class AtlasDetailScreenComponent implements OnInit {
       this.detailMode = 'view';
       this.selectedRestaurantId = null;
       this.buildTree();
-      this.toast(this.integration?.name + ' успешно подключен');
+      this.toast(this.integration?.activatedToast || (this.integration?.name + ' успешно подключен'));
     }, 1500);
   }
 

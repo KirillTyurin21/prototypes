@@ -34,6 +34,47 @@ export const MOCK_INTEGRATIONS: PaymentIntegration[] = [
     ],
     licenseRequired: true,
   },
+  {
+    id: 'sber-tips',
+    name: 'СберЧаевые',
+    logoLetter: 'S',
+    logoColor: 'bg-green-600',
+    status: 'disconnected',
+    connectedRestaurantIds: [],
+    operationCategories: [
+      { id: 'payments', label: 'Платёжные операции', description: 'Приём оплаты счёта и чаевых по QR-коду', iconName: 'credit-card', allowed: false },
+      { id: 'orders', label: 'Данные заказов и столов', description: 'Информация о заказах и столах для оплаты по QR', iconName: 'receipt', allowed: false },
+      { id: 'qr', label: 'Печать QR на пречеке и чеке', description: 'QR-код печатается при любом способе оплаты', iconName: 'printer', allowed: false },
+    ],
+    paymentType: { name: 'Sbertips', fiscal: true, buttonLabel: 'СберЧаевые', note: 'Заменит существующий тип оплаты CoinBox' },
+    discount: null,
+    requiredFields: [
+      { key: 'sberRestInstitutionId', label: 'Код ресторана в системе Сбера', type: 'text', required: true, placeholder: 'Например: 11111', helpText: 'Предоставляется банком при заключении договора (ранее прописывался вручную в ссылке QR-кода)' },
+      { key: 'terminalGroup', label: 'Терминальная группа', type: 'select', required: true, helpText: 'Настройка применяется к главной кассе группы', options: [
+        { value: 'zal', label: 'Зал' },
+        { value: 'bar', label: 'Бар' },
+        { value: 'terrace', label: 'Терраса' },
+      ] },
+      { key: 'qrSurface', label: 'Печать QR-кода', type: 'select', required: true, helpText: 'QR-код печатается при любом способе оплаты', options: [
+        { value: '1', label: 'Только пречек' },
+        { value: '3', label: 'Пречек и чек' },
+        { value: '2', label: 'Только чек' },
+        { value: '0', label: 'Не печатать' },
+      ] },
+      { key: 'qrHeaderText', label: 'Текст над QR-кодом', type: 'text', required: false, placeholder: 'Отсканируйте QR-код, чтобы оплатить счёт и оставить чаевые', helpText: 'Применится после закрытия/открытия кассовой смены' },
+      { key: 'serviceName', label: 'Название сервиса на чеке', type: 'text', required: false, placeholder: 'СберЧаевые', helpText: 'Применится после закрытия/открытия кассовой смены' },
+    ],
+    licenseRequired: true,
+    accessIntro: 'Сервис',
+    consentText: 'Я даю согласие на активацию разрешительного сервиса для приложения «СберЧаевые». Подтверждаю, что ознакомлен с перечнем операций, к которым сервис получает доступ, и даю разрешение на автоматическое создание типа оплаты «Sbertips» и печать QR-кода на пречеке и чеке.',
+    submitLabel: 'Подтвердить и активировать',
+    activatedToast: 'Сервис СберЧаевые активирован',
+    autoEntities: [
+      { iconName: 'qr-code', title: 'Печать QR-кода на пречеке и чеке', subtitle: 'При любом способе оплаты (включая наличные)' },
+    ],
+    connectedNote: 'Тексты QR-кода, заданные в настройках, применятся после закрытия и открытия кассовой смены.',
+    howToAccessNote: 'Как передать доступ банку: сообщите менеджеру банка CRM ID организации. Его можно найти в iikoOffice: Помощь → О программе → «ID организации».',
+  },
 ];
 
 export const MOCK_CHAIN_RESTAURANTS: RestaurantNode[] = [
