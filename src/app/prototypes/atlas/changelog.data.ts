@@ -2,6 +2,20 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '3.6',
+    date: '2026-08-20',
+    status: 'released',
+    changes: [
+      {
+        page: 'Страница интеграции (СберЧаевые)',
+        pageRoute: '/prototype/atlas/sber-tips',
+        items: [
+          'Исправлено: у ранее сохранённых пользователей больше не остаётся шаг «Реквизиты» — конфигурация сервиса всегда берётся актуальная',
+        ],
+      },
+    ],
+  },
+  {
     version: '3.5',
     date: '2026-08-19',
     status: 'released',

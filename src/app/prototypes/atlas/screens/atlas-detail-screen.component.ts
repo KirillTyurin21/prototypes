@@ -602,13 +602,20 @@ export class AtlasDetailScreenComponent implements OnInit {
   ngOnInit(): void {
     this.accountType = this.storage.load('atlas', 'accountType', 'chain' as AccountType);
     this.integrationId = this.route.snapshot.params['integrationId'];
-    // Новые системы из моков подмешиваются к сохранённым; логотип-параметры всегда актуальные
+    // Конфигурация всегда из моков; из сохранённых данных берётся только пользовательское состояние
     const saved = this.storage.load('atlas', 'integrations', MOCK_INTEGRATIONS);
     const all = MOCK_INTEGRATIONS.map(mock => {
       const s = saved.find(i => i.id === mock.id);
-      return s
-        ? { ...s, logoIcon: undefined, logoLetter: mock.logoLetter, logoColor: mock.logoColor }
-        : { ...mock };
+      if (!s) return { ...mock };
+      return {
+        ...mock,
+        status: s.status,
+        connectedRestaurantIds: s.connectedRestaurantIds,
+        operationCategories: mock.operationCategories.map(cat => ({
+          ...cat,
+          allowed: s.operationCategories?.find(sc => sc.id === cat.id)?.allowed ?? false,
+        })),
+      };
     });
     this.storage.save('atlas', 'integrations', all);
     this.integration = all.find(i => i.id === this.integrationId) || null;
