@@ -16,6 +16,8 @@ export interface PaymentIntegration {
   discount: DiscountInfo | null;
   requiredFields: FieldConfig[];
   licenseRequired: boolean;
+  /** Подключение на всю сеть: без выбора ресторанов, одно окно «Подключить/Отключить» */
+  networkWide?: boolean;
   /** Вводное слово в alert на шаге подтверждения (по умолчанию «Банк») */
   accessIntro?: string;
   /** Полный текст consent-чекбокса (если не задан — универсальный шаблон) */

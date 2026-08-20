@@ -2,6 +2,22 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '3.7',
+    date: '2026-08-20',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Страница интеграции (СберЧаевые)',
+        pageRoute: '/prototype/atlas/sber-tips',
+        items: [
+          'Убрано управление ресторанами: шаг «Рестораны» в мастере и дерево ресторанов удалены',
+          'Оставлено одно окно: «Подключить» / «Отключить», подключение на всю сеть',
+          'Мастер — сразу шаг «Подтверждение»: текст-согласие, галочка и кнопка «Подтвердить и активировать»',
+        ],
+      },
+    ],
+  },
+  {
     version: '3.6',
     date: '2026-08-20',
     status: 'released',
