@@ -31,7 +31,7 @@ type DetailMode = 'view' | 'connect';
     <!-- Header (Comet-style) -->
     <header class="border-b border-gray-200 bg-white">
       <div class="flex h-14 items-center gap-4 px-4">
-        <div class="flex items-center gap-2 ml-6">
+        <div *ngIf="!networkWide" class="flex items-center gap-2 ml-6">
           <span class="text-xs text-gray-400">Режим:</span>
           <div class="flex rounded-md border border-gray-300 overflow-hidden">
             <button (click)="setAccountType('chain')"
@@ -103,7 +103,7 @@ type DetailMode = 'view' | 'connect';
                   <span class="text-sm" [class.text-green-600]="isConnected" [class.text-gray-500]="!isConnected">
                     {{ isConnected ? 'Подключен' : 'Не подключен' }}
                   </span>
-                  <span *ngIf="isConnected" class="text-sm text-gray-400 ml-2">
+                  <span *ngIf="isConnected && !networkWide" class="text-sm text-gray-400 ml-2">
                     {{ connectedCount }} из {{ totalRestaurantCount }} ресторанов
                   </span>
                 </div>
@@ -140,7 +140,7 @@ type DetailMode = 'view' | 'connect';
           <!-- Подключен — split panel -->
           <div *ngIf="isConnected" class="flex flex-1 min-h-0">
             <!-- Left: Restaurant Tree -->
-            <div class="w-96 border-r border-gray-200 overflow-y-auto shrink-0" (click)="onTreePanelClick($event)">
+            <div *ngIf="!networkWide" class="w-96 border-r border-gray-200 overflow-y-auto shrink-0" (click)="onTreePanelClick($event)">
               <div class="p-4">
                 <h2 class="mb-1 text-sm font-semibold text-gray-500" (click)="selectedRestaurantId = null" style="cursor: default">
                   {{ accountType === 'rms' ? 'Ваше торговое предприятие' : 'Структура торговых предприятий' }}
@@ -184,7 +184,7 @@ type DetailMode = 'view' | 'connect';
                   <ui-alert *ngIf="integration?.connectedNote" variant="info">{{ integration?.connectedNote }}</ui-alert>
                   <div>
                     <h2 class="text-xl font-semibold text-gray-900">Общие настройки</h2>
-                    <p class="text-sm text-gray-500 mt-1">Выберите ресторан в дереве слева для просмотра индивидуальных настроек.</p>
+                    <p *ngIf="!networkWide" class="text-sm text-gray-500 mt-1">Выберите ресторан в дереве слева для просмотра индивидуальных настроек.</p>
                   </div>
 
                   <!-- Global Operations -->
@@ -241,7 +241,7 @@ type DetailMode = 'view' | 'connect';
                   </ui-card>
 
                   <!-- Custom settings note -->
-                  <ui-alert *ngIf="customSettingsCount > 0" variant="info">
+                  <ui-alert *ngIf="!networkWide && customSettingsCount > 0" variant="info">
                     {{ customSettingsCount }} ресторанов имеют индивидуальные настройки. Выберите ресторан в дереве слева для просмотра.
                   </ui-alert>
                 </div>
@@ -365,7 +365,7 @@ type DetailMode = 'view' | 'connect';
               <div class="max-w-xl">
 
                 <!-- Step 1: Выбор ресторанов (skip for RMS) -->
-                <div *ngIf="connectStep === 1 && accountType === 'chain'">
+                <div *ngIf="connectStep === 1 && accountType === 'chain' && !networkWide">
                   <h2 class="text-lg font-semibold text-gray-900 mb-1">Выберите рестораны</h2>
                   <p class="text-sm text-gray-500 mb-4">Отметьте рестораны для подключения. Можно выбрать все или отдельные для пилота.</p>
                   <div class="flex gap-2 mb-3">
@@ -396,7 +396,7 @@ type DetailMode = 'view' | 'connect';
                     </ng-container>
                   </div>
                 </div>
-                <div *ngIf="connectStep === 1 && accountType === 'rms'" class="text-center py-12">
+                <div *ngIf="connectStep === 1 && accountType === 'rms' && !networkWide" class="text-center py-12">
                   <p class="text-sm text-gray-500">У вас одно торговое предприятие — подключение будет выполнено для него автоматически.</p>
                 </div>
 
@@ -438,7 +438,7 @@ type DetailMode = 'view' | 'connect';
                       <span class="text-gray-500">Система</span>
                       <span class="font-medium">{{ integration?.name }}</span>
                     </div>
-                    <div class="flex justify-between py-1.5 border-b border-gray-100">
+                    <div *ngIf="!networkWide" class="flex justify-between py-1.5 border-b border-gray-100">
                       <span class="text-gray-500">Рестораны</span>
                       <span class="font-medium">{{ accountType === 'rms' ? '1 (RMS)' : 'выбрано ' + wizSelectedCount + ' из ' + wizTotalCount }}</span>
                     </div>
@@ -581,19 +581,20 @@ export class AtlasDetailScreenComponent implements OnInit {
   get totalRestaurantCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
   get customSettingsCount(): number { let c = 0; const f = (n: RestaurantNode[]) => { for (const x of n) { if (!x.children && x.useCustomSettings) c++; if (x.children) f(x.children); } }; f(this.restaurantTree); return c; }
 
+  get networkWide(): boolean { return !!this.integration?.networkWide; }
   get hasWizRequiredFields(): boolean { return (this.integration?.requiredFields?.length ?? 0) > 0; }
-  get totalWizSteps(): number { return this.hasWizRequiredFields ? 3 : 2; }
-  get wizardStepLabels(): string[] { const l = ['Рестораны']; if (this.hasWizRequiredFields) l.push('Реквизиты'); l.push('Подтверждение'); return l; }
+  get totalWizSteps(): number { if (this.networkWide) return 1; return this.hasWizRequiredFields ? 3 : 2; }
+  get wizardStepLabels(): string[] { if (this.networkWide) return ['Подтверждение']; const l = ['Рестораны']; if (this.hasWizRequiredFields) l.push('Реквизиты'); l.push('Подтверждение'); return l; }
   get wizSelectedCount(): number { return this.wizFlatRestaurantList.filter(i => !i.isGroup && i.checked).length; }
   get wizTotalCount(): number { return this.wizFlatRestaurantList.filter(i => !i.isGroup).length; }
 
   get canWizNext(): boolean {
+    if (this.connectStep === this.totalWizSteps) return this.wizConsent;
     if (this.connectStep === 1) return this.accountType === 'rms' || this.wizSelectedCount > 0;
     if (this.connectStep === 2 && this.hasWizRequiredFields) {
       for (const f of this.integration?.requiredFields || []) { if (f.required && !this.wizCredentials[f.key]?.trim()) return false; }
       return true;
     }
-    if (this.connectStep === this.totalWizSteps) return this.wizConsent;
     return true;
   }
 
@@ -759,14 +760,14 @@ export class AtlasDetailScreenComponent implements OnInit {
 
   startConnect(): void {
     this.detailMode = 'connect';
-    this.connectStep = 1;
+    this.connectStep = this.networkWide ? this.totalWizSteps : 1;
     this.wizConsent = false;
     this.wizCredentials = {};
     // Предзаполняем select-поля первым вариантом
     for (const f of this.integration?.requiredFields || []) {
       if (f.type === 'select' && f.options?.length) this.wizCredentials[f.key] = f.options[0].value;
     }
-    this.initWizTree();
+    if (!this.networkWide) this.initWizTree();
   }
 
   cancelFlow(): void {
@@ -852,16 +853,18 @@ export class AtlasDetailScreenComponent implements OnInit {
       if (!t) return;
       t.status = 'connected';
       const ids: string[] = [];
-      for (const i of this.wizFlatRestaurantList) { if (!i.isGroup && i.checked) ids.push(i.id); }
+      if (!this.networkWide) { for (const i of this.wizFlatRestaurantList) { if (!i.isGroup && i.checked) ids.push(i.id); } }
       t.connectedRestaurantIds = ids;
-      for (const c of t.operationCategories) c.allowed = ids.length > 0;
+      for (const c of t.operationCategories) c.allowed = this.networkWide ? true : ids.length > 0;
       this.storage.save('atlas', 'integrations', all);
 
-      // Build and save restaurant tree
-      const r = this.accountType === 'rms' ? JSON.parse(JSON.stringify(MOCK_RMS_RESTAURANT)) : JSON.parse(JSON.stringify(MOCK_CHAIN_RESTAURANTS));
-      const mark = (ns: any[]) => { for (const n of ns) { n.isConnected = ids.includes(n.id); if (n.children) mark(n.children); } };
-      mark(r);
-      this.storage.save('atlas', this.integrationId + '_restaurants', r);
+      // Build and save restaurant tree (only when per-restaurant management is used)
+      if (!this.networkWide) {
+        const r = this.accountType === 'rms' ? JSON.parse(JSON.stringify(MOCK_RMS_RESTAURANT)) : JSON.parse(JSON.stringify(MOCK_CHAIN_RESTAURANTS));
+        const mark = (ns: any[]) => { for (const n of ns) { n.isConnected = ids.includes(n.id); if (n.children) mark(n.children); } };
+        mark(r);
+        this.storage.save('atlas', this.integrationId + '_restaurants', r);
+      }
       this.integration = t;
       this.wizSubmitting = false;
       this.detailMode = 'view';

@@ -50,6 +50,7 @@ export const MOCK_INTEGRATIONS: PaymentIntegration[] = [
     discount: null,
     requiredFields: [],
     licenseRequired: true,
+    networkWide: true,
     accessIntro: 'Сервис',
     consentText: 'Я даю согласие на активацию разрешительного сервиса для приложения «СберЧаевые». Подтверждаю, что ознакомлен с перечнем операций, к которым сервис получает доступ, и даю разрешение на автоматическое создание типа оплаты «Sbertips» и печать QR-кода на пречеке и чеке.',
     submitLabel: 'Подтвердить и активировать',
