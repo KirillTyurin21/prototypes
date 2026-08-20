@@ -4,7 +4,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '3.6',
     date: '2026-08-20',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         page: 'Страница интеграции (СберЧаевые)',
