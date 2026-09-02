@@ -2,6 +2,23 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.44',
+    date: '2026-09-02',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Редактор темы (Электронная очередь)',
+        pageRoute: '/prototype/web-screens/arrivals-theme-editor/101',
+        items: [
+          'Новый компактный контрол масштаба холста: плавающая панель «− % +» в правом нижнем углу холста вместо громоздкого блока в панели управления',
+          'Пресеты 50/100/150/200, «Подогнать под экран» и «Реальный размер (100%)» — в выпадающем меню контрола по клику на проценты',
+          'Точный ввод масштаба в процентах',
+          'Жесты: Ctrl + колесо мыши — зум, Ctrl + 0 — 100%, Ctrl + 1 — подогнать под экран',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.43',
     date: '2026-08-20',
     status: 'unreleased',

@@ -17,13 +17,14 @@ import { OrderSimulatorComponent } from '../components/simulator/order-simulator
 import { AreaEmulationHelper } from '../components/theme-editor/area-emulation.service';
 import { SimulatorHelper } from '../components/theme-editor/simulator.helper';
 import { ElementPaletteComponent } from '../components/element-palette/element-palette.component';
+import { CanvasZoomControlComponent, ZOOM_LADDER } from '../components/theme-editor/canvas-zoom-control.component';
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
 @Component({
   selector: 'app-arrivals-theme-editor-screen',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent, ElementPaletteComponent],
+  imports: [CommonModule, FormsModule, IconsModule, UiConfirmDialogComponent, AreaElementRendererComponent, ThemeElementInspectorComponent, AreaElementInspectorComponent, OrderSimulatorComponent, ElementPaletteComponent, CanvasZoomControlComponent],
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
@@ -46,6 +47,12 @@ type PanelView = 'theme' | 'add-element' | 'element';
             </ng-container>
           </div>
         </div>
+        <app-canvas-zoom-control
+          class="canvas-zoom"
+          [zoom]="canvasScale"
+          (zoomChange)="applyZoom($event)"
+          (fitRequested)="fitCanvas()">
+        </app-canvas-zoom-control>
         </div>
         <app-order-simulator [orders]="sim.orders" [autoRunning]="sim.autoRunning" (addOrder)="sim.addOrder(); areaHelper.clearAll()" (loadMocks)="sim.loadMocks(); areaHelper.clearAll()" (removeOrder)="sim.removeByIdx($event); areaHelper.clearAll()" (cycleStatus)="sim.cycleStatus($event); areaHelper.clearAll()" (changeOrderType)="sim.changeOrderType($event.order, $event.newType); areaHelper.clearAll()" (toggleAuto)="sim.toggleAuto()" (clearAll)="sim.clearAll(); areaHelper.clearAll()"></app-order-simulator>
       </div>
@@ -92,6 +99,17 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
     .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
+    .canvas-zoom {
+      position: sticky;
+      bottom: 12px;
+      display: block;
+      width: max-content;
+      margin-left: auto;
+      margin-right: 12px;
+      margin-top: -48px;
+      margin-bottom: 12px;
+      z-index: 20;
+    }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
     .canvas-viewport { position: relative; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .canvas-element { position: absolute; border-style: dashed; cursor: move; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); transition: box-shadow 0.15s; font-size: 13px; color: #333; overflow: hidden; user-select: none; }
@@ -154,6 +172,10 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   deleteElementTarget: ArrivalsThemeElement | null = null;
   toastMessage = '';
   canvasScale = 1;
+  private readonly ZOOM_MIN = 0.25;
+  private readonly ZOOM_MAX = 2;
+  private boundWheel = this.onCanvasWheel.bind(this);
+  private wheelTarget: HTMLElement | null = null;
   availableControls: ArrivalsControl[] = [];
   mockOrders: ArrivalsOrderMock[] = [...MOCK_ARRIVALS_ORDERS];
 
@@ -285,24 +307,61 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     setTimeout(() => this.updateCanvasScale(), 0);
   }
 
-  ngAfterViewInit(): void { this.updateCanvasScale(); }
+  ngAfterViewInit(): void {
+    // Первичный auto-fit — после первой проверки шаблона, чтобы не ловить NG0100
+    setTimeout(() => this.updateCanvasScale(), 0);
+    this.wheelTarget = this.canvasAreaRef?.nativeElement ?? null;
+    this.wheelTarget?.addEventListener('wheel', this.boundWheel, { passive: false });
+  }
 
   ngOnDestroy(): void {
     document.removeEventListener('mousemove', this.boundMouseMove);
     document.removeEventListener('mouseup', this.boundMouseUp);
     document.removeEventListener('mousemove', this.boundListMouseMove);
     document.removeEventListener('mouseup', this.boundListMouseUp);
+    this.wheelTarget?.removeEventListener('wheel', this.boundWheel);
     this.areaHelper.clearAll();
     this.sim.stopAuto();
   }
 
   onResolutionChange(): void { setTimeout(() => this.updateCanvasScale(), 0); }
-  @HostListener('window:resize') onWindowResize(): void { this.updateCanvasScale(); }
+
+  @HostListener('window:keydown', ['$event'])
+  onWindowKeydown(event: KeyboardEvent): void {
+    if (!event.ctrlKey && !event.metaKey) return;
+    const tag = (event.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (event.key === '0') { event.preventDefault(); this.canvasScale = 1; }
+    else if (event.key === '1') { event.preventDefault(); this.fitCanvas(); }
+  }
 
   updateCanvasScale(): void {
     if (!this.canvasAreaRef?.nativeElement) return;
     const c = this.canvasAreaRef.nativeElement;
     this.canvasScale = Math.min((c.clientWidth - 16) / this.resWidth, (c.clientHeight - 16) / this.resHeight, 1);
+  }
+
+  /** Применить масштаб из контрола (клики по пилюле) */
+  applyZoom(k: number): void {
+    this.canvasScale = Math.min(this.ZOOM_MAX, Math.max(this.ZOOM_MIN, k));
+  }
+
+  /** Подогнать холст под экран */
+  fitCanvas(): void { this.updateCanvasScale(); }
+
+  /** Шаг масштаба по лесенке пресетов (Ctrl+колесо) */
+  private zoomStep(dir: 1 | -1): void {
+    const cur = Math.round(this.canvasScale * 100);
+    const next = dir > 0
+      ? ZOOM_LADDER.find(v => v > cur)
+      : [...ZOOM_LADDER].reverse().find(v => v < cur);
+    this.canvasScale = next !== undefined ? next / 100 : (dir > 0 ? this.ZOOM_MAX : this.ZOOM_MIN);
+  }
+
+  private onCanvasWheel(event: WheelEvent): void {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    this.zoomStep(event.deltaY < 0 ? 1 : -1);
   }
 
   onCanvasClick(): void { if (!this.dragState && !this.resizeState) this.deselectElement(); }
