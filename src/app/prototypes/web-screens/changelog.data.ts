@@ -2,6 +2,20 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.45',
+    date: '2026-09-02',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Редактор темы (Электронная очередь)',
+        pageRoute: '/prototype/web-screens/arrivals-theme-editor/101',
+        items: [
+          'Контрол масштаба перенесён с холста в панель управления: строка «Масштаб:» над «Темой»',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.44',
     date: '2026-09-02',
     status: 'released',

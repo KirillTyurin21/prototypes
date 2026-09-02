@@ -31,7 +31,7 @@ import { IconsModule } from '@/shared/icons.module';
         <lucide-icon name="plus" [size]="16"></lucide-icon>
       </button>
 
-      <div class="zoom-pop" *ngIf="popoverOpen" role="menu" aria-label="Масштаб">
+      <div class="zoom-pop" *ngIf="popoverOpen" role="menu" aria-label="Масштаб" [class.pop-down]="!dropUp">
         <button type="button" class="pop-action" (click)="fit()">
           <lucide-icon name="maximize-2" [size]="16"></lucide-icon>
           <span>Подогнать под экран</span>
@@ -128,6 +128,7 @@ import { IconsModule } from '@/shared/icons.module';
       z-index: 50;
       animation: zoom-pop-in 0.12s ease-out;
     }
+    .zoom-pop.pop-down { top: calc(100% + 8px); bottom: auto; }
     @keyframes zoom-pop-in { from { opacity: 0; transform: translateY(4px); } }
     .pop-action {
       display: flex;
@@ -187,6 +188,8 @@ export class CanvasZoomControlComponent {
   @Input() max = 2;
   /** Пресеты в поповере, % */
   @Input() presets: number[] = [50, 100, 150, 200];
+  /** Направление поповера: вверх (у холста) или вниз (в панели) */
+  @Input() dropUp = true;
 
   @Output() zoomChange = new EventEmitter<number>();
   @Output() fitRequested = new EventEmitter<void>();

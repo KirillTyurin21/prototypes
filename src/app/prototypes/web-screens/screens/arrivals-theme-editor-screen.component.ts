@@ -47,18 +47,21 @@ type PanelView = 'theme' | 'add-element' | 'element';
             </ng-container>
           </div>
         </div>
-        <app-canvas-zoom-control
-          class="canvas-zoom"
-          [zoom]="canvasScale"
-          (zoomChange)="applyZoom($event)"
-          (fitRequested)="fitCanvas()">
-        </app-canvas-zoom-control>
         </div>
         <app-order-simulator [orders]="sim.orders" [autoRunning]="sim.autoRunning" (addOrder)="sim.addOrder(); areaHelper.clearAll()" (loadMocks)="sim.loadMocks(); areaHelper.clearAll()" (removeOrder)="sim.removeByIdx($event); areaHelper.clearAll()" (cycleStatus)="sim.cycleStatus($event); areaHelper.clearAll()" (changeOrderType)="sim.changeOrderType($event.order, $event.newType); areaHelper.clearAll()" (toggleAuto)="sim.toggleAuto()" (clearAll)="sim.clearAll(); areaHelper.clearAll()"></app-order-simulator>
       </div>
       <div class="control-panel">
         <div class="panel-header" (click)="panelCollapsed = !panelCollapsed"><span>Панель управления</span><lucide-icon [name]="panelCollapsed ? 'chevron-right' : 'chevron-down'" [size]="18"></lucide-icon></div>
         <div *ngIf="!panelCollapsed" class="panel-body">
+          <div class="panel-zoom-row">
+            <span class="panel-zoom-caption">Масштаб:</span>
+            <app-canvas-zoom-control
+              [zoom]="canvasScale"
+              [dropUp]="false"
+              (zoomChange)="applyZoom($event)"
+              (fitRequested)="fitCanvas()">
+            </app-canvas-zoom-control>
+          </div>
           <ng-container *ngIf="panelView === 'theme'">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home"></lucide-icon><span class="bc-link">Тема</span></div>
             <div class="field-group"><label class="field-label">Имя темы</label><input class="field-input" [(ngModel)]="theme.name" /></div>
@@ -99,17 +102,8 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
     .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
-    .canvas-zoom {
-      position: sticky;
-      bottom: 12px;
-      display: block;
-      width: max-content;
-      margin-left: auto;
-      margin-right: 12px;
-      margin-top: -48px;
-      margin-bottom: 12px;
-      z-index: 20;
-    }
+    .panel-zoom-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .panel-zoom-caption { font-size: 12px; color: #757575; white-space: nowrap; }
     .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
     .canvas-viewport { position: relative; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .canvas-element { position: absolute; border-style: dashed; cursor: move; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); transition: box-shadow 0.15s; font-size: 13px; color: #333; overflow: hidden; user-select: none; }
@@ -338,7 +332,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   updateCanvasScale(): void {
     if (!this.canvasAreaRef?.nativeElement) return;
     const c = this.canvasAreaRef.nativeElement;
-    this.canvasScale = Math.min((c.clientWidth - 16) / this.resWidth, (c.clientHeight - 16) / this.resHeight, 1);
+    this.canvasScale = Math.max(this.ZOOM_MIN, Math.min((c.clientWidth - 16) / this.resWidth, (c.clientHeight - 16) / this.resHeight, 1));
   }
 
   /** Применить масштаб из контрола (клики по пилюле) */
