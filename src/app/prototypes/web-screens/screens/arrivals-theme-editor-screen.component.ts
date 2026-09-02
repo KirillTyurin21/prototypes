@@ -17,7 +17,7 @@ import { OrderSimulatorComponent } from '../components/simulator/order-simulator
 import { AreaEmulationHelper } from '../components/theme-editor/area-emulation.service';
 import { SimulatorHelper } from '../components/theme-editor/simulator.helper';
 import { ElementPaletteComponent } from '../components/element-palette/element-palette.component';
-import { CanvasZoomControlComponent, ZOOM_LADDER } from '../components/theme-editor/canvas-zoom-control.component';
+import { CanvasZoomControlComponent } from '../components/theme-editor/canvas-zoom-control.component';
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
@@ -349,13 +349,12 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   /** Подогнать холст под экран */
   fitCanvas(): void { this.updateCanvasScale(); }
 
-  /** Шаг масштаба по лесенке пресетов (Ctrl+колесо) */
+  /** Шаг масштаба: ±10% (Ctrl+колесо) */
   private zoomStep(dir: 1 | -1): void {
-    const cur = Math.round(this.canvasScale * 100);
-    const next = dir > 0
-      ? ZOOM_LADDER.find(v => v > cur)
-      : [...ZOOM_LADDER].reverse().find(v => v < cur);
-    this.canvasScale = next !== undefined ? next / 100 : (dir > 0 ? this.ZOOM_MAX : this.ZOOM_MIN);
+    this.canvasScale = Math.min(
+      this.ZOOM_MAX,
+      Math.max(this.ZOOM_MIN, Math.round((this.canvasScale + dir * 0.1) * 100) / 100)
+    );
   }
 
   private onCanvasWheel(event: WheelEvent): void {

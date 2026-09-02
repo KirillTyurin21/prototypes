@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconsModule } from '@/shared/icons.module';
 
-/** Лесенка пресетов масштаба, % (шаг «+»/«−» и Ctrl+колесо) */
-export const ZOOM_LADDER: number[] = [25, 50, 75, 100, 125, 150, 175, 200];
-
 /**
  * Компактная плавающая пилюля масштаба холста: «− % ▾ +».
  * Пресеты, «Подогнать под экран» и точный ввод — в поповере по клику на проценты.
@@ -199,13 +196,9 @@ export class CanvasZoomControlComponent {
 
   get pct(): number { return Math.round(this.zoom * 100); }
 
-  /** Шаг по лесенке пресетов */
+  /** Шаг масштаба: ±10% */
   step(dir: 1 | -1): void {
-    const cur = this.pct;
-    const next = dir > 0
-      ? ZOOM_LADDER.find(v => v > cur)
-      : [...ZOOM_LADDER].reverse().find(v => v < cur);
-    this.emitZoom(next !== undefined ? next / 100 : (dir > 0 ? this.max : this.min));
+    this.emitZoom(Math.round((this.zoom + dir * 0.1) * 100) / 100);
   }
 
   togglePopover(): void {
