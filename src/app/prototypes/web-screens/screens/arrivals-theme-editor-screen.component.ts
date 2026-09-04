@@ -30,7 +30,8 @@ type PanelView = 'theme' | 'add-element' | 'element';
       <div class="canvas-column">
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
-          <div class="canvas-viewport" [class.hide-grid]="!gridVisible" [class.hide-borders]="!bordersVisible" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
+          <div class="canvas-sizer" #canvasSizerRef [style.width.px]="resWidth * canvasScale" [style.height.px]="resHeight * canvasScale">
+            <div class="canvas-viewport" [class.hide-grid]="!gridVisible" [class.hide-borders]="!bordersVisible" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
             <ng-container *ngFor="let el of theme.elements; let i = index">
               <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <app-area-element-renderer [element]="el" [orderPositions]="areaHelper.getOrderPositions(el, sim.orders, sim.active, mockOrders, availableControls)" [emulationRunning]="areaHelper.isRunning(el.id)" [hasControl]="!!el.areaControlId" (toggleEmu)="areaHelper.toggle($event, getFilterSource(), availableControls)" (resetEmu)="areaHelper.reset($event.id)" (fillEmu)="areaHelper.fill($event, getFilterSource(), availableControls)"></app-area-element-renderer>
@@ -45,45 +46,38 @@ type PanelView = 'theme' | 'add-element' | 'element';
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
             </ng-container>
+            </div>
           </div>
         </div>
+        </div>
+        <div class="canvas-bottom-bar" role="toolbar" aria-label="Панель управления канвасом">
+          <div class="bottom-group">
+            <button type="button" class="tool-toggle" [class.active]="bordersVisible" [attr.aria-pressed]="bordersVisible" (click)="bordersVisible = !bordersVisible" title="Показать или скрыть границы элементов">
+              <lucide-icon [name]="bordersVisible ? 'eye' : 'eye-off'" [size]="18"></lucide-icon>
+            </button>
+          </div>
+          <div class="bottom-divider"></div>
+          <div class="bottom-group">
+            <button type="button" class="tool-toggle" [class.active]="gridVisible" [attr.aria-pressed]="gridVisible" (click)="gridVisible = !gridVisible" title="Показать или скрыть сетку">
+              <lucide-icon name="layout-grid" [size]="18"></lucide-icon>
+            </button>
+            <button type="button" class="tool-toggle" [class.active]="snapEnabled" [attr.aria-pressed]="snapEnabled" (click)="snapEnabled = !snapEnabled" title="Прилипание к сетке">
+              <lucide-icon name="magnet" [size]="18"></lucide-icon>
+            </button>
+          </div>
+          <div class="bottom-zoom">
+            <app-canvas-zoom-control
+              [zoom]="canvasScale"
+              [dropUp]="true"
+              variant="toolbar"
+              (zoomChange)="applyZoom($event)"
+              (fitRequested)="fitCanvas()">
+            </app-canvas-zoom-control>
+          </div>
         </div>
         <app-order-simulator [orders]="sim.orders" [autoRunning]="sim.autoRunning" (addOrder)="sim.addOrder(); areaHelper.clearAll()" (loadMocks)="sim.loadMocks(); areaHelper.clearAll()" (removeOrder)="sim.removeByIdx($event); areaHelper.clearAll()" (cycleStatus)="sim.cycleStatus($event); areaHelper.clearAll()" (changeOrderType)="sim.changeOrderType($event.order, $event.newType); areaHelper.clearAll()" (toggleAuto)="sim.toggleAuto()" (clearAll)="sim.clearAll(); areaHelper.clearAll()"></app-order-simulator>
       </div>
       <div class="control-panel">
-        <div class="panel-header" (click)="panelCollapsed = !panelCollapsed"><span>Панель управления</span><lucide-icon [name]="panelCollapsed ? 'chevron-right' : 'chevron-down'" [size]="18"></lucide-icon></div>
-        <div *ngIf="!panelCollapsed" class="panel-toolbar">
-          <div class="editor-toolbar">
-            <div class="tool-row">
-              <span class="tool-caption">Границы:</span>
-              <div class="tool-btns">
-                <button type="button" class="tool-toggle" [class.active]="bordersVisible" [attr.aria-pressed]="bordersVisible" (click)="bordersVisible = !bordersVisible" title="Показать или скрыть границы элементов">
-                  <lucide-icon [name]="bordersVisible ? 'eye' : 'eye-off'" [size]="18"></lucide-icon>
-                </button>
-              </div>
-            </div>
-            <div class="tool-row">
-              <span class="tool-caption">Привязка:</span>
-              <div class="tool-btns">
-                <button type="button" class="tool-toggle" [class.active]="gridVisible" [attr.aria-pressed]="gridVisible" (click)="gridVisible = !gridVisible" title="Показать или скрыть сетку">
-                  <lucide-icon name="layout-grid" [size]="18"></lucide-icon>
-                </button>
-                <button type="button" class="tool-toggle" [class.active]="snapEnabled" [attr.aria-pressed]="snapEnabled" (click)="snapEnabled = !snapEnabled" title="Прилипание к сетке">
-                  <lucide-icon name="magnet" [size]="18"></lucide-icon>
-                </button>
-              </div>
-            </div>
-            <div class="tool-row">
-              <span class="tool-caption">Масштаб:</span>
-              <app-canvas-zoom-control
-                [zoom]="canvasScale"
-                [dropUp]="false"
-                (zoomChange)="applyZoom($event)"
-                (fitRequested)="fitCanvas()">
-              </app-canvas-zoom-control>
-            </div>
-          </div>
-        </div>
         <div class="panel-body">
           <ng-container *ngIf="panelView === 'theme'">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home"></lucide-icon><span class="bc-link">Тема</span></div>
@@ -125,18 +119,19 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .canvas-column { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
     .premium-banner { position: absolute; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 12px; font-weight: 500; }
     .canvas-area { flex: 1; min-width: 0; overflow: auto; background: #e0e0e0; }
-    .editor-toolbar { margin-bottom: 4px; }
-    .tool-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .tool-caption { width: 74px; flex-shrink: 0; font-size: 12px; color: #757575; white-space: nowrap; }
-    .tool-btns { display: flex; gap: 4px; }
     .tool-toggle { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 1px solid #e0e0e0; border-radius: 6px; background: #fff; color: #616161; cursor: pointer; }
     .tool-toggle:hover { background: #f5f5f5; }
     .tool-toggle.active { background: #e3f2fd; border-color: #90caf9; color: #1976d2; }
     .tool-toggle:focus-visible { outline: 2px solid #448aff; outline-offset: -2px; }
-    .canvas-scroll { display: flex; align-items: flex-start; justify-content: center; min-height: 100%; padding: 8px; }
+    .canvas-bottom-bar { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: #fff; border-top: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex-shrink: 0; }
+    .bottom-group { display: flex; align-items: center; gap: 4px; }
+    .bottom-divider { width: 1px; height: 20px; background: #e0e0e0; flex-shrink: 0; }
+    .bottom-zoom { margin-left: auto; display: flex; align-items: center; }
+    .canvas-scroll { display: flex; min-height: 100%; padding: 8px; box-sizing: border-box; }
+    .canvas-sizer { position: relative; margin: auto; }
     .canvas-viewport.hide-grid { background-color: #fff; background-image: none; }
     .canvas-viewport.hide-borders .canvas-element { border-color: transparent !important; }
-    .canvas-viewport { position: relative; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .canvas-viewport { position: absolute; top: 0; left: 0; transform-origin: top left; background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .canvas-element { position: absolute; border-style: dashed; cursor: move; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); transition: box-shadow 0.15s; font-size: 13px; color: #333; overflow: hidden; user-select: none; }
     .canvas-element:hover { box-shadow: 0 0 0 1px #448aff; }
     .canvas-element.selected { border-style: solid; border-color: #448aff !important; box-shadow: 0 0 0 1px #448aff; }
@@ -151,9 +146,6 @@ type PanelView = 'theme' | 'add-element' | 'element';
     .handle.tm { top: -4px; left: calc(50% - 4px); cursor: n-resize; } .handle.bm { bottom: -4px; left: calc(50% - 4px); cursor: s-resize; }
     .handle.ml { top: calc(50% - 4px); left: -4px; cursor: w-resize; } .handle.mr { top: calc(50% - 4px); right: -4px; cursor: e-resize; }
     .control-panel { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; background: #fff; border-left: 1px solid #e0e0e0; }
-    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 15px; font-weight: 500; color: #333; border-bottom: 1px solid #e0e0e0; cursor: pointer; user-select: none; }
-    .panel-header:hover { background: #fafafa; }
-    .panel-toolbar { flex-shrink: 0; padding: 16px 16px 0; }
     .panel-body { flex: 1; overflow-y: auto; padding: 16px; }
     .panel-footer { display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid #e0e0e0; }
     .btn-save { flex: 1; height: 36px; border: 2px solid #616161; border-radius: 4px; background: transparent; color: #333; font-size: 13px; font-weight: 600; font-family: Roboto, sans-serif; cursor: pointer; }
@@ -192,7 +184,6 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   dataService = inject(CsDataService);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
-  panelCollapsed = false;
   panelView: PanelView = 'theme';
   selectedElementId: string | null = null;
   deleteElementTarget: ArrivalsThemeElement | null = null;
@@ -212,6 +203,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
   sim = new SimulatorHelper();
 
   @ViewChild('canvasAreaRef') canvasAreaRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('canvasSizerRef') canvasSizerRef!: ElementRef<HTMLDivElement>;
 
   dragState: { elementId: string; startMouseX: number; startMouseY: number; startElX: number; startElY: number } | null = null;
   resizeState: { elementId: string; handle: string; startMouseX: number; startMouseY: number; startElX: number; startElY: number; startElW: number; startElH: number } | null = null;
@@ -360,7 +352,7 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     if (!event.ctrlKey && !event.metaKey) return;
     const tag = (event.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    if (event.key === '0') { event.preventDefault(); this.canvasScale = 1; }
+    if (event.key === '0') { event.preventDefault(); this.zoomAroundCenter(1); }
     else if (event.key === '1') { event.preventDefault(); this.fitCanvas(); }
   }
 
@@ -368,26 +360,69 @@ export class ArrivalsThemeEditorScreenComponent implements OnInit, OnDestroy, Af
     if (!this.canvasAreaRef?.nativeElement) return;
     const c = this.canvasAreaRef.nativeElement;
     this.canvasScale = Math.max(this.ZOOM_MIN, Math.min((c.clientWidth - 16) / this.resWidth, (c.clientHeight - 16) / this.resHeight, 1));
+    c.scrollLeft = 0;
+    c.scrollTop = 0;
   }
 
-  /** Применить масштаб из контрола (клики по пилюле) */
+  /** Применить масштаб из контрола (клики по пилюле) — с центрированием */
   applyZoom(k: number): void {
-    this.canvasScale = Math.min(this.ZOOM_MAX, Math.max(this.ZOOM_MIN, k));
+    this.zoomAroundCenter(k);
   }
 
   /** Подогнать холст под экран */
   fitCanvas(): void { this.updateCanvasScale(); }
 
-  /** Шаг масштаба: ±10% (Ctrl+колесо) */
+  /** Шаг масштаба: ±10% (Ctrl/Shift+колесо) — с центрированием */
   private zoomStep(dir: 1 | -1): void {
-    this.canvasScale = Math.min(
+    this.zoomAroundCenter(Math.min(
       this.ZOOM_MAX,
       Math.max(this.ZOOM_MIN, Math.round((this.canvasScale + dir * 0.1) * 100) / 100)
-    );
+    ));
+  }
+
+  /**
+   * Зум с удержанием точки канваса под центром видимой области:
+   * измеряем происхождение канваса в координатах скролл-контента,
+   * после смены масштаба компенсируем scrollLeft/scrollTop.
+   */
+  private zoomAroundCenter(k: number): void {
+    const sNew = Math.min(this.ZOOM_MAX, Math.max(this.ZOOM_MIN, k));
+    if (Math.abs(sNew - this.canvasScale) < 0.0001) {
+      this.canvasScale = sNew;
+      return;
+    }
+    const area = this.canvasAreaRef?.nativeElement;
+    const sizer = this.canvasSizerRef?.nativeElement;
+    if (!area || !sizer) {
+      this.canvasScale = sNew;
+      return;
+    }
+    const sOld = this.canvasScale;
+    const areaRect = area.getBoundingClientRect();
+    const sizerRect = sizer.getBoundingClientRect();
+    // Происхождение канваса в координатах скролл-контента
+    const ox = sizerRect.left - areaRect.left + area.scrollLeft;
+    const oy = sizerRect.top - areaRect.top + area.scrollTop;
+    // Точка канваса под центром видимой области
+    const px = (area.scrollLeft + area.clientWidth / 2 - ox) / sOld;
+    const py = (area.scrollTop + area.clientHeight / 2 - oy) / sOld;
+    this.canvasScale = sNew;
+    // После применения масштаба и пересчёта размеров спейсера — компенсируем скролл
+    requestAnimationFrame(() => {
+      const a = this.canvasAreaRef?.nativeElement;
+      const s = this.canvasSizerRef?.nativeElement;
+      if (!a || !s) return;
+      const aRect = a.getBoundingClientRect();
+      const sRect = s.getBoundingClientRect();
+      const ox2 = sRect.left - aRect.left + a.scrollLeft;
+      const oy2 = sRect.top - aRect.top + a.scrollTop;
+      a.scrollLeft = px * sNew + ox2 - a.clientWidth / 2;
+      a.scrollTop = py * sNew + oy2 - a.clientHeight / 2;
+    });
   }
 
   private onCanvasWheel(event: WheelEvent): void {
-    if (!event.ctrlKey && !event.metaKey) return;
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey) return;
     event.preventDefault();
     this.zoomStep(event.deltaY < 0 ? 1 : -1);
   }

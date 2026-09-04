@@ -13,9 +13,9 @@ import { IconsModule } from '@/shared/icons.module';
   standalone: true,
   imports: [CommonModule, FormsModule, IconsModule],
   template: `
-    <div class="zoom-pill" (click)="$event.stopPropagation()">
+    <div class="zoom-pill" [class.toolbar]="variant === 'toolbar'" (click)="$event.stopPropagation()">
       <button type="button" class="zoom-btn" (click)="step(-1)" [disabled]="zoom <= min + 0.001" aria-label="Отдалить" title="Отдалить">
-        <lucide-icon name="minus" [size]="16"></lucide-icon>
+        <lucide-icon name="minus" [size]="variant === 'toolbar' ? 18 : 16"></lucide-icon>
       </button>
       <button
         type="button"
@@ -23,12 +23,12 @@ import { IconsModule } from '@/shared/icons.module';
         (click)="togglePopover()"
         [attr.aria-expanded]="popoverOpen"
         aria-label="Масштаб в процентах"
-        title="Масштаб. Ctrl + колесо — зум, Ctrl + 0 — 100%, Ctrl + 1 — подогнать">
+        title="Масштаб. Ctrl или Shift + колесо — зум, Ctrl + 0 — 100%, Ctrl + 1 — подогнать">
         <span class="pct-value">{{ pct }}%</span>
         <lucide-icon name="chevron-up" [size]="14" class="pct-caret" [class.flip]="popoverOpen"></lucide-icon>
       </button>
       <button type="button" class="zoom-btn" (click)="step(1)" [disabled]="zoom >= max - 0.001" aria-label="Приблизить" title="Приблизить">
-        <lucide-icon name="plus" [size]="16"></lucide-icon>
+        <lucide-icon name="plus" [size]="variant === 'toolbar' ? 18 : 16"></lucide-icon>
       </button>
 
       <div class="zoom-pop" *ngIf="popoverOpen" role="menu" aria-label="Масштаб" [class.pop-down]="!dropUp">
@@ -82,6 +82,36 @@ import { IconsModule } from '@/shared/icons.module';
       font-family: Roboto, sans-serif;
       user-select: none;
     }
+    /* Вариант для встраивания в тулбар/нижнюю панель: отдельные кнопки в стиле соседних */
+    .zoom-pill.toolbar {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      height: auto;
+      gap: 4px;
+    }
+    .zoom-pill.toolbar .zoom-btn,
+    .zoom-pill.toolbar .zoom-pct {
+      height: 34px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      color: #616161;
+    }
+    .zoom-pill.toolbar .zoom-btn {
+      width: 34px;
+      border-radius: 6px;
+    }
+    .zoom-pill.toolbar .zoom-pct {
+      min-width: 62px;
+      padding: 0 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      gap: 4px;
+    }
+    .zoom-pill.toolbar .zoom-btn:hover:not(:disabled),
+    .zoom-pill.toolbar .zoom-pct:hover { background: #f5f5f5; }
+    .zoom-pill.toolbar .zoom-btn:disabled { color: #bdbdbd; background: #fff; }
     .zoom-btn, .zoom-pct {
       display: flex;
       align-items: center;
@@ -190,6 +220,8 @@ export class CanvasZoomControlComponent {
   @Input() presets: number[] = [50, 100, 150, 200];
   /** Направление поповера: вверх (у холста) или вниз (в панели) */
   @Input() dropUp = true;
+  /** Вариант оформления: 'floating' (пилюля с тенью) или 'toolbar' (плоский, как кнопки тулбара) */
+  @Input() variant: 'floating' | 'toolbar' = 'floating';
 
   @Output() zoomChange = new EventEmitter<number>();
   @Output() fitRequested = new EventEmitter<void>();
