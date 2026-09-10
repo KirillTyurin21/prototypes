@@ -61,7 +61,7 @@ interface AdvertiseSlide {
                 <app-area-element-renderer [element]="el" [orderPositions]="areaHelper.getOrderPositions(el, sim.orders, sim.active, mockOrders, availableControls)" [emulationRunning]="areaHelper.isRunning(el.id)" [hasControl]="!!el.areaControlId" (toggleEmu)="areaHelper.toggle($event, getFilterSource(), availableControls)" (resetEmu)="areaHelper.reset($event.id)" (fillEmu)="areaHelper.fill($event, getFilterSource(), availableControls)"></app-area-element-renderer>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
-              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="getElementZIndex(el, i)" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="getElementZIndex(el, i)" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null" (mouseenter)="onAdvertiseAreaHover(el, true)" (mouseleave)="onAdvertiseAreaHover(el, false)" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <span *ngIf="el.type === 'text'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
                 <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
                 <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
@@ -73,7 +73,7 @@ interface AdvertiseSlide {
                     <span class="el-ad-live-media">{{ currentAdvertiseSlide(el)?.mediaName }}</span>
                   </div>
                   <span *ngIf="!isAdvertisePlaying(el.id)" class="el-placeholder-label el-ad-label" [title]="getAdvertiseFullLabel(el)">{{ getAdvertiseLabel(el) }}</span>
-                  <button *ngIf="getAdvertiseCampaignCount(el) > 0" type="button" class="el-ad-play" [class.el-ad-play-active]="isAdvertisePlaying(el.id)" (click)="toggleAdvertisePlay(el.id, $event)" [title]="isAdvertisePlaying(el.id) ? 'Остановить показ' : 'Проиграть кампании'" [attr.aria-label]="isAdvertisePlaying(el.id) ? 'Остановить показ' : 'Проиграть кампании'">
+                  <button *ngIf="getAdvertiseCampaignCount(el) > 0" type="button" class="el-ad-play" [class.el-ad-play-active]="isAdvertisePlaying(el.id)" [class.el-ad-play-hidden]="isAdvertisePlaying(el.id) && !isPauseVisible(el.id)" (click)="toggleAdvertisePlay(el.id, $event)" [title]="isAdvertisePlaying(el.id) ? 'Остановить показ' : 'Проиграть кампании'" [attr.aria-label]="isAdvertisePlaying(el.id) ? 'Остановить показ' : 'Проиграть кампании'">
                     <lucide-icon [name]="isAdvertisePlaying(el.id) ? 'pause' : 'play'" [size]="14"></lucide-icon>
                   </button>
                 </ng-container>
@@ -222,10 +222,9 @@ interface AdvertiseSlide {
                     <span class="campaign-folder-name">{{ row.title }}</span>
                     <span class="campaign-folder-count">{{ row.count }}</span>
                   </button>
-                  <label *ngIf="row.kind === 'campaign'" class="campaign-checkbox">
+                  <label *ngIf="row.kind === 'campaign'" class="campaign-checkbox" [title]="row.campaignName + ' (' + formatCampaignDate(row.campaignDateFrom) + ' - ' + formatCampaignDate(row.campaignDateTo) + ')'">
                     <input type="checkbox" [checked]="isCampaignSelected(row.campaignId)" (change)="toggleCampaign(row.campaignId)" />
                     <span class="campaign-checkbox-label">{{ row.campaignName }}</span>
-                    <span class="campaign-checkbox-dates">{{ formatCampaignDate(row.campaignDateFrom) }} - {{ formatCampaignDate(row.campaignDateTo) }}</span>
                   </label>
                 </ng-container>
                 <div *ngIf="!campaignRows.length" class="campaign-empty-hint">
@@ -235,7 +234,7 @@ interface AdvertiseSlide {
               </div>
 
               <p class="campaign-error" *ngIf="advertiseValidationError">{{ advertiseValidationError }}</p>
-              <p class="layer-hint">Кампании — ролики с расписанием из раздела «Кампании». Выберите хотя бы одну.</p>
+              <p class="layer-hint">Ролики с расписанием из раздела «Кампании». Выберите хотя бы одну.</p>
             </div>
             <!-- Advertise: макет и граница (DS-1121, раздел 6.1) -->
             <ng-container *ngIf="selectedElement.type === 'advertise'">
@@ -497,7 +496,7 @@ interface AdvertiseSlide {
             <div class="field-group" *ngIf="selectedElement.type === 'qr'">
               <label class="field-label">Порядок отображения</label>
               <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
-              <p class="layer-hint">QR-код должен быть выше всех динамических областей.</p>
+              <p class="layer-hint">QR-код должен быть выше всех рекламных областей.</p>
             </div>
             <!-- Standard element inspector for non-menulist, non-area, non-advertise -->
             <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist' && selectedElement.type !== 'advertise'" [element]="selectedElement"></app-theme-element-inspector>
@@ -589,8 +588,7 @@ interface AdvertiseSlide {
     .campaign-checkbox:last-child { border-bottom: none; }
     .campaign-checkbox:hover { background: #ebebeb; }
     .campaign-checkbox input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #448aff; flex-shrink: 0; }
-    .campaign-checkbox-label { flex: 1; font-size: 13px; color: #333; }
-    .campaign-checkbox-dates { font-size: 11px; color: #9e9e9e; flex-shrink: 0; }
+    .campaign-checkbox-label { flex: 1; font-size: 13px; color: #333; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .campaign-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; border: 1px dashed #d6d6d6; border-radius: 4px; color: #9e9e9e; }
     .campaign-empty p { margin: 0; font-size: 13px; }
     .campaign-create-link { border: none; background: transparent; color: #448aff; font-size: 13px; font-weight: 500; cursor: pointer; font-family: Roboto, sans-serif; padding: 0; }
@@ -658,10 +656,10 @@ interface AdvertiseSlide {
     .el-ad-live-campaign { color: #fff; font-size: 11px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
     .el-ad-live-media { color: rgba(255, 255, 255, 0.85); font-size: 9px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
     .el-ad-label { position: absolute; left: 0; right: 0; bottom: 4px; padding: 0 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .el-ad-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 50%; background: rgba(0, 0, 0, 0.45); color: #fff; cursor: pointer; transition: opacity 0.15s, background 0.15s; }
+    .el-ad-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 50%; background: rgba(0, 0, 0, 0.45); color: #fff; cursor: pointer; transition: background 0.15s; }
     .el-ad-play:hover { background: rgba(0, 0, 0, 0.65); }
-    .el-ad-play-active { opacity: 0.55; }
-    .el-ad-play-active:hover { opacity: 0.9; }
+    .el-ad-play-active { opacity: 0.8; }
+    .el-ad-play-hidden { opacity: 0; pointer-events: none; }
   `],
 })
 export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -697,6 +695,10 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   advertiseValidationError = '';
   /** Области, которые сейчас проигрываются на канвасе (по id элемента) */
   playingAdvertiseIds = new Set<string>();
+  /** Кнопка паузы видна у играющих областей (скрывается через секунду, появляется при наведении) */
+  visiblePauseIds = new Set<string>();
+  /** Таймеры скрытия кнопки паузы */
+  private pauseHideTimers: Record<string, ReturnType<typeof setTimeout>> = {};
   /** Текущий индекс слайда для каждой проигрываемой области */
   private advertSlideIdx: Record<string, number> = {};
   /** Таймер смены слайдов на канвасе */
@@ -811,7 +813,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   ];
   elementTypes: { type: ArrivalsElementType; label: string }[] = [
     { type: 'menulist' as ArrivalsElementType, label: 'Меню-лист' },
-    { type: 'advertise' as ArrivalsElementType, label: 'Динамическая область' },
+    { type: 'advertise' as ArrivalsElementType, label: 'Рекламная область' },
     { type: 'text', label: 'Текст' }, { type: 'image', label: 'Изображение' },
     { type: 'counter' as ArrivalsElementType, label: 'Текущее время' },
     { type: 'qr' as ArrivalsElementType, label: 'QR-код' },
@@ -879,12 +881,14 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     } else {
       this.theme.id = Date.now();
     }
-    // Миграция старой модели: панели → отдельные элементы «Динамическая область»
+    // Миграция старой модели: панели → отдельные элементы «Рекламная область»
     this.expandLegacyAdvertisePanels();
-    // Очистка «осиротевших» id кампаний (ссылки на старые мок-данные)
+    // Очистка «осиротевших» id кампаний + переименование легаси-элементов
     const knownIds = new Set(this.campaignsService.campaigns.map(c => c.id));
     for (const el of this.theme.elements) {
-      if (el.type === 'advertise' && el.campaignIds?.length) {
+      if (el.type !== 'advertise') continue;
+      if (el.name === 'Динамическая область') el.name = 'Рекламная область';
+      if (el.campaignIds?.length) {
         el.campaignIds = el.campaignIds.filter(id => knownIds.has(id));
       }
     }
@@ -919,6 +923,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     document.removeEventListener('mousemove', this.boundListMouseMove);
     document.removeEventListener('mouseup', this.boundListMouseUp);
     if (this.advertTimer) { clearInterval(this.advertTimer); this.advertTimer = null; }
+    Object.values(this.pauseHideTimers).forEach(t => clearTimeout(t));
+    this.pauseHideTimers = {};
     this.areaHelper.clearAll();
     this.sim.stopAuto();
   }
@@ -1007,7 +1013,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
     if (el.type !== 'advertise') return el.name;
     const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
-    if (!camps.length) return 'Динамическая область';
+    if (!camps.length) return 'Рекламная область';
     if (camps.length === 1) return camps[0];
     return `${camps.length} ${this.pluralCampaigns(camps.length)}`;
   }
@@ -1016,7 +1022,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   getAdvertiseFullLabel(el: ArrivalsThemeElement): string {
     if (el.type !== 'advertise') return el.name;
     const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
-    return camps.length ? camps.join(', ') : 'Динамическая область';
+    return camps.length ? camps.join(', ') : 'Рекламная область';
   }
 
   /** Склонение слова «кампания» */
@@ -1048,9 +1054,13 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (this.playingAdvertiseIds.has(id)) {
       this.playingAdvertiseIds.delete(id);
       delete this.advertSlideIdx[id];
+      this.clearPauseHide(id);
+      this.visiblePauseIds.delete(id);
     } else {
       this.playingAdvertiseIds.add(id);
       this.advertSlideIdx[id] = 0;
+      this.visiblePauseIds.add(id);
+      this.schedulePauseHide(id);
     }
     this.syncAdvertiseTimer();
   }
@@ -1059,8 +1069,37 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   stopAdvertisePlayback(el: ArrivalsThemeElement): void {
     if (this.playingAdvertiseIds.delete(el.id)) {
       delete this.advertSlideIdx[el.id];
+      this.clearPauseHide(el.id);
+      this.visiblePauseIds.delete(el.id);
       this.syncAdvertiseTimer();
     }
+  }
+
+  /** Видна ли кнопка паузы у области */
+  isPauseVisible(id: string): boolean { return this.visiblePauseIds.has(id); }
+
+  /** При наведении на играющую область показать паузу; при уходе — снова спрятать через секунду */
+  onAdvertiseAreaHover(el: ArrivalsThemeElement, over: boolean): void {
+    if (el.type !== 'advertise' || !this.playingAdvertiseIds.has(el.id)) return;
+    if (over) {
+      this.clearPauseHide(el.id);
+      this.visiblePauseIds.add(el.id);
+    } else {
+      this.schedulePauseHide(el.id);
+    }
+    this.cdr.detectChanges();
+  }
+
+  private schedulePauseHide(id: string): void {
+    this.clearPauseHide(id);
+    this.pauseHideTimers[id] = setTimeout(() => {
+      this.visiblePauseIds.delete(id);
+      this.cdr.detectChanges();
+    }, 1200);
+  }
+
+  private clearPauseHide(id: string): void {
+    if (this.pauseHideTimers[id]) { clearTimeout(this.pauseHideTimers[id]); delete this.pauseHideTimers[id]; }
   }
 
   /** Слайды рекламы области: по одному на выбранную кампанию (первое медиа кампании) */
@@ -1122,7 +1161,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return (el.campaignIds || []).filter(id => known.has(id)).length;
   }
 
-  /** Миграция старой модели: каждая Advertise-панель становится отдельной «Динамической областью» */
+  /** Миграция старой модели: каждая Advertise-панель становится отдельной «Рекламной областью» */
   expandLegacyAdvertisePanels(): void {
     const extra: ArrivalsThemeElement[] = [];
     for (const el of this.theme.elements) {
@@ -1298,7 +1337,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
-    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
+    if (type === 'advertise') { el.name = 'Рекламная область'; el.width = 200; el.height = 150; el.campaignIds = []; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
     if (type === 'qr') { el.name = 'QR-код'; el.width = 200; el.height = 200; el.layer = 100; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     if (type === 'counter') { el.name = 'Текущее время'; el.width = 100; el.height = 40; el.fontFamily = 'Arial'; el.fontSize = 16; el.fontBold = false; el.fontItalic = false; el.textAlign = 'center'; el.text = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
@@ -1321,7 +1360,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   /* Save */
   save(): void {
     // Валидация по DS-1121 (разделы 5.3, 5.4; ошибки 1–3):
-    // минимум одна кампания у каждой динамической области; слой Advertise строго ниже слоя QR-кода
+    // минимум одна кампания у каждой рекламной области; слой Advertise строго ниже слоя QR-кода
     const qrEl = this.theme.elements.find(e => e.type === 'qr');
     for (const el of this.theme.elements) {
       if (el.type !== 'advertise') continue;
