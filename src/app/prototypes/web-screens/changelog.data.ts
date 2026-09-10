@@ -2,6 +2,20 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.53',
+    date: '2026-09-10',
+    status: 'released',
+    changes: [
+      {
+        page: 'Доска меню — Редактор темы',
+        pageRoute: '/prototype/web-screens/menuboard-theme-editor/101',
+        items: [
+          'Исправлено: при раскрытии или сворачивании папки в списке кампаний рекламной области список больше не прокручивается вверх — папка остаётся на прежнем месте',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.52',
     date: '2026-09-10',
     status: 'released',

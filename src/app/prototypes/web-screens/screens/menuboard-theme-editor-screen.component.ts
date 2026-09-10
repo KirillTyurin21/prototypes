@@ -210,13 +210,13 @@ interface AdvertiseSlide {
               </div>
 
               <!-- Список кампаний с группировкой по папкам -->
-              <div class="campaign-multiselect" [class.campaign-multiselect-error]="advertiseValidationError" *ngIf="campaignsService.campaigns.length">
+              <div #campaignListRef class="campaign-multiselect" [class.campaign-multiselect-error]="advertiseValidationError" *ngIf="campaignsService.campaigns.length">
                 <div class="campaign-select-all" *ngIf="campaignRows.length">
                   <input type="checkbox" id="campaign-select-all" [checked]="allCampaignsSelected" [indeterminate]="someCampaignsSelected" (change)="toggleSelectAll()" />
                   <label for="campaign-select-all">Все</label>
                 </div>
-                <ng-container *ngFor="let row of campaignRows">
-                  <button *ngIf="row.kind === 'header'" type="button" class="campaign-folder" (click)="toggleFolder(row.folderKey)">
+                <ng-container *ngFor="let row of campaignRows; trackBy: trackCampaignRow">
+                  <button *ngIf="row.kind === 'header'" type="button" class="campaign-folder" [attr.data-folder-key]="row.folderKey" (click)="toggleFolder(row.folderKey)">
                     <lucide-icon [name]="row.collapsed ? 'chevron-right' : 'chevron-down'" [size]="14"></lucide-icon>
                     <lucide-icon name="folder" [size]="14"></lucide-icon>
                     <span class="campaign-folder-name">{{ row.title }}</span>
@@ -756,9 +756,36 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   toggleFolder(key: string): void {
+    // Сохраняем положение кликнутой папки внутри скролл-окна, чтобы после
+    // раскрытия/сворачивания список не прыгал (скролл не сбрасывался)
+    const listEl = this.campaignListRef?.nativeElement as HTMLElement | undefined;
+    let anchorOffset: number | null = null;
+    if (listEl) {
+      const btn = listEl.querySelector<HTMLElement>('[data-folder-key="' + key + '"]');
+      if (btn) anchorOffset = btn.getBoundingClientRect().top - listEl.getBoundingClientRect().top;
+    }
+
     const i = this.collapsedFolderIds.indexOf(key);
     if (i >= 0) this.collapsedFolderIds.splice(i, 1);
     else this.collapsedFolderIds.push(key);
+
+    if (listEl && anchorOffset != null) {
+      const prevOffset = anchorOffset;
+      requestAnimationFrame(() => {
+        const btn = listEl.querySelector<HTMLElement>('[data-folder-key="' + key + '"]');
+        if (btn) {
+          const newOffset = btn.getBoundingClientRect().top - listEl.getBoundingClientRect().top;
+          if (Math.abs(newOffset - prevOffset) > 0.5) {
+            listEl.scrollTop += newOffset - prevOffset;
+          }
+        }
+      });
+    }
+  }
+
+  /** Стабильные ключи строк списка кампаний — чтобы раскрытие папки не пересоздавало DOM и не сбрасывало скролл */
+  trackCampaignRow(index: number, row: CampaignRow): string {
+    return row.kind === 'header' ? 'h:' + row.folderKey : 'c:' + row.campaignId;
   }
 
   get allCampaignsSelected(): boolean {
@@ -792,6 +819,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   sim = new SimulatorHelper();
 
   @ViewChild('canvasAreaRef') canvasAreaRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('campaignListRef') campaignListRef!: ElementRef<HTMLElement>;
 
   dragState: { elementId: string; startMouseX: number; startMouseY: number; startElX: number; startElY: number } | null = null;
   resizeState: { elementId: string; handle: string; startMouseX: number; startMouseY: number; startElX: number; startElY: number; startElW: number; startElH: number } | null = null;
