@@ -205,6 +205,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                     <span class="campaign-checkbox-label">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</span>
                   </label>
                   <div *ngIf="!filteredCampaigns.length" class="campaign-empty-hint">Ничего не найдено</div>
+                  <div *ngIf="filteredCampaigns.length && !selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
                 </div>
                 <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
                   Выбрано кампаний: {{ selectedCampaignCount }}
@@ -848,9 +849,9 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* Selection */
-  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.selectedPanelId = null; this.panelView = 'element'; }
-  selectElementFromList(id: string): void { this.selectedElementId = id; this.selectedPanelId = null; this.panelView = 'element'; }
-  deselectElement(): void { this.selectedElementId = null; this.panelView = 'theme'; }
+  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.selectedPanelId = null; this.campaignSearchText = ''; this.panelView = 'element'; }
+  selectElementFromList(id: string): void { this.selectedElementId = id; this.selectedPanelId = null; this.campaignSearchText = ''; this.panelView = 'element'; }
+  deselectElement(): void { this.selectedElementId = null; this.campaignSearchText = ''; this.panelView = 'theme'; }
 
   /* Price helpers */
   getPricePreview(el: ArrivalsThemeElement): string {
@@ -871,15 +872,17 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
     if (el.type !== 'advertise') return el.name;
     const panels = el.panels || [];
+    // Задача 8, ФТ-5: без панелей — «Динамическая область»
+    if (!panels.length) return 'Динамическая область';
     const parts: string[] = [];
     for (const p of panels) {
-      const camps = (p.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
-      if (!camps.length) continue;
       const company = this.getCompanyName(p.companyId);
-      parts.push(company ? `${company}: ${camps.join(', ')}` : camps.join(', '));
+      const camps = (p.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
+      const head = company ? `${p.name}: ${company}` : p.name;
+      // DS-1121, раздел 6.2: названия кампаний видны на канвасе
+      parts.push(camps.length ? `${head} — ${camps.join(', ')}` : head);
     }
-    // DS-1121, раздел 6.2: названия кампаний, иначе «Динамическая область»
-    return parts.length ? parts.join(' · ') : 'Динамическая область';
+    return parts.join(' · ');
   }
 
   /** Название кампании по id */
@@ -920,7 +923,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return panels.find(p => p.id === this.selectedPanelId) ?? panels[0];
   }
 
-  selectPanel(panelId: number): void { this.selectedPanelId = panelId; }
+  selectPanel(panelId: number): void { this.selectedPanelId = panelId; this.campaignSearchText = ''; }
 
   addPanel(): void {
     if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
@@ -941,6 +944,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (!this.selectedElement?.panels) return;
     this.selectedElement.panels = this.selectedElement.panels.filter(p => p.id !== panelId);
     if (this.selectedPanelId === panelId) this.selectedPanelId = null;
+    this.campaignSearchText = '';
   }
 
   getCompanyName(companyId: number | null | undefined): string {
