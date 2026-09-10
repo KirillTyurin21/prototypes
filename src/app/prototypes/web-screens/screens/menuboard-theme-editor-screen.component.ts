@@ -181,14 +181,15 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
 
             <ng-container *ngIf="selectedElement.type === 'advertise' && selectedPanel">
               <div class="field-group">
-                <label class="field-label">Компания</label>
+                <label class="field-label">Компания панели</label>
                 <select class="field-select" [(ngModel)]="selectedPanel.companyId">
                   <option [ngValue]="null">Компания не выбрана</option>
                   <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
                 </select>
+                <p class="layer-hint">Компания — рекламодатель, чей контент показывает панель</p>
               </div>
               <div class="field-group">
-                <label class="field-label">Рекламные кампании</label>
+                <label class="field-label">Кампании панели</label>
                 <div class="campaign-search">
                   <lucide-icon name="search" [size]="14"></lucide-icon>
                   <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
@@ -210,6 +211,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
                   Выбрано кампаний: {{ selectedCampaignCount }}
                 </div>
+                <p class="layer-hint">Кампании — медиаплан с расписанием из раздела Кампании</p>
               </div>
             </ng-container>
             <!-- Advertise: макет и граница (DS-1121, раздел 6.1) -->
