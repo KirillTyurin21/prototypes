@@ -722,8 +722,10 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     const searching = !!q;
     const rows: CampaignRow[] = [];
 
-    const pushFolder = (key: string, title: string, list: WebCampaign[]) => {
-      if (!list.length) return;
+    const pushFolder = (key: string, title: string, list: WebCampaign[], showWhenEmpty: boolean) => {
+      // Пустые реальные папки показываем (структура повторяет раздел «Кампании»);
+      // «Без папки» и пустые папки при поиске — скрываем
+      if (!list.length && (!showWhenEmpty || searching)) return;
       const collapsed = !searching && this.collapsedFolderIds.includes(key);
       rows.push({ kind: 'header', folderKey: key, title, count: list.length, collapsed, campaignId: 0, campaignName: '', campaignDateFrom: '', campaignDateTo: '' });
       if (!collapsed) {
@@ -733,10 +735,10 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       }
     };
 
-    pushFolder('__root__', 'Без папки', all.filter(c => c.folderId == null && matches(c)));
+    pushFolder('__root__', 'Без папки', all.filter(c => c.folderId == null && matches(c)), false);
 
     for (const f of this.campaignsService.folders) {
-      pushFolder('f' + f.id, this.folderPathName(f.id), all.filter(c => c.folderId === f.id && matches(c)));
+      pushFolder('f' + f.id, this.folderPathName(f.id), all.filter(c => c.folderId === f.id && matches(c)), true);
     }
     return rows;
   }
