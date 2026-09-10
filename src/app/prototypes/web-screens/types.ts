@@ -95,17 +95,12 @@ export type ArrivalsElementType =
   | 'price'
   | 'counter'
   | 'advertise'
-  | 'menulist';
+  | 'menulist'
+  | 'qr';
 
-/* ── Advertise-панели (мини-борды: компании в рекламных блоках) ── */
+/* ── Advertise-панели (легаси-модель: осталось только для миграции старых данных) ── */
 
-/** Компания — справочник (мок). В реальности приходит с бэкенда (маппинги тем). */
-export interface AdvertiseCompany {
-  id: number;
-  name: string;
-}
-
-/** Advertise-панель внутри рекламного блока темы мини-борда */
+/** Advertise-панель внутри рекламного блока темы мини-борда (старая модель, удаляется миграцией) */
 export interface AdvertisePanelConfig {
   id: number;
   name: string;
@@ -124,6 +119,11 @@ export interface ArrivalsThemeElement {
   borderWidth: number;
   borderColor: string;
   borderRadius: number;
+  // Z-index (слой). Advertise всегда ниже QR-кода (DS-1121, раздел 5.4)
+  layer?: number;
+  // Фон Advertise (DS-1121, раздел 6.2 «прямоугольник с цветом фона»)
+  bgColor?: string;
+  bgOpacity?: number;
   // Text
   text?: string;
   fontFamily?: string;
@@ -351,6 +351,8 @@ export interface ElementCategoryItem {
   type: ArrivalsElementType;
   label: string;
   icon: string;
+  /** Короткое описание элемента для палитры */
+  description?: string;
   /** Платный элемент — доступен только при платной лицензии */
   isPremium?: boolean;
 }

@@ -34,7 +34,7 @@ export const MENUBOARD_THEME_CATEGORIES: ElementCategory[] = [
     collapsed: true,
     elements: [
       { type: 'menulist' as any, label: 'Меню-лист', icon: 'menu_book' },
-      { type: 'advertise' as any, label: 'Динамическая область', icon: 'schedule' },
+      { type: 'advertise' as any, label: 'Динамическая область', icon: 'schedule', description: 'Место на экране менюборда, где по расписанию показываются рекламные кампании.' },
     ],
   },
   {
@@ -44,6 +44,7 @@ export const MENUBOARD_THEME_CATEGORIES: ElementCategory[] = [
     collapsed: true,
     elements: [
       { type: 'counter' as any, label: 'Текущее время', icon: 'schedule' },
+      { type: 'qr' as any, label: 'QR-код', icon: 'qr-code' },
     ],
   },
 ];

@@ -7,9 +7,11 @@ import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { CsDataService } from '../cs-data.service';
-import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, MOCK_COMPANIES, ExternalMenuItem } from '../data/mock-data';
+import { CampaignsDataService } from '../campaigns-data.service';
+import { WebCampaign, CampaignFolder, CampaignMedia } from '../data/campaigns.data';
+import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
 import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
-import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory, AdvertiseCompany, AdvertisePanelConfig } from '../types';
+import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
 import { AreaElementInspectorComponent } from '../components/theme-editor/area-element-inspector.component';
@@ -22,7 +24,27 @@ import { ElementPaletteComponent } from '../components/element-palette/element-p
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
-interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: string; }
+/** Строка списка кампаний в инспекторе области: папка-заголовок или кампания-чекбокс */
+interface CampaignRow {
+  kind: 'header' | 'campaign';
+  folderKey: string;
+  title: string;
+  count: number;
+  collapsed: boolean;
+  campaignId: number;
+  campaignName: string;
+  campaignDateFrom: string;
+  campaignDateTo: string;
+}
+
+/** Слайд «живой» рекламы в полноэкранном превью */
+interface AdvertiseSlide {
+  campaignId: number;
+  campaignName: string;
+  mediaName: string;
+  mediaType: string;
+  color: string;
+}
 
 @Component({
   selector: 'app-menuboard-theme-editor-screen',
@@ -31,20 +53,25 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
+        <button class="preview-trigger" (click)="openThemePreview()" title="Полноэкранный просмотр темы" aria-label="Просмотр темы">
+          <lucide-icon name="eye" [size]="18"></lucide-icon>
+          <span>Просмотр</span>
+        </button>
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
             <ng-container *ngFor="let el of theme.elements; let i = index">
-              <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+              <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="getElementZIndex(el, i)" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <app-area-element-renderer [element]="el" [orderPositions]="areaHelper.getOrderPositions(el, sim.orders, sim.active, mockOrders, availableControls)" [emulationRunning]="areaHelper.isRunning(el.id)" [hasControl]="!!el.areaControlId" (toggleEmu)="areaHelper.toggle($event, getFilterSource(), availableControls)" (resetEmu)="areaHelper.reset($event.id)" (fillEmu)="areaHelper.fill($event, getFilterSource(), availableControls)"></app-area-element-renderer>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
-              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="getElementZIndex(el, i)" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <span *ngIf="el.type === 'text'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
                 <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
                 <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
                 <span *ngIf="el.type === 'price'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign" [title]="getPriceTooltip(el)">{{ getPricePreview(el) }}</span>
-                <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
+                <span *ngIf="el.type === 'advertise'" class="el-placeholder-label" [title]="getAdvertiseFullLabel(el)">{{ getAdvertiseLabel(el) }}</span>
+                <span *ngIf="el.type === 'qr'" class="el-qr"><lucide-icon name="qr-code" [size]="28"></lucide-icon><span>QR-код</span></span>
                 <span *ngIf="el.type === 'counter'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
                   <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
@@ -123,7 +150,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                     </div>
                   </div>
                 </div>
-                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist' && el.type !== 'counter'" class="el-placeholder-label">{{ el.name }}</span>
+                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist' && el.type !== 'counter' && el.type !== 'qr'" class="el-placeholder-label">{{ el.name }}</span>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
             </ng-container>
@@ -159,51 +186,106 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           </app-element-palette>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
-            <!-- Advertise: панели + компания + кампании (мини-борды) -->
+            <!-- Advertise: рекламные кампании (DS-1121, раздел 5.3) -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
-              <label class="field-label">Рекламные панели</label>
-              <div class="panels-list">
-                <div
-                  *ngFor="let p of selectedPanels"
-                  class="panel-item"
-                  [class.active]="selectedPanel?.id === p.id"
-                  (click)="selectPanel(p.id)"
-                >
-                  <span class="panel-item-name">{{ p.name }}</span>
-                  <span class="panel-item-company" *ngIf="getCompanyName(p.companyId)">{{ getCompanyName(p.companyId) }}</span>
-                  <button class="panel-item-delete" (click)="removePanel(p.id, $event)" title="Удалить панель"><lucide-icon name="x" [size]="14"></lucide-icon></button>
-                </div>
-                <div *ngIf="!selectedPanels.length" class="campaign-empty-hint">Панели не добавлены</div>
+              <p class="advertise-desc">Место на экране менюборда, где по расписанию показываются рекламные кампании.</p>
+              <div class="campaign-label-row">
+                <label class="field-label">Рекламные кампании<span class="campaign-count" *ngIf="selectedCampaignCount">Выбрано: {{ selectedCampaignCount }}</span></label>
+                <button class="preview-block-btn" (click)="openBlockPreview()" title="Посмотреть область на весь экран" aria-label="Просмотр области">
+                  <lucide-icon name="eye" [size]="16"></lucide-icon>
+                </button>
               </div>
-              <button class="btn-add-panel" (click)="addPanel()"><lucide-icon name="plus" [size]="14"></lucide-icon> Добавить панель</button>
-            </div>
+              <div class="campaign-search">
+                <lucide-icon name="search" [size]="14"></lucide-icon>
+                <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
+                <button *ngIf="campaignSearchText" class="campaign-search-clear" (click)="campaignSearchText = ''" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+              </div>
 
-            <ng-container *ngIf="selectedElement.type === 'advertise' && selectedPanel">
-              <div class="field-group">
-                <label class="field-label">Компания</label>
-                <select class="field-select" [(ngModel)]="selectedPanel.companyId">
-                  <option [ngValue]="null">Компания не выбрана</option>
-                  <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
-                </select>
+              <!-- Пустой справочник кампаний -->
+              <div *ngIf="!campaignsService.campaigns.length" class="campaign-empty">
+                <lucide-icon name="megaphone" [size]="22"></lucide-icon>
+                <p>Нет доступных кампаний.</p>
+                <button class="campaign-create-link" (click)="goToCampaigns()">Создать кампанию</button>
               </div>
-              <div class="field-group">
-                <label class="field-label">Рекламные кампании</label>
-                <div class="campaign-multiselect">
-                  <label
-                    *ngFor="let c of campaignOptions"
-                    class="campaign-checkbox"
-                    (click)="toggleCampaign(c.id)"
-                  >
-                    <span class="campaign-checkbox-box" [class.checked]="isCampaignSelected(c.id)"></span>
-                    <span class="campaign-checkbox-label">{{ c.name }}</span>
-                    <span class="campaign-checkbox-dates">{{ formatCampaignDate(c.dateFrom) }} – {{ formatCampaignDate(c.dateTo) }}</span>
+
+              <!-- Список кампаний с группировкой по папкам -->
+              <div class="campaign-multiselect" [class.campaign-multiselect-error]="advertiseValidationError" *ngIf="campaignsService.campaigns.length">
+                <div class="campaign-select-all" *ngIf="campaignRows.length">
+                  <input type="checkbox" id="campaign-select-all" [checked]="allCampaignsSelected" [indeterminate]="someCampaignsSelected" (change)="toggleSelectAll()" />
+                  <label for="campaign-select-all">Все</label>
+                </div>
+                <ng-container *ngFor="let row of campaignRows">
+                  <button *ngIf="row.kind === 'header'" type="button" class="campaign-folder" (click)="toggleFolder(row.folderKey)">
+                    <lucide-icon [name]="row.collapsed ? 'chevron-right' : 'chevron-down'" [size]="14"></lucide-icon>
+                    <lucide-icon name="folder" [size]="14"></lucide-icon>
+                    <span class="campaign-folder-name">{{ row.title }}</span>
+                    <span class="campaign-folder-count">{{ row.count }}</span>
+                  </button>
+                  <label *ngIf="row.kind === 'campaign'" class="campaign-checkbox">
+                    <input type="checkbox" [checked]="isCampaignSelected(row.campaignId)" (change)="toggleCampaign(row.campaignId)" />
+                    <span class="campaign-checkbox-label">{{ row.campaignName }}</span>
+                    <span class="campaign-checkbox-dates">{{ formatCampaignDate(row.campaignDateFrom) }} - {{ formatCampaignDate(row.campaignDateTo) }}</span>
                   </label>
-                  <div *ngIf="!selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
-                </div>
-                <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
-                  Выбрано кампаний: {{ selectedCampaignCount }}
+                </ng-container>
+                <div *ngIf="!campaignRows.length" class="campaign-empty-hint">
+                  <lucide-icon name="search" [size]="16"></lucide-icon>
+                  <span>Ничего не найдено</span>
                 </div>
               </div>
+
+              <p class="campaign-error" *ngIf="advertiseValidationError">{{ advertiseValidationError }}</p>
+              <p class="layer-hint">Кампании — ролики с расписанием из раздела «Кампании». Выберите хотя бы одну.</p>
+            </div>
+            <!-- Advertise: макет и граница (DS-1121, раздел 6.1) -->
+            <ng-container *ngIf="selectedElement.type === 'advertise'">
+              <app-collapsible-section title="Макет">
+                <div class="field-group">
+                  <label class="field-label">Позиция X</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.x" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Позиция Y</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.y" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Ширина (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.width" min="20" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Высота (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.height" min="20" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Порядок отображения</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
+                  <p class="layer-error" *ngIf="getAdvertiseLayerError(selectedElement)">{{ getAdvertiseLayerError(selectedElement) }}</p>
+                  <p class="layer-hint" *ngIf="!getAdvertiseLayerError(selectedElement) && getQrLayer() != null">QR-код отображается выше. Реклама должна быть ниже QR-кода.</p>
+                  <p class="layer-hint" *ngIf="!getAdvertiseLayerError(selectedElement) && getQrLayer() == null">Меньше — ниже, больше — выше.</p>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет фона</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.bgColor" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Прозрачность (%)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.bgOpacity" min="0" max="100" />
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Граница">
+                <div class="field-group">
+                  <label class="field-label">Толщина (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.borderWidth" min="0" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.borderColor" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Скругление (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.borderRadius" min="0" />
+                </div>
+              </app-collapsible-section>
             </ng-container>
             <!-- MenuList inspector -->
             <ng-container *ngIf="selectedElement.type === 'menulist'">
@@ -410,13 +492,73 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 </div>
               </app-collapsible-section>
             </ng-container>
-            <!-- Standard element inspector for non-menulist, non-area -->
-            <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist'" [element]="selectedElement"></app-theme-element-inspector>
+            <!-- QR: порядок отображения (DS-1121, раздел 5.4) -->
+            <div class="field-group" *ngIf="selectedElement.type === 'qr'">
+              <label class="field-label">Порядок отображения</label>
+              <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
+              <p class="layer-hint">QR-код должен быть выше всех динамических областей.</p>
+            </div>
+            <!-- Standard element inspector for non-menulist, non-area, non-advertise -->
+            <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist' && selectedElement.type !== 'advertise'" [element]="selectedElement"></app-theme-element-inspector>
             <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()" (editControl)="onEditControl($event)"></app-area-element-inspector>
           </ng-container>
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
       </div>
+      <!-- Полноэкранное превью («глазик») -->
+      <div class="preview-overlay" *ngIf="previewMode !== 'none'" (click)="closePreview()">
+        <button class="preview-close" (click)="closePreview()" aria-label="Закрыть просмотр">
+          <lucide-icon name="x" [size]="22"></lucide-icon>
+        </button>
+        <div class="preview-hint">Esc — выйти из просмотра</div>
+        <div
+          class="preview-screen"
+          [style.width.px]="previewScreenWidth"
+          [style.height.px]="previewScreenHeight"
+          [style.transform]="'scale(' + previewScale + ')'"
+          (click)="$event.stopPropagation()"
+        >
+          <ng-container *ngFor="let el of previewElements">
+            <div
+              class="preview-el"
+              [style.z-index]="el.layer ?? 1"
+              [style.left.px]="el.x"
+              [style.top.px]="el.y"
+              [style.width.px]="el.width"
+              [style.height.px]="el.height"
+              [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null"
+              [style.border-width.px]="el.borderWidth"
+              [style.border-style]="el.borderWidth ? 'solid' : 'none'"
+              [style.border-color]="el.borderColor"
+              [style.border-radius.px]="el.borderRadius"
+            >
+              <span *ngIf="el.type === 'text'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
+              <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="pv-image" />
+              <span *ngIf="el.type === 'image' && !el.imageUrl" class="pv-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
+              <span *ngIf="el.type === 'price'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ getPricePreview(el) }}</span>
+              <div *ngIf="el.type === 'advertise'" class="pv-advertise" [style.background-color]="currentAdvertiseSlide(el)?.color || 'transparent'">
+                <ng-container *ngIf="currentAdvertiseSlide(el) as slide">
+                  <lucide-icon [name]="slide.mediaType === 'video/mp4' ? 'film' : 'image'" [size]="34" class="pv-ad-icon"></lucide-icon>
+                  <span class="pv-ad-campaign">{{ slide.campaignName }}</span>
+                  <span class="pv-ad-media">{{ slide.mediaName }}</span>
+                </ng-container>
+                <span *ngIf="!currentAdvertiseSlide(el)" class="pv-ad-empty">Реклама</span>
+              </div>
+              <span *ngIf="el.type === 'qr'" class="pv-qr"><lucide-icon name="qr-code" [size]="30"></lucide-icon><span>QR-код</span></span>
+              <span *ngIf="el.type === 'counter'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
+              <div *ngIf="el.type === 'menulist'" class="pv-menulist">
+                <div *ngIf="!el.productIds?.length" class="pv-ml-empty">Меню</div>
+                <div class="pv-ml-row" *ngFor="let pid of el.productIds || []" [style.min-height.px]="el.rowHeight || 48" [style.padding.px]="el.rowPadding || 4">
+                  <span class="pv-ml-name">{{ getDishData(pid)?.name || '#' + pid.slice(0, 6) }}</span>
+                  <span class="pv-ml-price">{{ getDishData(pid)?.price || 0 }} \u20BD</span>
+                </div>
+              </div>
+              <span *ngIf="el.type === 'area'" class="pv-placeholder">{{ el.name }}</span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
       <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
       <ui-confirm-dialog *ngIf="deleteElementTarget" [open]="true" title="Удалить элемент" [message]="'Удалить элемент «' + deleteElementTarget.name + '»?'" confirmText="Удалить" variant="danger" (confirmed)="confirmDeleteElement()" (cancelled)="deleteElementTarget = null"></ui-confirm-dialog>
 
@@ -485,18 +627,29 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .field-input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; box-sizing: border-box; }
     .field-input:focus { outline: none; border-color: #448aff; }
     .field-select { width: 100%; height: 36px; padding: 0 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; background: #fff; cursor: pointer; box-sizing: border-box; }
-    /* Campaign multi-select */
-    .campaign-multiselect { max-height: 200px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
-    .campaign-checkbox { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f5f5f5; }
+    /* Campaign multi-select (DS: primary #448AFF, stroke #D6D6D6) */
+    .advertise-desc { font-size: 12px; color: #616161; line-height: 1.4; margin: 0 0 10px; }
+    .campaign-count { margin-left: 6px; font-size: 12px; font-weight: 500; color: #448aff; }
+    .campaign-multiselect { max-height: 220px; overflow-y: auto; border: 1px solid #d6d6d6; border-radius: 4px; }
+    .campaign-multiselect-error { border-color: #ff5252; }
+    .campaign-select-all { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #e0e0e0; background: #f8f9fc; font-size: 13px; color: #333; }
+    .campaign-select-all input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #448aff; }
+    .campaign-folder { display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 10px; border: none; border-bottom: 1px solid #f0f0f0; background: #f0f5ff; color: #333; font-size: 12px; font-weight: 500; cursor: pointer; font-family: Roboto, sans-serif; text-align: left; }
+    .campaign-folder:hover { background: #e8f0ff; }
+    .campaign-folder-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .campaign-folder-count { font-size: 11px; color: #616161; background: #fff; border-radius: 10px; padding: 1px 7px; }
+    .campaign-checkbox { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 26px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f5f5f5; }
     .campaign-checkbox:last-child { border-bottom: none; }
-    .campaign-checkbox:hover { background: #f5f5f5; }
-    .campaign-checkbox-box { width: 18px; height: 18px; border: 2px solid #bdbdbd; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .campaign-checkbox-box.checked { background: #1976d2; border-color: #1976d2; }
-    .campaign-checkbox-box.checked::after { content: ''; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -1px; }
+    .campaign-checkbox:hover { background: #ebebeb; }
+    .campaign-checkbox input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #448aff; flex-shrink: 0; }
     .campaign-checkbox-label { flex: 1; font-size: 13px; color: #333; }
     .campaign-checkbox-dates { font-size: 11px; color: #9e9e9e; flex-shrink: 0; }
-    .campaign-empty-hint { padding: 12px 10px; font-size: 12px; color: #bdbdbd; text-align: center; }
-    .campaign-selected-count { margin-top: 6px; font-size: 12px; color: #1976d2; font-weight: 500; }
+    .campaign-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; border: 1px dashed #d6d6d6; border-radius: 4px; color: #9e9e9e; }
+    .campaign-empty p { margin: 0; font-size: 13px; }
+    .campaign-create-link { border: none; background: transparent; color: #448aff; font-size: 13px; font-weight: 500; cursor: pointer; font-family: Roboto, sans-serif; padding: 0; }
+    .campaign-create-link:hover { text-decoration: underline; }
+    .campaign-empty-hint { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px 10px; font-size: 12px; color: #9e9e9e; }
+    .campaign-error { font-size: 12px; color: #ff5252; margin: 6px 0 0; }
     /* Advertise panels */
     .panels-list { max-height: 180px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
     .panel-item { display: flex; align-items: center; gap: 6px; padding: 7px 10px; cursor: pointer; border-bottom: 1px solid #f5f5f5; font-size: 13px; color: #333; }
@@ -544,6 +697,42 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .field-check input[type="checkbox"] { cursor: pointer; }
     .field-hint { font-size: 12px; color: #bdbdbd; font-style: italic; margin: 0; text-align: center; padding: 8px 0; }
     .field-color { width: 100%; height: 36px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px; cursor: pointer; box-sizing: border-box; }
+    .campaign-search { display: flex; align-items: center; gap: 6px; border: 1px solid #d6d6d6; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; color: #9e9e9e; }
+    .campaign-search:focus-within { border-color: #448aff; }
+    .campaign-search-input { flex: 1; border: none; outline: none; font-size: 13px; font-family: Roboto, sans-serif; color: #333; background: transparent; }
+    .campaign-search-clear { display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #9e9e9e; cursor: pointer; padding: 0; }
+    .layer-error { font-size: 12px; color: #ff5252; margin: 4px 0 0; }
+    .layer-hint { font-size: 12px; color: #9e9e9e; margin: 4px 0 0; }
+    .el-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 11px; }
+
+    /* ── Полноэкранное превью («глазик») ── */
+    .preview-trigger { position: absolute; top: 12px; right: 12px; z-index: 50; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid #d6d6d6; border-radius: 4px; background: #fff; color: #333; font-size: 13px; font-family: Roboto, sans-serif; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+    .preview-trigger:hover { background: #f5f5f5; }
+    .campaign-label-row { display: flex; align-items: center; justify-content: space-between; }
+    .preview-block-btn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: none; border-radius: 4px; background: transparent; color: #9e9e9e; cursor: pointer; }
+    .preview-block-btn:hover { background: #f0f0f0; color: #333; }
+    .preview-overlay { position: fixed; inset: 0; z-index: 9500; background: rgba(17, 17, 17, 0.92); display: flex; align-items: center; justify-content: center; overflow: hidden; animation: previewIn 0.2s ease-out; }
+    @keyframes previewIn { from { opacity: 0; } }
+    .preview-screen { position: relative; transform-origin: center center; flex-shrink: 0; background: #fff; box-shadow: 0 0 60px rgba(0, 0, 0, 0.5); overflow: hidden; }
+    .preview-close { position: absolute; top: 16px; right: 16px; z-index: 10; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.12); color: #fff; cursor: pointer; }
+    .preview-close:hover { background: rgba(255, 255, 255, 0.25); }
+    .preview-hint { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255, 255, 255, 0.55); font-size: 13px; font-family: Roboto, sans-serif; pointer-events: none; }
+    .preview-el { position: absolute; display: flex; align-items: center; justify-content: center; overflow: hidden; box-sizing: border-box; }
+    .pv-text { display: block; width: 100%; padding: 4px; word-break: break-word; box-sizing: border-box; }
+    .pv-image { width: 100%; height: 100%; object-fit: contain; }
+    .pv-placeholder { color: #bdbdbd; }
+    .pv-advertise { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 10px; text-align: center; background-image: linear-gradient(to top, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 45%); }
+    .pv-ad-icon { color: rgba(255, 255, 255, 0.95); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
+    .pv-ad-campaign { color: #fff; font-size: 14px; font-weight: 600; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45); }
+    .pv-ad-media { color: rgba(255, 255, 255, 0.88); font-size: 11px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+    .pv-ad-empty { font-size: 12px; color: rgba(0, 0, 0, 0.5); }
+    .pv-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 12px; }
+    .pv-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+    .pv-ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
+    .pv-ml-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #eee; box-sizing: border-box; }
+    .pv-ml-row:last-child { border-bottom: none; }
+    .pv-ml-name { font-size: 13px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pv-ml-price { font-size: 13px; font-weight: 600; color: #c00; white-space: nowrap; }
   `],
 })
 export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -552,6 +741,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   private storage = inject(StorageService);
   private cdr = inject(ChangeDetectorRef);
   dataService = inject(CsDataService);
+  campaignsService = inject(CampaignsDataService);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
   panelCollapsed = false;
@@ -571,15 +761,97 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   dishSelectorOpen = false;
   dishSelectorIds: string[] = [];
 
-  companies: AdvertiseCompany[] = [...MOCK_COMPANIES];
-  selectedPanelId: number | null = null;
+  campaignSearchText = '';
+  /** Свёрнутые папки в списке кампаний (по folderKey) */
+  collapsedFolderIds: string[] = [];
+  /** Инлайн-ошибка валидации выбора кампаний */
+  advertiseValidationError = '';
+  /** Режим полноэкранного превью («глазик»): 'none' | 'theme' | 'block' */
+  previewMode: 'none' | 'theme' | 'block' = 'none';
+  /** Текущий индекс слайда для каждой рекламной области в превью */
+  private previewSlideIdx: Record<string, number> = {};
+  /** Таймер смены слайдов в превью */
+  private previewTimer: ReturnType<typeof setInterval> | null = null;
+  /** Палитра-фолбэк для кампаний без медиа */
+  private readonly AD_FALLBACK_COLORS = ['#5C6BC0', '#26A69A', '#EF5350', '#FFA726', '#AB47BC', '#42A5F5', '#66BB6A', '#EC407A'];
 
-  campaignOptions: CampaignOption[] = [
-    { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
-    { id: 2, name: 'Летнее меню', dateFrom: '2026-06-01', dateTo: '2026-08-31' },
-    { id: 3, name: 'Осенние скидки', dateFrom: '2026-09-01', dateTo: '2026-11-30' },
-    { id: 4, name: 'Сезонное предложение', dateFrom: '2026-03-01', dateTo: '2026-05-31' },
-  ];
+  /** Все id кампаний, попадающих под текущий поиск */
+  get filteredCampaignIds(): number[] {
+    const q = (this.campaignSearchText || '').trim().toLowerCase();
+    return this.campaignsService.campaigns
+      .filter(c => !q || c.name.toLowerCase().includes(q))
+      .map(c => c.id);
+  }
+
+  /** Список кампаний с группировкой по папкам (DS-1121 5.3 + папки со стенда) */
+  get campaignRows(): CampaignRow[] {
+    const q = (this.campaignSearchText || '').trim().toLowerCase();
+    const all = this.campaignsService.campaigns;
+    const matches = (c: WebCampaign) => !q || c.name.toLowerCase().includes(q);
+    const searching = !!q;
+    const rows: CampaignRow[] = [];
+
+    const pushFolder = (key: string, title: string, list: WebCampaign[]) => {
+      if (!list.length) return;
+      const collapsed = !searching && this.collapsedFolderIds.includes(key);
+      rows.push({ kind: 'header', folderKey: key, title, count: list.length, collapsed, campaignId: 0, campaignName: '', campaignDateFrom: '', campaignDateTo: '' });
+      if (!collapsed) {
+        for (const c of list) {
+          rows.push({ kind: 'campaign', folderKey: '', title: '', count: 0, collapsed: false, campaignId: c.id, campaignName: c.name, campaignDateFrom: c.dateFrom, campaignDateTo: c.dateTo });
+        }
+      }
+    };
+
+    pushFolder('__root__', 'Без папки', all.filter(c => c.folderId == null && matches(c)));
+
+    for (const f of this.campaignsService.folders) {
+      pushFolder('f' + f.id, this.folderPathName(f.id), all.filter(c => c.folderId === f.id && matches(c)));
+    }
+    return rows;
+  }
+
+  /** Полный путь папки: «Родитель / Папка» */
+  folderPathName(id: number): string {
+    const parts: string[] = [];
+    let cur: CampaignFolder | undefined = this.campaignsService.folders.find(f => f.id === id);
+    let guard = 0;
+    while (cur && guard++ < 20) {
+      parts.unshift(cur.name);
+      cur = cur.parentId != null ? this.campaignsService.folders.find(f => f.id === cur!.parentId) : undefined;
+    }
+    return parts.join(' / ');
+  }
+
+  toggleFolder(key: string): void {
+    const i = this.collapsedFolderIds.indexOf(key);
+    if (i >= 0) this.collapsedFolderIds.splice(i, 1);
+    else this.collapsedFolderIds.push(key);
+  }
+
+  get allCampaignsSelected(): boolean {
+    const ids = this.filteredCampaignIds;
+    const sel = this.selectedElement?.campaignIds || [];
+    return ids.length > 0 && ids.every(id => sel.includes(id));
+  }
+
+  get someCampaignsSelected(): boolean {
+    const ids = this.filteredCampaignIds;
+    const sel = this.selectedElement?.campaignIds || [];
+    return ids.some(id => sel.includes(id)) && !this.allCampaignsSelected;
+  }
+
+  toggleSelectAll(): void {
+    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
+    const ids = this.filteredCampaignIds;
+    const sel = new Set(this.selectedElement.campaignIds || []);
+    if (this.allCampaignsSelected) {
+      ids.forEach(id => sel.delete(id));
+    } else {
+      ids.forEach(id => sel.add(id));
+    }
+    this.selectedElement.campaignIds = [...sel];
+    if (this.selectedElement.campaignIds.length > 0) this.advertiseValidationError = '';
+  }
 
   areaHelper = new AreaEmulationHelper();
   sim = new SimulatorHelper();
@@ -611,6 +883,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     { type: 'advertise' as ArrivalsElementType, label: 'Динамическая область' },
     { type: 'text', label: 'Текст' }, { type: 'image', label: 'Изображение' },
     { type: 'counter' as ArrivalsElementType, label: 'Текущее время' },
+    { type: 'qr' as ArrivalsElementType, label: 'QR-код' },
   ];
 
   themeCategories = MENUBOARD_THEME_CATEGORIES.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
@@ -650,6 +923,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (this.listDragIndex !== null && this.listDragOverIndex !== null && this.listDragIndex !== this.listDragOverIndex) {
       const el = this.theme.elements.splice(this.listDragIndex, 1)[0];
       this.theme.elements.splice(this.listDragOverIndex, 0, el);
+      // Переиндексация слоёв по новому порядку (z-порядок = позиция в списке)
+      this.theme.elements.forEach((e, idx) => { e.layer = idx + 1; });
     }
     this.listDragIndex = null;
     this.listDragOverIndex = null;
@@ -659,6 +934,28 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
   get resHeight(): number { return parseInt(this.theme.resolution.split('x')[1]) || 768; }
+
+  /** Элементы для превью: вся тема или выбранная область (сдвинутая в 0,0) */
+  get previewElements(): ArrivalsThemeElement[] {
+    if (this.previewMode === 'block') {
+      const el = this.selectedElement;
+      return el ? [{ ...el, x: 0, y: 0 }] : [];
+    }
+    return this.theme.elements;
+  }
+  get previewScreenWidth(): number {
+    return this.previewMode === 'block' ? (this.selectedElement?.width ?? 0) : this.resWidth;
+  }
+  get previewScreenHeight(): number {
+    return this.previewMode === 'block' ? (this.selectedElement?.height ?? 0) : this.resHeight;
+  }
+  get previewScale(): number {
+    const w = this.previewScreenWidth || 1;
+    const h = this.previewScreenHeight || 1;
+    const pad = 96;
+    const s = Math.min((window.innerWidth - pad) / w, (window.innerHeight - pad) / h);
+    return Math.min(s, 3);
+  }
   get selectedElement(): ArrivalsThemeElement | null {
     return this.selectedElementId ? (this.theme.elements.find(e => e.id === this.selectedElementId) ?? null) : null;
   }
@@ -672,7 +969,17 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     } else {
       this.theme.id = Date.now();
     }
-    this.theme.elements.forEach(el => { if (el.type === 'advertise') this.ensureAdvertisePanels(el); });
+    // Миграция старой модели: панели → отдельные элементы «Динамическая область»
+    this.expandLegacyAdvertisePanels();
+    // Очистка «осиротевших» id кампаний (ссылки на старые мок-данные)
+    const knownIds = new Set(this.campaignsService.campaigns.map(c => c.id));
+    for (const el of this.theme.elements) {
+      if (el.type === 'advertise' && el.campaignIds?.length) {
+        el.campaignIds = el.campaignIds.filter(id => knownIds.has(id));
+      }
+    }
+    // Нормализация слоёв: элементам без явного layer — позиция в списке
+    this.theme.elements.forEach((el, i) => { if (el.layer == null) el.layer = i + 1; });
     this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
 
     // Handle return from control editor with newControlId (Save as Copy)
@@ -701,6 +1008,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     document.removeEventListener('mouseup', this.boundMouseUp);
     document.removeEventListener('mousemove', this.boundListMouseMove);
     document.removeEventListener('mouseup', this.boundListMouseUp);
+    this.stopPreviewSlideshow();
     this.areaHelper.clearAll();
     this.sim.stopAuto();
   }
@@ -766,9 +1074,9 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* Selection */
-  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.selectedPanelId = null; this.panelView = 'element'; }
-  selectElementFromList(id: string): void { this.selectedElementId = id; this.selectedPanelId = null; this.panelView = 'element'; }
-  deselectElement(): void { this.selectedElementId = null; this.panelView = 'theme'; }
+  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.campaignSearchText = ''; this.advertiseValidationError = ''; this.panelView = 'element'; }
+  selectElementFromList(id: string): void { this.selectedElementId = id; this.campaignSearchText = ''; this.advertiseValidationError = ''; this.panelView = 'element'; }
+  deselectElement(): void { this.selectedElementId = null; this.campaignSearchText = ''; this.advertiseValidationError = ''; this.panelView = 'theme'; }
 
   /* Price helpers */
   getPricePreview(el: ArrivalsThemeElement): string {
@@ -787,87 +1095,162 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Advertise helpers */
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
-    if (el.panels && el.panels.length > 0) {
-      const parts = el.panels.map(p => {
-        const company = this.getCompanyName(p.companyId);
-        return company ? `${p.name}: ${company}` : p.name;
+    if (el.type !== 'advertise') return el.name;
+    const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
+    if (!camps.length) return 'Динамическая область';
+    if (camps.length === 1) return camps[0];
+    return `${camps.length} ${this.pluralCampaigns(camps.length)}`;
+  }
+
+  /** Полный список кампаний (для tooltip на канвасе) */
+  getAdvertiseFullLabel(el: ArrivalsThemeElement): string {
+    if (el.type !== 'advertise') return el.name;
+    const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
+    return camps.length ? camps.join(', ') : 'Динамическая область';
+  }
+
+  /** Склонение слова «кампания» */
+  pluralCampaigns(n: number): string {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return 'кампания';
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'кампании';
+    return 'кампаний';
+  }
+
+  /** Название кампании по id */
+  getCampaignName(campId: number): string {
+    return this.campaignsService.getCampaign(campId)?.name ?? '';
+  }
+
+  /** Перейти в раздел «Кампании» для создания новой */
+  goToCampaigns(): void {
+    this.router.navigate(['/prototype/web-screens/campaigns']);
+  }
+
+  /* ── Полноэкранное превью («глазик») ── */
+  openThemePreview(): void { this.previewMode = 'theme'; this.startPreviewSlideshow(); }
+  openBlockPreview(): void {
+    if (this.selectedElement?.type === 'advertise') { this.previewMode = 'block'; this.startPreviewSlideshow(); }
+  }
+  closePreview(): void { this.previewMode = 'none'; this.stopPreviewSlideshow(); }
+
+  @HostListener('window:keydown.escape') onEscapePreview(): void {
+    if (this.previewMode !== 'none') this.closePreview();
+  }
+
+  /** Слайды рекламы области: по одному на выбранную кампанию (первое медиа кампании) */
+  getAdvertiseSlides(el: ArrivalsThemeElement): AdvertiseSlide[] {
+    const slides: AdvertiseSlide[] = [];
+    (el.campaignIds || []).forEach((campaignId, idx) => {
+      const c = this.campaignsService.getCampaign(campaignId);
+      if (!c) return;
+      let media: CampaignMedia | undefined;
+      const res = c.resolutions?.[0];
+      if (res) {
+        const modes = res.modes || {};
+        const order = modes['order']?.length ? modes['order'] : Object.values(modes).find(m => m?.length);
+        media = order?.[0];
+      }
+      slides.push({
+        campaignId,
+        campaignName: c.name,
+        mediaName: media?.name ?? 'Рекламный ролик',
+        mediaType: media?.type ?? 'video/mp4',
+        color: media?.color ?? this.AD_FALLBACK_COLORS[idx % this.AD_FALLBACK_COLORS.length],
       });
-      return parts.join(' · ');
+    });
+    return slides;
+  }
+
+  /** Текущий слайд области в превью */
+  currentAdvertiseSlide(el: ArrivalsThemeElement): AdvertiseSlide | null {
+    const slides = this.getAdvertiseSlides(el);
+    if (!slides.length) return null;
+    const idx = this.previewSlideIdx[el.id] ?? 0;
+    return slides[((idx % slides.length) + slides.length) % slides.length];
+  }
+
+  private startPreviewSlideshow(): void {
+    this.stopPreviewSlideshow();
+    this.previewSlideIdx = {};
+    this.previewTimer = setInterval(() => {
+      let changed = false;
+      for (const el of this.previewElements) {
+        if (el.type !== 'advertise') continue;
+        const slides = this.getAdvertiseSlides(el);
+        if (slides.length < 2) continue;
+        this.previewSlideIdx[el.id] = ((this.previewSlideIdx[el.id] ?? 0) + 1) % slides.length;
+        changed = true;
+      }
+      if (changed) this.cdr.detectChanges();
+    }, 2600);
+  }
+
+  private stopPreviewSlideshow(): void {
+    if (this.previewTimer) { clearInterval(this.previewTimer); this.previewTimer = null; }
+  }
+
+  /** Суммарное количество уникальных кампаний области (только реально существующие) */
+  getAdvertiseCampaignCount(el: ArrivalsThemeElement): number {
+    if (el.type !== 'advertise') return 0;
+    const known = new Set(this.campaignsService.campaigns.map(c => c.id));
+    return (el.campaignIds || []).filter(id => known.has(id)).length;
+  }
+
+  /** Миграция старой модели: каждая Advertise-панель становится отдельной «Динамической областью» */
+  expandLegacyAdvertisePanels(): void {
+    const extra: ArrivalsThemeElement[] = [];
+    for (const el of this.theme.elements) {
+      if (el.type !== 'advertise') continue;
+      if (el.panels && el.panels.length > 0) {
+        el.panels.forEach((p, i) => {
+          if (i === 0) {
+            el.campaignIds = [...(p.campaignIds || [])];
+          } else {
+            const clone: ArrivalsThemeElement = JSON.parse(JSON.stringify(el));
+            clone.id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+            delete clone.panels;
+            delete (clone as any).companyId;
+            clone.campaignIds = [...(p.campaignIds || [])];
+            clone.x = el.x + i * 20;
+            clone.y = el.y + i * 20;
+            extra.push(clone);
+          }
+        });
+        delete el.panels;
+        delete (el as any).companyId;
+      } else {
+        delete el.panels;
+        delete (el as any).companyId;
+      }
     }
-    return 'Динамическая область';
-  }
-
-  /** Миграция: старые campaignIds элемента → первая Advertise-панель */
-  ensureAdvertisePanels(el: ArrivalsThemeElement): void {
-    if (el.type !== 'advertise') return;
-    if (el.panels === undefined) {
-      el.panels = [
-        {
-          id: Date.now(),
-          name: 'Advertise панель 1',
-          companyId: null,
-          campaignIds: el.campaignIds ? [...el.campaignIds] : [],
-        },
-      ];
-    }
-  }
-
-  get selectedPanels(): AdvertisePanelConfig[] {
-    return this.selectedElement?.panels ?? [];
-  }
-
-  get selectedPanel(): AdvertisePanelConfig | null {
-    const panels = this.selectedPanels;
-    if (!panels.length) return null;
-    return panels.find(p => p.id === this.selectedPanelId) ?? panels[0];
-  }
-
-  selectPanel(panelId: number): void { this.selectedPanelId = panelId; }
-
-  addPanel(): void {
-    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
-    this.ensureAdvertisePanels(this.selectedElement);
-    const n = this.selectedElement.panels!.length + 1;
-    const panel: AdvertisePanelConfig = {
-      id: Date.now() + n,
-      name: 'Advertise панель ' + n,
-      companyId: null,
-      campaignIds: [],
-    };
-    this.selectedElement.panels!.push(panel);
-    this.selectedPanelId = panel.id;
-  }
-
-  removePanel(panelId: number, event: Event): void {
-    event.stopPropagation();
-    if (!this.selectedElement?.panels) return;
-    this.selectedElement.panels = this.selectedElement.panels.filter(p => p.id !== panelId);
-    if (this.selectedPanelId === panelId) this.selectedPanelId = null;
-  }
-
-  getCompanyName(companyId: number | null | undefined): string {
-    if (companyId == null) return '';
-    return this.companies.find(c => c.id === companyId)?.name ?? '#' + companyId;
+    this.theme.elements.push(...extra);
   }
 
   /* Campaign multi-select helpers */
   toggleCampaign(campId: number): void {
-    const panel = this.selectedPanel;
-    if (!panel) return;
-    const idx = panel.campaignIds.indexOf(campId);
+    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
+    const ids = this.selectedElement.campaignIds ?? (this.selectedElement.campaignIds = []);
+    const idx = ids.indexOf(campId);
     if (idx >= 0) {
-      panel.campaignIds.splice(idx, 1);
+      ids.splice(idx, 1);
     } else {
-      panel.campaignIds.push(campId);
+      ids.push(campId);
     }
+    if (ids.length > 0) this.advertiseValidationError = '';
   }
 
   isCampaignSelected(campId: number): boolean {
-    return this.selectedPanel?.campaignIds?.includes(campId) ?? false;
+    return this.selectedElement?.campaignIds?.includes(campId) ?? false;
   }
 
   get selectedCampaignCount(): number {
-    return this.selectedPanel?.campaignIds?.length ?? 0;
+    const el = this.selectedElement;
+    if (!el) return 0;
+    const ids = el.campaignIds || [];
+    if (el.type !== 'advertise') return ids.length;
+    const known = new Set(this.campaignsService.campaigns.map(c => c.id));
+    return ids.filter(id => known.has(id)).length;
   }
 
   getDishData(productId: string): ExternalMenuItem | undefined {
@@ -943,6 +1326,40 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return `${parts[2]}.${parts[1]}.${parts[0]}`;
   }
 
+  /* ── DS-1121: слой, QR, фон Advertise ── */
+  getElementZIndex(el: ArrivalsThemeElement, i: number): number {
+    return el.layer ?? (this.theme.elements.length - i);
+  }
+
+  getQrLayer(): number | null {
+    const qr = this.theme.elements.find(e => e.type === 'qr');
+    return qr ? (qr.layer ?? 1) : null;
+  }
+
+  getAdvertiseLayerError(el: ArrivalsThemeElement): string {
+    const qrLayer = this.getQrLayer();
+    if (qrLayer != null && (el.layer ?? 1) >= qrLayer) {
+      return 'Реклама должна отображаться ниже QR-кода';
+    }
+    return '';
+  }
+
+  hexToRgba(hex: string, opacityPct: number): string {
+    if (!hex) return 'transparent';
+    const h = hex.replace('#', '');
+    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    const r = parseInt(full.slice(0, 2), 16);
+    const g = parseInt(full.slice(2, 4), 16);
+    const b = parseInt(full.slice(4, 6), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return 'transparent';
+    const alpha = Math.min(100, Math.max(0, opacityPct ?? 100)) / 100;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  getAdvertiseBg(el: ArrivalsThemeElement): string {
+    return this.hexToRgba(el.bgColor || '#ffffff', el.bgOpacity ?? 100);
+  }
+
   /* Add / Delete */
   addElement(type: ArrivalsElementType): void {
     // Сообщение при добавлении платного элемента без лицензии (вариант E)
@@ -950,11 +1367,12 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       this.showToast('Вы добавляете платный элемент. Он будет недоступен на экране без платной лицензии.');
     }
     const label = this.elementTypes.find(et => et.type === type)?.label ?? type;
-    const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0 };
+    const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0, layer: this.theme.elements.length + 1 };
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
-    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.panels = []; }
+    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
+    if (type === 'qr') { el.name = 'QR-код'; el.width = 200; el.height = 200; el.layer = 100; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     if (type === 'counter') { el.name = 'Текущее время'; el.width = 100; el.height = 40; el.fontFamily = 'Arial'; el.fontSize = 16; el.fontBold = false; el.fontItalic = false; el.textAlign = 'center'; el.text = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
     this.theme.elements.push(el);
@@ -974,6 +1392,25 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Save */
   save(): void {
+    // Валидация по DS-1121 (разделы 5.3, 5.4; ошибки 1–3):
+    // минимум одна кампания у каждой динамической области; слой Advertise строго ниже слоя QR-кода
+    const qrEl = this.theme.elements.find(e => e.type === 'qr');
+    for (const el of this.theme.elements) {
+      if (el.type !== 'advertise') continue;
+      if (this.getAdvertiseCampaignCount(el) === 0) {
+        this.selectedElementId = el.id; this.panelView = 'element';
+        this.advertiseValidationError = this.campaignsService.campaigns.length === 0
+          ? 'Нет доступных кампаний. Создайте кампанию в разделе «Кампании».'
+          : 'Выберите хотя бы одну рекламную кампанию';
+        this.showToast(this.advertiseValidationError);
+        return;
+      }
+      if (qrEl && (el.layer ?? 1) >= (qrEl.layer ?? 1)) {
+        this.selectedElementId = el.id; this.panelView = 'element';
+        this.showToast(`«${el.name}»: реклама должна отображаться ниже QR-кода`);
+        return;
+      }
+    }
     const allThemes: ArrivalsTheme[] = this.storage.load('web-screens', 'menuboard-themes', [...MOCK_ARRIVALS_THEMES]);
     const idx = allThemes.findIndex(t => t.id === this.theme.id);
     if (idx >= 0) allThemes[idx] = JSON.parse(JSON.stringify(this.theme)); else allThemes.push(JSON.parse(JSON.stringify(this.theme)));
