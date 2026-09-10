@@ -8,7 +8,7 @@ import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { CsDataService } from '../cs-data.service';
 import { CampaignsDataService } from '../campaigns-data.service';
-import { WebCampaign, CampaignFolder } from '../data/campaigns.data';
+import { WebCampaign, CampaignFolder, CampaignMedia } from '../data/campaigns.data';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
 import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
@@ -35,6 +35,15 @@ interface CampaignRow {
   campaignName: string;
   campaignDateFrom: string;
   campaignDateTo: string;
+}
+
+/** Слайд «живой» рекламы в полноэкранном превью */
+interface AdvertiseSlide {
+  campaignId: number;
+  campaignName: string;
+  mediaName: string;
+  mediaType: string;
+  color: string;
 }
 
 @Component({
@@ -527,7 +536,14 @@ interface CampaignRow {
               <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="pv-image" />
               <span *ngIf="el.type === 'image' && !el.imageUrl" class="pv-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
               <span *ngIf="el.type === 'price'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ getPricePreview(el) }}</span>
-              <span *ngIf="el.type === 'advertise'" class="pv-advertise">{{ getAdvertiseFullLabel(el) }}</span>
+              <div *ngIf="el.type === 'advertise'" class="pv-advertise" [style.background-color]="currentAdvertiseSlide(el)?.color || 'transparent'">
+                <ng-container *ngIf="currentAdvertiseSlide(el) as slide">
+                  <lucide-icon [name]="slide.mediaType === 'video/mp4' ? 'film' : 'image'" [size]="34" class="pv-ad-icon"></lucide-icon>
+                  <span class="pv-ad-campaign">{{ slide.campaignName }}</span>
+                  <span class="pv-ad-media">{{ slide.mediaName }}</span>
+                </ng-container>
+                <span *ngIf="!currentAdvertiseSlide(el)" class="pv-ad-empty">Реклама</span>
+              </div>
               <span *ngIf="el.type === 'qr'" class="pv-qr"><lucide-icon name="qr-code" [size]="30"></lucide-icon><span>QR-код</span></span>
               <span *ngIf="el.type === 'counter'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
               <div *ngIf="el.type === 'menulist'" class="pv-menulist">
@@ -705,7 +721,11 @@ interface CampaignRow {
     .pv-text { display: block; width: 100%; padding: 4px; word-break: break-word; box-sizing: border-box; }
     .pv-image { width: 100%; height: 100%; object-fit: contain; }
     .pv-placeholder { color: #bdbdbd; }
-    .pv-advertise { padding: 0 10px; color: rgba(0, 0, 0, 0.55); font-size: 13px; text-align: center; word-break: break-word; }
+    .pv-advertise { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 10px; text-align: center; background-image: linear-gradient(to top, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 45%); }
+    .pv-ad-icon { color: rgba(255, 255, 255, 0.95); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
+    .pv-ad-campaign { color: #fff; font-size: 14px; font-weight: 600; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45); }
+    .pv-ad-media { color: rgba(255, 255, 255, 0.88); font-size: 11px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+    .pv-ad-empty { font-size: 12px; color: rgba(0, 0, 0, 0.5); }
     .pv-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 12px; }
     .pv-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
     .pv-ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
@@ -748,6 +768,12 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   advertiseValidationError = '';
   /** Режим полноэкранного превью («глазик»): 'none' | 'theme' | 'block' */
   previewMode: 'none' | 'theme' | 'block' = 'none';
+  /** Текущий индекс слайда для каждой рекламной области в превью */
+  private previewSlideIdx: Record<string, number> = {};
+  /** Таймер смены слайдов в превью */
+  private previewTimer: ReturnType<typeof setInterval> | null = null;
+  /** Палитра-фолбэк для кампаний без медиа */
+  private readonly AD_FALLBACK_COLORS = ['#5C6BC0', '#26A69A', '#EF5350', '#FFA726', '#AB47BC', '#42A5F5', '#66BB6A', '#EC407A'];
 
   /** Все id кампаний, попадающих под текущий поиск */
   get filteredCampaignIds(): number[] {
@@ -982,6 +1008,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     document.removeEventListener('mouseup', this.boundMouseUp);
     document.removeEventListener('mousemove', this.boundListMouseMove);
     document.removeEventListener('mouseup', this.boundListMouseUp);
+    this.stopPreviewSlideshow();
     this.areaHelper.clearAll();
     this.sim.stopAuto();
   }
@@ -1101,14 +1128,66 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* ── Полноэкранное превью («глазик») ── */
-  openThemePreview(): void { this.previewMode = 'theme'; }
+  openThemePreview(): void { this.previewMode = 'theme'; this.startPreviewSlideshow(); }
   openBlockPreview(): void {
-    if (this.selectedElement?.type === 'advertise') this.previewMode = 'block';
+    if (this.selectedElement?.type === 'advertise') { this.previewMode = 'block'; this.startPreviewSlideshow(); }
   }
-  closePreview(): void { this.previewMode = 'none'; }
+  closePreview(): void { this.previewMode = 'none'; this.stopPreviewSlideshow(); }
 
   @HostListener('window:keydown.escape') onEscapePreview(): void {
     if (this.previewMode !== 'none') this.closePreview();
+  }
+
+  /** Слайды рекламы области: по одному на выбранную кампанию (первое медиа кампании) */
+  getAdvertiseSlides(el: ArrivalsThemeElement): AdvertiseSlide[] {
+    const slides: AdvertiseSlide[] = [];
+    (el.campaignIds || []).forEach((campaignId, idx) => {
+      const c = this.campaignsService.getCampaign(campaignId);
+      if (!c) return;
+      let media: CampaignMedia | undefined;
+      const res = c.resolutions?.[0];
+      if (res) {
+        const modes = res.modes || {};
+        const order = modes['order']?.length ? modes['order'] : Object.values(modes).find(m => m?.length);
+        media = order?.[0];
+      }
+      slides.push({
+        campaignId,
+        campaignName: c.name,
+        mediaName: media?.name ?? 'Рекламный ролик',
+        mediaType: media?.type ?? 'video/mp4',
+        color: media?.color ?? this.AD_FALLBACK_COLORS[idx % this.AD_FALLBACK_COLORS.length],
+      });
+    });
+    return slides;
+  }
+
+  /** Текущий слайд области в превью */
+  currentAdvertiseSlide(el: ArrivalsThemeElement): AdvertiseSlide | null {
+    const slides = this.getAdvertiseSlides(el);
+    if (!slides.length) return null;
+    const idx = this.previewSlideIdx[el.id] ?? 0;
+    return slides[((idx % slides.length) + slides.length) % slides.length];
+  }
+
+  private startPreviewSlideshow(): void {
+    this.stopPreviewSlideshow();
+    this.previewSlideIdx = {};
+    this.previewTimer = setInterval(() => {
+      let changed = false;
+      for (const el of this.previewElements) {
+        if (el.type !== 'advertise') continue;
+        const slides = this.getAdvertiseSlides(el);
+        if (slides.length < 2) continue;
+        this.previewSlideIdx[el.id] = ((this.previewSlideIdx[el.id] ?? 0) + 1) % slides.length;
+        changed = true;
+      }
+      if (changed) this.cdr.detectChanges();
+    }, 2600);
+  }
+
+  private stopPreviewSlideshow(): void {
+    if (this.previewTimer) { clearInterval(this.previewTimer); this.previewTimer = null; }
   }
 
   /** Суммарное количество уникальных кампаний области (только реально существующие) */
