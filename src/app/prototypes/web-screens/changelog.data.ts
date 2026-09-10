@@ -2,6 +2,22 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.52',
+    date: '2026-09-10',
+    status: 'unreleased',
+    changes: [
+      {
+        page: 'Доска меню — Редактор темы',
+        pageRoute: '/prototype/web-screens/menuboard-theme-editor/101',
+        items: [
+          'Демонстрация перенесена на кнопку Play прямо на рекламной области: выбрал кампании — нажал Play, область показывает живой показ; повторное нажатие — стоп',
+          'Проигрывание останавливается только при изменении кампаний этой области; при работе с другими элементами продолжается',
+          'Убраны полноэкранные просмотры (кнопки «Просмотр» и «Посмотреть область»)',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.51',
     date: '2026-09-10',
     status: 'released',

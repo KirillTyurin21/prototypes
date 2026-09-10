@@ -37,7 +37,7 @@ interface CampaignRow {
   campaignDateTo: string;
 }
 
-/** Слайд «живой» рекламы в полноэкранном превью */
+/** Слайд «живой» рекламы на канвасе */
 interface AdvertiseSlide {
   campaignId: number;
   campaignName: string;
@@ -53,10 +53,6 @@ interface AdvertiseSlide {
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
-        <button class="preview-trigger" (click)="openThemePreview()" title="Полноэкранный просмотр темы" aria-label="Просмотр темы">
-          <lucide-icon name="eye" [size]="18"></lucide-icon>
-          <span>Просмотр</span>
-        </button>
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
@@ -70,7 +66,17 @@ interface AdvertiseSlide {
                 <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
                 <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
                 <span *ngIf="el.type === 'price'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign" [title]="getPriceTooltip(el)">{{ getPricePreview(el) }}</span>
-                <span *ngIf="el.type === 'advertise'" class="el-placeholder-label" [title]="getAdvertiseFullLabel(el)">{{ getAdvertiseLabel(el) }}</span>
+                <ng-container *ngIf="el.type === 'advertise'">
+                  <div *ngIf="isAdvertisePlaying(el.id)" class="el-ad-live" [style.background-color]="currentAdvertiseSlide(el)?.color || '#e0e0e0'">
+                    <lucide-icon [name]="currentAdvertiseSlide(el)?.mediaType === 'video/mp4' ? 'film' : 'image'" [size]="20" class="el-ad-live-icon"></lucide-icon>
+                    <span class="el-ad-live-campaign">{{ currentAdvertiseSlide(el)?.campaignName }}</span>
+                    <span class="el-ad-live-media">{{ currentAdvertiseSlide(el)?.mediaName }}</span>
+                  </div>
+                  <span *ngIf="!isAdvertisePlaying(el.id)" class="el-placeholder-label el-ad-label" [title]="getAdvertiseFullLabel(el)">{{ getAdvertiseLabel(el) }}</span>
+                  <button *ngIf="getAdvertiseCampaignCount(el) > 0" type="button" class="el-ad-play" [class.el-ad-play-active]="isAdvertisePlaying(el.id)" (click)="toggleAdvertisePlay(el.id, $event)" [title]="isAdvertisePlaying(el.id) ? 'Остановить показ' : 'Проиграть кампании'" [attr.aria-label]="isAdvertisePlaying(el.id) ? 'Остановить показ' : 'Проиграть кампании'">
+                    <lucide-icon [name]="isAdvertisePlaying(el.id) ? 'pause' : 'play'" [size]="14"></lucide-icon>
+                  </button>
+                </ng-container>
                 <span *ngIf="el.type === 'qr'" class="el-qr"><lucide-icon name="qr-code" [size]="28"></lucide-icon><span>QR-код</span></span>
                 <span *ngIf="el.type === 'counter'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
@@ -189,12 +195,7 @@ interface AdvertiseSlide {
             <!-- Advertise: рекламные кампании (DS-1121, раздел 5.3) -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
               <p class="advertise-desc">Место на экране менюборда, где по расписанию показываются рекламные кампании.</p>
-              <div class="campaign-label-row">
-                <label class="field-label">Рекламные кампании<span class="campaign-count" *ngIf="selectedCampaignCount">Выбрано: {{ selectedCampaignCount }}</span></label>
-                <button class="preview-block-btn" (click)="openBlockPreview()" title="Посмотреть область на весь экран" aria-label="Просмотр области">
-                  <lucide-icon name="eye" [size]="16"></lucide-icon>
-                </button>
-              </div>
+              <label class="field-label">Рекламные кампании<span class="campaign-count" *ngIf="selectedCampaignCount">Выбрано: {{ selectedCampaignCount }}</span></label>
               <div class="campaign-search">
                 <lucide-icon name="search" [size]="14"></lucide-icon>
                 <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
@@ -505,60 +506,6 @@ interface AdvertiseSlide {
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
       </div>
-      <!-- Полноэкранное превью («глазик») -->
-      <div class="preview-overlay" *ngIf="previewMode !== 'none'" (click)="closePreview()">
-        <button class="preview-close" (click)="closePreview()" aria-label="Закрыть просмотр">
-          <lucide-icon name="x" [size]="22"></lucide-icon>
-        </button>
-        <div class="preview-hint">Esc — выйти из просмотра</div>
-        <div
-          class="preview-screen"
-          [style.width.px]="previewScreenWidth"
-          [style.height.px]="previewScreenHeight"
-          [style.transform]="'scale(' + previewScale + ')'"
-          (click)="$event.stopPropagation()"
-        >
-          <ng-container *ngFor="let el of previewElements">
-            <div
-              class="preview-el"
-              [style.z-index]="el.layer ?? 1"
-              [style.left.px]="el.x"
-              [style.top.px]="el.y"
-              [style.width.px]="el.width"
-              [style.height.px]="el.height"
-              [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null"
-              [style.border-width.px]="el.borderWidth"
-              [style.border-style]="el.borderWidth ? 'solid' : 'none'"
-              [style.border-color]="el.borderColor"
-              [style.border-radius.px]="el.borderRadius"
-            >
-              <span *ngIf="el.type === 'text'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
-              <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="pv-image" />
-              <span *ngIf="el.type === 'image' && !el.imageUrl" class="pv-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
-              <span *ngIf="el.type === 'price'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ getPricePreview(el) }}</span>
-              <div *ngIf="el.type === 'advertise'" class="pv-advertise" [style.background-color]="currentAdvertiseSlide(el)?.color || 'transparent'">
-                <ng-container *ngIf="currentAdvertiseSlide(el) as slide">
-                  <lucide-icon [name]="slide.mediaType === 'video/mp4' ? 'film' : 'image'" [size]="34" class="pv-ad-icon"></lucide-icon>
-                  <span class="pv-ad-campaign">{{ slide.campaignName }}</span>
-                  <span class="pv-ad-media">{{ slide.mediaName }}</span>
-                </ng-container>
-                <span *ngIf="!currentAdvertiseSlide(el)" class="pv-ad-empty">Реклама</span>
-              </div>
-              <span *ngIf="el.type === 'qr'" class="pv-qr"><lucide-icon name="qr-code" [size]="30"></lucide-icon><span>QR-код</span></span>
-              <span *ngIf="el.type === 'counter'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
-              <div *ngIf="el.type === 'menulist'" class="pv-menulist">
-                <div *ngIf="!el.productIds?.length" class="pv-ml-empty">Меню</div>
-                <div class="pv-ml-row" *ngFor="let pid of el.productIds || []" [style.min-height.px]="el.rowHeight || 48" [style.padding.px]="el.rowPadding || 4">
-                  <span class="pv-ml-name">{{ getDishData(pid)?.name || '#' + pid.slice(0, 6) }}</span>
-                  <span class="pv-ml-price">{{ getDishData(pid)?.price || 0 }} \u20BD</span>
-                </div>
-              </div>
-              <span *ngIf="el.type === 'area'" class="pv-placeholder">{{ el.name }}</span>
-            </div>
-          </ng-container>
-        </div>
-      </div>
-
       <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
       <ui-confirm-dialog *ngIf="deleteElementTarget" [open]="true" title="Удалить элемент" [message]="'Удалить элемент «' + deleteElementTarget.name + '»?'" confirmText="Удалить" variant="danger" (confirmed)="confirmDeleteElement()" (cancelled)="deleteElementTarget = null"></ui-confirm-dialog>
 
@@ -705,34 +652,16 @@ interface AdvertiseSlide {
     .layer-hint { font-size: 12px; color: #9e9e9e; margin: 4px 0 0; }
     .el-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 11px; }
 
-    /* ── Полноэкранное превью («глазик») ── */
-    .preview-trigger { position: absolute; top: 12px; right: 12px; z-index: 50; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid #d6d6d6; border-radius: 4px; background: #fff; color: #333; font-size: 13px; font-family: Roboto, sans-serif; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-    .preview-trigger:hover { background: #f5f5f5; }
-    .campaign-label-row { display: flex; align-items: center; justify-content: space-between; }
-    .preview-block-btn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: none; border-radius: 4px; background: transparent; color: #9e9e9e; cursor: pointer; }
-    .preview-block-btn:hover { background: #f0f0f0; color: #333; }
-    .preview-overlay { position: fixed; inset: 0; z-index: 9500; background: rgba(17, 17, 17, 0.92); display: flex; align-items: center; justify-content: center; overflow: hidden; animation: previewIn 0.2s ease-out; }
-    @keyframes previewIn { from { opacity: 0; } }
-    .preview-screen { position: relative; transform-origin: center center; flex-shrink: 0; background: #fff; box-shadow: 0 0 60px rgba(0, 0, 0, 0.5); overflow: hidden; }
-    .preview-close { position: absolute; top: 16px; right: 16px; z-index: 10; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.12); color: #fff; cursor: pointer; }
-    .preview-close:hover { background: rgba(255, 255, 255, 0.25); }
-    .preview-hint { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255, 255, 255, 0.55); font-size: 13px; font-family: Roboto, sans-serif; pointer-events: none; }
-    .preview-el { position: absolute; display: flex; align-items: center; justify-content: center; overflow: hidden; box-sizing: border-box; }
-    .pv-text { display: block; width: 100%; padding: 4px; word-break: break-word; box-sizing: border-box; }
-    .pv-image { width: 100%; height: 100%; object-fit: contain; }
-    .pv-placeholder { color: #bdbdbd; }
-    .pv-advertise { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 10px; text-align: center; background-image: linear-gradient(to top, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 45%); }
-    .pv-ad-icon { color: rgba(255, 255, 255, 0.95); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
-    .pv-ad-campaign { color: #fff; font-size: 14px; font-weight: 600; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45); }
-    .pv-ad-media { color: rgba(255, 255, 255, 0.88); font-size: 11px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
-    .pv-ad-empty { font-size: 12px; color: rgba(0, 0, 0, 0.5); }
-    .pv-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 12px; }
-    .pv-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
-    .pv-ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
-    .pv-ml-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #eee; box-sizing: border-box; }
-    .pv-ml-row:last-child { border-bottom: none; }
-    .pv-ml-name { font-size: 13px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .pv-ml-price { font-size: 13px; font-weight: 600; color: #c00; white-space: nowrap; }
+    /* ── Живой показ рекламы на канвасе (Play/Pause) ── */
+    .el-ad-live { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px; text-align: center; overflow: hidden; background-image: linear-gradient(to top, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 50%); }
+    .el-ad-live-icon { color: rgba(255, 255, 255, 0.95); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4)); }
+    .el-ad-live-campaign { color: #fff; font-size: 11px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
+    .el-ad-live-media { color: rgba(255, 255, 255, 0.85); font-size: 9px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
+    .el-ad-label { position: absolute; left: 0; right: 0; bottom: 4px; padding: 0 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .el-ad-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; border-radius: 50%; background: rgba(0, 0, 0, 0.45); color: #fff; cursor: pointer; transition: opacity 0.15s, background 0.15s; }
+    .el-ad-play:hover { background: rgba(0, 0, 0, 0.65); }
+    .el-ad-play-active { opacity: 0.55; }
+    .el-ad-play-active:hover { opacity: 0.9; }
   `],
 })
 export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -766,12 +695,12 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   collapsedFolderIds: string[] = [];
   /** Инлайн-ошибка валидации выбора кампаний */
   advertiseValidationError = '';
-  /** Режим полноэкранного превью («глазик»): 'none' | 'theme' | 'block' */
-  previewMode: 'none' | 'theme' | 'block' = 'none';
-  /** Текущий индекс слайда для каждой рекламной области в превью */
-  private previewSlideIdx: Record<string, number> = {};
-  /** Таймер смены слайдов в превью */
-  private previewTimer: ReturnType<typeof setInterval> | null = null;
+  /** Области, которые сейчас проигрываются на канвасе (по id элемента) */
+  playingAdvertiseIds = new Set<string>();
+  /** Текущий индекс слайда для каждой проигрываемой области */
+  private advertSlideIdx: Record<string, number> = {};
+  /** Таймер смены слайдов на канвасе */
+  private advertTimer: ReturnType<typeof setInterval> | null = null;
   /** Палитра-фолбэк для кампаний без медиа */
   private readonly AD_FALLBACK_COLORS = ['#5C6BC0', '#26A69A', '#EF5350', '#FFA726', '#AB47BC', '#42A5F5', '#66BB6A', '#EC407A'];
 
@@ -851,6 +780,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     }
     this.selectedElement.campaignIds = [...sel];
     if (this.selectedElement.campaignIds.length > 0) this.advertiseValidationError = '';
+    // Смена кампаний останавливает проигрывание этой области
+    this.stopAdvertisePlayback(this.selectedElement);
   }
 
   areaHelper = new AreaEmulationHelper();
@@ -935,27 +866,6 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
   get resHeight(): number { return parseInt(this.theme.resolution.split('x')[1]) || 768; }
 
-  /** Элементы для превью: вся тема или выбранная область (сдвинутая в 0,0) */
-  get previewElements(): ArrivalsThemeElement[] {
-    if (this.previewMode === 'block') {
-      const el = this.selectedElement;
-      return el ? [{ ...el, x: 0, y: 0 }] : [];
-    }
-    return this.theme.elements;
-  }
-  get previewScreenWidth(): number {
-    return this.previewMode === 'block' ? (this.selectedElement?.width ?? 0) : this.resWidth;
-  }
-  get previewScreenHeight(): number {
-    return this.previewMode === 'block' ? (this.selectedElement?.height ?? 0) : this.resHeight;
-  }
-  get previewScale(): number {
-    const w = this.previewScreenWidth || 1;
-    const h = this.previewScreenHeight || 1;
-    const pad = 96;
-    const s = Math.min((window.innerWidth - pad) / w, (window.innerHeight - pad) / h);
-    return Math.min(s, 3);
-  }
   get selectedElement(): ArrivalsThemeElement | null {
     return this.selectedElementId ? (this.theme.elements.find(e => e.id === this.selectedElementId) ?? null) : null;
   }
@@ -1008,7 +918,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     document.removeEventListener('mouseup', this.boundMouseUp);
     document.removeEventListener('mousemove', this.boundListMouseMove);
     document.removeEventListener('mouseup', this.boundListMouseUp);
-    this.stopPreviewSlideshow();
+    if (this.advertTimer) { clearInterval(this.advertTimer); this.advertTimer = null; }
     this.areaHelper.clearAll();
     this.sim.stopAuto();
   }
@@ -1034,7 +944,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Drag & Resize */
   onElementMouseDown(event: MouseEvent, el: ArrivalsThemeElement): void {
-    if (event.button !== 0 || (event.target as HTMLElement).classList.contains('handle')) return;
+    if (event.button !== 0 || (event.target as HTMLElement).closest('.handle, .el-ad-play')) return;
     event.preventDefault(); event.stopPropagation();
     this.selectedElementId = el.id; this.panelView = 'element';
     this.dragState = { elementId: el.id, startMouseX: event.clientX, startMouseY: event.clientY, startElX: el.x, startElY: el.y };
@@ -1127,15 +1037,30 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     this.router.navigate(['/prototype/web-screens/campaigns']);
   }
 
-  /* ── Полноэкранное превью («глазик») ── */
-  openThemePreview(): void { this.previewMode = 'theme'; this.startPreviewSlideshow(); }
-  openBlockPreview(): void {
-    if (this.selectedElement?.type === 'advertise') { this.previewMode = 'block'; this.startPreviewSlideshow(); }
-  }
-  closePreview(): void { this.previewMode = 'none'; this.stopPreviewSlideshow(); }
+  /* ── Живой показ на канвасе (Play/Stop) ── */
+  isAdvertisePlaying(id: string): boolean { return this.playingAdvertiseIds.has(id); }
 
-  @HostListener('window:keydown.escape') onEscapePreview(): void {
-    if (this.previewMode !== 'none') this.closePreview();
+  /** Play/Stop по клику на кнопку области (как у плеера) */
+  toggleAdvertisePlay(id: string, event: Event): void {
+    event.stopPropagation();
+    const el = this.theme.elements.find(e => e.id === id);
+    if (!el || el.type !== 'advertise' || this.getAdvertiseSlides(el).length === 0) return;
+    if (this.playingAdvertiseIds.has(id)) {
+      this.playingAdvertiseIds.delete(id);
+      delete this.advertSlideIdx[id];
+    } else {
+      this.playingAdvertiseIds.add(id);
+      this.advertSlideIdx[id] = 0;
+    }
+    this.syncAdvertiseTimer();
+  }
+
+  /** Остановить проигрывание конкретной области (при изменении её кампаний) */
+  stopAdvertisePlayback(el: ArrivalsThemeElement): void {
+    if (this.playingAdvertiseIds.delete(el.id)) {
+      delete this.advertSlideIdx[el.id];
+      this.syncAdvertiseTimer();
+    }
   }
 
   /** Слайды рекламы области: по одному на выбранную кампанию (первое медиа кампании) */
@@ -1162,32 +1087,32 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return slides;
   }
 
-  /** Текущий слайд области в превью */
+  /** Текущий слайд проигрываемой области */
   currentAdvertiseSlide(el: ArrivalsThemeElement): AdvertiseSlide | null {
     const slides = this.getAdvertiseSlides(el);
     if (!slides.length) return null;
-    const idx = this.previewSlideIdx[el.id] ?? 0;
+    const idx = this.advertSlideIdx[el.id] ?? 0;
     return slides[((idx % slides.length) + slides.length) % slides.length];
   }
 
-  private startPreviewSlideshow(): void {
-    this.stopPreviewSlideshow();
-    this.previewSlideIdx = {};
-    this.previewTimer = setInterval(() => {
+  /** Запустить/остановить общий таймер смены слайдов (по факту играющих областей) */
+  private syncAdvertiseTimer(): void {
+    if (this.playingAdvertiseIds.size === 0) {
+      if (this.advertTimer) { clearInterval(this.advertTimer); this.advertTimer = null; }
+      return;
+    }
+    if (this.advertTimer) return;
+    this.advertTimer = setInterval(() => {
       let changed = false;
-      for (const el of this.previewElements) {
-        if (el.type !== 'advertise') continue;
+      for (const el of this.theme.elements) {
+        if (el.type !== 'advertise' || !this.playingAdvertiseIds.has(el.id)) continue;
         const slides = this.getAdvertiseSlides(el);
         if (slides.length < 2) continue;
-        this.previewSlideIdx[el.id] = ((this.previewSlideIdx[el.id] ?? 0) + 1) % slides.length;
+        this.advertSlideIdx[el.id] = ((this.advertSlideIdx[el.id] ?? 0) + 1) % slides.length;
         changed = true;
       }
       if (changed) this.cdr.detectChanges();
     }, 2600);
-  }
-
-  private stopPreviewSlideshow(): void {
-    if (this.previewTimer) { clearInterval(this.previewTimer); this.previewTimer = null; }
   }
 
   /** Суммарное количество уникальных кампаний области (только реально существующие) */
@@ -1238,6 +1163,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       ids.push(campId);
     }
     if (ids.length > 0) this.advertiseValidationError = '';
+    // Смена кампаний останавливает проигрывание этой области (правило плеера)
+    this.stopAdvertisePlayback(this.selectedElement);
   }
 
   isCampaignSelected(campId: number): boolean {
@@ -1382,6 +1309,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   requestDeleteElement(el: ArrivalsThemeElement, event: Event): void { event.stopPropagation(); this.deleteElementTarget = el; }
   confirmDeleteElement(): void {
     if (this.deleteElementTarget) {
+      this.stopAdvertisePlayback(this.deleteElementTarget);
       this.theme.elements = this.theme.elements.filter(e => e.id !== this.deleteElementTarget!.id);
       if (this.selectedElementId === this.deleteElementTarget.id) this.deselectElement();
       this.deleteElementTarget = null;
