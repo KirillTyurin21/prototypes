@@ -44,6 +44,7 @@ export const MENUBOARD_THEME_CATEGORIES: ElementCategory[] = [
     collapsed: true,
     elements: [
       { type: 'counter' as any, label: 'Текущее время', icon: 'schedule' },
+      { type: 'qr' as any, label: 'QR-код', icon: 'qr-code' },
     ],
   },
 ];

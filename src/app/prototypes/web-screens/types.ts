@@ -95,7 +95,8 @@ export type ArrivalsElementType =
   | 'price'
   | 'counter'
   | 'advertise'
-  | 'menulist';
+  | 'menulist'
+  | 'qr';
 
 /* ── Advertise-панели (мини-борды: компании в рекламных блоках) ── */
 
@@ -124,6 +125,11 @@ export interface ArrivalsThemeElement {
   borderWidth: number;
   borderColor: string;
   borderRadius: number;
+  // Z-index (слой). Advertise всегда ниже QR-кода (DS-1121, раздел 5.4)
+  layer?: number;
+  // Фон Advertise (DS-1121, раздел 6.2 «прямоугольник с цветом фона»)
+  bgColor?: string;
+  bgOpacity?: number;
   // Text
   text?: string;
   fontFamily?: string;

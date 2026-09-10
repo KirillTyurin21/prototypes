@@ -35,16 +35,17 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
             <ng-container *ngFor="let el of theme.elements; let i = index">
-              <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+              <div *ngIf="el.type === 'area'" class="canvas-element area-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="getElementZIndex(el, i)" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <app-area-element-renderer [element]="el" [orderPositions]="areaHelper.getOrderPositions(el, sim.orders, sim.active, mockOrders, availableControls)" [emulationRunning]="areaHelper.isRunning(el.id)" [hasControl]="!!el.areaControlId" (toggleEmu)="areaHelper.toggle($event, getFilterSource(), availableControls)" (resetEmu)="areaHelper.reset($event.id)" (fillEmu)="areaHelper.fill($event, getFilterSource(), availableControls)"></app-area-element-renderer>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
-              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="theme.elements.length - i" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
+              <div *ngIf="el.type !== 'area'" class="canvas-element" [class.selected]="selectedElementId === el.id" [class.dragging]="dragState?.elementId === el.id" [style.z-index]="getElementZIndex(el, i)" [style.left.px]="el.x" [style.top.px]="el.y" [style.width.px]="el.width" [style.height.px]="el.height" [style.border-width.px]="el.borderWidth" [style.border-color]="el.borderColor" [style.border-radius.px]="el.borderRadius" [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null" (click)="selectElement(el.id, $event)" (mousedown)="onElementMouseDown($event, el)">
                 <span *ngIf="el.type === 'text'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
                 <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
                 <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
                 <span *ngIf="el.type === 'price'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign" [title]="getPriceTooltip(el)">{{ getPricePreview(el) }}</span>
                 <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
+                <span *ngIf="el.type === 'qr'" class="el-qr"><lucide-icon name="qr-code" [size]="28"></lucide-icon><span>QR-код</span></span>
                 <span *ngIf="el.type === 'counter'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
                   <div class="ml-empty" *ngIf="!el.productIds?.length">Выберите блюда</div>
@@ -123,7 +124,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                     </div>
                   </div>
                 </div>
-                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist' && el.type !== 'counter'" class="el-placeholder-label">{{ el.name }}</span>
+                <span *ngIf="el.type !== 'text' && el.type !== 'image' && el.type !== 'price' && el.type !== 'advertise' && el.type !== 'menulist' && el.type !== 'counter' && el.type !== 'qr'" class="el-placeholder-label">{{ el.name }}</span>
                 <ng-container *ngIf="selectedElementId === el.id"><div class="handle tl" (mousedown)="onHandleMouseDown($event, el, 'tl')"></div><div class="handle tr" (mousedown)="onHandleMouseDown($event, el, 'tr')"></div><div class="handle bl" (mousedown)="onHandleMouseDown($event, el, 'bl')"></div><div class="handle br" (mousedown)="onHandleMouseDown($event, el, 'br')"></div><div class="handle tm" (mousedown)="onHandleMouseDown($event, el, 'tm')"></div><div class="handle bm" (mousedown)="onHandleMouseDown($event, el, 'bm')"></div><div class="handle ml" (mousedown)="onHandleMouseDown($event, el, 'ml')"></div><div class="handle mr" (mousedown)="onHandleMouseDown($event, el, 'mr')"></div></ng-container>
               </div>
             </ng-container>
@@ -188,22 +189,77 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
               </div>
               <div class="field-group">
                 <label class="field-label">Рекламные кампании</label>
-                <div class="campaign-multiselect">
+                <div class="campaign-search">
+                  <lucide-icon name="search" [size]="14"></lucide-icon>
+                  <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
+                  <button *ngIf="campaignSearchText" class="campaign-search-clear" (click)="campaignSearchText = ''" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+                </div>
+                <div *ngIf="!campaignOptions.length" class="campaign-empty-hint">Нет доступных кампаний. Создайте кампанию в разделе Кампании</div>
+                <div class="campaign-multiselect" *ngIf="campaignOptions.length">
                   <label
-                    *ngFor="let c of campaignOptions"
+                    *ngFor="let c of filteredCampaigns"
                     class="campaign-checkbox"
                     (click)="toggleCampaign(c.id)"
                   >
                     <span class="campaign-checkbox-box" [class.checked]="isCampaignSelected(c.id)"></span>
-                    <span class="campaign-checkbox-label">{{ c.name }}</span>
-                    <span class="campaign-checkbox-dates">{{ formatCampaignDate(c.dateFrom) }} – {{ formatCampaignDate(c.dateTo) }}</span>
+                    <span class="campaign-checkbox-label">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</span>
                   </label>
-                  <div *ngIf="!selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
+                  <div *ngIf="!filteredCampaigns.length" class="campaign-empty-hint">Ничего не найдено</div>
                 </div>
                 <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
                   Выбрано кампаний: {{ selectedCampaignCount }}
                 </div>
               </div>
+            </ng-container>
+            <!-- Advertise: макет и граница (DS-1121, раздел 6.1) -->
+            <ng-container *ngIf="selectedElement.type === 'advertise'">
+              <app-collapsible-section title="Макет">
+                <div class="field-group">
+                  <label class="field-label">Позиция X</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.x" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Позиция Y</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.y" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Ширина (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.width" min="20" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Высота (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.height" min="20" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Слой (z-index)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
+                  <p class="layer-error" *ngIf="getAdvertiseLayerError(selectedElement)">{{ getAdvertiseLayerError(selectedElement) }}</p>
+                  <p class="layer-hint" *ngIf="!getAdvertiseLayerError(selectedElement) && getQrLayer() != null">Слой QR-кода в теме: {{ getQrLayer() }}. Динамическая область должна быть ниже.</p>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет фона</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.bgColor" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Прозрачность (%)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.bgOpacity" min="0" max="100" />
+                </div>
+              </app-collapsible-section>
+
+              <app-collapsible-section title="Граница">
+                <div class="field-group">
+                  <label class="field-label">Толщина (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.borderWidth" min="0" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Цвет</label>
+                  <input type="color" class="field-color" [(ngModel)]="selectedElement.borderColor" />
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Скругление (px)</label>
+                  <input type="number" class="field-input" [(ngModel)]="selectedElement.borderRadius" min="0" />
+                </div>
+              </app-collapsible-section>
             </ng-container>
             <!-- MenuList inspector -->
             <ng-container *ngIf="selectedElement.type === 'menulist'">
@@ -410,8 +466,14 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 </div>
               </app-collapsible-section>
             </ng-container>
-            <!-- Standard element inspector for non-menulist, non-area -->
-            <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist'" [element]="selectedElement"></app-theme-element-inspector>
+            <!-- QR: слой (DS-1121, раздел 5.4) -->
+            <div class="field-group" *ngIf="selectedElement.type === 'qr'">
+              <label class="field-label">Слой (z-index)</label>
+              <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
+              <p class="layer-hint">Все динамические области должны быть ниже слоя QR-кода.</p>
+            </div>
+            <!-- Standard element inspector for non-menulist, non-area, non-advertise -->
+            <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist' && selectedElement.type !== 'advertise'" [element]="selectedElement"></app-theme-element-inspector>
             <app-area-element-inspector *ngIf="selectedElement.type === 'area'" [element]="selectedElement" [availableControls]="availableControls" (areaControlChange)="onAreaControlChange()" (editControl)="onEditControl($event)"></app-area-element-inspector>
           </ng-container>
         </div>
@@ -544,6 +606,13 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .field-check input[type="checkbox"] { cursor: pointer; }
     .field-hint { font-size: 12px; color: #bdbdbd; font-style: italic; margin: 0; text-align: center; padding: 8px 0; }
     .field-color { width: 100%; height: 36px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px; cursor: pointer; box-sizing: border-box; }
+    .campaign-search { display: flex; align-items: center; gap: 6px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; color: #9e9e9e; }
+    .campaign-search:focus-within { border-color: #448aff; }
+    .campaign-search-input { flex: 1; border: none; outline: none; font-size: 13px; font-family: Roboto, sans-serif; color: #333; background: transparent; }
+    .campaign-search-clear { display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #9e9e9e; cursor: pointer; padding: 0; }
+    .layer-error { font-size: 12px; color: #d32f2f; margin: 4px 0 0; }
+    .layer-hint { font-size: 12px; color: #9e9e9e; margin: 4px 0 0; }
+    .el-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 11px; }
   `],
 })
 export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -580,6 +649,14 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     { id: 3, name: 'Осенние скидки', dateFrom: '2026-09-01', dateTo: '2026-11-30' },
     { id: 4, name: 'Сезонное предложение', dateFrom: '2026-03-01', dateTo: '2026-05-31' },
   ];
+  campaignSearchText = '';
+
+  /** Живой фильтр кампаний по названию (без учёта регистра) — DS-1121, раздел 5.3 */
+  get filteredCampaigns(): CampaignOption[] {
+    const q = (this.campaignSearchText || '').trim().toLowerCase();
+    if (!q) return this.campaignOptions;
+    return this.campaignOptions.filter(c => c.name.toLowerCase().includes(q));
+  }
 
   areaHelper = new AreaEmulationHelper();
   sim = new SimulatorHelper();
@@ -611,6 +688,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     { type: 'advertise' as ArrivalsElementType, label: 'Динамическая область' },
     { type: 'text', label: 'Текст' }, { type: 'image', label: 'Изображение' },
     { type: 'counter' as ArrivalsElementType, label: 'Текущее время' },
+    { type: 'qr' as ArrivalsElementType, label: 'QR-код' },
   ];
 
   themeCategories = MENUBOARD_THEME_CATEGORIES.map(cat => ({ ...cat, collapsed: cat.collapsed, elements: [...cat.elements] }));
@@ -650,6 +728,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (this.listDragIndex !== null && this.listDragOverIndex !== null && this.listDragIndex !== this.listDragOverIndex) {
       const el = this.theme.elements.splice(this.listDragIndex, 1)[0];
       this.theme.elements.splice(this.listDragOverIndex, 0, el);
+      // Переиндексация слоёв по новому порядку (z-порядок = позиция в списке)
+      this.theme.elements.forEach((e, idx) => { e.layer = idx + 1; });
     }
     this.listDragIndex = null;
     this.listDragOverIndex = null;
@@ -673,6 +753,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       this.theme.id = Date.now();
     }
     this.theme.elements.forEach(el => { if (el.type === 'advertise') this.ensureAdvertisePanels(el); });
+    // Нормализация слоёв: элементам без явного layer — позиция в списке
+    this.theme.elements.forEach((el, i) => { if (el.layer == null) el.layer = i + 1; });
     this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
 
     // Handle return from control editor with newControlId (Save as Copy)
@@ -787,14 +869,30 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Advertise helpers */
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
-    if (el.panels && el.panels.length > 0) {
-      const parts = el.panels.map(p => {
-        const company = this.getCompanyName(p.companyId);
-        return company ? `${p.name}: ${company}` : p.name;
-      });
-      return parts.join(' · ');
+    if (el.type !== 'advertise') return el.name;
+    const panels = el.panels || [];
+    const parts: string[] = [];
+    for (const p of panels) {
+      const camps = (p.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
+      if (!camps.length) continue;
+      const company = this.getCompanyName(p.companyId);
+      parts.push(company ? `${company}: ${camps.join(', ')}` : camps.join(', '));
     }
-    return 'Динамическая область';
+    // DS-1121, раздел 6.2: названия кампаний, иначе «Динамическая область»
+    return parts.length ? parts.join(' · ') : 'Динамическая область';
+  }
+
+  /** Название кампании по id */
+  getCampaignName(campId: number): string {
+    return this.campaignOptions.find(c => c.id === campId)?.name ?? '';
+  }
+
+  /** Суммарное количество уникальных кампаний по всем панелям Advertise */
+  getAdvertiseCampaignCount(el: ArrivalsThemeElement): number {
+    if (el.type !== 'advertise') return 0;
+    const ids = new Set<number>();
+    (el.panels || []).forEach(p => (p.campaignIds || []).forEach(id => ids.add(id)));
+    return ids.size;
   }
 
   /** Миграция: старые campaignIds элемента → первая Advertise-панель */
@@ -943,6 +1041,40 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return `${parts[2]}.${parts[1]}.${parts[0]}`;
   }
 
+  /* ── DS-1121: слой, QR, фон Advertise ── */
+  getElementZIndex(el: ArrivalsThemeElement, i: number): number {
+    return el.layer ?? (this.theme.elements.length - i);
+  }
+
+  getQrLayer(): number | null {
+    const qr = this.theme.elements.find(e => e.type === 'qr');
+    return qr ? (qr.layer ?? 1) : null;
+  }
+
+  getAdvertiseLayerError(el: ArrivalsThemeElement): string {
+    const qrLayer = this.getQrLayer();
+    if (qrLayer != null && (el.layer ?? 1) >= qrLayer) {
+      return 'Слой должен быть ниже слоя QR-кода';
+    }
+    return '';
+  }
+
+  hexToRgba(hex: string, opacityPct: number): string {
+    if (!hex) return 'transparent';
+    const h = hex.replace('#', '');
+    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    const r = parseInt(full.slice(0, 2), 16);
+    const g = parseInt(full.slice(2, 4), 16);
+    const b = parseInt(full.slice(4, 6), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return 'transparent';
+    const alpha = Math.min(100, Math.max(0, opacityPct ?? 100)) / 100;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  getAdvertiseBg(el: ArrivalsThemeElement): string {
+    return this.hexToRgba(el.bgColor || '#ffffff', el.bgOpacity ?? 100);
+  }
+
   /* Add / Delete */
   addElement(type: ArrivalsElementType): void {
     // Сообщение при добавлении платного элемента без лицензии (вариант E)
@@ -950,11 +1082,12 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       this.showToast('Вы добавляете платный элемент. Он будет недоступен на экране без платной лицензии.');
     }
     const label = this.elementTypes.find(et => et.type === type)?.label ?? type;
-    const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0 };
+    const el: ArrivalsThemeElement = { id: Date.now().toString() + Math.random().toString(36).slice(2, 6), type, name: label, x: 20 + this.theme.elements.length * 20, y: 20 + this.theme.elements.length * 20, width: 120, height: 60, borderWidth: 1, borderColor: '#000000', borderRadius: 0, layer: this.theme.elements.length + 1 };
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
-    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.panels = []; }
+    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.panels = []; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
+    if (type === 'qr') { el.name = 'QR-код'; el.width = 200; el.height = 200; el.layer = this.theme.elements.length + 1; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     if (type === 'counter') { el.name = 'Текущее время'; el.width = 100; el.height = 40; el.fontFamily = 'Arial'; el.fontSize = 16; el.fontBold = false; el.fontItalic = false; el.textAlign = 'center'; el.text = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
     this.theme.elements.push(el);
@@ -974,6 +1107,24 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Save */
   save(): void {
+    // Валидация по DS-1121 (разделы 5.3, 5.4; ошибки 1–3):
+    // минимум одна кампания у каждой динамической области; слой Advertise строго ниже слоя QR-кода
+    const qrEl = this.theme.elements.find(e => e.type === 'qr');
+    for (const el of this.theme.elements) {
+      if (el.type !== 'advertise') continue;
+      if (this.getAdvertiseCampaignCount(el) === 0) {
+        this.selectedElementId = el.id; this.panelView = 'element';
+        this.showToast(this.campaignOptions.length === 0
+          ? 'Нет доступных кампаний. Создайте кампанию в разделе Кампании'
+          : `«${el.name}»: выберите хотя бы одну рекламную кампанию`);
+        return;
+      }
+      if (qrEl && (el.layer ?? 1) >= (qrEl.layer ?? 1)) {
+        this.selectedElementId = el.id; this.panelView = 'element';
+        this.showToast(`«${el.name}»: слой должен быть ниже слоя QR-кода`);
+        return;
+      }
+    }
     const allThemes: ArrivalsTheme[] = this.storage.load('web-screens', 'menuboard-themes', [...MOCK_ARRIVALS_THEMES]);
     const idx = allThemes.findIndex(t => t.id === this.theme.id);
     if (idx >= 0) allThemes[idx] = JSON.parse(JSON.stringify(this.theme)); else allThemes.push(JSON.parse(JSON.stringify(this.theme)));
