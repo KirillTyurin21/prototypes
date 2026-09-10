@@ -7,9 +7,9 @@ import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { CsDataService } from '../cs-data.service';
-import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, MOCK_COMPANIES, ExternalMenuItem } from '../data/mock-data';
+import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
 import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
-import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory, AdvertiseCompany } from '../types';
+import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
 import { AreaElementInspectorComponent } from '../components/theme-editor/area-element-inspector.component';
@@ -160,15 +160,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           </app-element-palette>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
-            <!-- Advertise: компания + кампании (одна область = одно рекламное место) -->
-            <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
-              <label class="field-label">Компания</label>
-              <select class="field-select" [(ngModel)]="selectedElement.companyId">
-                <option [ngValue]="null">Компания не выбрана</option>
-                <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
-              </select>
-              <p class="layer-hint">Компания — рекламодатель, чей контент показывает область</p>
-            </div>
+            <!-- Advertise: рекламные кампании (DS-1121, раздел 5.3) -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
               <label class="field-label">Рекламные кампании</label>
               <div class="campaign-search">
@@ -623,8 +615,6 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   dishSelectorOpen = false;
   dishSelectorIds: string[] = [];
 
-  companies: AdvertiseCompany[] = [...MOCK_COMPANIES];
-
   campaignOptions: CampaignOption[] = [
     { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
     { id: 2, name: 'Летнее меню', dateFrom: '2026-06-01', dateTo: '2026-08-31' },
@@ -853,11 +843,9 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   /* Advertise helpers */
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
     if (el.type !== 'advertise') return el.name;
-    const company = this.getCompanyName(el.companyId);
     const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
-    // DS-1121 6.2: компания и названия кампаний, иначе «Динамическая область»
-    if (!company && !camps.length) return 'Динамическая область';
-    return [company, camps.join(', ')].filter(Boolean).join(' — ');
+    // DS-1121, раздел 6.2: названия кампаний, иначе «Динамическая область»
+    return camps.length ? camps.join(', ') : 'Динамическая область';
   }
 
   /** Название кампании по id */
@@ -879,13 +867,12 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       if (el.panels && el.panels.length > 0) {
         el.panels.forEach((p, i) => {
           if (i === 0) {
-            el.companyId = p.companyId;
             el.campaignIds = [...(p.campaignIds || [])];
           } else {
             const clone: ArrivalsThemeElement = JSON.parse(JSON.stringify(el));
             clone.id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
             delete clone.panels;
-            clone.companyId = p.companyId;
+            delete (clone as any).companyId;
             clone.campaignIds = [...(p.campaignIds || [])];
             clone.x = el.x + i * 20;
             clone.y = el.y + i * 20;
@@ -893,16 +880,13 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
           }
         });
         delete el.panels;
+        delete (el as any).companyId;
       } else {
         delete el.panels;
+        delete (el as any).companyId;
       }
     }
     this.theme.elements.push(...extra);
-  }
-
-  getCompanyName(companyId: number | null | undefined): string {
-    if (companyId == null) return '';
-    return this.companies.find(c => c.id === companyId)?.name ?? '#' + companyId;
   }
 
   /* Campaign multi-select helpers */
@@ -1043,7 +1027,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
-    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.companyId = null; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
+    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
     if (type === 'qr') { el.name = 'QR-код'; el.width = 200; el.height = 200; el.layer = 100; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     if (type === 'counter') { el.name = 'Текущее время'; el.width = 100; el.height = 40; el.fontFamily = 'Arial'; el.fontSize = 16; el.fontBold = false; el.fontItalic = false; el.textAlign = 'center'; el.text = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
