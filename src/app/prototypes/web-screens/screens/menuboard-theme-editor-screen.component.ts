@@ -44,6 +44,10 @@ interface CampaignRow {
   template: `
     <div class="editor-layout">
       <div class="canvas-column">
+        <button class="preview-trigger" (click)="openThemePreview()" title="Полноэкранный просмотр темы" aria-label="Просмотр темы">
+          <lucide-icon name="eye" [size]="18"></lucide-icon>
+          <span>Просмотр</span>
+        </button>
         <div class="canvas-area" #canvasAreaRef>
         <div class="canvas-scroll">
           <div class="canvas-viewport" [style.width.px]="resWidth" [style.height.px]="resHeight" [style.transform]="'scale(' + canvasScale + ')'" (click)="onCanvasClick()">
@@ -176,7 +180,12 @@ interface CampaignRow {
             <!-- Advertise: рекламные кампании (DS-1121, раздел 5.3) -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
               <p class="advertise-desc">Место на экране менюборда, где по расписанию показываются рекламные кампании.</p>
-              <label class="field-label">Рекламные кампании<span class="campaign-count" *ngIf="selectedCampaignCount">Выбрано: {{ selectedCampaignCount }}</span></label>
+              <div class="campaign-label-row">
+                <label class="field-label">Рекламные кампании<span class="campaign-count" *ngIf="selectedCampaignCount">Выбрано: {{ selectedCampaignCount }}</span></label>
+                <button class="preview-block-btn" (click)="openBlockPreview()" title="Посмотреть область на весь экран" aria-label="Просмотр области">
+                  <lucide-icon name="eye" [size]="16"></lucide-icon>
+                </button>
+              </div>
               <div class="campaign-search">
                 <lucide-icon name="search" [size]="14"></lucide-icon>
                 <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
@@ -487,6 +496,53 @@ interface CampaignRow {
         </div>
         <div class="panel-footer"><button class="btn-save" (click)="save()">СОХРАНИТЬ</button><button class="btn-back" (click)="goBack()">НАЗАД</button></div>
       </div>
+      <!-- Полноэкранное превью («глазик») -->
+      <div class="preview-overlay" *ngIf="previewMode !== 'none'" (click)="closePreview()">
+        <button class="preview-close" (click)="closePreview()" aria-label="Закрыть просмотр">
+          <lucide-icon name="x" [size]="22"></lucide-icon>
+        </button>
+        <div class="preview-hint">Esc — выйти из просмотра</div>
+        <div
+          class="preview-screen"
+          [style.width.px]="previewScreenWidth"
+          [style.height.px]="previewScreenHeight"
+          [style.transform]="'scale(' + previewScale + ')'"
+          (click)="$event.stopPropagation()"
+        >
+          <ng-container *ngFor="let el of previewElements">
+            <div
+              class="preview-el"
+              [style.z-index]="el.layer ?? 1"
+              [style.left.px]="el.x"
+              [style.top.px]="el.y"
+              [style.width.px]="el.width"
+              [style.height.px]="el.height"
+              [style.background-color]="el.type === 'advertise' ? getAdvertiseBg(el) : null"
+              [style.border-width.px]="el.borderWidth"
+              [style.border-style]="el.borderWidth ? 'solid' : 'none'"
+              [style.border-color]="el.borderColor"
+              [style.border-radius.px]="el.borderRadius"
+            >
+              <span *ngIf="el.type === 'text'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text }}</span>
+              <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="pv-image" />
+              <span *ngIf="el.type === 'image' && !el.imageUrl" class="pv-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
+              <span *ngIf="el.type === 'price'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ getPricePreview(el) }}</span>
+              <span *ngIf="el.type === 'advertise'" class="pv-advertise">{{ getAdvertiseFullLabel(el) }}</span>
+              <span *ngIf="el.type === 'qr'" class="pv-qr"><lucide-icon name="qr-code" [size]="30"></lucide-icon><span>QR-код</span></span>
+              <span *ngIf="el.type === 'counter'" class="pv-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
+              <div *ngIf="el.type === 'menulist'" class="pv-menulist">
+                <div *ngIf="!el.productIds?.length" class="pv-ml-empty">Меню</div>
+                <div class="pv-ml-row" *ngFor="let pid of el.productIds || []" [style.min-height.px]="el.rowHeight || 48" [style.padding.px]="el.rowPadding || 4">
+                  <span class="pv-ml-name">{{ getDishData(pid)?.name || '#' + pid.slice(0, 6) }}</span>
+                  <span class="pv-ml-price">{{ getDishData(pid)?.price || 0 }} \u20BD</span>
+                </div>
+              </div>
+              <span *ngIf="el.type === 'area'" class="pv-placeholder">{{ el.name }}</span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
       <div *ngIf="toastMessage" class="toast">{{ toastMessage }}</div>
       <ui-confirm-dialog *ngIf="deleteElementTarget" [open]="true" title="Удалить элемент" [message]="'Удалить элемент «' + deleteElementTarget.name + '»?'" confirmText="Удалить" variant="danger" (confirmed)="confirmDeleteElement()" (cancelled)="deleteElementTarget = null"></ui-confirm-dialog>
 
@@ -632,6 +688,31 @@ interface CampaignRow {
     .layer-error { font-size: 12px; color: #ff5252; margin: 4px 0 0; }
     .layer-hint { font-size: 12px; color: #9e9e9e; margin: 4px 0 0; }
     .el-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 11px; }
+
+    /* ── Полноэкранное превью («глазик») ── */
+    .preview-trigger { position: absolute; top: 12px; right: 12px; z-index: 50; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid #d6d6d6; border-radius: 4px; background: #fff; color: #333; font-size: 13px; font-family: Roboto, sans-serif; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+    .preview-trigger:hover { background: #f5f5f5; }
+    .campaign-label-row { display: flex; align-items: center; justify-content: space-between; }
+    .preview-block-btn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: none; border-radius: 4px; background: transparent; color: #9e9e9e; cursor: pointer; }
+    .preview-block-btn:hover { background: #f0f0f0; color: #333; }
+    .preview-overlay { position: fixed; inset: 0; z-index: 9500; background: rgba(17, 17, 17, 0.92); display: flex; align-items: center; justify-content: center; overflow: hidden; animation: previewIn 0.2s ease-out; }
+    @keyframes previewIn { from { opacity: 0; } }
+    .preview-screen { position: relative; transform-origin: center center; flex-shrink: 0; background: #fff; box-shadow: 0 0 60px rgba(0, 0, 0, 0.5); overflow: hidden; }
+    .preview-close { position: absolute; top: 16px; right: 16px; z-index: 10; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.12); color: #fff; cursor: pointer; }
+    .preview-close:hover { background: rgba(255, 255, 255, 0.25); }
+    .preview-hint { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 10; color: rgba(255, 255, 255, 0.55); font-size: 13px; font-family: Roboto, sans-serif; pointer-events: none; }
+    .preview-el { position: absolute; display: flex; align-items: center; justify-content: center; overflow: hidden; box-sizing: border-box; }
+    .pv-text { display: block; width: 100%; padding: 4px; word-break: break-word; box-sizing: border-box; }
+    .pv-image { width: 100%; height: 100%; object-fit: contain; }
+    .pv-placeholder { color: #bdbdbd; }
+    .pv-advertise { padding: 0 10px; color: rgba(0, 0, 0, 0.55); font-size: 13px; text-align: center; word-break: break-word; }
+    .pv-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 12px; }
+    .pv-menulist { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+    .pv-ml-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #bdbdbd; font-size: 12px; }
+    .pv-ml-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #eee; box-sizing: border-box; }
+    .pv-ml-row:last-child { border-bottom: none; }
+    .pv-ml-name { font-size: 13px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pv-ml-price { font-size: 13px; font-weight: 600; color: #c00; white-space: nowrap; }
   `],
 })
 export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -665,6 +746,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   collapsedFolderIds: string[] = [];
   /** Инлайн-ошибка валидации выбора кампаний */
   advertiseValidationError = '';
+  /** Режим полноэкранного превью («глазик»): 'none' | 'theme' | 'block' */
+  previewMode: 'none' | 'theme' | 'block' = 'none';
 
   /** Все id кампаний, попадающих под текущий поиск */
   get filteredCampaignIds(): number[] {
@@ -825,6 +908,28 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   get resWidth(): number { return parseInt(this.theme.resolution.split('x')[0]) || 1024; }
   get resHeight(): number { return parseInt(this.theme.resolution.split('x')[1]) || 768; }
+
+  /** Элементы для превью: вся тема или выбранная область (сдвинутая в 0,0) */
+  get previewElements(): ArrivalsThemeElement[] {
+    if (this.previewMode === 'block') {
+      const el = this.selectedElement;
+      return el ? [{ ...el, x: 0, y: 0 }] : [];
+    }
+    return this.theme.elements;
+  }
+  get previewScreenWidth(): number {
+    return this.previewMode === 'block' ? (this.selectedElement?.width ?? 0) : this.resWidth;
+  }
+  get previewScreenHeight(): number {
+    return this.previewMode === 'block' ? (this.selectedElement?.height ?? 0) : this.resHeight;
+  }
+  get previewScale(): number {
+    const w = this.previewScreenWidth || 1;
+    const h = this.previewScreenHeight || 1;
+    const pad = 96;
+    const s = Math.min((window.innerWidth - pad) / w, (window.innerHeight - pad) / h);
+    return Math.min(s, 3);
+  }
   get selectedElement(): ArrivalsThemeElement | null {
     return this.selectedElementId ? (this.theme.elements.find(e => e.id === this.selectedElementId) ?? null) : null;
   }
@@ -993,6 +1098,17 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   /** Перейти в раздел «Кампании» для создания новой */
   goToCampaigns(): void {
     this.router.navigate(['/prototype/web-screens/campaigns']);
+  }
+
+  /* ── Полноэкранное превью («глазик») ── */
+  openThemePreview(): void { this.previewMode = 'theme'; }
+  openBlockPreview(): void {
+    if (this.selectedElement?.type === 'advertise') this.previewMode = 'block';
+  }
+  closePreview(): void { this.previewMode = 'none'; }
+
+  @HostListener('window:keydown.escape') onEscapePreview(): void {
+    if (this.previewMode !== 'none') this.closePreview();
   }
 
   /** Суммарное количество уникальных кампаний области (только реально существующие) */
