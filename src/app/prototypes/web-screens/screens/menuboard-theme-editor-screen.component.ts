@@ -9,7 +9,7 @@ import { StorageService } from '@/shared/storage.service';
 import { CsDataService } from '../cs-data.service';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, MOCK_COMPANIES, ExternalMenuItem } from '../data/mock-data';
 import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
-import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory, AdvertiseCompany, AdvertisePanelConfig } from '../types';
+import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory, AdvertiseCompany } from '../types';
 import { AreaElementRendererComponent } from '../components/theme-editor/area-element-renderer.component';
 import { ThemeElementInspectorComponent } from '../components/theme-editor/theme-element-inspector.component';
 import { AreaElementInspectorComponent } from '../components/theme-editor/area-element-inspector.component';
@@ -160,60 +160,40 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
           </app-element-palette>
           <ng-container *ngIf="panelView === 'element' && selectedElement">
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
-            <!-- Advertise: панели + компания + кампании (мини-борды) -->
+            <!-- Advertise: компания + кампании (одна область = одно рекламное место) -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
-              <label class="field-label">Рекламные панели</label>
-              <div class="panels-list">
-                <div
-                  *ngFor="let p of selectedPanels"
-                  class="panel-item"
-                  [class.active]="selectedPanel?.id === p.id"
-                  (click)="selectPanel(p.id)"
-                >
-                  <span class="panel-item-name">{{ p.name }}</span>
-                  <span class="panel-item-company" *ngIf="getCompanyName(p.companyId)">{{ getCompanyName(p.companyId) }}</span>
-                  <button class="panel-item-delete" (click)="removePanel(p.id, $event)" title="Удалить панель"><lucide-icon name="x" [size]="14"></lucide-icon></button>
-                </div>
-                <div *ngIf="!selectedPanels.length" class="campaign-empty-hint">Панели не добавлены</div>
-              </div>
-              <button class="btn-add-panel" (click)="addPanel()"><lucide-icon name="plus" [size]="14"></lucide-icon> Добавить панель</button>
+              <label class="field-label">Компания</label>
+              <select class="field-select" [(ngModel)]="selectedElement.companyId">
+                <option [ngValue]="null">Компания не выбрана</option>
+                <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
+              </select>
+              <p class="layer-hint">Компания — рекламодатель, чей контент показывает область</p>
             </div>
-
-            <ng-container *ngIf="selectedElement.type === 'advertise' && selectedPanel">
-              <div class="field-group">
-                <label class="field-label">Компания панели</label>
-                <select class="field-select" [(ngModel)]="selectedPanel.companyId">
-                  <option [ngValue]="null">Компания не выбрана</option>
-                  <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
-                </select>
-                <p class="layer-hint">Компания — рекламодатель, чей контент показывает панель</p>
+            <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
+              <label class="field-label">Рекламные кампании</label>
+              <div class="campaign-search">
+                <lucide-icon name="search" [size]="14"></lucide-icon>
+                <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
+                <button *ngIf="campaignSearchText" class="campaign-search-clear" (click)="campaignSearchText = ''" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
               </div>
-              <div class="field-group">
-                <label class="field-label">Кампании панели</label>
-                <div class="campaign-search">
-                  <lucide-icon name="search" [size]="14"></lucide-icon>
-                  <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
-                  <button *ngIf="campaignSearchText" class="campaign-search-clear" (click)="campaignSearchText = ''" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
-                </div>
-                <div *ngIf="!campaignOptions.length" class="campaign-empty-hint">Нет доступных кампаний. Создайте кампанию в разделе Кампании</div>
-                <div class="campaign-multiselect" *ngIf="campaignOptions.length">
-                  <label
-                    *ngFor="let c of filteredCampaigns"
-                    class="campaign-checkbox"
-                    (click)="toggleCampaign(c.id)"
-                  >
-                    <span class="campaign-checkbox-box" [class.checked]="isCampaignSelected(c.id)"></span>
-                    <span class="campaign-checkbox-label">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</span>
-                  </label>
-                  <div *ngIf="!filteredCampaigns.length" class="campaign-empty-hint">Ничего не найдено</div>
-                  <div *ngIf="filteredCampaigns.length && !selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
-                </div>
-                <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
-                  Выбрано кампаний: {{ selectedCampaignCount }}
-                </div>
-                <p class="layer-hint">Кампании — медиаплан с расписанием из раздела Кампании</p>
+              <div *ngIf="!campaignOptions.length" class="campaign-empty-hint">Нет доступных кампаний. Создайте кампанию в разделе Кампании</div>
+              <div class="campaign-multiselect" *ngIf="campaignOptions.length">
+                <label
+                  *ngFor="let c of filteredCampaigns"
+                  class="campaign-checkbox"
+                  (click)="toggleCampaign(c.id)"
+                >
+                  <span class="campaign-checkbox-box" [class.checked]="isCampaignSelected(c.id)"></span>
+                  <span class="campaign-checkbox-label">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</span>
+                </label>
+                <div *ngIf="!filteredCampaigns.length" class="campaign-empty-hint">Ничего не найдено</div>
+                <div *ngIf="filteredCampaigns.length && !selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
               </div>
-            </ng-container>
+              <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
+                Выбрано кампаний: {{ selectedCampaignCount }}
+              </div>
+              <p class="layer-hint">Кампании — медиаплан с расписанием из раздела Кампании</p>
+            </div>
             <!-- Advertise: макет и граница (DS-1121, раздел 6.1) -->
             <ng-container *ngIf="selectedElement.type === 'advertise'">
               <app-collapsible-section title="Макет">
@@ -644,7 +624,6 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   dishSelectorIds: string[] = [];
 
   companies: AdvertiseCompany[] = [...MOCK_COMPANIES];
-  selectedPanelId: number | null = null;
 
   campaignOptions: CampaignOption[] = [
     { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
@@ -755,7 +734,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     } else {
       this.theme.id = Date.now();
     }
-    this.theme.elements.forEach(el => { if (el.type === 'advertise') this.ensureAdvertisePanels(el); });
+    // Миграция старой модели: панели → отдельные элементы «Динамическая область»
+    this.expandLegacyAdvertisePanels();
     // Нормализация слоёв: элементам без явного layer — позиция в списке
     this.theme.elements.forEach((el, i) => { if (el.layer == null) el.layer = i + 1; });
     this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
@@ -851,8 +831,8 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* Selection */
-  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.selectedPanelId = null; this.campaignSearchText = ''; this.panelView = 'element'; }
-  selectElementFromList(id: string): void { this.selectedElementId = id; this.selectedPanelId = null; this.campaignSearchText = ''; this.panelView = 'element'; }
+  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.campaignSearchText = ''; this.panelView = 'element'; }
+  selectElementFromList(id: string): void { this.selectedElementId = id; this.campaignSearchText = ''; this.panelView = 'element'; }
   deselectElement(): void { this.selectedElementId = null; this.campaignSearchText = ''; this.panelView = 'theme'; }
 
   /* Price helpers */
@@ -873,18 +853,11 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   /* Advertise helpers */
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
     if (el.type !== 'advertise') return el.name;
-    const panels = el.panels || [];
-    // Задача 8, ФТ-5: без панелей — «Динамическая область»
-    if (!panels.length) return 'Динамическая область';
-    const parts: string[] = [];
-    for (const p of panels) {
-      const company = this.getCompanyName(p.companyId);
-      const camps = (p.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
-      const head = company ? `${p.name}: ${company}` : p.name;
-      // DS-1121, раздел 6.2: названия кампаний видны на канвасе
-      parts.push(camps.length ? `${head} — ${camps.join(', ')}` : head);
-    }
-    return parts.join(' · ');
+    const company = this.getCompanyName(el.companyId);
+    const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
+    // DS-1121 6.2: компания и названия кампаний, иначе «Динамическая область»
+    if (!company && !camps.length) return 'Динамическая область';
+    return [company, camps.join(', ')].filter(Boolean).join(' — ');
   }
 
   /** Название кампании по id */
@@ -892,61 +865,39 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     return this.campaignOptions.find(c => c.id === campId)?.name ?? '';
   }
 
-  /** Суммарное количество уникальных кампаний по всем панелям Advertise */
+  /** Суммарное количество уникальных кампаний области */
   getAdvertiseCampaignCount(el: ArrivalsThemeElement): number {
     if (el.type !== 'advertise') return 0;
-    const ids = new Set<number>();
-    (el.panels || []).forEach(p => (p.campaignIds || []).forEach(id => ids.add(id)));
-    return ids.size;
+    return (el.campaignIds || []).length;
   }
 
-  /** Миграция: старые campaignIds элемента → первая Advertise-панель */
-  ensureAdvertisePanels(el: ArrivalsThemeElement): void {
-    if (el.type !== 'advertise') return;
-    if (el.panels === undefined) {
-      el.panels = [
-        {
-          id: Date.now(),
-          name: 'Advertise панель 1',
-          companyId: null,
-          campaignIds: el.campaignIds ? [...el.campaignIds] : [],
-        },
-      ];
+  /** Миграция старой модели: каждая Advertise-панель становится отдельной «Динамической областью» */
+  expandLegacyAdvertisePanels(): void {
+    const extra: ArrivalsThemeElement[] = [];
+    for (const el of this.theme.elements) {
+      if (el.type !== 'advertise') continue;
+      if (el.panels && el.panels.length > 0) {
+        el.panels.forEach((p, i) => {
+          if (i === 0) {
+            el.companyId = p.companyId;
+            el.campaignIds = [...(p.campaignIds || [])];
+          } else {
+            const clone: ArrivalsThemeElement = JSON.parse(JSON.stringify(el));
+            clone.id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+            delete clone.panels;
+            clone.companyId = p.companyId;
+            clone.campaignIds = [...(p.campaignIds || [])];
+            clone.x = el.x + i * 20;
+            clone.y = el.y + i * 20;
+            extra.push(clone);
+          }
+        });
+        delete el.panels;
+      } else {
+        delete el.panels;
+      }
     }
-  }
-
-  get selectedPanels(): AdvertisePanelConfig[] {
-    return this.selectedElement?.panels ?? [];
-  }
-
-  get selectedPanel(): AdvertisePanelConfig | null {
-    const panels = this.selectedPanels;
-    if (!panels.length) return null;
-    return panels.find(p => p.id === this.selectedPanelId) ?? panels[0];
-  }
-
-  selectPanel(panelId: number): void { this.selectedPanelId = panelId; this.campaignSearchText = ''; }
-
-  addPanel(): void {
-    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
-    this.ensureAdvertisePanels(this.selectedElement);
-    const n = this.selectedElement.panels!.length + 1;
-    const panel: AdvertisePanelConfig = {
-      id: Date.now() + n,
-      name: 'Advertise панель ' + n,
-      companyId: null,
-      campaignIds: [],
-    };
-    this.selectedElement.panels!.push(panel);
-    this.selectedPanelId = panel.id;
-  }
-
-  removePanel(panelId: number, event: Event): void {
-    event.stopPropagation();
-    if (!this.selectedElement?.panels) return;
-    this.selectedElement.panels = this.selectedElement.panels.filter(p => p.id !== panelId);
-    if (this.selectedPanelId === panelId) this.selectedPanelId = null;
-    this.campaignSearchText = '';
+    this.theme.elements.push(...extra);
   }
 
   getCompanyName(companyId: number | null | undefined): string {
@@ -956,22 +907,22 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
 
   /* Campaign multi-select helpers */
   toggleCampaign(campId: number): void {
-    const panel = this.selectedPanel;
-    if (!panel) return;
-    const idx = panel.campaignIds.indexOf(campId);
+    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
+    const ids = this.selectedElement.campaignIds ?? (this.selectedElement.campaignIds = []);
+    const idx = ids.indexOf(campId);
     if (idx >= 0) {
-      panel.campaignIds.splice(idx, 1);
+      ids.splice(idx, 1);
     } else {
-      panel.campaignIds.push(campId);
+      ids.push(campId);
     }
   }
 
   isCampaignSelected(campId: number): boolean {
-    return this.selectedPanel?.campaignIds?.includes(campId) ?? false;
+    return this.selectedElement?.campaignIds?.includes(campId) ?? false;
   }
 
   get selectedCampaignCount(): number {
-    return this.selectedPanel?.campaignIds?.length ?? 0;
+    return this.selectedElement?.campaignIds?.length ?? 0;
   }
 
   getDishData(productId: string): ExternalMenuItem | undefined {
@@ -1092,7 +1043,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     if (type === 'text') { el.text = 'Type something'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; }
     if (type === 'price') { el.name = 'Цена блюда'; el.fontFamily = 'Arial'; el.fontSize = 14; el.fontBold = false; el.fontItalic = false; el.textAlign = 'left'; el.productId = undefined; el.productName = undefined; el.sizeId = null; el.sizeName = undefined; el.showCurrency = true; el.currencySymbol = '₽'; el.currencyPosition = 'after'; }
     if (type === 'area') { el.name = 'Область контрола'; el.width = 300; el.height = 500; el.borderWidth = 2; el.borderColor = '#90CAF9'; el.borderRadius = 4; el.areaBgColor = '#ffffff'; el.areaControlId = this.availableControls.length > 0 ? this.availableControls[0].id : undefined; el.areaMode = 'list'; el.areaListDirection = 'top'; el.areaMaxColumns = 1; el.areaStatusType = 'kitchen'; el.areaStatuses = []; el.areaOrderTypes = ['ordinary', 'courier', 'pickup']; el.areaOrderSources = []; el.areaSortOrder = 'oldest-first'; el.areaInterlineSpacing = 0; }
-    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.panels = []; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
+    if (type === 'advertise') { el.name = 'Динамическая область'; el.width = 200; el.height = 150; el.campaignIds = []; el.companyId = null; el.layer = 1; el.bgColor = '#ffffff'; el.bgOpacity = 100; }
     if (type === 'qr') { el.name = 'QR-код'; el.width = 200; el.height = 200; el.layer = 100; }
     if (type === 'menulist') { el.name = 'Меню-лист'; el.width = 400; el.height = 300; el.productIds = []; el.rowHeight = 48; el.alternateRows = true; el.rowPadding = 4; el.rowBgColor = '#ffffff'; el.rowBgTransparent = false; el.highlightColor = '#f5f5f5'; el.highlightTransparent = false; el.showIcons = true; el.showDescription = false; el.showAllergens = false; el.showNutrition = false; el.nutritionColor = '#999999'; el.allergensColor = '#e65100'; el.fontName = { size: 16, family: 'Segoe UI', color: '#333333', bold: false, italic: false }; el.fontModifiers = { size: 12, family: 'Segoe UI', color: '#666666', bold: false, italic: false }; el.fontPrice = { size: 16, family: 'Segoe UI', color: '#CC0000', bold: false, italic: false }; el.fontDescription = { size: 11, family: 'Segoe UI', color: '#999999', bold: false, italic: false }; }
     if (type === 'counter') { el.name = 'Текущее время'; el.width = 100; el.height = 40; el.fontFamily = 'Arial'; el.fontSize = 16; el.fontBold = false; el.fontItalic = false; el.textAlign = 'center'; el.text = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }

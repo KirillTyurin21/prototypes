@@ -127,6 +127,8 @@ export interface ArrivalsThemeElement {
   borderRadius: number;
   // Z-index (слой). Advertise всегда ниже QR-кода (DS-1121, раздел 5.4)
   layer?: number;
+  // Компания (рекламодатель) — одна на динамическую область (задача 8)
+  companyId?: number | null;
   // Фон Advertise (DS-1121, раздел 6.2 «прямоугольник с цветом фона»)
   bgColor?: string;
   bgOpacity?: number;
