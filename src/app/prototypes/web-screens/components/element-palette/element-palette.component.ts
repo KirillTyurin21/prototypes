@@ -11,6 +11,8 @@ interface PaletteItem {
   type: string;
   label: string;
   icon: string;
+  /** Короткое описание элемента */
+  description?: string;
   /** Платный элемент — доступен только при платной лицензии */
   isPremium?: boolean;
 }
@@ -108,7 +110,10 @@ interface PaletteCategory {
               [size]="16"
               class="element-icon">
             </app-material-icon>
-            <span>{{ el.label }}</span>
+            <span class="element-item-text">
+              <span class="element-label">{{ el.label }}</span>
+              <span class="element-desc" *ngIf="el.description">{{ el.description }}</span>
+            </span>
             <!-- Значок платного элемента -->
             <span
               *ngIf="el.isPremium"
@@ -292,7 +297,7 @@ interface PaletteCategory {
     }
     .element-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
       padding: 8px 8px 8px 34px;
       font-size: 13px;
@@ -310,7 +315,17 @@ interface PaletteCategory {
     .element-icon {
       color: #9e9e9e;
       flex-shrink: 0;
+      margin-top: 1px;
     }
+    .element-item-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .element-label { line-height: 1.3; }
+    .element-desc { font-size: 11px; color: #9e9e9e; line-height: 1.3; }
 
     /* ── Premium badge (платный элемент) ── */
     .premium-badge {

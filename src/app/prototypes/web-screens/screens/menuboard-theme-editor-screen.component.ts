@@ -7,6 +7,8 @@ import { UiConfirmDialogComponent } from '@/components/ui';
 import type { SelectOption } from '@/components/ui';
 import { StorageService } from '@/shared/storage.service';
 import { CsDataService } from '../cs-data.service';
+import { CampaignsDataService } from '../campaigns-data.service';
+import { WebCampaign, CampaignFolder } from '../data/campaigns.data';
 import { MOCK_ARRIVALS_THEMES, MOCK_ARRIVALS_CONTROLS, MOCK_ARRIVALS_ORDERS, MOCK_EXTERNAL_MENU, ExternalMenuItem } from '../data/mock-data';
 import { MENUBOARD_THEME_CATEGORIES } from '../data/menuboard-categories.data';
 import { ArrivalsTheme, ArrivalsThemeElement, ArrivalsElementType, ArrivalsControl, ArrivalsOrderMock, ElementCategory } from '../types';
@@ -22,7 +24,18 @@ import { ElementPaletteComponent } from '../components/element-palette/element-p
 
 type PanelView = 'theme' | 'add-element' | 'element';
 
-interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: string; }
+/** Строка списка кампаний в инспекторе области: папка-заголовок или кампания-чекбокс */
+interface CampaignRow {
+  kind: 'header' | 'campaign';
+  folderKey: string;
+  title: string;
+  count: number;
+  collapsed: boolean;
+  campaignId: number;
+  campaignName: string;
+  campaignDateFrom: string;
+  campaignDateTo: string;
+}
 
 @Component({
   selector: 'app-menuboard-theme-editor-screen',
@@ -44,7 +57,7 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 <img *ngIf="el.type === 'image' && el.imageUrl" [src]="el.imageUrl" class="el-image-img" (error)="el.imageUrl = ''" />
                 <span *ngIf="el.type === 'image' && !el.imageUrl" class="el-placeholder"><lucide-icon name="image" [size]="24"></lucide-icon></span>
                 <span *ngIf="el.type === 'price'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign" [title]="getPriceTooltip(el)">{{ getPricePreview(el) }}</span>
-                <span *ngIf="el.type === 'advertise'" class="el-placeholder-label">{{ getAdvertiseLabel(el) }}</span>
+                <span *ngIf="el.type === 'advertise'" class="el-placeholder-label" [title]="getAdvertiseFullLabel(el)">{{ getAdvertiseLabel(el) }}</span>
                 <span *ngIf="el.type === 'qr'" class="el-qr"><lucide-icon name="qr-code" [size]="28"></lucide-icon><span>QR-код</span></span>
                 <span *ngIf="el.type === 'counter'" class="el-text" [style.font-family]="el.fontFamily" [style.font-size.px]="el.fontSize" [style.font-weight]="el.fontBold ? 'bold' : 'normal'" [style.font-style]="el.fontItalic ? 'italic' : 'normal'" [style.text-align]="el.textAlign">{{ el.text || '--:--' }}</span>
                 <div *ngIf="el.type === 'menulist'" class="el-menulist">
@@ -162,29 +175,48 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
             <div class="panel-breadcrumb"><lucide-icon name="home" [size]="16" class="bc-home" (click)="deselectElement()"></lucide-icon><span class="bc-link" (click)="deselectElement()">Тема</span><span class="bc-separator">/</span><span class="bc-current">{{ selectedElement.name }}</span></div>
             <!-- Advertise: рекламные кампании (DS-1121, раздел 5.3) -->
             <div *ngIf="selectedElement.type === 'advertise'" class="field-group">
-              <label class="field-label">Рекламные кампании</label>
+              <p class="advertise-desc">Место на экране менюборда, где по расписанию показываются рекламные кампании.</p>
+              <label class="field-label">Рекламные кампании<span class="campaign-count" *ngIf="selectedCampaignCount">Выбрано: {{ selectedCampaignCount }}</span></label>
               <div class="campaign-search">
                 <lucide-icon name="search" [size]="14"></lucide-icon>
                 <input class="campaign-search-input" type="text" placeholder="Поиск по названию" [(ngModel)]="campaignSearchText" />
                 <button *ngIf="campaignSearchText" class="campaign-search-clear" (click)="campaignSearchText = ''" title="Очистить"><lucide-icon name="x" [size]="14"></lucide-icon></button>
               </div>
-              <div *ngIf="!campaignOptions.length" class="campaign-empty-hint">Нет доступных кампаний. Создайте кампанию в разделе Кампании</div>
-              <div class="campaign-multiselect" *ngIf="campaignOptions.length">
-                <label
-                  *ngFor="let c of filteredCampaigns"
-                  class="campaign-checkbox"
-                  (click)="toggleCampaign(c.id)"
-                >
-                  <span class="campaign-checkbox-box" [class.checked]="isCampaignSelected(c.id)"></span>
-                  <span class="campaign-checkbox-label">{{ c.name }} ({{ formatCampaignDate(c.dateFrom) }} - {{ formatCampaignDate(c.dateTo) }})</span>
-                </label>
-                <div *ngIf="!filteredCampaigns.length" class="campaign-empty-hint">Ничего не найдено</div>
-                <div *ngIf="filteredCampaigns.length && !selectedCampaignCount" class="campaign-empty-hint">Кампании не выбраны</div>
+
+              <!-- Пустой справочник кампаний -->
+              <div *ngIf="!campaignsService.campaigns.length" class="campaign-empty">
+                <lucide-icon name="megaphone" [size]="22"></lucide-icon>
+                <p>Нет доступных кампаний.</p>
+                <button class="campaign-create-link" (click)="goToCampaigns()">Создать кампанию</button>
               </div>
-              <div *ngIf="selectedCampaignCount" class="campaign-selected-count">
-                Выбрано кампаний: {{ selectedCampaignCount }}
+
+              <!-- Список кампаний с группировкой по папкам -->
+              <div class="campaign-multiselect" [class.campaign-multiselect-error]="advertiseValidationError" *ngIf="campaignsService.campaigns.length">
+                <div class="campaign-select-all" *ngIf="campaignRows.length">
+                  <input type="checkbox" id="campaign-select-all" [checked]="allCampaignsSelected" [indeterminate]="someCampaignsSelected" (change)="toggleSelectAll()" />
+                  <label for="campaign-select-all">Все</label>
+                </div>
+                <ng-container *ngFor="let row of campaignRows">
+                  <button *ngIf="row.kind === 'header'" type="button" class="campaign-folder" (click)="toggleFolder(row.folderKey)">
+                    <lucide-icon [name]="row.collapsed ? 'chevron-right' : 'chevron-down'" [size]="14"></lucide-icon>
+                    <lucide-icon name="folder" [size]="14"></lucide-icon>
+                    <span class="campaign-folder-name">{{ row.title }}</span>
+                    <span class="campaign-folder-count">{{ row.count }}</span>
+                  </button>
+                  <label *ngIf="row.kind === 'campaign'" class="campaign-checkbox">
+                    <input type="checkbox" [checked]="isCampaignSelected(row.campaignId)" (change)="toggleCampaign(row.campaignId)" />
+                    <span class="campaign-checkbox-label">{{ row.campaignName }}</span>
+                    <span class="campaign-checkbox-dates">{{ formatCampaignDate(row.campaignDateFrom) }} - {{ formatCampaignDate(row.campaignDateTo) }}</span>
+                  </label>
+                </ng-container>
+                <div *ngIf="!campaignRows.length" class="campaign-empty-hint">
+                  <lucide-icon name="search" [size]="16"></lucide-icon>
+                  <span>Ничего не найдено</span>
+                </div>
               </div>
-              <p class="layer-hint">Кампании — медиаплан с расписанием из раздела Кампании</p>
+
+              <p class="campaign-error" *ngIf="advertiseValidationError">{{ advertiseValidationError }}</p>
+              <p class="layer-hint">Кампании — ролики с расписанием из раздела «Кампании». Выберите хотя бы одну.</p>
             </div>
             <!-- Advertise: макет и граница (DS-1121, раздел 6.1) -->
             <ng-container *ngIf="selectedElement.type === 'advertise'">
@@ -206,10 +238,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                   <input type="number" class="field-input" [(ngModel)]="selectedElement.height" min="20" />
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Слой (z-index)</label>
+                  <label class="field-label">Порядок отображения</label>
                   <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
                   <p class="layer-error" *ngIf="getAdvertiseLayerError(selectedElement)">{{ getAdvertiseLayerError(selectedElement) }}</p>
-                  <p class="layer-hint" *ngIf="!getAdvertiseLayerError(selectedElement) && getQrLayer() != null">Слой QR-кода в теме: {{ getQrLayer() }}. Динамическая область должна быть ниже.</p>
+                  <p class="layer-hint" *ngIf="!getAdvertiseLayerError(selectedElement) && getQrLayer() != null">QR-код отображается выше. Реклама должна быть ниже QR-кода.</p>
+                  <p class="layer-hint" *ngIf="!getAdvertiseLayerError(selectedElement) && getQrLayer() == null">Меньше — ниже, больше — выше.</p>
                 </div>
                 <div class="field-group">
                   <label class="field-label">Цвет фона</label>
@@ -441,11 +474,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
                 </div>
               </app-collapsible-section>
             </ng-container>
-            <!-- QR: слой (DS-1121, раздел 5.4) -->
+            <!-- QR: порядок отображения (DS-1121, раздел 5.4) -->
             <div class="field-group" *ngIf="selectedElement.type === 'qr'">
-              <label class="field-label">Слой (z-index)</label>
+              <label class="field-label">Порядок отображения</label>
               <input type="number" class="field-input" [(ngModel)]="selectedElement.layer" min="1" />
-              <p class="layer-hint">Все динамические области должны быть ниже слоя QR-кода.</p>
+              <p class="layer-hint">QR-код должен быть выше всех динамических областей.</p>
             </div>
             <!-- Standard element inspector for non-menulist, non-area, non-advertise -->
             <app-theme-element-inspector *ngIf="selectedElement.type !== 'area' && selectedElement.type !== 'menulist' && selectedElement.type !== 'advertise'" [element]="selectedElement"></app-theme-element-inspector>
@@ -522,18 +555,29 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .field-input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; box-sizing: border-box; }
     .field-input:focus { outline: none; border-color: #448aff; }
     .field-select { width: 100%; height: 36px; padding: 0 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; font-family: Roboto, sans-serif; color: #333; background: #fff; cursor: pointer; box-sizing: border-box; }
-    /* Campaign multi-select */
-    .campaign-multiselect { max-height: 200px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
-    .campaign-checkbox { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f5f5f5; }
+    /* Campaign multi-select (DS: primary #448AFF, stroke #D6D6D6) */
+    .advertise-desc { font-size: 12px; color: #616161; line-height: 1.4; margin: 0 0 10px; }
+    .campaign-count { margin-left: 6px; font-size: 12px; font-weight: 500; color: #448aff; }
+    .campaign-multiselect { max-height: 220px; overflow-y: auto; border: 1px solid #d6d6d6; border-radius: 4px; }
+    .campaign-multiselect-error { border-color: #ff5252; }
+    .campaign-select-all { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #e0e0e0; background: #f8f9fc; font-size: 13px; color: #333; }
+    .campaign-select-all input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #448aff; }
+    .campaign-folder { display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 10px; border: none; border-bottom: 1px solid #f0f0f0; background: #f0f5ff; color: #333; font-size: 12px; font-weight: 500; cursor: pointer; font-family: Roboto, sans-serif; text-align: left; }
+    .campaign-folder:hover { background: #e8f0ff; }
+    .campaign-folder-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .campaign-folder-count { font-size: 11px; color: #616161; background: #fff; border-radius: 10px; padding: 1px 7px; }
+    .campaign-checkbox { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 26px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #f5f5f5; }
     .campaign-checkbox:last-child { border-bottom: none; }
-    .campaign-checkbox:hover { background: #f5f5f5; }
-    .campaign-checkbox-box { width: 18px; height: 18px; border: 2px solid #bdbdbd; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .campaign-checkbox-box.checked { background: #1976d2; border-color: #1976d2; }
-    .campaign-checkbox-box.checked::after { content: ''; width: 5px; height: 9px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -1px; }
+    .campaign-checkbox:hover { background: #ebebeb; }
+    .campaign-checkbox input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #448aff; flex-shrink: 0; }
     .campaign-checkbox-label { flex: 1; font-size: 13px; color: #333; }
     .campaign-checkbox-dates { font-size: 11px; color: #9e9e9e; flex-shrink: 0; }
-    .campaign-empty-hint { padding: 12px 10px; font-size: 12px; color: #bdbdbd; text-align: center; }
-    .campaign-selected-count { margin-top: 6px; font-size: 12px; color: #1976d2; font-weight: 500; }
+    .campaign-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; border: 1px dashed #d6d6d6; border-radius: 4px; color: #9e9e9e; }
+    .campaign-empty p { margin: 0; font-size: 13px; }
+    .campaign-create-link { border: none; background: transparent; color: #448aff; font-size: 13px; font-weight: 500; cursor: pointer; font-family: Roboto, sans-serif; padding: 0; }
+    .campaign-create-link:hover { text-decoration: underline; }
+    .campaign-empty-hint { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px 10px; font-size: 12px; color: #9e9e9e; }
+    .campaign-error { font-size: 12px; color: #ff5252; margin: 6px 0 0; }
     /* Advertise panels */
     .panels-list { max-height: 180px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
     .panel-item { display: flex; align-items: center; gap: 6px; padding: 7px 10px; cursor: pointer; border-bottom: 1px solid #f5f5f5; font-size: 13px; color: #333; }
@@ -581,11 +625,11 @@ interface CampaignOption { id: number; name: string; dateFrom: string; dateTo: s
     .field-check input[type="checkbox"] { cursor: pointer; }
     .field-hint { font-size: 12px; color: #bdbdbd; font-style: italic; margin: 0; text-align: center; padding: 8px 0; }
     .field-color { width: 100%; height: 36px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px; cursor: pointer; box-sizing: border-box; }
-    .campaign-search { display: flex; align-items: center; gap: 6px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; color: #9e9e9e; }
+    .campaign-search { display: flex; align-items: center; gap: 6px; border: 1px solid #d6d6d6; border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; color: #9e9e9e; }
     .campaign-search:focus-within { border-color: #448aff; }
     .campaign-search-input { flex: 1; border: none; outline: none; font-size: 13px; font-family: Roboto, sans-serif; color: #333; background: transparent; }
     .campaign-search-clear { display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #9e9e9e; cursor: pointer; padding: 0; }
-    .layer-error { font-size: 12px; color: #d32f2f; margin: 4px 0 0; }
+    .layer-error { font-size: 12px; color: #ff5252; margin: 4px 0 0; }
     .layer-hint { font-size: 12px; color: #9e9e9e; margin: 4px 0 0; }
     .el-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; color: #616161; font-size: 11px; }
   `],
@@ -596,6 +640,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   private storage = inject(StorageService);
   private cdr = inject(ChangeDetectorRef);
   dataService = inject(CsDataService);
+  campaignsService = inject(CampaignsDataService);
 
   theme: ArrivalsTheme = { id: 0, name: 'Новая тема', resolution: '1024x768', screenMode: 'order-screen', elements: [] };
   panelCollapsed = false;
@@ -615,19 +660,88 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   dishSelectorOpen = false;
   dishSelectorIds: string[] = [];
 
-  campaignOptions: CampaignOption[] = [
-    { id: 1, name: 'Новогодняя', dateFrom: '2026-01-01', dateTo: '2026-01-31' },
-    { id: 2, name: 'Летнее меню', dateFrom: '2026-06-01', dateTo: '2026-08-31' },
-    { id: 3, name: 'Осенние скидки', dateFrom: '2026-09-01', dateTo: '2026-11-30' },
-    { id: 4, name: 'Сезонное предложение', dateFrom: '2026-03-01', dateTo: '2026-05-31' },
-  ];
   campaignSearchText = '';
+  /** Свёрнутые папки в списке кампаний (по folderKey) */
+  collapsedFolderIds: string[] = [];
+  /** Инлайн-ошибка валидации выбора кампаний */
+  advertiseValidationError = '';
 
-  /** Живой фильтр кампаний по названию (без учёта регистра) — DS-1121, раздел 5.3 */
-  get filteredCampaigns(): CampaignOption[] {
+  /** Все id кампаний, попадающих под текущий поиск */
+  get filteredCampaignIds(): number[] {
     const q = (this.campaignSearchText || '').trim().toLowerCase();
-    if (!q) return this.campaignOptions;
-    return this.campaignOptions.filter(c => c.name.toLowerCase().includes(q));
+    return this.campaignsService.campaigns
+      .filter(c => !q || c.name.toLowerCase().includes(q))
+      .map(c => c.id);
+  }
+
+  /** Список кампаний с группировкой по папкам (DS-1121 5.3 + папки со стенда) */
+  get campaignRows(): CampaignRow[] {
+    const q = (this.campaignSearchText || '').trim().toLowerCase();
+    const all = this.campaignsService.campaigns;
+    const matches = (c: WebCampaign) => !q || c.name.toLowerCase().includes(q);
+    const searching = !!q;
+    const rows: CampaignRow[] = [];
+
+    const pushFolder = (key: string, title: string, list: WebCampaign[]) => {
+      if (!list.length) return;
+      const collapsed = !searching && this.collapsedFolderIds.includes(key);
+      rows.push({ kind: 'header', folderKey: key, title, count: list.length, collapsed, campaignId: 0, campaignName: '', campaignDateFrom: '', campaignDateTo: '' });
+      if (!collapsed) {
+        for (const c of list) {
+          rows.push({ kind: 'campaign', folderKey: '', title: '', count: 0, collapsed: false, campaignId: c.id, campaignName: c.name, campaignDateFrom: c.dateFrom, campaignDateTo: c.dateTo });
+        }
+      }
+    };
+
+    pushFolder('__root__', 'Без папки', all.filter(c => c.folderId == null && matches(c)));
+
+    for (const f of this.campaignsService.folders) {
+      pushFolder('f' + f.id, this.folderPathName(f.id), all.filter(c => c.folderId === f.id && matches(c)));
+    }
+    return rows;
+  }
+
+  /** Полный путь папки: «Родитель / Папка» */
+  folderPathName(id: number): string {
+    const parts: string[] = [];
+    let cur: CampaignFolder | undefined = this.campaignsService.folders.find(f => f.id === id);
+    let guard = 0;
+    while (cur && guard++ < 20) {
+      parts.unshift(cur.name);
+      cur = cur.parentId != null ? this.campaignsService.folders.find(f => f.id === cur!.parentId) : undefined;
+    }
+    return parts.join(' / ');
+  }
+
+  toggleFolder(key: string): void {
+    const i = this.collapsedFolderIds.indexOf(key);
+    if (i >= 0) this.collapsedFolderIds.splice(i, 1);
+    else this.collapsedFolderIds.push(key);
+  }
+
+  get allCampaignsSelected(): boolean {
+    const ids = this.filteredCampaignIds;
+    const sel = this.selectedElement?.campaignIds || [];
+    return ids.length > 0 && ids.every(id => sel.includes(id));
+  }
+
+  get someCampaignsSelected(): boolean {
+    const ids = this.filteredCampaignIds;
+    const sel = this.selectedElement?.campaignIds || [];
+    return ids.some(id => sel.includes(id)) && !this.allCampaignsSelected;
+  }
+
+  toggleSelectAll(): void {
+    if (!this.selectedElement || this.selectedElement.type !== 'advertise') return;
+    const ids = this.filteredCampaignIds;
+    const sel = new Set(this.selectedElement.campaignIds || []);
+    if (this.allCampaignsSelected) {
+      ids.forEach(id => sel.delete(id));
+    } else {
+      ids.forEach(id => sel.add(id));
+    }
+    this.selectedElement.campaignIds = [...sel];
+    if (this.selectedElement.campaignIds.length > 0) this.advertiseValidationError = '';
   }
 
   areaHelper = new AreaEmulationHelper();
@@ -726,6 +840,13 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     }
     // Миграция старой модели: панели → отдельные элементы «Динамическая область»
     this.expandLegacyAdvertisePanels();
+    // Очистка «осиротевших» id кампаний (ссылки на старые мок-данные)
+    const knownIds = new Set(this.campaignsService.campaigns.map(c => c.id));
+    for (const el of this.theme.elements) {
+      if (el.type === 'advertise' && el.campaignIds?.length) {
+        el.campaignIds = el.campaignIds.filter(id => knownIds.has(id));
+      }
+    }
     // Нормализация слоёв: элементам без явного layer — позиция в списке
     this.theme.elements.forEach((el, i) => { if (el.layer == null) el.layer = i + 1; });
     this.availableControls = this.storage.load('web-screens', 'arrivals-controls', [...MOCK_ARRIVALS_CONTROLS]);
@@ -821,9 +942,9 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   /* Selection */
-  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.campaignSearchText = ''; this.panelView = 'element'; }
-  selectElementFromList(id: string): void { this.selectedElementId = id; this.campaignSearchText = ''; this.panelView = 'element'; }
-  deselectElement(): void { this.selectedElementId = null; this.campaignSearchText = ''; this.panelView = 'theme'; }
+  selectElement(id: string, event: Event): void { event.stopPropagation(); this.selectedElementId = id; this.campaignSearchText = ''; this.advertiseValidationError = ''; this.panelView = 'element'; }
+  selectElementFromList(id: string): void { this.selectedElementId = id; this.campaignSearchText = ''; this.advertiseValidationError = ''; this.panelView = 'element'; }
+  deselectElement(): void { this.selectedElementId = null; this.campaignSearchText = ''; this.advertiseValidationError = ''; this.panelView = 'theme'; }
 
   /* Price helpers */
   getPricePreview(el: ArrivalsThemeElement): string {
@@ -844,19 +965,41 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   getAdvertiseLabel(el: ArrivalsThemeElement): string {
     if (el.type !== 'advertise') return el.name;
     const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
-    // DS-1121, раздел 6.2: названия кампаний, иначе «Динамическая область»
+    if (!camps.length) return 'Динамическая область';
+    if (camps.length === 1) return camps[0];
+    return `${camps.length} ${this.pluralCampaigns(camps.length)}`;
+  }
+
+  /** Полный список кампаний (для tooltip на канвасе) */
+  getAdvertiseFullLabel(el: ArrivalsThemeElement): string {
+    if (el.type !== 'advertise') return el.name;
+    const camps = (el.campaignIds || []).map(id => this.getCampaignName(id)).filter(Boolean);
     return camps.length ? camps.join(', ') : 'Динамическая область';
+  }
+
+  /** Склонение слова «кампания» */
+  pluralCampaigns(n: number): string {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return 'кампания';
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'кампании';
+    return 'кампаний';
   }
 
   /** Название кампании по id */
   getCampaignName(campId: number): string {
-    return this.campaignOptions.find(c => c.id === campId)?.name ?? '';
+    return this.campaignsService.getCampaign(campId)?.name ?? '';
   }
 
-  /** Суммарное количество уникальных кампаний области */
+  /** Перейти в раздел «Кампании» для создания новой */
+  goToCampaigns(): void {
+    this.router.navigate(['/prototype/web-screens/campaigns']);
+  }
+
+  /** Суммарное количество уникальных кампаний области (только реально существующие) */
   getAdvertiseCampaignCount(el: ArrivalsThemeElement): number {
     if (el.type !== 'advertise') return 0;
-    return (el.campaignIds || []).length;
+    const known = new Set(this.campaignsService.campaigns.map(c => c.id));
+    return (el.campaignIds || []).filter(id => known.has(id)).length;
   }
 
   /** Миграция старой модели: каждая Advertise-панель становится отдельной «Динамической областью» */
@@ -899,6 +1042,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
     } else {
       ids.push(campId);
     }
+    if (ids.length > 0) this.advertiseValidationError = '';
   }
 
   isCampaignSelected(campId: number): boolean {
@@ -906,7 +1050,12 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   }
 
   get selectedCampaignCount(): number {
-    return this.selectedElement?.campaignIds?.length ?? 0;
+    const el = this.selectedElement;
+    if (!el) return 0;
+    const ids = el.campaignIds || [];
+    if (el.type !== 'advertise') return ids.length;
+    const known = new Set(this.campaignsService.campaigns.map(c => c.id));
+    return ids.filter(id => known.has(id)).length;
   }
 
   getDishData(productId: string): ExternalMenuItem | undefined {
@@ -995,7 +1144,7 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
   getAdvertiseLayerError(el: ArrivalsThemeElement): string {
     const qrLayer = this.getQrLayer();
     if (qrLayer != null && (el.layer ?? 1) >= qrLayer) {
-      return 'Слой должен быть ниже слоя QR-кода';
+      return 'Реклама должна отображаться ниже QR-кода';
     }
     return '';
   }
@@ -1055,14 +1204,15 @@ export class MenuboardThemeEditorScreenComponent implements OnInit, OnDestroy, A
       if (el.type !== 'advertise') continue;
       if (this.getAdvertiseCampaignCount(el) === 0) {
         this.selectedElementId = el.id; this.panelView = 'element';
-        this.showToast(this.campaignOptions.length === 0
-          ? 'Нет доступных кампаний. Создайте кампанию в разделе Кампании'
-          : `«${el.name}»: выберите хотя бы одну рекламную кампанию`);
+        this.advertiseValidationError = this.campaignsService.campaigns.length === 0
+          ? 'Нет доступных кампаний. Создайте кампанию в разделе «Кампании».'
+          : 'Выберите хотя бы одну рекламную кампанию';
+        this.showToast(this.advertiseValidationError);
         return;
       }
       if (qrEl && (el.layer ?? 1) >= (qrEl.layer ?? 1)) {
         this.selectedElementId = el.id; this.panelView = 'element';
-        this.showToast(`«${el.name}»: слой должен быть ниже слоя QR-кода`);
+        this.showToast(`«${el.name}»: реклама должна отображаться ниже QR-кода`);
         return;
       }
     }

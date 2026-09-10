@@ -351,6 +351,8 @@ export interface ElementCategoryItem {
   type: ArrivalsElementType;
   label: string;
   icon: string;
+  /** Короткое описание элемента для палитры */
+  description?: string;
   /** Платный элемент — доступен только при платной лицензии */
   isPremium?: boolean;
 }
