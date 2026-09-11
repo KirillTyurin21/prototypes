@@ -104,3 +104,33 @@ export interface Q4AnalyticsEvent {
   action: string;
   detail: string;
 }
+
+export interface Q4Campaign {
+  id: number;
+  name: string;
+  from: string;
+  to: string;
+  timeFrom: string;
+  timeTo: string;
+  resolution: string;
+  folder: number | null;
+}
+
+export interface Q4CampaignMedia {
+  id: number;
+  name: string;
+  type: 'image' | 'video';
+  size: string;
+  resolution: string;
+  durationMin: number;
+  durationSec: number;
+  color: string;
+}
+
+export interface Q4GalleryFile {
+  id: number;
+  name: string;
+  size: string;
+  date: string;
+  color: string;
+}

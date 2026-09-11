@@ -9,6 +9,9 @@ import {
   Q4Page,
   Q4Control,
   Q4ColorPattern,
+  Q4Campaign,
+  Q4CampaignMedia,
+  Q4GalleryFile,
 } from '../types';
 
 /** Цели Q4 — карта для обзора */
@@ -334,3 +337,32 @@ export const ANALYTICS_ACTIONS: string[] = [
   'Копирование элемента',
   'Удаление элемента',
 ];
+
+/** Список кампаний (реплика стенда, 1.1) */
+export const Q4_CAMPAIGNS: Q4Campaign[] = [
+  { id: 101, name: '1218', from: '27.05.2026', to: '27.05.2027', timeFrom: '00:00', timeTo: '23:59', resolution: '1024x768', folder: null },
+  { id: 102, name: '1218 кс1', from: '27.05.2026', to: '27.05.2027', timeFrom: '00:00', timeTo: '23:59', resolution: '1024x768', folder: null },
+  { id: 103, name: '1218 arrivals', from: '27.05.2026', to: '27.05.2027', timeFrom: '00:00', timeTo: '23:59', resolution: '1024x768', folder: null },
+  { id: 104, name: 'Промо «Завтраки»', from: '01.09.2026', to: '31.12.2026', timeFrom: '07:00', timeTo: '12:00', resolution: '1024x768', folder: 1 },
+];
+
+export const Q4_CAMPAIGN_FOLDERS: { id: number; name: string }[] = [
+  { id: 1, name: 'Осень 2026' },
+];
+
+/** Медиа кампании в редакторе */
+export const Q4_CAMPAIGN_MEDIA: Q4CampaignMedia[] = [
+  { id: 1, name: 'ролик_завтраки.mp4', type: 'video', size: '606 КБ', resolution: '1024x768', durationMin: 0, durationSec: 30, color: '#448AFF' },
+  { id: 2, name: 'баннер_завтрак.jpg', type: 'image', size: '142 КБ', resolution: '1024x768', durationMin: 0, durationSec: 10, color: '#FFAB40' },
+];
+
+/** Галерея (для кнопки «Добавить изображение или видео») */
+export const Q4_GALLERY_FILES: Q4GalleryFile[] = [
+  { id: 1, name: 'ролик_завтраки.mp4', size: '606 КБ', date: '11.08.2026', color: '#448AFF' },
+  { id: 2, name: 'баннер_завтрак.jpg', size: '142 КБ', date: '11.08.2026', color: '#FFAB40' },
+  { id: 3, name: 'осень_промо.png', size: '312 КБ', date: '05.09.2026', color: '#EA7806' },
+];
+
+/** Режимы экранов кампании (селектор «+») */
+export const Q4_STANDARD_MODES: string[] = ['Экран оплаты', 'Экран завершения', 'Касса не работает'];
+export const Q4_CUSTOM_MODES: string[] = ['A1 — Режим доставки', 'A2 — Экран посадки'];
