@@ -1,25 +1,24 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 import { Q4Element } from '../types';
 
 @Component({
   selector: 'app-task-4-1-tags-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
     <div class="t-container">
-      <app-q4-task-header
-        goal="4"
-        taskKey="4.1"
-        title="Поле tag во все решения"
-        [jira]="['DS-1287']"
-        [changes]="[
-          'Сейчас: теги сделаны только в модели киоска и не используются; в остальных продуктах поля tag нет',
-          'Будет: поле «Теги» в настройках каждого элемента во всех продуктах (несколько тегов, свободный ввод). Основа для группового управления свойствами — цветовых схем (4.2)'
-        ]"
-      ></app-q4-task-header>
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
+
+      <div class="t-note t-note-top">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 4.1 (DS-1287): поле «Теги» в настройках каждого элемента во всех продуктах — несколько тегов, свободный ввод.
+          Модель киоска — референс для унификации. Основа для группового управления свойствами — цветовых схем (раздел 4.2).
+        </span>
+      </div>
 
       <div class="t-card">
         <div class="t-card-head">
@@ -56,6 +55,7 @@ import { Q4Element } from '../types';
             </div>
             <div class="t-inspector-row">
               <span class="t-inspector-label">Теги</span>
+              <span class="t-inspector-value">{{ (selected.tags || []).length || '—' }}</span>
             </div>
             <div class="t-tags">
               <span class="t-tag" *ngFor="let t of selected.tags || []; let i = index">
@@ -101,7 +101,9 @@ import { Q4Element } from '../types';
       .t-canvas { flex: 1; min-width: 0; }
       .t-canvas-caption { font-size: 11px; color: var(--dt-text-secondary); margin-bottom: 8px; }
       .t-canvas-area {
-        background: #E8E8E8;
+        background-color: #E8E8E8;
+        background-image: linear-gradient(45deg, #D6D6D6 1px, transparent 1px), linear-gradient(-45deg, #D6D6D6 1px, transparent 1px);
+        background-size: 20px 20px;
         border-radius: 4px;
         min-height: 300px;
         padding: 16px;
@@ -172,6 +174,7 @@ import { Q4Element } from '../types';
         background: var(--dt-brand-accent-lightest);
         border-radius: 4px; padding: 10px 12px;
       }
+      .t-note-top { margin: 0 0 16px; }
     `,
   ],
 })
@@ -182,6 +185,12 @@ export class Task41TagsScreenComponent {
     { id: 3, name: 'Текст «Добро пожаловать!»', type: 'text', color: '#616161', tags: [] },
   ];
   selected: Q4Element = this.elements[0];
+
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Экран покупателя' },
+    { label: 'Конструктор темы «Кофейня» — Настройки элемента' },
+  ];
 
   addTag(value: string): void {
     const v = (value || '').trim().toLowerCase();

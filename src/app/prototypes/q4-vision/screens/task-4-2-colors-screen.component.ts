@@ -1,26 +1,25 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 import { COLOR_PATTERNS } from '../data/mock-data';
 import { Q4ColorPattern, Q4Element } from '../types';
 
 @Component({
   selector: 'app-task-4-2-colors-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
     <div class="t-container">
-      <app-q4-task-header
-        goal="4"
-        taskKey="4.2"
-        title="Единый инструмент цветовых схем"
-        [jira]="[]"
-        [changes]="[
-          'Сейчас: цвета настраиваются поэлементно, групповой смены нет',
-          'Будет: кнопка «Цветовые схемы» в панели темы — переключение паттернов (пресеты + свои). Паттерн применяется к элементам по тегу, предпросмотр до сохранения. Киоск и Customer Screen первыми'
-        ]"
-      ></app-q4-task-header>
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
+
+      <div class="t-note t-note-top">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 4.2: кнопка «Цветовые схемы» в панели темы — переключение паттернов (пресеты + свои).
+          Паттерн применяется к элементам по тегу (основа — 4.1), предпросмотр до сохранения. Киоск и Customer Screen первыми, Arrivals — по готовности.
+        </span>
+      </div>
 
       <div class="t-card">
         <div class="t-card-head">
@@ -71,6 +70,7 @@ import { Q4ColorPattern, Q4Element } from '../types';
               <div
                 class="t-canvas-el"
                 *ngFor="let el of elements"
+                [class.light]="isLight(el.color)"
                 [style.background]="el.color"
               >
                 <div>{{ el.name }}</div>
@@ -185,7 +185,9 @@ import { Q4ColorPattern, Q4Element } from '../types';
       .t-canvas { flex: 1; min-width: 0; }
       .t-canvas-caption { font-size: 11px; color: var(--dt-text-secondary); margin-bottom: 8px; }
       .t-canvas-area {
-        background: #E8E8E8;
+        background-color: #E8E8E8;
+        background-image: linear-gradient(45deg, #D6D6D6 1px, transparent 1px), linear-gradient(-45deg, #D6D6D6 1px, transparent 1px);
+        background-size: 20px 20px;
         border-radius: 4px;
         min-height: 300px;
         padding: 16px;
@@ -203,6 +205,8 @@ import { Q4ColorPattern, Q4Element } from '../types';
         box-shadow: var(--dt-shadow-sl);
         transition: background 0.3s ease-in-out;
       }
+      .t-canvas-el.light { color: #424242; }
+      .t-canvas-el.light .t-el-tag { background: rgba(0, 0, 0, 0.08); }
       .t-el-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
       .t-el-tag { font-size: 10px; background: rgba(255, 255, 255, 0.25); border-radius: 3px; padding: 1px 5px; }
 
@@ -226,6 +230,7 @@ import { Q4ColorPattern, Q4Element } from '../types';
         background: var(--dt-brand-accent-lightest);
         border-radius: 4px; padding: 10px 12px;
       }
+      .t-note-top { margin: 0 0 16px; }
       .t-snack {
         position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
         display: flex; align-items: center; gap: 8px;
@@ -250,6 +255,12 @@ export class Task42ColorsScreenComponent {
   dirty = false;
   snack = '';
 
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Экран покупателя' },
+    { label: 'Конструктор темы — Цветовые схемы' },
+  ];
+
   elements: Q4Element[] = [
     { id: 1, name: 'Баннер «Акция»', type: 'image', color: '#448AFF', tags: ['акция'] },
     { id: 2, name: 'Кнопка «Купить»', type: 'image', color: '#448AFF', tags: ['акция'] },
@@ -267,6 +278,15 @@ export class Task42ColorsScreenComponent {
       else if (tag === 'фон') el.color = pat.colors[2];
     }
     this.dirty = true;
+  }
+
+  isLight(hex: string): boolean {
+    const m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return false;
+    const r = parseInt(m[1].slice(0, 2), 16);
+    const g = parseInt(m[1].slice(2, 4), 16);
+    const b = parseInt(m[1].slice(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 180;
   }
 
   save(): void {
