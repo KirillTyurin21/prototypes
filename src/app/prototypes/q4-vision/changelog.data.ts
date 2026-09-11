@@ -4,7 +4,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.1',
     date: '2026-09-11',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         items: [
@@ -28,7 +28,7 @@ export const CHANGELOG: ChangelogRelease[] = [
   {
     version: '1.0',
     date: '2026-09-11',
-    status: 'unreleased',
+    status: 'released',
     changes: [
       {
         items: [
