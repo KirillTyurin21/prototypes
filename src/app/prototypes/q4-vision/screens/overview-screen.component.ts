@@ -3,13 +3,17 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
 import { Q4_GOALS } from '../data/mock-data';
+import { Q4_COMMON_STYLES } from '../data/q4-common.styles';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 
 @Component({
   selector: 'app-overview-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
     <div class="ov-container">
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
+
       <div class="ov-hero">
         <div>
           <h1 class="ov-h1">Целевое видение Q4</h1>
@@ -65,12 +69,13 @@ import { Q4_GOALS } from '../data/mock-data';
     </div>
   `,
   styles: [
+    Q4_COMMON_STYLES,
     `
       :host { display: block; }
       .ov-container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 24px;
+        padding: 20px 24px;
         font-family: Roboto, sans-serif;
       }
       .ov-hero {
@@ -168,6 +173,8 @@ import { Q4_GOALS } from '../data/mock-data';
 export class OverviewScreenComponent {
   private router = inject(Router);
   goals = Q4_GOALS;
+
+  crumbs = [{ label: 'Экраны и звуки' }, { label: 'Обзор Q4' }];
 
   openTask(route: string): void {
     this.router.navigate(['/prototype/q4-vision', route]);

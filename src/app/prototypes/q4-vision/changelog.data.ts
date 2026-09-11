@@ -2,6 +2,19 @@ import { ChangelogRelease } from '@/shared/changelog.types';
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    version: '1.1',
+    date: '2026-09-11',
+    status: 'unreleased',
+    changes: [
+      {
+        items: [
+          'Доработка реалистичности: общие паттерны Web (кнопки, таблицы, поля, диалоги, тосты, бейджи)',
+          'Shell: заголовок «Экраны и звуки», футер, логотип, динамический заголовок по разделу, крошки',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.0',
     date: '2026-09-11',
     status: 'unreleased',
