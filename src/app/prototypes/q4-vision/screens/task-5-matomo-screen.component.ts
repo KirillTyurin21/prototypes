@@ -1,26 +1,25 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 import { ANALYTICS_ACTIONS } from '../data/mock-data';
 import { Q4AnalyticsEvent } from '../types';
 
 @Component({
   selector: 'app-task-5-matomo-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
     <div class="t-container">
-      <app-q4-task-header
-        goal="5"
-        taskKey="5"
-        title="Аналитика Matomo в конструкторе"
-        [jira]="['WEB-16081', 'PB-7065']"
-        [changes]="[
-          'Сейчас: Matomo видит только переходы по разделам — что происходит внутри конструктора, не видно',
-          'Будет: подключение готовой библиотеки аналитики к общему компоненту конструктора + события действий. Понимаем, какими элементами пользуются люди'
-        ]"
-      ></app-q4-task-header>
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
+
+      <div class="t-note t-note-top">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 5 (WEB-16081 · PB-7065): подключение готовой библиотеки аналитики к общему компоненту конструктора + события действий.
+          Сейчас Matomo видит только переходы по разделам — что происходит внутри конструктора, не видно.
+        </span>
+      </div>
 
       <div class="t-layout">
         <!-- Мини-конструктор -->
@@ -77,6 +76,10 @@ import { Q4AnalyticsEvent } from '../types';
           </div>
 
           <div class="t-body" *ngIf="tab === 'log'">
+            <button class="t-clear" *ngIf="events.length" (click)="clearLog()">
+              <lucide-icon name="trash-2" [size]="13"></lucide-icon>
+              Очистить журнал
+            </button>
             <div class="t-log-empty" *ngIf="events.length === 0">
               Журнал пуст — выполните действие в конструкторе
             </div>
@@ -148,6 +151,17 @@ import { Q4AnalyticsEvent } from '../types';
         padding: 1px 5px; margin-left: 4px;
       }
       .t-body { padding: 14px 20px 20px; max-height: 430px; overflow-y: auto; }
+      .t-clear {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 28px;
+        border: none; background: transparent; border-radius: 3px;
+        font-size: 12px; color: var(--dt-text-secondary);
+        cursor: pointer;
+        font-family: Roboto, sans-serif;
+        padding: 0 8px;
+        margin-bottom: 6px;
+      }
+      .t-clear:hover { background: var(--dt-surface-hover); color: #FF5252; }
       .t-log-empty { font-size: 12px; color: var(--dt-text-disable); text-align: center; padding: 24px 0; }
       .t-log-row {
         display: flex; align-items: baseline; gap: 10px;
@@ -174,6 +188,7 @@ import { Q4AnalyticsEvent } from '../types';
         background: var(--dt-brand-accent-lightest);
         border-radius: 4px; padding: 10px 12px;
       }
+      .t-note-top { margin: 0 0 16px; }
 
       @media (max-width: 900px) {
         .t-layout { grid-template-columns: 1fr; }
@@ -185,6 +200,16 @@ export class Task5MatomoScreenComponent {
   actions: string[] = ANALYTICS_ACTIONS;
   events: Q4AnalyticsEvent[] = [];
   tab = 'log';
+
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Экран покупателя' },
+    { label: 'Конструктор темы — Аналитика' },
+  ];
+
+  clearLog(): void {
+    this.events = [];
+  }
 
   log(action: string, detail: string): void {
     const now = new Date();

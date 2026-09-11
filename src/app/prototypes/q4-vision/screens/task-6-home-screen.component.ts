@@ -1,24 +1,23 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 
 @Component({
   selector: 'app-task-6-home-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
     <div class="t-container">
-      <app-q4-task-header
-        goal="6"
-        taskKey="6"
-        title="Стартовая страница продукта"
-        [jira]="['DS-716']"
-        [changes]="[
-          'Сейчас: вход в продукт открывает рабочий список, единой картины работы нет — показатели разбросаны по страницам',
-          'Будет: стартовая страница с показателями: устройства, готовность сети, темы, версии, кампании и подсказки. В Q4 — только проработка и опрос клиентов'
-        ]"
-      ></app-q4-task-header>
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
+
+      <div class="t-note t-note-top">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 6 (DS-716): стартовая страница продукта с показателями — устройства, готовность сети, темы, версии, кампании и подсказки.
+          В Q4 — только проработка и опрос клиентов. Перспектива: одна кнопка Web на весь домен — «весь ресторан на ладони» (вне Q4).
+        </span>
+      </div>
 
       <div class="t-dash">
         <div class="t-dash-head">
@@ -63,6 +62,15 @@ import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
             </div>
             <div class="t-kpi-value">7</div>
             <div class="t-kpi-sub">подсказок назначено на точки</div>
+          </button>
+
+          <button class="t-kpi" (click)="openSection('Готовность')">
+            <div class="t-kpi-top">
+              <lucide-icon name="bar-chart-3" [size]="18"></lucide-icon>
+              <span class="t-kpi-title">Готовность подсказок</span>
+            </div>
+            <div class="t-kpi-value">2 из 4</div>
+            <div class="t-kpi-sub">точек готовы к показу</div>
           </button>
 
           <button class="t-kpi" (click)="openSection('Экраны')">
@@ -134,6 +142,7 @@ import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
         background: var(--dt-brand-accent-lightest);
         border-radius: 4px; padding: 10px 12px;
       }
+      .t-note-top { margin: 0 0 16px; }
       .t-snack {
         position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
         display: flex; align-items: center; gap: 8px;
@@ -153,6 +162,12 @@ import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
 })
 export class Task6HomeScreenComponent {
   snack = '';
+
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Customer Screen' },
+    { label: 'Стартовая страница' },
+  ];
 
   openSection(section: string): void {
     this.snack = `Переход в раздел «${section}»`;
