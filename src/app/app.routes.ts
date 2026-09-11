@@ -34,6 +34,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'prototype/q4-vision',
+        loadChildren: () =>
+          import('./prototypes/q4-vision/q4-vision.routes').then(
+            m => m.Q4_VISION_ROUTES
+          ),
+      },
+      {
         path: 'prototype/web-settings',
         loadChildren: () =>
           import('./prototypes/web-settings/web-settings.routes').then(
