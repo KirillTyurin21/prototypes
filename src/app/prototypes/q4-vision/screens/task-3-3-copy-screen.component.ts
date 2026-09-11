@@ -1,26 +1,25 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 import { THEME_PAGES } from '../data/mock-data';
 import { Q4Page, Q4Element } from '../types';
 
 @Component({
   selector: 'app-task-3-3-copy-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
     <div class="t-container">
-      <app-q4-task-header
-        goal="3"
-        taskKey="3.3"
-        title="Копирование элементов между страницами"
-        [jira]="['PB-7202']"
-        [changes]="[
-          'Сейчас: перенести элементы со страницы на страницу нельзя; страницу целиком скопировать нельзя (копируются только контролы и статусы)',
-          'Будет: копирование выделенных элементов между страницами (кнопки или Ctrl+C/V) и копирование страницы целиком с новым именем — прямо из ленты страниц'
-        ]"
-      ></app-q4-task-header>
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
+
+      <div class="t-note t-note-top">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 3.3 (PB-7202): копирование выделенных элементов между страницами (кнопки или Ctrl+C/V)
+          и копирование страницы целиком с новым именем — прямо из ленты страниц. Суффикс «(копия)». Копирование между темами — вне постановки.
+        </span>
+      </div>
 
       <div class="t-card">
         <div class="t-card-head">
@@ -86,6 +85,7 @@ import { Q4Page, Q4Element } from '../types';
           <div class="t-canvas">
             <div class="t-canvas-head">
               <span>{{ activePage.name }}</span>
+              <span class="t-canvas-hint">Клик по элементу — выделить</span>
             </div>
             <div class="t-canvas-area">
               <div
@@ -101,6 +101,19 @@ import { Q4Page, Q4Element } from '../types';
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Панель: элементы -->
+          <div class="t-panel">
+            <div class="t-panel-title">Элементы ({{ activePage.elements.length }})</div>
+            <label class="t-el-row" *ngFor="let el of activePage.elements">
+              <input type="checkbox" [checked]="el.selected" (change)="setSelected(el, $any($event.target).checked)" />
+              <span class="t-el-row-name">{{ el.name }}</span>
+            </label>
+            <button class="t-panel-clear" *ngIf="selectedIds.length" (click)="clearSelection()">
+              <lucide-icon name="x" [size]="14"></lucide-icon>
+              Снять выделение ({{ selectedIds.length }})
+            </button>
           </div>
         </div>
 
@@ -195,10 +208,13 @@ import { Q4Page, Q4Element } from '../types';
       .t-page-tag { font-size: 10px; color: var(--dt-brand-accent); margin-top: 4px; }
 
       .t-canvas { flex: 1; min-width: 0; padding-left: 16px; }
-      .t-canvas-head { margin-bottom: 8px; }
+      .t-canvas-head { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
       .t-canvas-head span { font-size: 13px; font-weight: 500; color: var(--dt-text-primary); }
+      .t-canvas-hint { font-size: 11px; font-weight: 400; color: var(--dt-text-disable); }
       .t-canvas-area {
-        background: #E8E8E8;
+        background-color: #E8E8E8;
+        background-image: linear-gradient(45deg, #D6D6D6 1px, transparent 1px), linear-gradient(-45deg, #D6D6D6 1px, transparent 1px);
+        background-size: 20px 20px;
         border-radius: 4px;
         min-height: 300px;
         padding: 16px;
@@ -207,6 +223,35 @@ import { Q4Page, Q4Element } from '../types';
         gap: 12px;
         align-content: flex-start;
       }
+
+      .t-panel { width: 220px; flex-shrink: 0; border-left: 1px solid var(--dt-stroke-default); padding-left: 16px; }
+      .t-panel-title { font-size: 12px; font-weight: 500; color: var(--dt-text-primary); margin-bottom: 10px; }
+      .t-el-row {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 12px; color: var(--dt-text-secondary);
+        padding: 6px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .t-el-row:hover { background: var(--dt-surface-hover); }
+      .t-el-row input { accent-color: var(--dt-brand-accent); cursor: pointer; }
+      .t-el-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .t-panel-clear {
+        display: flex; align-items: center; gap: 6px;
+        margin-top: 10px;
+        width: 100%;
+        height: 32px;
+        border: 1px solid var(--dt-stroke-default);
+        border-radius: 4px;
+        background: var(--dt-surface-primary);
+        color: var(--dt-text-secondary);
+        font-size: 12px; font-family: Roboto, sans-serif;
+        cursor: pointer;
+        justify-content: center;
+      }
+      .t-panel-clear:hover { background: #FAFAFA; }
+
+      .t-note-top { margin-bottom: 16px; }
       .t-canvas-el {
         position: relative;
         border-radius: 4px;
@@ -260,12 +305,28 @@ export class Task33CopyScreenComponent {
   clipboardFrom = '';
   snack = '';
 
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Экран покупателя' },
+    { label: 'Конструктор темы «Кофейня» — Копирование' },
+  ];
+
   get selectedIds(): number[] {
     return this.activePage.elements.filter(e => e.selected).map(e => e.id);
   }
 
   toggleSelect(el: Q4Element): void {
     el.selected = !el.selected;
+  }
+
+  setSelected(el: Q4Element, checked: boolean): void {
+    el.selected = checked;
+  }
+
+  clearSelection(): void {
+    for (const e of this.activePage.elements) {
+      e.selected = false;
+    }
   }
 
   copySelected(): void {

@@ -1,49 +1,50 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 import { THEME_CONTROLS } from '../data/mock-data';
+import { Q4_COMMON_STYLES } from '../data/q4-common.styles';
 import { Q4Control } from '../types';
 
 @Component({
   selector: 'app-task-3-2-controls-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
-    <div class="t-container">
-      <app-q4-task-header
-        goal="3"
-        taskKey="3.2"
-        title="Отказ от справочника контролов"
-        [jira]="['DS-1340', 'PB-7203']"
-        [changes]="[
-          'Сейчас: три справочника «Контролы» в навигации (CS, Arrivals, Kiosk) пугают пользователей; превью — только по клику',
-          'Будет: контролы управляются внутри темы — список с превью в области, создание копии из темы, редактирование. Справочник убран из навигации, скрыт за флагом для партнёров'
-        ]"
-      ></app-q4-task-header>
+    <div class="c-container">
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
 
-      <!-- Card 1: навигация без «Контролы» -->
-      <div class="t-card">
-        <div class="t-card-head">
-          <span class="t-card-title">Навигация продукта</span>
+      <div class="q4-note">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 3.2 (DS-1340 · PB-7203): контролы управляются внутри темы — список с превью в области, создание копии из темы,
+          редактирование. Справочники «Контролы» убраны из навигации трёх продуктов, скрытый доступ — за флагом для партнёров.
+        </span>
+      </div>
+
+      <!-- Card 1: навигация -->
+      <div class="c-card">
+        <div class="c-card-head">
+          <span class="c-card-title">Навигация продукта «Экран покупателя»</span>
         </div>
-        <div class="t-nav-row">
-          <div class="t-nav-col">
-            <div class="t-nav-caption">Сейчас</div>
-            <div class="t-nav-item">Экраны</div>
-            <div class="t-nav-item">Темы</div>
-            <div class="t-nav-item t-nav-removed">Контролы <span class="t-nav-removed-tag">убираем</span></div>
-            <div class="t-nav-item">Терминалы</div>
+        <div class="c-nav-row">
+          <div class="c-nav-col">
+            <div class="c-nav-caption">Сейчас</div>
+            <div class="c-nav-item">Дисплеи</div>
+            <div class="c-nav-item c-nav-removed">
+              Контролы
+              <span class="c-nav-removed-tag">убираем</span>
+            </div>
+            <div class="c-nav-item">Темы</div>
           </div>
-          <div class="t-nav-arrow">
+          <div class="c-nav-arrow">
             <lucide-icon name="arrow-right" [size]="20"></lucide-icon>
           </div>
-          <div class="t-nav-col">
-            <div class="t-nav-caption">Будет</div>
-            <div class="t-nav-item">Экраны</div>
-            <div class="t-nav-item">Темы</div>
-            <div class="t-nav-item">Терминалы</div>
-            <div class="t-nav-hidden">
+          <div class="c-nav-col">
+            <div class="c-nav-caption">Будет</div>
+            <div class="c-nav-item">Дисплеи</div>
+            <div class="c-nav-item">Темы</div>
+            <div class="c-nav-hidden">
               <lucide-icon name="eye-off" [size]="14"></lucide-icon>
               Контролы — скрытый раздел за флагом (для партнёров)
             </div>
@@ -51,218 +52,262 @@ import { Q4Control } from '../types';
         </div>
       </div>
 
-      <!-- Card 2: конструктор, область контроля -->
-      <div class="t-card t-card-mt">
-        <div class="t-card-head">
-          <span class="t-crumb">Конструктор темы /</span>
-          <span class="t-card-title">Область контроля</span>
+      <!-- Card 2: область контроля -->
+      <div class="c-card c-card-mt">
+        <div class="c-card-head">
+          <span class="c-card-title">Конструктор темы — область контроля</span>
         </div>
 
-        <div class="t-body">
-          <div class="t-list-head">
-            <span class="t-list-hint">Контролы темы с превью</span>
-            <button class="t-btn t-btn-primary" (click)="createOpen = true">
+        <div class="c-editor">
+          <!-- Превью области -->
+          <div class="c-area-preview">
+            <div class="c-area-preview-caption">Область контроля на канвасе</div>
+            <div class="c-area-canvas">
+              <div class="c-area-block" *ngFor="let b of areaBlocks" [style.background]="selectedControl?.preview">
+                {{ b }}
+              </div>
+              <div class="c-area-empty" *ngIf="!selectedControl">Контрол не выбран</div>
+            </div>
+          </div>
+
+          <!-- Панель области -->
+          <div class="c-panel">
+            <div class="c-panel-field">
+              <span class="c-panel-label">Контрол</span>
+              <div class="c-panel-select-row">
+                <select class="c-panel-select" [value]="selectedControl?.id" (change)="selectControl(+$any($event.target).value)">
+                  <option *ngFor="let c of controls" [value]="c.id">{{ c.name }}</option>
+                </select>
+                <button class="q4-btn q4-btn-outline q4-btn-sm" (click)="editControl()">
+                  <lucide-icon name="pencil" [size]="14"></lucide-icon>
+                  Редактировать контрол
+                </button>
+              </div>
+            </div>
+
+            <div class="c-panel-divider"></div>
+            <div class="c-panel-section-title">Контролы темы</div>
+
+            <div class="c-ctrl-row" *ngFor="let c of controls" [class.active]="selectedControl?.id === c.id" (click)="selectedControl = c">
+              <div class="c-ctrl-preview">
+                <div class="c-ctrl-preview-block" [style.background]="c.preview"></div>
+                <div class="c-ctrl-preview-block" [style.background]="c.preview" [style.opacity]="0.6"></div>
+              </div>
+              <div class="c-ctrl-main">
+                <div class="c-ctrl-name">{{ c.name }}</div>
+                <div class="c-ctrl-meta">Источник: {{ c.source }}</div>
+              </div>
+              <button class="q4-icon-btn" (click)="editControl(c); $event.stopPropagation()" aria-label="Редактировать контрол">
+                <lucide-icon name="pencil" [size]="16"></lucide-icon>
+              </button>
+            </div>
+
+            <button class="c-create-ctrl" (click)="createOpen = true">
               <lucide-icon name="plus" [size]="16"></lucide-icon>
               Создать контрол
             </button>
           </div>
+        </div>
 
-          <div class="t-ctrl-row" *ngFor="let c of controls">
-            <div class="t-ctrl-preview" [style.background]="c.preview"></div>
-            <div class="t-ctrl-main">
-              <div class="t-ctrl-name">{{ c.name }}</div>
-              <div class="t-ctrl-meta">Источник: {{ c.source }}</div>
-            </div>
-            <button class="t-icon-btn" (click)="editControl(c)" aria-label="Редактировать контрол">
-              <lucide-icon name="pencil" [size]="16"></lucide-icon>
-            </button>
-          </div>
-
-          <div class="t-note">
-            <lucide-icon name="info" [size]="15"></lucide-icon>
-            Редактирование контрола из темы уже почти готово. Первая версия создания — копия стандартного или существующего контрола; создание «с нуля» — открытый вопрос.
-          </div>
+        <div class="q4-note c-note-inside">
+          <lucide-icon name="info" [size]="15"></lucide-icon>
+          Редактирование контрола из темы уже почти готово. Первая версия создания — копия стандартного или существующего контрола; создание «с нуля» — открытый вопрос.
         </div>
       </div>
 
-      <!-- Modal: создать контрол -->
-      <div class="t-overlay" *ngIf="createOpen">
-        <div class="t-modal">
-          <div class="t-modal-head">
-            <span class="t-modal-title">Создать контрол</span>
-            <button class="t-icon-btn" (click)="createOpen = false" aria-label="Закрыть">
+      <!-- Диалог: создать контрол -->
+      <div class="q4-overlay" *ngIf="createOpen" (click)="createOpen = false">
+        <div class="q4-dialog" (click)="$event.stopPropagation()">
+          <div class="q4-dialog-head">
+            <span class="q4-dialog-head-title">Создать контрол</span>
+            <button class="q4-icon-btn" (click)="createOpen = false" aria-label="Закрыть">
               <lucide-icon name="x" [size]="18"></lucide-icon>
             </button>
           </div>
-          <div class="t-modal-body">
-            <label class="t-field">
-              <span class="t-field-caption">База для контрола</span>
-              <select class="t-input" #baseSelect>
+          <div class="q4-dialog-body">
+            <div class="c-dlg-field">
+              <span class="c-dlg-caption">База для контрола</span>
+              <select class="c-panel-select c-full" [value]="baseControl" (change)="onBaseChange($any($event.target).value)">
                 <option value="std">Стандартный: Контрол «Чек»</option>
                 <option value="copy">Копия существующего: Контрол «Акция дня»</option>
               </select>
-            </label>
-            <label class="t-field">
-              <span class="t-field-caption">Имя нового контрола</span>
-              <input class="t-input" type="text" placeholder="Например, «Чек (копия)»" #ctrlName />
-            </label>
+            </div>
+            <div class="c-dlg-field">
+              <span class="c-dlg-caption">Имя нового контрола</span>
+              <div class="q4-mdc-field c-full" [class.has-value]="newCtrlName">
+                <input class="q4-mdc-input" [value]="newCtrlName" (input)="newCtrlName = $any($event.target).value" placeholder="Например, «Контрол «Чек» (копия)»" />
+                <label class="q4-mdc-label">Имя нового контрола</label>
+              </div>
+            </div>
           </div>
-          <div class="t-modal-foot">
-            <button class="t-btn" (click)="createOpen = false">Отмена</button>
-            <button class="t-btn t-btn-primary" (click)="createControl(baseSelect.value, ctrlName.value)">Создать</button>
+          <div class="q4-dialog-foot">
+            <button class="q4-btn q4-btn-outline" (click)="createOpen = false">Отмена</button>
+            <button class="q4-btn q4-btn-primary" [disabled]="!newCtrlName.trim()" (click)="createControl()">Создать</button>
           </div>
         </div>
       </div>
 
-      <div class="t-snack" *ngIf="snack">
+      <!-- Тост -->
+      <div class="q4-toast" *ngIf="snack">
         <lucide-icon name="check-circle" [size]="16"></lucide-icon>
         {{ snack }}
       </div>
     </div>
   `,
   styles: [
+    Q4_COMMON_STYLES,
     `
       :host { display: block; }
-      .t-container { max-width: 1000px; margin: 0 auto; padding: 24px; font-family: Roboto, sans-serif; }
-      .t-card {
-        background: var(--dt-surface-primary);
-        border: 1px solid var(--dt-stroke-default);
+      .c-container { max-width: 1200px; margin: 0 auto; padding: 20px 24px; font-family: Roboto, sans-serif; }
+
+      .c-card {
+        background: #FFFFFF;
+        border: 1px solid #E0E0E0;
         border-radius: 4px;
-        box-shadow: var(--dt-shadow-sl);
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
       }
-      .t-card-mt { margin-top: 16px; }
-      .t-card-head { display: flex; align-items: baseline; gap: 6px; padding: 14px 20px 0; flex-wrap: wrap; }
-      .t-crumb { font-size: 12px; color: var(--dt-text-disable); }
-      .t-card-title { font-size: 16px; font-weight: 500; color: var(--dt-text-primary); }
+      .c-card-mt { margin-top: 16px; }
+      .c-card-head { display: flex; align-items: baseline; gap: 6px; padding: 14px 20px 0; }
+      .c-card-title { font-size: 16px; font-weight: 500; color: #333333; }
 
-      .t-nav-row { display: flex; align-items: stretch; gap: 20px; padding: 14px 20px 20px; }
-      .t-nav-col { flex: 1; border: 1px solid var(--dt-stroke-default); border-radius: 4px; padding: 10px; }
-      .t-nav-caption { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--dt-text-disable); margin-bottom: 8px; }
-      .t-nav-item { font-size: 13px; color: var(--dt-text-primary); padding: 7px 10px; border-radius: 3px; }
-      .t-nav-item:hover { background: var(--dt-surface-hover); }
-      .t-nav-removed { color: var(--dt-text-disable); text-decoration: line-through; }
-      .t-nav-removed-tag { text-decoration: none; font-size: 10px; color: #EA7806; background: #FFF9F0; border-radius: 3px; padding: 2px 6px; margin-left: 6px; }
-      .t-nav-hidden { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dt-text-secondary); padding: 7px 10px; border: 1px dashed var(--dt-stroke-default); border-radius: 3px; margin-top: 6px; }
-      .t-nav-arrow { display: flex; align-items: center; color: var(--dt-icon-disable); }
+      /* Навигация */
+      .c-nav-row { display: flex; align-items: stretch; gap: 20px; padding: 14px 20px 20px; }
+      .c-nav-col { flex: 1; border: 1px solid #E0E0E0; border-radius: 4px; padding: 10px; }
+      .c-nav-caption { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: #9E9E9E; margin-bottom: 8px; }
+      .c-nav-item { font-size: 13px; color: #333333; padding: 7px 10px; border-radius: 3px; }
+      .c-nav-item:hover { background: #F5F5F5; }
+      .c-nav-removed { color: #9E9E9E; text-decoration: line-through; }
+      .c-nav-removed-tag { text-decoration: none; font-size: 10px; color: #EA7806; background: #FFF9F0; border-radius: 3px; padding: 2px 6px; margin-left: 6px; }
+      .c-nav-hidden { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #616161; padding: 7px 10px; border: 1px dashed #E0E0E0; border-radius: 3px; margin-top: 6px; }
+      .c-nav-arrow { display: flex; align-items: center; color: #BDBDBD; }
 
-      .t-body { padding: 14px 20px 20px; }
-      .t-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-      .t-list-hint { font-size: 12px; color: var(--dt-text-secondary); }
-      .t-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        height: 36px; padding: 0 16px;
+      /* Область контроля */
+      .c-editor { display: flex; gap: 0; padding: 14px 20px 0; }
+      .c-area-preview { flex: 1; min-width: 0; border-right: 1px solid #E0E0E0; padding-right: 16px; }
+      .c-area-preview-caption { font-size: 11px; color: #616161; margin-bottom: 8px; }
+      .c-area-canvas {
+        background-color: #E8E8E8;
+        background-image: linear-gradient(45deg, #D6D6D6 1px, transparent 1px), linear-gradient(-45deg, #D6D6D6 1px, transparent 1px);
+        background-size: 20px 20px;
         border-radius: 4px;
-        font-size: 13px; font-weight: 500;
-        border: 1px solid var(--dt-stroke-default);
-        background: var(--dt-surface-primary);
-        color: var(--dt-text-primary);
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px;
+      }
+      .c-area-block { height: 36px; border-radius: 4px; opacity: 0.85; }
+      .c-area-empty { font-size: 12px; color: #9E9E9E; text-align: center; padding: 40px 0; }
+
+      .c-panel { width: 360px; flex-shrink: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 10px; }
+      .c-panel-field { display: flex; flex-direction: column; gap: 6px; }
+      .c-panel-label { font-size: 11px; color: #9E9E9E; }
+      .c-panel-select-row { display: flex; gap: 8px; }
+      .c-panel-select {
+        flex: 1;
+        height: 34px;
+        border: 1px solid rgba(0,0,0,.23);
+        border-radius: 4px;
+        padding: 0 8px;
+        font-size: 13px; font-family: Roboto, sans-serif;
+        color: #333333;
+        background: #FFFFFF;
+        outline: none;
+        min-width: 0;
+      }
+      .c-full { width: 100%; }
+      .c-panel-divider { border-top: 1px solid #E0E0E0; margin: 2px 0; }
+      .c-panel-section-title { font-size: 12px; font-weight: 500; color: #424242; }
+
+      .c-ctrl-row {
+        display: flex; align-items: center; gap: 12px;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        padding: 10px 12px;
         cursor: pointer;
+      }
+      .c-ctrl-row:hover { background: #F5F5F5; }
+      .c-ctrl-row.active { border-color: #448AFF; background: #F0F5FF; }
+      .c-ctrl-preview {
+        width: 44px; height: 44px;
+        border-radius: 4px;
+        background: #E8E8E8;
+        display: flex; flex-direction: column; gap: 3px;
+        padding: 6px;
+        flex-shrink: 0;
+      }
+      .c-ctrl-preview-block { height: 10px; border-radius: 2px; }
+      .c-ctrl-main { flex: 1; min-width: 0; }
+      .c-ctrl-name { font-size: 13px; font-weight: 500; color: #333333; }
+      .c-ctrl-meta { font-size: 12px; color: #616161; margin-top: 2px; }
+
+      .c-create-ctrl {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        height: 36px;
+        border: none; border-radius: 4px;
+        background: #448AFF;
+        color: #FFFFFF;
+        font-size: 13px; font-weight: 500;
         font-family: Roboto, sans-serif;
         text-transform: uppercase;
-        letter-spacing: 0.2px;
+        cursor: pointer;
       }
-      .t-btn:hover { background: #FAFAFA; }
-      .t-btn-primary { background: #448AFF; border-color: #448AFF; color: #FFFFFF; }
-      .t-btn-primary:hover { background: #3969D5; }
-      .t-icon-btn {
-        display: flex; align-items: center; justify-content: center;
-        width: 32px; height: 32px;
-        border: none; background: transparent; border-radius: 4px;
-        color: var(--dt-icon-primary); cursor: pointer;
-      }
-      .t-icon-btn:hover { background: #EBEBEB; }
+      .c-create-ctrl:hover { background: #3969D5; }
 
-      .t-ctrl-row {
-        display: flex; align-items: center; gap: 12px;
-        border: 1px solid var(--dt-stroke-default);
-        border-radius: 4px;
-        padding: 10px 14px;
-        margin-bottom: 8px;
-      }
-      .t-ctrl-preview { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; box-shadow: var(--dt-shadow-sl); }
-      .t-ctrl-main { flex: 1; min-width: 0; }
-      .t-ctrl-name { font-size: 13px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-ctrl-meta { font-size: 12px; color: var(--dt-text-secondary); margin-top: 2px; }
+      .c-note-inside { margin: 14px 20px 20px; }
 
-      .t-note {
-        margin-top: 14px;
-        display: flex; align-items: flex-start; gap: 8px;
-        font-size: 12px; color: var(--dt-text-secondary);
-        background: var(--dt-brand-accent-lightest);
-        border-radius: 4px; padding: 10px 12px;
-      }
-
-      .t-overlay {
-        position: fixed; inset: 0;
-        background: rgba(33, 33, 33, 0.4);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 200;
-      }
-      .t-modal {
-        width: 460px; max-width: calc(100vw - 32px);
-        background: var(--dt-surface-primary);
-        border-radius: 4px;
-        box-shadow: var(--dt-shadow-xl);
-      }
-      .t-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--dt-stroke-default); }
-      .t-modal-title { font-size: 15px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-modal-body { padding: 14px 20px; }
-      .t-field { display: block; margin-bottom: 14px; }
-      .t-field-caption { display: block; font-size: 12px; color: var(--dt-text-secondary); margin-bottom: 6px; }
-      .t-input {
-        width: 100%;
-        height: 36px;
-        border: 1px solid var(--dt-stroke-default);
-        border-radius: 4px;
-        padding: 0 12px;
-        font-size: 13px;
-        font-family: Roboto, sans-serif;
-        color: var(--dt-text-primary);
-        outline: none;
-        background: var(--dt-surface-primary);
-      }
-      .t-input:focus { border-color: var(--dt-brand-accent); }
-      .t-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--dt-stroke-default); }
-
-      .t-snack {
-        position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-        display: flex; align-items: center; gap: 8px;
-        background: var(--dt-surface-snack-tooltip);
-        color: #FFFFFF; font-size: 13px;
-        border-radius: 4px; padding: 10px 16px;
-        box-shadow: var(--dt-shadow-m);
-        z-index: 300;
-        animation: fade-in-up 0.25s ease-out;
-      }
-      @keyframes fade-in-up {
-        from { opacity: 0; transform: translate(-50%, 8px); }
-        to { opacity: 1; transform: translate(-50%, 0); }
-      }
+      .c-dlg-field { margin-bottom: 14px; }
+      .c-dlg-caption { display: block; font-size: 12px; color: #616161; margin-bottom: 6px; }
     `,
   ],
 })
 export class Task32ControlsScreenComponent {
   controls: Q4Control[] = THEME_CONTROLS.map(c => ({ ...c }));
+  selectedControl: Q4Control = this.controls[0];
+
   createOpen = false;
+  baseControl = 'std';
+  newCtrlName = 'Контрол «Чек» (копия)';
   snack = '';
 
-  editControl(c: Q4Control): void {
-    this.snack = `Редактирование «${c.name}» из темы (готовое решение)`;
-    setTimeout(() => (this.snack = ''), 2200);
+  areaBlocks = ['Строка заказа 1', 'Строка заказа 2', 'Итого'];
+
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Экран покупателя' },
+    { label: 'Конструктор темы — Контролы' },
+  ];
+
+  selectControl(id: number): void {
+    const c = this.controls.find(x => x.id === id);
+    if (c) this.selectedControl = c;
   }
 
-  createControl(base: string, name: string): void {
-    const n = (name || '').trim() || 'Новый контрол (Copy)';
-    const src = base === 'std' ? 'Стандартный' : 'Копия';
-    const color = base === 'std' ? '#448AFF' : '#FFAB40';
-    this.controls.push({
+  editControl(c?: Q4Control): void {
+    const target = c || this.selectedControl;
+    this.snack = `Редактирование «${target.name}» из темы (готовое решение)`;
+    setTimeout(() => (this.snack = ''), 2500);
+  }
+
+  onBaseChange(value: string): void {
+    this.baseControl = value;
+    this.newCtrlName = value === 'std' ? 'Контрол «Чек» (копия)' : 'Контрол «Акция дня» (копия)';
+  }
+
+  createControl(): void {
+    const n = (this.newCtrlName || '').trim() || 'Новый контрол (Copy)';
+    const src = this.baseControl === 'std' ? 'Стандартный' : 'Копия';
+    const color = this.baseControl === 'std' ? '#448AFF' : '#FFAB40';
+    const created: Q4Control = {
       id: this.controls.length + 1,
       name: n,
       source: src,
       preview: color,
-    });
+    };
+    this.controls.push(created);
+    this.selectedControl = created;
     this.createOpen = false;
     this.snack = `Контрол «${n}» создан в теме`;
-    setTimeout(() => (this.snack = ''), 2200);
+    setTimeout(() => (this.snack = ''), 2500);
   }
 }
