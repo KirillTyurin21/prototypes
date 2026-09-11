@@ -1,222 +1,256 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
 import { HINT_NAME, HINT_READINESS_ROWS } from '../data/mock-data';
+import { Q4_COMMON_STYLES } from '../data/q4-common.styles';
 import { ReadinessRow } from '../types';
 
 @Component({
   selector: 'app-task-2-2-hints-readiness-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
-    <div class="t-container">
-      <app-q4-task-header
-        goal="2"
-        taskKey="2.2"
-        title="Мониторинг готовности допродаж"
-        [jira]="['DS-716', 'DS-1294']"
-        [changes]="[
-          'Сейчас: статус «назначено» для CS вычисляется из колонки терминалов, но машинного статуса «загрузилось» нет нигде; мониторинг киоска невозможен',
-          'Будет: вкладка «Готовность» в карточке подсказки — сводка по точкам CS и Kiosk. Тот же компонент сводки, что в 1.2: один механизм для кампаний и подсказок'
-        ]"
-      ></app-q4-task-header>
+    <div class="c-container">
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
 
-      <div class="t-card">
-        <div class="t-card-head">
-          <span class="t-crumb">Подсказки /</span>
-          <span class="t-card-title">{{ hintName }}</span>
+      <div class="q4-page-header">
+        <div class="c-title-group">
+          <button class="q4-icon-btn q4-icon-btn-border c-back-btn" (click)="goBack()" aria-label="Назад">
+            <lucide-icon name="arrow-left" [size]="20"></lucide-icon>
+          </button>
+          <h1 class="q4-page-title">Редактировать подсказку</h1>
+        </div>
+        <div class="q4-header-actions">
+          <button class="q4-btn q4-btn-primary" (click)="showSnack('Сохранено')">
+            <lucide-icon name="save" [size]="16"></lucide-icon>
+            Сохранить
+          </button>
+        </div>
+      </div>
+
+      <div class="q4-note">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 2.2 (DS-716 · DS-1294): вкладка «Готовность» в карточке подсказки — тот же компонент сводки, что в 1.2
+          (один механизм для кампаний и подсказок). НЕ путать с «Отчетом» — срабатывания подсказок.
+        </span>
+      </div>
+
+      <!-- Вкладки верхнего уровня -->
+      <div class="c-top-tabs">
+        <button class="c-top-tab" (click)="goTo('task-2-1')">Основное</button>
+        <button class="c-top-tab" (click)="goTo('task-2-1')">Где показывать</button>
+        <button class="c-top-tab active">Готовность</button>
+      </div>
+
+      <div class="c-card">
+        <div class="c-progress-block">
+          <div class="c-progress-top">
+            <span class="c-progress-label">Акция «{{ hintName }}» готова к запуску</span>
+            <span class="c-progress-count">{{ readyCount }} из {{ rows.length }} точек</span>
+          </div>
+          <div class="q4-progress">
+            <div class="q4-progress-fill" [style.width.%]="progressPercent"></div>
+          </div>
         </div>
 
-        <div class="t-tabs">
-          <button class="t-tab" (click)="tab = 'base'">Основное</button>
-          <button class="t-tab" [class.active]="tab === 'where'" (click)="tab = 'where'">Где показывать</button>
-          <button class="t-tab" [class.active]="tab === 'ready'" (click)="tab = 'ready'">Готовность</button>
+        <div class="c-chips">
+          <span class="q4-badge q4-badge-ready">{{ readyCount }} загрузилось</span>
+          <span class="q4-badge q4-badge-error">{{ notLoadedCount }} не загрузилось</span>
+          <span class="q4-badge q4-badge-waiting">{{ notAssignedCount }} не назначено</span>
+          <span class="q4-badge q4-badge-offline">{{ offlineCount }} офлайн</span>
         </div>
 
-        <div class="t-body" *ngIf="tab === 'ready'">
-          <div class="t-progress-block">
-            <div class="t-progress-top">
-              <span class="t-progress-label">Акция готова к запуску</span>
-              <span class="t-progress-count">{{ readyCount }} из {{ rows.length }} точек</span>
-            </div>
-            <div class="t-progress-bar">
-              <div class="t-progress-fill" [style.width.%]="progressPercent"></div>
-            </div>
-          </div>
-
-          <div class="t-chips">
-            <span class="t-chip t-chip-ok">{{ readyCount }} загрузилось</span>
-            <span class="t-chip t-chip-bad">{{ notLoadedCount }} не загрузилось</span>
-            <span class="t-chip t-chip-warn">{{ notAssignedCount }} не назначено</span>
-            <span class="t-chip t-chip-off">{{ offlineCount }} офлайн</span>
-          </div>
-
-          <table class="t-table">
+        <div class="q4-table-wrap">
+          <table class="q4-table">
             <thead>
               <tr>
                 <th>Точка / терминал</th>
                 <th>Продукт</th>
                 <th>Статус</th>
                 <th>Последняя активность</th>
-                <th style="width: 200px"></th>
+                <th>Действия</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let r of rows">
-                <td class="t-td-name">{{ r.terminal }}</td>
+                <td class="c-td-name">{{ r.terminal }}</td>
                 <td>{{ r.product }}</td>
                 <td>
-                  <span class="t-status" [class]="'t-status-' + statusClass(r)">{{ statusLabel(r) }}</span>
+                  <span class="q4-badge" [class]="statusBadge(r)">{{ statusLabel(r) }}</span>
                 </td>
-                <td class="t-td-activity">{{ r.lastActivity }}</td>
-                <td>
-                  <button
-                    class="t-btn t-btn-send"
-                    *ngIf="canSend(r)"
-                    (click)="sendSettings(r)"
-                  >
+                <td class="q4-cell-secondary">{{ r.lastActivity }}</td>
+                <td class="q4-actions">
+                  <button class="q4-btn q4-btn-outline q4-btn-sm" *ngIf="canSend(r)" (click)="sendSettings(r)">
                     <lucide-icon name="send" [size]="14"></lucide-icon>
                     Отправить настройки
                   </button>
-                  <span class="t-ready-mark" *ngIf="isReady(r)">
+                  <button class="q4-icon-btn q4-icon-btn-border" (click)="openScreenshot(r)" aria-label="Скриншот экрана">
+                    <lucide-icon name="camera" [size]="18"></lucide-icon>
+                  </button>
+                  <span class="c-hint-warn" *ngIf="!canSend(r) && !isOffline(r) && !isReady(r)">назначить в мастере</span>
+                  <span class="c-hint-off" *ngIf="isOffline(r)">—</span>
+                  <span class="c-ready-mark" *ngIf="isReady(r)">
                     <lucide-icon name="check-circle" [size]="16"></lucide-icon>
                     готово
                   </span>
-                  <span class="t-hint-warn" *ngIf="!isReady(r) && !canSend(r) && !isOffline(r)">
-                    назначить через мастер 2.1
-                  </span>
-                  <span class="t-hint-off" *ngIf="isOffline(r)">устройство выключено</span>
                 </td>
               </tr>
             </tbody>
           </table>
-
-          <div class="t-note">
-            <lucide-icon name="info" [size]="15"></lucide-icon>
-            Общий механизм готовности с 1.2 (кампании + подсказки). НЕ путать с отчётом о срабатываниях подсказок — это отдельная история.
-          </div>
         </div>
 
-        <div class="t-body" *ngIf="tab !== 'ready'">
-          <div class="t-empty">Перейдите на вкладку «Готовность» — демо этого раздела там.</div>
+        <div class="q4-note c-note-inside">
+          <lucide-icon name="info" [size]="15"></lucide-icon>
+          Для киоска мониторинг возможен только после назначения (мастер 2.1) и достройки транспорта конфигурации. Источник «загрузилось» —
+          подтверждение от устройства о получении подсказки.
         </div>
       </div>
 
-      <div class="t-snack" *ngIf="snack">
+      <!-- Скриншот экрана -->
+      <div class="q4-overlay" *ngIf="shotTarget" (click)="shotTarget = null">
+        <div class="q4-dialog c-shot-dialog" (click)="$event.stopPropagation()">
+          <div class="q4-dialog-head">
+            <span class="q4-dialog-head-title">Скриншот экрана</span>
+            <button class="q4-icon-btn" (click)="shotTarget = null" aria-label="Закрыть">
+              <lucide-icon name="x" [size]="18"></lucide-icon>
+            </button>
+          </div>
+          <div class="c-shot-body">
+            <div class="c-shot-screen">
+              <div class="c-shot-hint">
+                <lucide-icon name="lightbulb" [size]="16"></lucide-icon>
+                Пирожок с вишней — скидка 20%
+              </div>
+              <div class="c-shot-placeholder">«Здесь может быть ваше изображение или видео»</div>
+            </div>
+            <div class="c-shot-meta">
+              <div class="c-shot-meta-row"><span>Ресторан</span><span>{{ shotTarget?.terminal }}</span></div>
+              <div class="c-shot-meta-row"><span>Терминал</span><span>{{ shotTarget?.product }}</span></div>
+              <div class="c-shot-meta-row"><span>Время снимка</span><span>11.09.2026 14:32</span></div>
+              <div class="c-shot-meta-row"><span>Разрешение</span><span>1024x768</span></div>
+            </div>
+          </div>
+          <div class="q4-dialog-foot">
+            <button class="q4-btn q4-btn-primary" (click)="shotTarget = null">Закрыть</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Тост -->
+      <div class="q4-toast" *ngIf="snack">
         <lucide-icon name="check-circle" [size]="16"></lucide-icon>
         {{ snack }}
       </div>
     </div>
   `,
   styles: [
+    Q4_COMMON_STYLES,
     `
       :host { display: block; }
-      .t-container { max-width: 1100px; margin: 0 auto; padding: 24px; font-family: Roboto, sans-serif; }
-      .t-card {
-        background: var(--dt-surface-primary);
-        border: 1px solid var(--dt-stroke-default);
-        border-radius: 4px;
-        box-shadow: var(--dt-shadow-sl);
-      }
-      .t-card-head { display: flex; align-items: baseline; gap: 6px; padding: 16px 20px 0; }
-      .t-crumb { font-size: 12px; color: var(--dt-text-disable); }
-      .t-card-title { font-size: 18px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-tabs { display: flex; border-bottom: 1px solid var(--dt-stroke-default); padding: 0 20px; margin-top: 12px; }
-      .t-tab {
+      .c-container { max-width: 1200px; margin: 0 auto; padding: 20px 24px; font-family: Roboto, sans-serif; }
+
+      .c-title-group { display: flex; align-items: center; gap: 12px; }
+      .c-back-btn { border-radius: 50%; }
+
+      .c-top-tabs { display: flex; gap: 0; }
+      .c-top-tab {
         position: relative;
-        border: none; background: transparent;
-        padding: 12px 16px;
+        border: 1px solid #E0E0E0;
+        border-bottom: none;
+        background: #FFFFFF;
+        border-radius: 4px 4px 0 0;
+        padding: 12px 20px;
+        font-family: Roboto, sans-serif;
         font-size: 13px;
-        color: rgba(0, 0, 0, 0.54);
+        color: rgba(0,0,0,.54);
         cursor: pointer;
-        font-family: Roboto, sans-serif;
       }
-      .t-tab.active { color: var(--dt-brand-accent); font-weight: 500; }
-      .t-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--dt-brand-accent); }
-      .t-body { padding: 16px 20px 20px; }
-      .t-empty { font-size: 13px; color: var(--dt-text-disable); padding: 24px 0; text-align: center; }
-
-      .t-progress-block { margin-bottom: 14px; }
-      .t-progress-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
-      .t-progress-label { font-size: 13px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-progress-count { font-size: 12px; color: var(--dt-text-secondary); }
-      .t-progress-bar { height: 8px; border-radius: 4px; background: var(--dt-surface-press); overflow: hidden; }
-      .t-progress-fill { height: 100%; background: #448AFF; border-radius: 4px; transition: width 0.4s ease-out; }
-
-      .t-chips { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-      .t-chip { font-size: 12px; font-weight: 500; border-radius: 999px; padding: 4px 10px; }
-      .t-chip-ok { color: #14B456; background: #EBFBF2; }
-      .t-chip-bad { color: #FF5252; background: #FFF2F2; }
-      .t-chip-warn { color: #EA7806; background: #FFF9F0; }
-      .t-chip-off { color: #616161; background: #F5F5F5; }
-
-      .t-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-      .t-table th {
-        text-align: left;
-        background: #F0F5FF;
-        color: #616161;
-        font-weight: 400;
-        padding: 12px 16px;
+      .c-top-tab.active { color: #448AFF; font-weight: 500; }
+      .c-top-tab.active::after {
+        content: '';
+        position: absolute; left: 0; right: 0; bottom: 0;
+        height: 2px; background: #448AFF;
       }
-      .t-table td { padding: 11px 16px; border-bottom: 1px solid var(--dt-stroke-default); color: var(--dt-text-primary); }
-      .t-table tr:hover td { background: var(--dt-surface-hover); }
-      .t-td-name { font-weight: 500; }
-      .t-td-activity { color: var(--dt-text-secondary); }
 
-      .t-status { font-size: 12px; border-radius: 999px; padding: 3px 10px; font-weight: 500; }
-      .t-status-ok { color: #14B456; background: #EBFBF2; }
-      .t-status-bad { color: #FF5252; background: #FFF2F2; }
-      .t-status-warn { color: #EA7806; background: #FFF9F0; }
-      .t-status-off { color: #616161; background: #F5F5F5; }
-
-      .t-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        height: 32px; padding: 0 12px;
+      .c-card {
+        background: #FFFFFF;
+        border: 1px solid #E0E0E0;
         border-radius: 4px;
-        font-size: 12px; font-weight: 500;
-        border: 1px solid var(--dt-stroke-default);
-        background: var(--dt-surface-primary);
-        color: var(--dt-text-primary);
-        cursor: pointer;
-        font-family: Roboto, sans-serif;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        padding: 16px 20px;
       }
-      .t-btn:hover { background: #FAFAFA; }
-      .t-btn-send { border-color: #448AFF; color: #448AFF; }
-      .t-btn-send:hover { background: var(--dt-brand-accent-lighter); }
-      .t-ready-mark { display: inline-flex; align-items: center; gap: 6px; color: #14B456; font-size: 12px; }
-      .t-hint-warn { font-size: 12px; color: #EA7806; }
-      .t-hint-off { font-size: 12px; color: var(--dt-text-disable); }
 
-      .t-note {
-        margin-top: 14px;
-        display: flex; align-items: flex-start; gap: 8px;
-        font-size: 12px; color: var(--dt-text-secondary);
-        background: var(--dt-brand-accent-lightest);
-        border-radius: 4px; padding: 10px 12px;
+      .c-progress-block { margin-bottom: 14px; }
+      .c-progress-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+      .c-progress-label { font-size: 13px; font-weight: 500; color: #333333; }
+      .c-progress-count { font-size: 12px; color: #616161; }
+
+      .c-chips { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+      .c-td-name { font-weight: 500; }
+      .c-hint-warn { font-size: 12px; color: #EA7806; white-space: nowrap; }
+      .c-hint-off { font-size: 12px; color: #9E9E9E; }
+      .c-ready-mark { display: inline-flex; align-items: center; gap: 6px; color: #14B456; font-size: 12px; }
+      .c-note-inside { margin: 14px 0 0; }
+
+      /* Скриншот */
+      .c-shot-dialog { width: 480px; max-width: calc(100vw - 32px); }
+      .c-shot-body { padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start; }
+      .c-shot-screen {
+        width: 220px; height: 165px;
+        background: rgba(128,128,128,.69);
+        border-radius: 4px;
+        display: flex; flex-direction: column; gap: 8px;
+        padding: 16px;
+        flex-shrink: 0;
       }
-      .t-snack {
-        position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-        display: flex; align-items: center; gap: 8px;
-        background: var(--dt-surface-snack-tooltip);
-        color: #FFFFFF; font-size: 13px;
-        border-radius: 4px; padding: 10px 16px;
-        box-shadow: var(--dt-shadow-m);
-        z-index: 300;
-        animation: fade-in-up 0.25s ease-out;
+      .c-shot-hint {
+        display: flex; align-items: center; gap: 6px;
+        background: #FFD9A8;
+        color: #994000;
+        border-radius: 4px;
+        padding: 8px 10px;
+        font-size: 11px; font-weight: 500;
       }
-      @keyframes fade-in-up {
-        from { opacity: 0; transform: translate(-50%, 8px); }
-        to { opacity: 1; transform: translate(-50%, 0); }
+      .c-shot-placeholder {
+        margin-top: auto;
+        background: rgba(255,255,255,.68);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 11px; color: #616161;
+        text-align: center;
       }
+      .c-shot-meta { flex: 1; min-width: 0; }
+      .c-shot-meta-row {
+        display: flex; justify-content: space-between; gap: 12px;
+        padding: 6px 0;
+        font-size: 12px;
+        border-bottom: 1px solid #F5F5F5;
+      }
+      .c-shot-meta-row span:first-child { color: #9E9E9E; flex-shrink: 0; }
+      .c-shot-meta-row span:last-child { color: #333333; text-align: right; }
     `,
   ],
 })
 export class Task22HintsReadinessScreenComponent {
+  private router = inject(Router);
+
   hintName = HINT_NAME;
   rows: ReadinessRow[] = HINT_READINESS_ROWS.map(r => ({ ...r }));
-  tab = 'ready';
+  shotTarget: ReadinessRow | null = null;
   snack = '';
+
+  crumbs = [
+    { label: 'Экраны и звуки' },
+    { label: 'Подсказки' },
+    { label: 'Пирожок дня' },
+    { label: 'Готовность' },
+  ];
 
   get readyCount(): number {
     return this.rows.filter(r => this.isReady(r)).length;
@@ -257,17 +291,34 @@ export class Task22HintsReadinessScreenComponent {
     return 'загрузилось';
   }
 
-  statusClass(r: ReadinessRow): string {
-    if (this.isOffline(r)) return 'off';
-    if (!r.assigned) return 'warn';
-    if (!r.loaded) return 'bad';
-    return 'ok';
+  statusBadge(r: ReadinessRow): string {
+    if (this.isOffline(r)) return 'q4-badge-offline';
+    if (!r.assigned) return 'q4-badge-waiting';
+    if (!r.loaded) return 'q4-badge-error';
+    return 'q4-badge-ready';
+  }
+
+  openScreenshot(r: ReadinessRow): void {
+    this.shotTarget = r;
   }
 
   sendSettings(r: ReadinessRow): void {
     r.loaded = true;
     r.lastActivity = 'только что';
     this.snack = `Настройки отправлены — «${r.terminal}» подтвердил загрузку`;
-    setTimeout(() => (this.snack = ''), 2200);
+    setTimeout(() => (this.snack = ''), 2500);
+  }
+
+  goBack(): void {
+    this.router.navigate(['/prototype/q4-vision', 'task-2-1']);
+  }
+
+  goTo(route: string): void {
+    this.router.navigate(['/prototype/q4-vision', route]);
+  }
+
+  showSnack(text: string): void {
+    this.snack = text;
+    setTimeout(() => (this.snack = ''), 2500);
   }
 }
