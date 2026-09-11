@@ -134,3 +134,13 @@ export interface Q4GalleryFile {
   date: string;
   color: string;
 }
+
+export interface Q4Hint {
+  id: number;
+  name: string;
+  from: string;
+  to: string;
+  timeFrom: string;
+  timeTo: string;
+  status: 'active' | 'scheduled' | 'expired';
+}

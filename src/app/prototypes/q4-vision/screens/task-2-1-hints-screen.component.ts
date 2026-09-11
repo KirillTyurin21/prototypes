@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconsModule } from '@/shared/icons.module';
-import { Q4TaskHeaderComponent } from '../components/q4-task-header.component';
-import { HINT_NAME, HINT_ASSIGNMENTS } from '../data/mock-data';
-import { HintAssignment } from '../types';
+import { Q4CrumbsComponent } from '../components/q4-crumbs.component';
+import { HINT_ASSIGNMENTS, Q4_HINTS, Q4_DISHES, Q4_DISCOUNTS } from '../data/mock-data';
+import { Q4_COMMON_STYLES } from '../data/q4-common.styles';
+import { HintAssignment, Q4Hint } from '../types';
 
 interface WizardHintProduct {
   id: string;
@@ -27,95 +28,267 @@ const HINT_TERMINALS: { id: string; label: string; product: string }[] = [
 @Component({
   selector: 'app-task-2-1-hints-screen',
   standalone: true,
-  imports: [CommonModule, IconsModule, Q4TaskHeaderComponent],
+  imports: [CommonModule, IconsModule, Q4CrumbsComponent],
   template: `
-    <div class="t-container">
-      <app-q4-task-header
-        goal="2"
-        taskKey="2.1"
-        title="Настройка допродаж в одном месте"
-        [jira]="['DS-1294', 'OUT-1969']"
-        [changes]="[
-          'Сейчас: подсказка создаётся в едином справочнике, но назначение есть только у Customer Screen (колонка «Подсказки» терминалов); у киоска UI-назначения нет',
-          'Будет: мастер «Где показывать» в карточке подсказки — продукт (CS / Kiosk) → точка/терминал → способ показа. Задача продать пирожок решается одним-двумя кликами'
-        ]"
-      ></app-q4-task-header>
+    <div class="c-container">
+      <app-q4-crumbs [items]="crumbs"></app-q4-crumbs>
 
-      <div class="t-card">
-        <div class="t-card-head">
-          <span class="t-crumb">Подсказки /</span>
-          <span class="t-card-title">{{ hintName }}</span>
-        </div>
-
-        <div class="t-tabs">
-          <button class="t-tab" (click)="tab = 'base'">Основное</button>
-          <button class="t-tab" [class.active]="tab === 'where'" (click)="tab = 'where'">
-            Где показывать
-            <span class="t-tab-count" *ngIf="assignments.length > 0">{{ assignments.length }}</span>
+      <!-- ================= СПИСОК ПОДСКАЗОК ================= -->
+      <div class="q4-page-header">
+        <h1 class="q4-page-title">Подсказки</h1>
+        <div class="q4-header-actions">
+          <button class="q4-btn q4-btn-outline" (click)="duplicateHint()">
+            <lucide-icon name="copy" [size]="16"></lucide-icon>
+            Дублировать
           </button>
-        </div>
-
-        <div class="t-body" *ngIf="tab === 'where'">
-          <div class="t-list-head">
-            <span class="t-list-hint">Назначения подсказки на устройства и способы показа</span>
-            <button class="t-btn t-btn-primary" (click)="openWizard()">
-              <lucide-icon name="plus" [size]="16"></lucide-icon>
-              Добавить назначение
-            </button>
-          </div>
-
-          <div class="t-empty" *ngIf="assignments.length === 0">
-            Назначений пока нет — нажмите «Добавить назначение».
-          </div>
-
-          <div class="t-assign-row" *ngFor="let a of assignments">
-            <lucide-icon [name]="productIcon(a.product)" [size]="18" class="t-assign-icon"></lucide-icon>
-            <div class="t-assign-main">
-              <div class="t-assign-name">{{ a.terminal }}</div>
-              <div class="t-assign-meta">{{ a.productLabel }} · способ показа: {{ a.mode }}</div>
-            </div>
-            <button class="t-icon-btn" (click)="removeAssignment(a)" aria-label="Удалить назначение">
-              <lucide-icon name="trash-2" [size]="16"></lucide-icon>
-            </button>
-          </div>
-
-          <div class="t-note">
-            <lucide-icon name="info" [size]="15"></lucide-icon>
-            Для Customer Screen мастер пишет в существующую колонку «Подсказки» настройки терминалов. Для Kiosk назначение поверх готового backend-маппинга — плюс достройка транспорта конфигурации до киоска (открытая задача).
-          </div>
-        </div>
-
-        <div class="t-body" *ngIf="tab === 'base'">
-          <div class="t-field-row"><span class="t-field-label">Наименование</span><span>{{ hintName }}</span></div>
-          <div class="t-field-row"><span class="t-field-label">Период действия</span><span>01.09.2026 — 30.09.2026</span></div>
-          <div class="t-field-row"><span class="t-field-label">Триггер</span><span>После добавления основного блюда</span></div>
-          <div class="t-field-row"><span class="t-field-label">Рекомендуемое блюдо</span><span>Пирожок с вишней</span></div>
-          <div class="t-field-row"><span class="t-field-label">Скидка</span><span>20%</span></div>
+          <button class="q4-btn q4-btn-outline" (click)="deleteHint()">
+            <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+            Удалить
+          </button>
+          <button class="q4-btn q4-btn-primary" (click)="openNew()">
+            <lucide-icon name="plus" [size]="16"></lucide-icon>
+            Добавить
+          </button>
+          <button class="q4-btn q4-btn-outline" (click)="showSnack('Отчет по подсказкам — отдельная история (срабатывания, не готовность)')">
+            <lucide-icon name="bar-chart-3" [size]="16"></lucide-icon>
+            Отчет
+          </button>
         </div>
       </div>
 
-      <!-- Wizard overlay -->
-      <div class="t-overlay" *ngIf="wizardOpen">
-        <div class="t-modal">
-          <div class="t-modal-head">
-            <span class="t-modal-title">Где показывать — новое назначение</span>
-            <button class="t-icon-btn" (click)="wizardOpen = false" aria-label="Закрыть">
+      <div class="q4-note">
+        <lucide-icon name="info" [size]="15"></lucide-icon>
+        <span>
+          Целевое решение 2.1 (DS-1294 · OUT-1969): подсказка создаётся один раз, назначается на Customer Screen и Kiosk мастером «Где показывать».
+          Откройте подсказку <b>«Пирожок дня»</b>.
+        </span>
+      </div>
+
+      <div class="q4-table-wrap">
+        <table class="q4-table">
+          <thead>
+            <tr>
+              <th>Название</th>
+              <th>Период действия</th>
+              <th>Время действия</th>
+              <th>Статус</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let h of hints"
+              (click)="selectRow(h)"
+              (dblclick)="openEditor(h)"
+              [class.c-row-selected]="selectedId === h.id"
+              class="c-row-click"
+            >
+              <td class="c-td-name">{{ h.name }}</td>
+              <td>{{ h.from }} — {{ h.to }}</td>
+              <td>{{ h.timeFrom }} — {{ h.timeTo }}</td>
+              <td>
+                <span class="q4-badge" [class]="statusBadge(h.status)">{{ statusLabel(h.status) }}</span>
+              </td>
+              <td class="q4-actions" (click)="$event.stopPropagation()">
+                <button class="q4-icon-btn" (click)="openEditor(h)" aria-label="Редактировать подсказку">
+                  <lucide-icon name="pencil" [size]="18"></lucide-icon>
+                </button>
+                <button class="q4-icon-btn q4-icon-btn-danger" (click)="deleteTarget = h" aria-label="Удалить подсказку">
+                  <lucide-icon name="trash-2" [size]="18"></lucide-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================= DRAWER РЕДАКТОР ================= -->
+      <div class="q4-overlay c-drawer-overlay" *ngIf="drawerOpen" (click)="drawerOpen = false">
+        <div class="c-drawer" (click)="$event.stopPropagation()">
+          <div class="c-drawer-head">
+            <span class="c-drawer-title">{{ isNewHint ? 'Добавить подсказку' : 'Редактировать подсказку' }}</span>
+            <button class="q4-icon-btn" (click)="drawerOpen = false" aria-label="Закрыть">
               <lucide-icon name="x" [size]="18"></lucide-icon>
             </button>
           </div>
 
-          <div class="t-stepper">
-            <span class="t-step" [class.active]="step >= 1">1. Продукт</span>
-            <span class="t-step-arrow">→</span>
-            <span class="t-step" [class.active]="step >= 2">2. Точка / терминал</span>
-            <span class="t-step-arrow">→</span>
-            <span class="t-step" [class.active]="step >= 3">3. Способ показа</span>
+          <div class="c-drawer-tabs">
+            <button class="c-drawer-tab" [class.active]="drawerTab === 'base'" (click)="drawerTab = 'base'">Основное</button>
+            <button class="c-drawer-tab" [class.active]="drawerTab === 'where'" (click)="drawerTab = 'where'">
+              Где показывать
+              <span class="c-tab-count" *ngIf="assignments.length > 0">{{ assignments.length }}</span>
+            </button>
           </div>
 
-          <div class="t-modal-body">
-            <div *ngIf="step === 1" class="t-step-grid">
+          <div class="c-drawer-body" *ngIf="drawerTab === 'base'">
+            <div class="c-section">
+              <div class="c-section-title">Основные параметры</div>
+              <div class="q4-mdc-field c-full" [class.has-value]="hint.name">
+                <input class="q4-mdc-input" [value]="hint.name" (input)="hint.name = $any($event.target).value" />
+                <label class="q4-mdc-label">Наименование *</label>
+              </div>
+              <div class="c-field-grid">
+                <div class="q4-mdc-field" [class.has-value]="hint.from">
+                  <input class="q4-mdc-input" type="date" [value]="hint.from" (input)="hint.from = $any($event.target).value" />
+                  <label class="q4-mdc-label">Дата начала</label>
+                </div>
+                <div class="q4-mdc-field" [class.has-value]="hint.to">
+                  <input class="q4-mdc-input" type="date" [value]="hint.to" (input)="hint.to = $any($event.target).value" />
+                  <label class="q4-mdc-label">Дата окончания</label>
+                </div>
+                <div class="q4-mdc-field" [class.has-value]="true">
+                  <input class="q4-mdc-input" type="time" [value]="hint.timeFrom" (input)="hint.timeFrom = $any($event.target).value" />
+                  <label class="q4-mdc-label">Время начала</label>
+                </div>
+                <div class="q4-mdc-field" [class.has-value]="true">
+                  <input class="q4-mdc-input" type="time" [value]="hint.timeTo" (input)="hint.timeTo = $any($event.target).value" />
+                  <label class="q4-mdc-label">Время окончания</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="c-section">
+              <div class="c-section-title">Связка блюд</div>
+              <div class="c-link-row">
+                <div class="c-link-card">
+                  <div class="c-link-card-head">
+                    При выборе (триггеры)
+                    <span class="c-link-count">{{ triggers.length }}</span>
+                  </div>
+                  <div class="c-trigger-item" *ngFor="let t of triggers; let i = index">
+                    <lucide-icon name="coffee" [size]="14"></lucide-icon>
+                    {{ t }}
+                    <button class="q4-chip-x" (click)="triggers.splice(i, 1)" aria-label="Удалить триггер">
+                      <lucide-icon name="x" [size]="12"></lucide-icon>
+                    </button>
+                  </div>
+                  <div class="c-empty-sm" *ngIf="triggers.length === 0">Нет триггеров</div>
+                  <button class="q4-btn q4-btn-outline q4-btn-sm" (click)="pickerMode = 'trigger'; pickerOpen = !pickerOpen">Добавить триггер</button>
+                </div>
+                <lucide-icon name="arrow-right" [size]="18" class="c-link-arrow"></lucide-icon>
+                <div class="c-link-card">
+                  <div class="c-link-card-head">Рекомендовать</div>
+                  <div class="c-rec-selected" *ngIf="recommendation">{{ recommendation }}</div>
+                  <div class="c-empty-sm" *ngIf="!recommendation">Не выбрано</div>
+                  <button class="q4-btn q4-btn-outline q4-btn-sm" (click)="pickerMode = 'recommend'; pickerOpen = !pickerOpen">Выбрать блюдо</button>
+                </div>
+              </div>
+
+              <div class="c-picker" *ngIf="pickerOpen">
+                <div class="c-picker-item" *ngFor="let d of dishes" (click)="pickDish(d)">
+                  <lucide-icon name="coffee" [size]="14"></lucide-icon>
+                  {{ d }}
+                </div>
+              </div>
+            </div>
+
+            <div class="c-section">
+              <div class="c-section-title">Слоган рекомендации</div>
+              <textarea
+                class="c-textarea"
+                rows="3"
+                placeholder="Не забудьте купить пирожок! При покупке с кофе — скидка 15%"
+                [value]="hint.slogan"
+                (input)="hint.slogan = $any($event.target).value"
+              ></textarea>
+            </div>
+
+            <div class="c-section">
+              <div class="c-section-title">Скидка</div>
+              <div class="c-radio-row">
+                <label class="c-radio-item" [class.active]="hint.discountType === 'percent'">
+                  <input type="radio" name="dtype" [checked]="hint.discountType === 'percent'" (change)="hint.discountType = 'percent'" />
+                  Процент (%)
+                </label>
+                <label class="c-radio-item" [class.active]="hint.discountType === 'fixed'">
+                  <input type="radio" name="dtype" [checked]="hint.discountType === 'fixed'" (change)="hint.discountType = 'fixed'" />
+                  Фиксированная сумма
+                </label>
+              </div>
+              <div class="c-discount-row">
+                <div class="q4-mdc-field c-w-discount" [class.has-value]="true">
+                  <input class="q4-mdc-input" type="number" [value]="hint.discountValue" (input)="hint.discountValue = +$any($event.target).value" />
+                  <label class="q4-mdc-label">Размер скидки</label>
+                </div>
+                <span class="c-discount-suffix" *ngIf="hint.discountType === 'percent'">%</span>
+                <select class="c-select" [value]="hint.discount" (change)="hint.discount = $any($event.target).value">
+                  <option *ngFor="let d of discounts" [value]="d">{{ d }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="c-section">
+              <div class="c-section-title">Контрол подсказки</div>
+              <select class="c-select c-full">
+                <option>Стандартный контрол</option>
+                <option>Контрол «Акция дня»</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="c-drawer-body" *ngIf="drawerTab === 'where'">
+            <div class="c-where-head">
+              <span class="c-where-hint">Назначения подсказки на устройства и способы показа</span>
+              <button class="q4-btn q4-btn-primary" (click)="openWizard()">
+                <lucide-icon name="plus" [size]="16"></lucide-icon>
+                Добавить назначение
+              </button>
+            </div>
+
+            <div class="c-where-empty" *ngIf="assignments.length === 0">
+              Назначений пока нет — нажмите «Добавить назначение».
+            </div>
+
+            <div class="c-assign-row" *ngFor="let a of assignments">
+              <lucide-icon [name]="productIcon(a.product)" [size]="18" class="c-assign-icon"></lucide-icon>
+              <div class="c-assign-main">
+                <div class="c-assign-name">{{ a.terminal }}</div>
+                <div class="c-assign-meta">{{ a.productLabel }} · способ показа: {{ a.mode }}</div>
+              </div>
+              <button class="q4-icon-btn" (click)="removeAssignment(a)" aria-label="Удалить назначение">
+                <lucide-icon name="trash-2" [size]="16"></lucide-icon>
+              </button>
+            </div>
+
+            <div class="q4-note">
+              <lucide-icon name="info" [size]="15"></lucide-icon>
+              Для Customer Screen мастер пишет в существующую колонку «Подсказки» настройки терминалов. Для Kiosk назначение поверх готового
+              backend-маппинга — плюс достройка транспорта конфигурации до киоска (открытая задача).
+            </div>
+          </div>
+
+          <div class="c-drawer-foot">
+            <button class="q4-btn q4-btn-outline" (click)="drawerOpen = false">Отмена</button>
+            <button class="q4-btn q4-btn-primary" [disabled]="!hint.name.trim()" (click)="saveHint()">
+              <lucide-icon name="save" [size]="16"></lucide-icon>
+              Сохранить
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Мастер «Где показывать» -->
+      <div class="q4-overlay c-wizard-overlay" *ngIf="wizardOpen" (click)="wizardOpen = false">
+        <div class="q4-dialog c-wizard-dialog" (click)="$event.stopPropagation()">
+          <div class="q4-dialog-head">
+            <span class="q4-dialog-head-title">Где показывать — новое назначение</span>
+            <button class="q4-icon-btn" (click)="wizardOpen = false" aria-label="Закрыть">
+              <lucide-icon name="x" [size]="18"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="c-stepper">
+            <span class="c-step" [class.active]="step >= 1">1. Продукт</span>
+            <span class="c-step-arrow">→</span>
+            <span class="c-step" [class.active]="step >= 2">2. Точка / терминал</span>
+            <span class="c-step-arrow">→</span>
+            <span class="c-step" [class.active]="step >= 3">3. Способ показа</span>
+          </div>
+
+          <div class="q4-dialog-body">
+            <div *ngIf="step === 1" class="c-step-grid">
               <button
-                class="t-product-tile"
+                class="c-product-tile"
                 [class.selected]="wProduct?.id === p.id"
                 *ngFor="let p of products"
                 (click)="wProduct = p"
@@ -126,8 +299,8 @@ const HINT_TERMINALS: { id: string; label: string; product: string }[] = [
             </div>
 
             <div *ngIf="step === 2">
-              <div class="t-checkbox" *ngFor="let t of filteredTerminals">
-                <label class="t-checkbox-label">
+              <div class="c-check" *ngFor="let t of filteredTerminals">
+                <label class="c-check-label">
                   <input type="checkbox" [checked]="wTerminals.includes(t.id)" (change)="toggleTerminal(t.id)" />
                   {{ t.label }}
                 </label>
@@ -135,8 +308,8 @@ const HINT_TERMINALS: { id: string; label: string; product: string }[] = [
             </div>
 
             <div *ngIf="step === 3">
-              <div class="t-radio" *ngFor="let m of wProduct?.modes || []">
-                <label class="t-checkbox-label">
+              <div class="c-check" *ngFor="let m of wProduct?.modes || []">
+                <label class="c-check-label">
                   <input type="radio" name="mode" [value]="m" [checked]="wMode === m" (change)="wMode = m" />
                   {{ m }}
                 </label>
@@ -144,171 +317,392 @@ const HINT_TERMINALS: { id: string; label: string; product: string }[] = [
             </div>
           </div>
 
-          <div class="t-modal-foot">
-            <button class="t-btn" *ngIf="step > 1" (click)="step = step - 1">Назад</button>
-            <button class="t-btn t-btn-primary" *ngIf="step < 3" (click)="nextStep()" [disabled]="!canNext()">Далее</button>
-            <button class="t-btn t-btn-primary" *ngIf="step === 3" (click)="finishWizard()" [disabled]="!wMode">Готово</button>
+          <div class="q4-dialog-foot">
+            <button class="q4-btn q4-btn-outline" *ngIf="step > 1" (click)="step = step - 1">Назад</button>
+            <button class="q4-btn q4-btn-primary" *ngIf="step < 3" (click)="nextStep()" [disabled]="!canNext()">Далее</button>
+            <button class="q4-btn q4-btn-primary" *ngIf="step === 3" (click)="finishWizard()" [disabled]="!wMode">Готово</button>
           </div>
         </div>
       </div>
 
-      <div class="t-snack" *ngIf="snack">
+      <!-- Удалить -->
+      <div class="q4-overlay c-wizard-overlay" *ngIf="deleteTarget" (click)="deleteTarget = null">
+        <div class="q4-dialog q4-dialog-sm" (click)="$event.stopPropagation()">
+          <div class="q4-dialog-title">Удалить подсказку «{{ deleteTarget.name }}»?</div>
+          <div class="q4-dialog-text">Подсказка будет снята со всех терминалов.</div>
+          <div class="q4-dialog-actions">
+            <button class="q4-btn q4-btn-outline" (click)="deleteTarget = null">Отмена</button>
+            <button class="q4-btn q4-btn-primary" (click)="confirmDelete()">Да</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Тост -->
+      <div class="q4-toast" *ngIf="snack">
         <lucide-icon name="check-circle" [size]="16"></lucide-icon>
         {{ snack }}
       </div>
     </div>
   `,
   styles: [
+    Q4_COMMON_STYLES,
     `
       :host { display: block; }
-      .t-container { max-width: 1100px; margin: 0 auto; padding: 24px; font-family: Roboto, sans-serif; }
-      .t-card {
-        background: var(--dt-surface-primary);
-        border: 1px solid var(--dt-stroke-default);
-        border-radius: 4px;
-        box-shadow: var(--dt-shadow-sl);
+      .c-container { max-width: 1200px; margin: 0 auto; padding: 20px 24px; font-family: Roboto, sans-serif; }
+
+      .c-row-click { cursor: pointer; }
+      .c-row-selected td { background: #F5F5F5; }
+      .c-td-name { font-weight: 500; }
+
+      /* Drawer */
+      .c-drawer-overlay { background: rgba(0,0,0,.35); justify-content: flex-end; }
+      .c-drawer {
+        width: 640px;
+        max-width: calc(100vw - 32px);
+        height: 100%;
+        background: #FFFFFF;
+        box-shadow: 0 8px 32px 8px rgba(33,33,33,.16);
+        display: flex;
+        flex-direction: column;
+        animation: c-slide-in 0.18s ease-out;
       }
-      .t-card-head { display: flex; align-items: baseline; gap: 6px; padding: 16px 20px 0; }
-      .t-crumb { font-size: 12px; color: var(--dt-text-disable); }
-      .t-card-title { font-size: 18px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-tabs { display: flex; border-bottom: 1px solid var(--dt-stroke-default); padding: 0 20px; margin-top: 12px; }
-      .t-tab {
+      @keyframes c-slide-in {
+        from { transform: translateX(40px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      .c-drawer-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 20px;
+        border-bottom: 1px solid #E0E0E0;
+        flex-shrink: 0;
+      }
+      .c-drawer-title { font-size: 16px; font-weight: 500; color: #333333; }
+      .c-drawer-tabs { display: flex; border-bottom: 1px solid #E0E0E0; padding: 0 20px; flex-shrink: 0; }
+      .c-drawer-tab {
         position: relative;
         border: none; background: transparent;
         padding: 12px 16px;
         font-size: 13px;
-        color: rgba(0, 0, 0, 0.54);
+        color: rgba(0,0,0,.54);
         cursor: pointer;
         font-family: Roboto, sans-serif;
       }
-      .t-tab.active { color: var(--dt-brand-accent); font-weight: 500; }
-      .t-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--dt-brand-accent); }
-      .t-tab-count {
+      .c-drawer-tab.active { color: #448AFF; font-weight: 500; }
+      .c-drawer-tab.active::after {
+        content: '';
+        position: absolute; left: 0; right: 0; bottom: -1px;
+        height: 2px; background: #448AFF;
+      }
+      .c-tab-count {
         display: inline-block; min-width: 18px;
-        font-size: 11px; color: var(--dt-text-inversive);
-        background: var(--dt-brand-accent); border-radius: 999px;
+        font-size: 11px; color: #FFFFFF;
+        background: #448AFF; border-radius: 999px;
         padding: 1px 5px; margin-left: 4px;
       }
-      .t-body { padding: 16px 20px 20px; }
-      .t-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-      .t-list-hint { font-size: 12px; color: var(--dt-text-secondary); }
+      .c-drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+      .c-drawer-foot {
+        display: flex; justify-content: flex-end; gap: 8px;
+        padding: 12px 20px;
+        border-top: 1px solid #E0E0E0;
+        background: #FAFAFA;
+        flex-shrink: 0;
+      }
 
-      .t-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        height: 36px; padding: 0 16px;
+      .c-section { margin-bottom: 20px; }
+      .c-section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; color: #424242; margin-bottom: 10px; letter-spacing: 0.3px; }
+      .c-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+      .c-full { width: 100%; }
+      .c-w-discount { width: 120px; }
+
+      .c-link-row { display: flex; align-items: flex-start; gap: 12px; }
+      .c-link-arrow { color: #9E9E9E; margin-top: 26px; flex-shrink: 0; }
+      .c-link-card {
+        flex: 1;
+        border: 1px solid #E0E0E0;
         border-radius: 4px;
+        padding: 10px 12px;
+        display: flex; flex-direction: column; gap: 8px;
+      }
+      .c-link-card-head { font-size: 12px; color: #616161; display: flex; align-items: center; gap: 8px; }
+      .c-link-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 20px; height: 20px;
+        font-size: 11px; font-weight: 500;
+        color: #FFFFFF; background: #448AFF;
+        border-radius: 999px; padding: 0 6px;
+      }
+      .c-trigger-item {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; color: #333333;
+        padding: 6px 8px;
+        background: #F5F5F5;
+        border-radius: 4px;
+      }
+      .c-trigger-item lucide-icon:first-child { color: #616161; }
+      .c-trigger-item .q4-chip-x { margin-left: auto; }
+      .c-empty-sm { font-size: 12px; color: #9E9E9E; }
+      .c-rec-selected {
         font-size: 13px; font-weight: 500;
-        border: 1px solid var(--dt-stroke-default);
-        background: var(--dt-surface-primary);
-        color: var(--dt-text-primary);
-        cursor: pointer;
-        font-family: Roboto, sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 0.2px;
+        color: #1565C0; background: #E3F2FD;
+        border-radius: 4px; padding: 6px 8px;
       }
-      .t-btn:hover:not(:disabled) { background: #FAFAFA; }
-      .t-btn-primary { background: #448AFF; border-color: #448AFF; color: #FFFFFF; }
-      .t-btn-primary:hover:not(:disabled) { background: #3969D5; }
-      .t-btn:disabled { background: #EBEBEB; color: #9E9E9E; border-color: #EBEBEB; cursor: default; }
-      .t-icon-btn {
-        display: flex; align-items: center; justify-content: center;
-        width: 32px; height: 32px;
-        border: none; background: transparent; border-radius: 4px;
-        color: var(--dt-icon-primary); cursor: pointer;
-      }
-      .t-icon-btn:hover { background: #EBEBEB; }
 
-      .t-empty { font-size: 13px; color: var(--dt-text-disable); padding: 24px 0; text-align: center; }
-      .t-assign-row {
+      .c-picker {
+        margin-top: 8px;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        max-height: 220px;
+        overflow-y: auto;
+      }
+      .c-picker-item {
+        display: flex; align-items: center; gap: 8px;
+        height: 40px; padding: 0 12px;
+        font-size: 13px; color: #333333;
+        cursor: pointer;
+      }
+      .c-picker-item:hover { background: #F5F5F5; }
+      .c-picker-item lucide-icon { color: #616161; }
+
+      .c-textarea {
+        width: 100%;
+        border: 1px solid rgba(0,0,0,.23);
+        border-radius: 4px;
+        padding: 10px 12px;
+        font-family: Roboto, sans-serif;
+        font-size: 13px;
+        color: #212121;
+        resize: vertical;
+        outline: none;
+      }
+      .c-textarea:focus { border: 2px solid #448AFF; }
+
+      .c-radio-row { display: flex; gap: 20px; margin-bottom: 12px; }
+      .c-radio-item {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; color: #333333;
+        cursor: pointer;
+        padding: 6px 10px;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+      }
+      .c-radio-item.active { border-color: #448AFF; background: #E3F2FD; color: #1565C0; }
+      .c-radio-item input { accent-color: #448AFF; }
+      .c-discount-row { display: flex; align-items: center; gap: 12px; }
+      .c-discount-suffix { font-size: 14px; color: #616161; }
+      .c-select {
+        height: 36px;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        padding: 0 10px;
+        font-family: Roboto, sans-serif;
+        font-size: 13px;
+        color: #333333;
+        background: #FFFFFF;
+        outline: none;
+        min-width: 200px;
+      }
+      .c-select.c-full { width: 100%; }
+
+      /* Где показывать */
+      .c-where-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+      .c-where-hint { font-size: 12px; color: #616161; }
+      .c-where-empty { font-size: 13px; color: #9E9E9E; padding: 24px 0; text-align: center; }
+      .c-assign-row {
         display: flex; align-items: center; gap: 12px;
-        border: 1px solid var(--dt-stroke-default);
+        border: 1px solid #E0E0E0;
         border-radius: 4px;
         padding: 10px 14px;
         margin-bottom: 8px;
-        background: var(--dt-surface-variant);
+        background: #F8F9FC;
       }
-      .t-assign-icon { color: var(--dt-brand-accent); flex-shrink: 0; }
-      .t-assign-main { flex: 1; min-width: 0; }
-      .t-assign-name { font-size: 13px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-assign-meta { font-size: 12px; color: var(--dt-text-secondary); margin-top: 2px; }
+      .c-assign-icon { color: #448AFF; flex-shrink: 0; }
+      .c-assign-main { flex: 1; min-width: 0; }
+      .c-assign-name { font-size: 13px; font-weight: 500; color: #333333; }
+      .c-assign-meta { font-size: 12px; color: #616161; margin-top: 2px; }
 
-      .t-note {
-        margin-top: 14px;
-        display: flex; align-items: flex-start; gap: 8px;
-        font-size: 12px; color: var(--dt-text-secondary);
-        background: var(--dt-brand-accent-lightest);
-        border-radius: 4px; padding: 10px 12px;
-      }
-      .t-field-row { display: flex; gap: 12px; padding: 8px 0; font-size: 13px; color: var(--dt-text-primary); border-bottom: 1px solid var(--dt-stroke-disable); }
-      .t-field-label { width: 180px; color: var(--dt-text-secondary); flex-shrink: 0; }
-
-      .t-overlay {
-        position: fixed; inset: 0;
-        background: rgba(33, 33, 33, 0.4);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 200;
-      }
-      .t-modal {
-        width: 540px; max-width: calc(100vw - 32px);
-        background: var(--dt-surface-primary);
-        border-radius: 4px;
-        box-shadow: var(--dt-shadow-xl);
-      }
-      .t-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--dt-stroke-default); }
-      .t-modal-title { font-size: 15px; font-weight: 500; color: var(--dt-text-primary); }
-      .t-stepper { display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 12px; }
-      .t-step { color: var(--dt-text-disable); }
-      .t-step.active { color: var(--dt-brand-accent); font-weight: 500; }
-      .t-step-arrow { color: var(--dt-text-disable); }
-      .t-modal-body { padding: 8px 20px 16px; min-height: 170px; }
-      .t-step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .t-product-tile {
+      /* Мастер */
+      .c-wizard-overlay { z-index: 2100; }
+      .c-wizard-dialog { width: 540px; max-width: calc(100vw - 32px); }
+      .c-stepper { display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 12px; border-bottom: 1px solid #E0E0E0; }
+      .c-step { color: #9E9E9E; }
+      .c-step.active { color: #448AFF; font-weight: 500; }
+      .c-step-arrow { color: #9E9E9E; }
+      .c-step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .c-product-tile {
         display: flex; align-items: center; gap: 10px;
-        border: 1px solid var(--dt-stroke-default);
+        border: 1px solid #E0E0E0;
         border-radius: 4px;
-        background: var(--dt-surface-primary);
+        background: #FFFFFF;
         padding: 14px;
         font-size: 13px; font-weight: 500;
-        color: var(--dt-text-primary);
+        color: #333333;
         cursor: pointer;
         font-family: Roboto, sans-serif;
       }
-      .t-product-tile:hover { background: var(--dt-surface-hover); }
-      .t-product-tile.selected { border-color: var(--dt-brand-accent); background: var(--dt-brand-accent-lighter); color: var(--dt-brand-accent-dark); }
-      .t-checkbox, .t-radio { padding: 7px 0; }
-      .t-checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--dt-text-primary); cursor: pointer; }
+      .c-product-tile:hover { background: #F5F5F5; }
+      .c-product-tile.selected { border-color: #448AFF; background: #F0F5FF; color: #2651B5; }
+      .c-check { padding: 7px 0; }
+      .c-check-label { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #333333; cursor: pointer; }
       input[type='checkbox'], input[type='radio'] { accent-color: #448AFF; width: 16px; height: 16px; }
-      .t-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--dt-stroke-default); }
-
-      .t-snack {
-        position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-        display: flex; align-items: center; gap: 8px;
-        background: var(--dt-surface-snack-tooltip);
-        color: #FFFFFF; font-size: 13px;
-        border-radius: 4px; padding: 10px 16px;
-        box-shadow: var(--dt-shadow-m);
-        z-index: 300;
-        animation: fade-in-up 0.25s ease-out;
-      }
-      @keyframes fade-in-up {
-        from { opacity: 0; transform: translate(-50%, 8px); }
-        to { opacity: 1; transform: translate(-50%, 0); }
-      }
     `,
   ],
 })
 export class Task21HintsScreenComponent {
-  hintName = HINT_NAME;
-  assignments: HintAssignment[] = HINT_ASSIGNMENTS.map(a => ({ ...a }));
-  products: WizardHintProduct[] = HINT_PRODUCTS;
+  hints: Q4Hint[] = Q4_HINTS.map(h => ({ ...h }));
+  selectedId: number | null = null;
 
-  tab = 'where';
+  dishes = Q4_DISHES;
+  discounts = Q4_DISCOUNTS;
+
+  drawerOpen = false;
+  drawerTab: 'base' | 'where' = 'base';
+  isNewHint = false;
+  editingId: number | null = null;
+  hint = this.emptyHint();
+
+  triggers: string[] = ['Капучино'];
+  recommendation = 'Пирожок с вишней';
+  pickerOpen = false;
+  pickerMode: 'trigger' | 'recommend' = 'trigger';
+
+  assignments: HintAssignment[] = HINT_ASSIGNMENTS.map(a => ({ ...a }));
+
+  products: WizardHintProduct[] = HINT_PRODUCTS;
   wizardOpen = false;
   step = 1;
   wProduct: WizardHintProduct | null = null;
   wTerminals: string[] = [];
   wMode = '';
+
+  deleteTarget: Q4Hint | null = null;
   snack = '';
+
+  crumbs = [{ label: 'Экраны и звуки' }, { label: 'Подсказки' }];
+
+  private emptyHint() {
+    return {
+      name: '',
+      from: '2026-09-11',
+      to: '2026-10-11',
+      timeFrom: '07:00',
+      timeTo: '12:00',
+      slogan: '',
+      discountType: 'percent' as 'percent' | 'fixed',
+      discountValue: 20,
+      discount: Q4_DISCOUNTS[0],
+    };
+  }
+
+  statusLabel(status: string): string {
+    if (status === 'active') return 'Активна';
+    if (status === 'scheduled') return 'Запланирована';
+    return 'Истекла';
+  }
+
+  statusBadge(status: string): string {
+    if (status === 'active') return 'q4-badge-active';
+    if (status === 'scheduled') return 'q4-badge-scheduled';
+    return 'q4-badge-expired';
+  }
+
+  selectRow(h: Q4Hint): void {
+    this.selectedId = h.id;
+  }
+
+  openNew(): void {
+    this.isNewHint = true;
+    this.editingId = null;
+    this.hint = this.emptyHint();
+    this.triggers = [];
+    this.recommendation = '';
+    this.drawerTab = 'base';
+    this.drawerOpen = true;
+  }
+
+  openEditor(h: Q4Hint): void {
+    this.isNewHint = false;
+    this.editingId = h.id;
+    this.selectedId = h.id;
+    this.hint = {
+      name: h.name,
+      from: h.from.split('.').reverse().join('-'),
+      to: h.to.split('.').reverse().join('-'),
+      timeFrom: h.timeFrom,
+      timeTo: h.timeTo,
+      slogan: '',
+      discountType: 'percent',
+      discountValue: 20,
+      discount: Q4_DISCOUNTS[0],
+    };
+    this.triggers = ['Капучино'];
+    this.recommendation = 'Пирожок с вишней';
+    this.drawerTab = 'base';
+    this.drawerOpen = true;
+  }
+
+  saveHint(): void {
+    if (this.isNewHint) {
+      const id = this.hints.length ? Math.max(...this.hints.map(h => h.id)) + 1 : 1;
+      this.hints.unshift({
+        id,
+        name: this.hint.name.trim(),
+        from: this.hint.from.split('-').reverse().join('.'),
+        to: this.hint.to.split('-').reverse().join('.'),
+        timeFrom: this.hint.timeFrom,
+        timeTo: this.hint.timeTo,
+        status: 'scheduled',
+      });
+      this.isNewHint = false;
+    } else if (this.editingId !== null) {
+      const h = this.hints.find(x => x.id === this.editingId);
+      if (h) {
+        h.name = this.hint.name.trim();
+        h.from = this.hint.from.split('-').reverse().join('.');
+        h.to = this.hint.to.split('-').reverse().join('.');
+        h.timeFrom = this.hint.timeFrom;
+        h.timeTo = this.hint.timeTo;
+      }
+    }
+    this.drawerOpen = false;
+    this.showSnack('Сохранено');
+  }
+
+  duplicateHint(): void {
+    if (this.selectedId === null) {
+      this.showSnack('Выберите подсказку для дублирования');
+      return;
+    }
+    const src = this.hints.find(h => h.id === this.selectedId);
+    if (!src) return;
+    const id = this.hints.length ? Math.max(...this.hints.map(h => h.id)) + 1 : 1;
+    this.hints.unshift({ ...src, id, name: src.name + ' (копия)', status: 'scheduled' });
+    this.showSnack('Создана копия');
+  }
+
+  deleteHint(): void {
+    if (this.selectedId !== null) {
+      const h = this.hints.find(x => x.id === this.selectedId);
+      if (h) this.deleteTarget = h;
+    }
+  }
+
+  confirmDelete(): void {
+    if (this.deleteTarget) {
+      this.hints = this.hints.filter(x => x.id !== this.deleteTarget!.id);
+    }
+    this.deleteTarget = null;
+    this.showSnack('Удалено');
+  }
+
+  pickDish(d: string): void {
+    if (this.pickerMode === 'trigger') {
+      if (!this.triggers.includes(d)) this.triggers.push(d);
+    } else {
+      this.recommendation = d;
+    }
+    this.pickerOpen = false;
+  }
 
   productIcon(product: string): string {
     return product === 'kiosk' ? 'monitor-smartphone' : 'monitor';
@@ -371,8 +765,8 @@ export class Task21HintsScreenComponent {
     this.showSnack('Назначение удалено');
   }
 
-  private showSnack(text: string): void {
+  showSnack(text: string): void {
     this.snack = text;
-    setTimeout(() => (this.snack = ''), 2200);
+    setTimeout(() => (this.snack = ''), 2500);
   }
 }

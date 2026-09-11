@@ -12,6 +12,7 @@ import {
   Q4Campaign,
   Q4CampaignMedia,
   Q4GalleryFile,
+  Q4Hint,
 } from '../types';
 
 /** Цели Q4 — карта для обзора */
@@ -366,3 +367,15 @@ export const Q4_GALLERY_FILES: Q4GalleryFile[] = [
 /** Режимы экранов кампании (селектор «+») */
 export const Q4_STANDARD_MODES: string[] = ['Экран оплаты', 'Экран завершения', 'Касса не работает'];
 export const Q4_CUSTOM_MODES: string[] = ['A1 — Режим доставки', 'A2 — Экран посадки'];
+
+/** Подсказки (реплика стенда, 2.1) */
+export const Q4_HINTS: Q4Hint[] = [
+  { id: 1, name: 'Пирожок дня', from: '01.09.2026', to: '30.09.2026', timeFrom: '07:00', timeTo: '12:00', status: 'active' },
+  { id: 2, name: 'Test create', from: '11.01.2030', to: '11.01.2030', timeFrom: '00:00', timeTo: '23:59', status: 'scheduled' },
+  { id: 3, name: 'подсказка новая', from: '01.06.2026', to: '30.06.2026', timeFrom: '12:00', timeTo: '00:00', status: 'expired' },
+  { id: 4, name: 'Test KD', from: '01.08.2026', to: '15.08.2026', timeFrom: '09:00', timeTo: '21:00', status: 'expired' },
+];
+
+export const Q4_DISHES: string[] = ['Капучино', 'Латте', 'Круассан', 'Сэндвич с курицей', 'Салат Цезарь', 'Пирожок с вишней'];
+
+export const Q4_DISCOUNTS: string[] = ['Скидка на кофе (10%)', 'Скидка на десерты (15%)', 'Скидка на выпечку (20%)'];
