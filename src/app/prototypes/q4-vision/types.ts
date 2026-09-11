@@ -144,3 +144,10 @@ export interface Q4Hint {
   timeTo: string;
   status: 'active' | 'scheduled' | 'expired';
 }
+
+export interface Q4ThemeRow {
+  id: number;
+  name: string;
+  resolution: string;
+  created: string;
+}

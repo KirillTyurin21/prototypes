@@ -13,6 +13,7 @@ import {
   Q4CampaignMedia,
   Q4GalleryFile,
   Q4Hint,
+  Q4ThemeRow,
 } from '../types';
 
 /** Цели Q4 — карта для обзора */
@@ -379,3 +380,10 @@ export const Q4_HINTS: Q4Hint[] = [
 export const Q4_DISHES: string[] = ['Капучино', 'Латте', 'Круассан', 'Сэндвич с курицей', 'Салат Цезарь', 'Пирожок с вишней'];
 
 export const Q4_DISCOUNTS: string[] = ['Скидка на кофе (10%)', 'Скидка на десерты (15%)', 'Скидка на выпечку (20%)'];
+
+/** Справочник тем (3.1) */
+export const Q4_THEMES: Q4ThemeRow[] = [
+  { id: 1, name: 'Кофейня', resolution: '1024x768', created: '02.09.2026' },
+  { id: 2, name: 'Фастфуд', resolution: '1920x1080', created: '15.08.2026' },
+  { id: 3, name: 'Пиццерия', resolution: '1024x768', created: '01.07.2026' },
+];
