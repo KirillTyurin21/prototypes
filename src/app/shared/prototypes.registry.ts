@@ -23,6 +23,13 @@ export const PROTOTYPES: PrototypeEntry[] = [
     category: 'web',
   },
   {
+    path: '/prototype/q4-vision',
+    label: 'Демо Q4 — Целевое видение',
+    icon: 'lightbulb',
+    description: 'Демо целевого видения задач Q4: отдельный раздел на каждую задачу планирования',
+    category: 'web',
+  },
+  {
     path: '/prototype/web-settings',
     label: 'Общие настройки',
     icon: 'settings',

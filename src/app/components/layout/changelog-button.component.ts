@@ -115,6 +115,8 @@ export class ChangelogButtonComponent {
         return import('../../prototypes/front-plugins/changelog.data');
       case 'web-screens':
         return import('../../prototypes/web-screens/changelog.data');
+      case 'q4-vision':
+        return import('../../prototypes/q4-vision/changelog.data');
       case 'web-settings':
         return import('../../prototypes/web-settings/changelog.data');
       case 'eagle':
