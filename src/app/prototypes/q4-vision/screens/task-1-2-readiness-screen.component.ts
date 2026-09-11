@@ -120,8 +120,8 @@ import { ReadinessRow } from '../types';
           </div>
           <div class="c-shot-body">
             <div class="c-shot-screen">
-              <div class="c-shot-block" style="background: #448AFF"></div>
-              <div class="c-shot-block" style="background: #FFAB40"></div>
+              <div class="c-shot-block c-shot-blue"></div>
+              <div class="c-shot-block c-shot-orange"></div>
               <div class="c-shot-placeholder">«Здесь может быть ваше изображение или видео»</div>
             </div>
             <div class="c-shot-meta">
@@ -208,6 +208,8 @@ import { ReadinessRow } from '../types';
         flex-shrink: 0;
       }
       .c-shot-block { height: 28px; border-radius: 4px; }
+      .c-shot-blue { background: #448AFF; }
+      .c-shot-orange { background: #FFAB40; }
       .c-shot-placeholder {
         margin-top: auto;
         background: rgba(255,255,255,.68);
